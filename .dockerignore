@@ -1,0 +1,66 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+!README.md
+LICENSE
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+web/build/
+web/*/build/
+web/node_modules/
+web/*/node_modules/
+
+# Go build output
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go-build-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+
+# Test coverage
+coverage.txt
+*.cover
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+Jenkinsfile
+
+# Development files
+*.sql
+*.db
+
+# Frontend build tools
+web/default/node_modules/
+web/berry/node_modules/
+web/air/node_modules/

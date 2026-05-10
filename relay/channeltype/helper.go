@@ -1,0 +1,55 @@
+﻿package channeltype
+
+import "github.com/quantumclaw/quantumclaw/relay/apitype"
+
+func ToAPIType(channelType int) int {
+	apiType := apitype.OpenAI
+	switch channelType {
+	case Anthropic:
+		apiType = apitype.Anthropic
+	case Baidu:
+		apiType = apitype.Baidu
+	case PaLM:
+		apiType = apitype.PaLM
+	case Zhipu:
+		apiType = apitype.Zhipu
+	case Ali:
+		apiType = apitype.Ali
+	case Xunfei:
+		apiType = apitype.Xunfei
+	case AIProxyLibrary:
+		apiType = apitype.AIProxyLibrary
+	case Tencent:
+		apiType = apitype.Tencent
+	case Gemini:
+		apiType = apitype.Gemini
+	case Ollama:
+		apiType = apitype.Ollama
+	case AwsClaude:
+		apiType = apitype.AwsClaude
+	case Coze:
+		apiType = apitype.Coze
+	case Cohere:
+		apiType = apitype.Cohere
+	case Cloudflare:
+		apiType = apitype.Cloudflare
+	case DeepL:
+		apiType = apitype.DeepL
+	case VertextAI:
+		apiType = apitype.VertexAI
+	case Replicate:
+		apiType = apitype.Replicate
+	case Proxy:
+		apiType = apitype.Proxy
+	// ==================== QuantumClaw 新增：OpenAI-Compatible 渠道 ====================
+	// 以下渠道均为 OpenAI 兼容协议，共用 openai.Adaptor
+	case DeepSeek, Doubao, Minimax, Groq, Mistral, Novita,
+		Baichuan, Moonshot, LingYiWanWu, StepFun,
+		TogetherAI, SiliconFlow, XAI,
+		BaiduV2, XunfeiV2, AliBailian,
+		OpenRouter, GeminiOpenAICompatible, OpenAICompatible:
+		apiType = apitype.OpenAI
+	}
+
+	return apiType
+}
