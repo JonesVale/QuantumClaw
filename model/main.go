@@ -214,6 +214,14 @@ func migrateDB() error {
 	if err = DB.AutoMigrate(&RssArticle{}); err != nil {
 		return err
 	}
+	// 交易审计日志
+	if err = DB.AutoMigrate(&TransactionLog{}); err != nil {
+		return err
+	}
+	// 用户通知
+	if err = DB.AutoMigrate(&Notification{}); err != nil {
+		return err
+	}
 	return nil
 }
 

@@ -56,7 +56,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.POST("/webauthn/register/finish", middleware.CriticalRateLimit(), auth.WebAuthnFinishRegistration)
 		apiRouter.POST("/webauthn/login/begin", middleware.CriticalRateLimit(), auth.WebAuthnBeginAuthentication)
 		apiRouter.POST("/webauthn/login/finish", middleware.CriticalRateLimit(), auth.WebAuthnFinishAuthentication)
-		apiRouter.POST("/topup", middleware.AdminAuth(), controller.AdminTopUp)
+		apiRouter.POST("/topup", middleware.AdminAuth(), middleware.RequirePaymentAuth(), controller.AdminTopUp)
 
 		userRoute := apiRouter.Group("/user")
 		{
@@ -92,6 +92,14 @@ func SetApiRouter(router *gin.Engine) {
 
 				selfRoute.GET("/webauthn/credentials", auth.WebAuthnGetCredentials)
 				selfRoute.DELETE("/webauthn/credentials/:id", auth.WebAuthnDeleteCredential)
+
+				selfRoute.GET("/transaction_logs", controller.GetTransactionLogs)
+				selfRoute.GET("/security/activity", controller.GetSecurityActivity)
+
+				selfRoute.GET("/notifications", controller.GetNotifications)
+				selfRoute.GET("/notifications/unread_count", controller.GetUnreadNotificationCount)
+				selfRoute.PUT("/notifications/:id/read", controller.MarkNotificationRead)
+				selfRoute.PUT("/notifications/read_all", controller.MarkAllNotificationsRead)
 			}
 
 			adminRoute := userRoute.Group("/")

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common"
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -322,7 +323,11 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 		return errors.New("订单号不能为空")
 	}
 	
-	return DB.Transaction(func(tx *gorm.DB) error {
+	var topUpUserId int
+	var topUpAmount float64
+	var beforeQuota int64
+	
+	err := DB.Transaction(func(tx *gorm.DB) error {
 		// 使用悲观锁锁定订单
 		var topUp TopUp
 		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("trade_no = ?", tradeNo).First(&topUp).Error; err != nil {
@@ -339,6 +344,13 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 			return ErrPaymentMethodMismatch
 		}
 		
+		// 获取当前用户配额（before）
+		var user User
+		if err := tx.Where("id = ?", topUp.UserId).First(&user).Error; err != nil {
+			return err
+		}
+		beforeQuota = user.Quota
+		
 		// 更新订单状态
 		now := common.GetTimestamp()
 		if err := tx.Model(&TopUp{}).Where("id = ?", topUp.Id).Updates(map[string]interface{}{
@@ -353,11 +365,88 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 			return err
 		}
 		
+		// 创建交易审计日志
+		transactionLog := TransactionLog{
+			UserId:      topUp.UserId,
+			Action:      "topup",
+			Amount:      quota,
+			BeforeQuota: beforeQuota,
+			AfterQuota:  beforeQuota + quota,
+			IP:          topUp.UserIP,
+			UserAgent:   topUp.UserAgent,
+			TradeNo:     tradeNo,
+			Status:      "completed",
+			AdminId:     0,
+			Remark:      fmt.Sprintf("充值完成，提供商: %s，订单金额: %.2f", provider, topUp.Money),
+			CreatedAt:   time.Now(),
+		}
+		if err := tx.Create(&transactionLog).Error; err != nil {
+			logger.Warn(context.Background(), fmt.Sprintf("创建交易审计日志失败 trade_no=%s error=%q", tradeNo, err.Error()))
+			// 不阻止交易完成
+		}
+		
+		topUpUserId = topUp.UserId
+		topUpAmount = topUp.Money
+		
 		logger.Info(context.Background(), fmt.Sprintf("充值完成 trade_no=%s user_id=%d quota=%d", 
 			tradeNo, topUp.UserId, quota))
 		
 		return nil
 	})
+	
+	if err == nil && topUpUserId > 0 {
+		// 创建应用内通知
+		notifData := fmt.Sprintf(`{"trade_no":"%s","quota":%d}`, tradeNo, quota)
+		if createErr := CreateNotification(topUpUserId, "topup", "充值成功", fmt.Sprintf("您的账户已成功充值 %s", common.LogQuota(quota)), notifData); createErr != nil {
+			logger.Warn(context.Background(), fmt.Sprintf("创建充值通知失败 user_id=%d error=%q", topUpUserId, createErr.Error()))
+		}
+		
+		// 异步发送邮件通知
+		go sendTopUpEmailNotification(topUpUserId, tradeNo, quota, topUpAmount)
+	}
+	
+	return err
+}
+
+// sendTopUpEmailNotification 发送充值成功邮件通知
+func sendTopUpEmailNotification(userId int, tradeNo string, quota int64, amount float64) {
+	user, err := GetUserById(userId, false)
+	if err != nil {
+		logger.Warn(context.Background(), fmt.Sprintf("发送充值邮件失败: 获取用户信息失败 user_id=%d error=%q", userId, err.Error()))
+		return
+	}
+	
+	if user.Email == "" {
+		return // 用户没有绑定邮箱，跳过邮件通知
+	}
+	
+	if config.SMTPServer == "" {
+		return // SMTP 未配置，跳过邮件通知
+	}
+	
+	subject := "充值成功通知 - QuantumClaw"
+	body := fmt.Sprintf(
+		`<div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+			<h2 style="color: #10b981;">充值成功 ✓</h2>
+			<p>尊敬的 %s，您好！</p>
+			<p>您的账户已成功充值，以下是充值详情：</p>
+			<table style="border-collapse: collapse; width: 100%%; margin: 16px 0;">
+				<tr><td style="padding: 8px; border: 1px solid #e5e7eb; color: #6b7280;">订单号</td><td style="padding: 8px; border: 1px solid #e5e7eb;">%s</td></tr>
+				<tr><td style="padding: 8px; border: 1px solid #e5e7eb; color: #6b7280;">充值金额</td><td style="padding: 8px; border: 1px solid #e5e7eb;">¥%.2f</td></tr>
+				<tr><td style="padding: 8px; border: 1px solid #e5e7eb; color: #6b7280;">到账额度</td><td style="padding: 8px; border: 1px solid #e5e7eb;">%s</td></tr>
+			</table>
+			<p>如有任何问题，请联系管理员。</p>
+			<p style="color: #9ca3af; font-size: 12px;">此邮件由系统自动发送，请勿回复。</p>
+		</div>`,
+		user.DisplayName,
+		tradeNo,
+		amount,
+		common.LogQuota(quota),
+	)
+	
+	if err := common.SendEmail(user.Email, subject, body); err != nil {
+		logger.Warn(context.Background(), fmt.Sprintf("发送充值邮件失败 user_id=%d email=%s error=%q", userId, user.Email, err.Error()))
+	}
 }
 
 // TopUpScan 扫描订单（实现driver.Valuer和sql.Scanner接口，用于加密存储）

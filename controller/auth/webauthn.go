@@ -391,6 +391,9 @@ func WebAuthnFinishAuthentication(c *gin.Context) {
 
 	// 清除 session
 	clearSessionData(session, sessionDataKeyAuth, sessionUserIDKey)
+	
+	// 标记 WebAuthn 已验证
+	session.Set("webauthn_verified", true)
 	session.Save()
 
 	// 登录用户

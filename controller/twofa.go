@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
@@ -159,6 +160,12 @@ func VerifyLoginTwoFA(c *gin.Context) {
 		}
 		// 备用码一次性使用
 		model.ConsumeTwoFABackupCode(req.UserId, code)
+		
+		// 标记 2FA 已验证
+		session := sessions.Default(c)
+		session.Set("twofa_verified", true)
+		session.Save()
+		
 		c.JSON(http.StatusOK, gin.H{
 			"success":  true,
 			"verified": true,
@@ -183,6 +190,11 @@ func VerifyLoginTwoFA(c *gin.Context) {
 			return
 		}
 	}
+	
+	// 标记 2FA 已验证
+	session := sessions.Default(c)
+	session.Set("twofa_verified", true)
+	session.Save()
 
 	c.JSON(http.StatusOK, gin.H{
 		"success":  true,

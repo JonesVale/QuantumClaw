@@ -45,10 +45,24 @@ function SettingsPage() {
   // ── Billing ──
   const [defaultCurrency, setDefaultCurrency] = useState('')
   const [stripePublicKey, setStripePublicKey] = useState('')
+  const [stripeApiSecret, setStripeApiSecret] = useState('')
   const [stripeEnabled, setStripeEnabled] = useState(false)
+  const [stripeMinTopUp, setStripeMinTopUp] = useState('')
   const [epayEnabled, setEpayEnabled] = useState(false)
+  const [epayId, setEpayId] = useState('')
+  const [epayKey, setEpayKey] = useState('')
+  const [epayAddress, setEpayAddress] = useState('')
   const [creemEnabled, setCreemEnabled] = useState(false)
+  const [creemApiKey, setCreemApiKey] = useState('')
   const [waffoEnabled, setWaffoEnabled] = useState(false)
+  const [waffoApiKey, setWaffoApiKey] = useState('')
+  const [waffoSandbox, setWaffoSandbox] = useState(false)
+  const [binanceEnabled, setBinanceEnabled] = useState(false)
+  const [binanceApiKey, setBinanceApiKey] = useState('')
+  const [binanceSecretKey, setBinanceSecretKey] = useState('')
+  const [binanceMerchantId, setBinanceMerchantId] = useState('')
+  const [minTopUp, setMinTopUp] = useState('')
+  const [cacheBillingRatio, setCacheBillingRatio] = useState('')
 
   // ── RateLimit ──
   const [globalApiRateLimit, setGlobalApiRateLimit] = useState('')
@@ -121,10 +135,24 @@ function SettingsPage() {
 
     setDefaultCurrency(getOptionValue('DefaultCurrency', 'USD'))
     setStripePublicKey(getOptionValue('StripePublicKey', ''))
+    setStripeApiSecret(getOptionValue('StripeApiSecret', ''))
     setStripeEnabled(getOptionValue('StripeEnabled', 'false') === 'true')
+    setStripeMinTopUp(getOptionValue('StripeMinTopUp', '1'))
     setEpayEnabled(getOptionValue('EpayEnabled', 'false') === 'true')
+    setEpayId(getOptionValue('EpayId', ''))
+    setEpayKey(getOptionValue('EpayKey', ''))
+    setEpayAddress(getOptionValue('EpayAddress', ''))
     setCreemEnabled(getOptionValue('CreemEnabled', 'false') === 'true')
+    setCreemApiKey(getOptionValue('CreemApiKey', ''))
     setWaffoEnabled(getOptionValue('WaffoEnabled', 'false') === 'true')
+    setWaffoApiKey(getOptionValue('WaffoApiKey', ''))
+    setWaffoSandbox(getOptionValue('WaffoSandbox', 'false') === 'true')
+    setBinanceEnabled(getOptionValue('BinanceEnabled', 'false') === 'true')
+    setBinanceApiKey(getOptionValue('BinanceApiKey', ''))
+    setBinanceSecretKey(getOptionValue('BinanceSecretKey', ''))
+    setBinanceMerchantId(getOptionValue('BinanceMerchantId', ''))
+    setMinTopUp(getOptionValue('MinTopUp', '1'))
+    setCacheBillingRatio(getOptionValue('CacheBillingRatio', '1.0'))
 
     setGlobalApiRateLimit(getOptionValue('GlobalApiRateLimitNum', '480'))
     setGlobalWebRateLimit(getOptionValue('GlobalWebRateLimitNum', '240'))
@@ -335,83 +363,259 @@ function SettingsPage() {
               </CardTitle>
               <CardDescription>{t('Configure billing and payment options')}</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>{t('Default Currency')}</Label>
-                <Select
-                  value={defaultCurrency || 'USD'}
-                  onValueChange={setDefaultCurrency}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('Select currency')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD ($)</SelectItem>
-                    <SelectItem value="CNY">CNY (¥)</SelectItem>
-                    <SelectItem value="EUR">EUR (€)</SelectItem>
-                    <SelectItem value="GBP">GBP (£)</SelectItem>
-                    <SelectItem value="JPY">JPY (¥)</SelectItem>
-                    <SelectItem value="KRW">KRW (₩)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>{t('Stripe Public Key')}</Label>
-                <Input
-                  value={stripePublicKey}
-                  onChange={(e) => setStripePublicKey(e.target.value)}
-                  placeholder="pk_live_..."
-                />
-              </div>
-              <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label>{t('Enable Stripe')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Accept payments via Stripe')}</p>
+            <CardContent className="space-y-6">
+              {/* General billing */}
+              <div className="space-y-4 rounded-lg border p-4">
+                <h3 className="font-semibold">{t('General Billing')}</h3>
+                <div className="space-y-2">
+                  <Label>{t('Default Currency')}</Label>
+                  <Select
+                    value={defaultCurrency || 'USD'}
+                    onValueChange={setDefaultCurrency}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder={t('Select currency')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="CNY">CNY (¥)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      <SelectItem value="KRW">KRW (₩)</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-                <Switch
-                  checked={stripeEnabled}
-                  onCheckedChange={setStripeEnabled}
-                />
-              </div>
-              <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label>{t('Enable Epay')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Accept payments via Epay')}</p>
+                <div className="space-y-2">
+                  <Label>{t('Minimum Top-up Amount')}</Label>
+                  <Input
+                    type="number"
+                    value={minTopUp}
+                    onChange={(e) => setMinTopUp(e.target.value)}
+                    placeholder="1"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t('Minimum amount for a single top-up')}
+                  </p>
                 </div>
-                <Switch
-                  checked={epayEnabled}
-                  onCheckedChange={setEpayEnabled}
-                />
-              </div>
-              <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label>{t('Enable Creem')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Accept payments via Creem')}</p>
+                <div className="space-y-2">
+                  <Label>{t('Cache Billing Ratio')}</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={cacheBillingRatio}
+                    onChange={(e) => setCacheBillingRatio(e.target.value)}
+                    placeholder="1.0"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {t('Cost ratio for cache model usage (1.0 = 100%)')}
+                  </p>
                 </div>
-                <Switch
-                  checked={creemEnabled}
-                  onCheckedChange={setCreemEnabled}
-                />
               </div>
-              <div className="flex flex-row items-center justify-between rounded-lg border p-3">
-                <div>
-                  <Label>{t('Enable Waffo')}</Label>
-                  <p className="text-xs text-muted-foreground">{t('Accept payments via Waffo')}</p>
+
+              {/* Stripe */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">Stripe</h3>
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <Label>{t('Enable Stripe')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Accept payments via Stripe')}</p>
+                  </div>
+                  <Switch
+                    checked={stripeEnabled}
+                    onCheckedChange={setStripeEnabled}
+                  />
                 </div>
-                <Switch
-                  checked={waffoEnabled}
-                  onCheckedChange={setWaffoEnabled}
-                />
+                <div className="space-y-2">
+                  <Label>{t('Stripe Public Key')}</Label>
+                  <Input
+                    value={stripePublicKey}
+                    onChange={(e) => setStripePublicKey(e.target.value)}
+                    placeholder="pk_live_..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Stripe API Secret')}</Label>
+                  <Input
+                    type="password"
+                    value={stripeApiSecret}
+                    onChange={(e) => setStripeApiSecret(e.target.value)}
+                    placeholder="sk_live_..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Stripe Min Top-up')}</Label>
+                  <Input
+                    type="number"
+                    value={stripeMinTopUp}
+                    onChange={(e) => setStripeMinTopUp(e.target.value)}
+                    placeholder="1"
+                  />
+                </div>
               </div>
+
+              {/* Epay */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">Epay (易支付)</h3>
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <Label>{t('Enable Epay')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Accept payments via Epay')}</p>
+                  </div>
+                  <Switch
+                    checked={epayEnabled}
+                    onCheckedChange={setEpayEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Epay ID')}</Label>
+                  <Input
+                    value={epayId}
+                    onChange={(e) => setEpayId(e.target.value)}
+                    placeholder="1001"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Epay Key')}</Label>
+                  <Input
+                    type="password"
+                    value={epayKey}
+                    onChange={(e) => setEpayKey(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Epay Gateway Address')}</Label>
+                  <Input
+                    value={epayAddress}
+                    onChange={(e) => setEpayAddress(e.target.value)}
+                    placeholder="https://epay.example.com"
+                  />
+                </div>
+              </div>
+
+              {/* Creem */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">Creem</h3>
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <Label>{t('Enable Creem')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Accept payments via Creem')}</p>
+                  </div>
+                  <Switch
+                    checked={creemEnabled}
+                    onCheckedChange={setCreemEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Creem API Key')}</Label>
+                  <Input
+                    type="password"
+                    value={creemApiKey}
+                    onChange={(e) => setCreemApiKey(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+              </div>
+
+              {/* Waffo */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">Waffo</h3>
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <Label>{t('Enable Waffo')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Accept payments via Waffo')}</p>
+                  </div>
+                  <Switch
+                    checked={waffoEnabled}
+                    onCheckedChange={setWaffoEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Waffo API Key')}</Label>
+                  <Input
+                    type="password"
+                    value={waffoApiKey}
+                    onChange={(e) => setWaffoApiKey(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="flex flex-row items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <Label>{t('Waffo Sandbox Mode')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Use sandbox environment for testing')}</p>
+                  </div>
+                  <Switch
+                    checked={waffoSandbox}
+                    onCheckedChange={setWaffoSandbox}
+                  />
+                </div>
+              </div>
+
+              {/* Binance */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">Binance Pay</h3>
+                <div className="flex flex-row items-center justify-between">
+                  <div>
+                    <Label>{t('Enable Binance Pay')}</Label>
+                    <p className="text-xs text-muted-foreground">{t('Accept payments via Binance Pay')}</p>
+                  </div>
+                  <Switch
+                    checked={binanceEnabled}
+                    onCheckedChange={setBinanceEnabled}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Binance API Key')}</Label>
+                  <Input
+                    type="password"
+                    value={binanceApiKey}
+                    onChange={(e) => setBinanceApiKey(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Binance Secret Key')}</Label>
+                  <Input
+                    type="password"
+                    value={binanceSecretKey}
+                    onChange={(e) => setBinanceSecretKey(e.target.value)}
+                    placeholder="••••••••"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('Binance Merchant ID')}</Label>
+                  <Input
+                    value={binanceMerchantId}
+                    onChange={(e) => setBinanceMerchantId(e.target.value)}
+                    placeholder="m_..."
+                  />
+                </div>
+              </div>
+
               <Button
                 onClick={() =>
                   handleSave({
                     DefaultCurrency: defaultCurrency || 'USD',
                     StripePublicKey: stripePublicKey,
+                    StripeApiSecret: stripeApiSecret,
                     StripeEnabled: String(stripeEnabled),
+                    StripeMinTopUp: stripeMinTopUp || '1',
                     EpayEnabled: String(epayEnabled),
+                    EpayId: epayId,
+                    EpayKey: epayKey,
+                    EpayAddress: epayAddress,
                     CreemEnabled: String(creemEnabled),
+                    CreemApiKey: creemApiKey,
                     WaffoEnabled: String(waffoEnabled),
+                    WaffoApiKey: waffoApiKey,
+                    WaffoSandbox: String(waffoSandbox),
+                    BinanceEnabled: String(binanceEnabled),
+                    BinanceApiKey: binanceApiKey,
+                    BinanceSecretKey: binanceSecretKey,
+                    BinanceMerchantId: binanceMerchantId,
+                    MinTopUp: minTopUp || '1',
+                    CacheBillingRatio: cacheBillingRatio || '1.0',
                   })
                 }
                 disabled={saveMutation.isPending}
