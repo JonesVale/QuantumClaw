@@ -229,7 +229,7 @@ graph LR
     B -->|Relay Request| E(Other downstream channels)
 ```
 
-To specify which channel to use for the current request, you can add the channel ID after the token, for example: `Authorization: Bearer ONE_API_KEY-CHANNEL_ID`.
+To specify which channel to use for the current request, you can add the channel ID after the token, for example: `Authorization: Bearer QUANTUMCLAW_KEY-CHANNEL_ID`.
 Note that the token needs to be created by an administrator to specify the channel ID.
 
 If the channel ID is not provided, load balancing will be used to distribute the requests to multiple channels.
@@ -240,9 +240,9 @@ If the channel ID is not provided, load balancing will be used to distribute the
 2. `SESSION_SECRET`: When set, a fixed session key will be used to ensure that cookies of logged-in users are still valid after the system restarts.
     + Example: `SESSION_SECRET=random_string`
 3. `SQL_DSN`: When set, the specified database will be used instead of SQLite. Please use MySQL version 8.0.
-    + Example: `SQL_DSN=root:123456@tcp(localhost:3306)/oneapi`
+    + Example: `SQL_DSN=root:123456@tcp(localhost:3306)/quantumclaw`
 4. `LOG_SQL_DSN`: When set, a separate database will be used for the `logs` table; please use MySQL or PostgreSQL.
-    + Example: `LOG_SQL_DSN=root:123456@tcp(localhost:3306)/oneapi-logs`
+    + Example: `LOG_SQL_DSN=root:123456@tcp(localhost:3306)/quantumclaw-logs`
 5. `FRONTEND_BASE_URL`: When set, the specified frontend address will be used instead of the backend address.
     + Example: `FRONTEND_BASE_URL=https://openai.quantumclaw.ai`
 6. 'MEMORY_CACHE_ENABLED': Enabling memory caching can cause a certain delay in updating user quotas, with optional values of 'true' and 'false'. If not set, it defaults to 'false'.

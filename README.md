@@ -132,9 +132,9 @@ _基于 QuantumClaw 增强开发，支持 Stripe / Creem / Waffo / 易支付 等
 ```shell
 # 使用 SQLite 的部署命令：
 docker run --name quantumclaw -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw
-# 使用 MySQL 的部署命令，在上面的基础上添加 `-e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi"`，请自行修改数据库连接参数，不清楚如何修改请参见下面环境变量一节。
+# 使用 MySQL 的部署命令，在上面的基础上添加 `-e SQL_DSN="root:123456@tcp(localhost:3306)/quantumclaw"`，请自行修改数据库连接参数，不清楚如何修改请参见下面环境变量一节。
 # 例如：
-docker run --name quantumclaw -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw
+docker run --name quantumclaw -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/quantumclaw" -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw
 ```
 
 其中，`-p 3000:3000` 中的第一个 `3000` 是宿主机的端口，可以根据需要进行修改。
@@ -182,9 +182,9 @@ sudo service nginx restart
 初始账号用户名为 `root`，密码为 `123456`。
 
 ### 通过宝塔面板进行一键部署
-1. 安装宝塔面板9.2.0及以上版本，前往 [宝塔面板](https://www.bt.cn/new/download.html?r=dk_oneapi) 官网，选择正式版的脚本下载安装；
+1. 安装宝塔面板9.2.0及以上版本，前往 [宝塔面板](https://www.bt.cn/new/download.html?r=dk_quantumclaw) 官网，选择正式版的脚本下载安装；
 2. 安装后登录宝塔面板，在左侧菜单栏中点击 `Docker`，首次进入会提示安装 `Docker` 服务，点击立即安装，按提示完成安装；
-3. 安装完成后在应用商店中搜索 `One-API`，点击安装，配置域名等基本信息即可完成安装；
+3. 安装完成后在应用商店中搜索 `QuantumClaw`，点击安装，配置域名等基本信息即可完成安装；
 
 ### 基于 Docker Compose 进行部署
 
@@ -367,7 +367,7 @@ graph LR
     B -->|中继并修改请求体和返回体| F(非 OpenAI API 格式下游渠道)
 ```
 
-可以通过在令牌后面添加渠道 ID 的方式指定使用哪一个渠道处理本次请求，例如：`Authorization: Bearer ONE_API_KEY-CHANNEL_ID`。
+可以通过在令牌后面添加渠道 ID 的方式指定使用哪一个渠道处理本次请求，例如：`Authorization: Bearer QUANTUMCLAW_KEY-CHANNEL_ID`。
 注意，需要是管理员用户创建的令牌才能指定渠道 ID。
 
 不加的话将会使用负载均衡的方式使用多个渠道。
@@ -386,9 +386,9 @@ graph LR
    + 例子：`SESSION_SECRET=random_string`
 3. `SQL_DSN`：设置之后将使用指定数据库而非 SQLite，请使用 MySQL 或 PostgreSQL。
    + 例子：
-     + MySQL：`SQL_DSN=root:123456@tcp(localhost:3306)/oneapi`
-     + PostgreSQL：`SQL_DSN=postgres://postgres:123456@localhost:5432/oneapi`（适配中，欢迎反馈）
-   + 注意需要提前建立数据库 `oneapi`，无需手动建表，程序将自动建表。
+     + MySQL：`SQL_DSN=root:123456@tcp(localhost:3306)/quantumclaw`
+     + PostgreSQL：`SQL_DSN=postgres://postgres:123456@localhost:5432/quantumclaw`（适配中，欢迎反馈）
+   + 注意需要提前建立数据库 `quantumclaw`，无需手动建表，程序将自动建表。
    + 如果使用本地数据库：部署命令可添加 `--network="host"` 以使得容器内的程序可以访问到宿主机上的 MySQL。
    + 如果使用云数据库：如果云服务器需要验证身份，需要在连接参数中添加 `?tls=skip-verify`。
    + 请根据你的数据库配置修改下列参数（或者保持默认值）：
