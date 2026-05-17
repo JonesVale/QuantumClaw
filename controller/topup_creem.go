@@ -20,8 +20,11 @@ import (
 
 // ==================== Creem 支付控制器（安全增强版）====================
 
-const CreemSignatureHeader = "creem-signature"
-const CreemWebhookMaxBodySize = 1 * 1024 * 1024 // 1MB 最大请求体
+const (
+	CreemSignatureHeader     = "creem-signature"
+	CreemWebhookMaxBodySize  = 1 * 1024 * 1024 // 1MB 最大请求体
+	CreemMaxTopUpAmount      = 10000            // 最大充值数量
+)
 
 // CreemProduct Creem产品配置
 type CreemProduct struct {
@@ -124,7 +127,7 @@ func verifyCreemSignature(payload string, signature string, secret string) bool 
 func RequestCreemTopUp(c *gin.Context) {
 	var req CreemPayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "参数错误", "data": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"message": "请求参数错误"})
 		return
 	}
 
@@ -162,6 +165,11 @@ func RequestCreemTopUp(c *gin.Context) {
 
 	if selectedProduct == nil {
 		c.JSON(http.StatusOK, gin.H{"message": "产品不存在"})
+		return
+	}
+
+	if selectedProduct.Quota > CreemMaxTopUpAmount {
+		c.JSON(http.StatusOK, gin.H{"message": "金额超限"})
 		return
 	}
 

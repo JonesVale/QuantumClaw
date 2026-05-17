@@ -21,6 +21,7 @@ import (
 
 const (
 	WaffoWebhookMaxBodySize = 1 * 1024 * 1024 // 1MB 最大请求体
+	WaffoMaxTopUpAmount     = 10000           // 最大充值数量
 )
 
 // zeroDecimalCurrencies 零小数位币种
@@ -55,7 +56,7 @@ type WaffoWebhookRequest struct {
 func RequestWaffoTopUp(c *gin.Context) {
 	var req WaffoPayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "参数错误", "data": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"message": "请求参数错误"})
 		return
 	}
 
@@ -72,6 +73,10 @@ func RequestWaffoTopUp(c *gin.Context) {
 	}
 	if req.Amount < int64(minTopUp) {
 		c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
+		return
+	}
+	if req.Amount > WaffoMaxTopUpAmount {
+		c.JSON(http.StatusOK, gin.H{"message": "金额超限"})
 		return
 	}
 

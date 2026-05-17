@@ -242,6 +242,9 @@ var PyroscopeAppName = env.String("PYROSCOPE_APP_NAME", "quantumclaw")
 var PyroscopeBasicAuthUser = os.Getenv("PYROSCOPE_BASIC_AUTH_USER")
 var PyroscopeBasicAuthPassword = os.Getenv("PYROSCOPE_BASIC_AUTH_PASSWORD")
 
+// 支付 Webhook IP 白名单（逗号分隔）
+var PaymentWebhookIPWhitelist = os.Getenv("PAYMENT_WEBHOOK_IP_WHITELIST")
+
 // SSRF 防护配置
 var EnableSSRFProtection = env.Bool("ENABLE_SSRF_PROTECTION", true)
 var SSRFAllowedHosts = env.StringSlice("SSRF_ALLOWED_HOSTS", []string{}) // 允许的 Host 白名单

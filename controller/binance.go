@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/hmac"
 	"crypto/sha256"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common"
@@ -25,6 +26,7 @@ const (
 	BinanceSignatureHeader    = "Binance-Signature"
 	BinanceNonceHeader       = "Binance-Nonce"
 	BinanceTimestampHeader   = "Binance-Timestamp"
+	BinanceMaxTopUpAmount    = 10000 // 最大充值数量
 )
 
 // BinancePayRequest Binance支付请求
@@ -63,7 +65,7 @@ type BinanceWebhookData struct {
 func RequestBinanceTopUp(c *gin.Context) {
 	var req BinancePayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "参数错误", "data": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"message": "请求参数错误"})
 		return
 	}
 
@@ -86,6 +88,10 @@ func RequestBinanceTopUp(c *gin.Context) {
 	}
 	if req.Amount < int64(minTopUp) {
 		c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
+		return
+	}
+	if req.Amount > BinanceMaxTopUpAmount {
+		c.JSON(http.StatusOK, gin.H{"message": "金额超限"})
 		return
 	}
 
@@ -211,6 +217,21 @@ func BinanceWebhook(c *gin.Context) {
 		return
 	}
 
+	// 安全增强：防重放攻击（nonce + 时间戳验证）
+	nonce := c.GetHeader(BinanceNonceHeader)
+	timestamp := c.GetHeader(BinanceTimestampHeader)
+	if nonce != "" && timestamp != "" {
+		ts, err := strconv.ParseInt(timestamp, 10, 64)
+		if err == nil {
+			// 拒绝超过5分钟的请求
+			if time.Now().UnixMilli()-ts > 5*60*1000 {
+				logger.Warn(ctx, fmt.Sprintf("Binance webhook 时间戳过期: client_ip=%s", c.ClientIP()))
+				c.AbortWithStatus(http.StatusUnauthorized)
+				return
+			}
+		}
+	}
+
 	// 解析 webhook 事件
 	var event BinanceWebhookRequest
 	if err := json.Unmarshal(bodyBytes, &event); err != nil {
@@ -243,7 +264,7 @@ func verifyBinanceSignature(payload []byte, signature string) bool {
 
 	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write(payload)
-	expectedSignature := hex.EncodeToString(mac.Sum(nil))
+	expectedSignature := base64.StdEncoding.EncodeToString(mac.Sum(nil))
 
 	return hmac.Equal([]byte(signature), []byte(expectedSignature))
 }
@@ -325,8 +346,8 @@ func genBinanceCheckoutURL(tradeNo string, email string, amount float64, currenc
 		currency = "USDT"
 	}
 	timestamp := time.Now().UnixMilli()
-	return fmt.Sprintf("https://pay.binance.com/checkout?merchantTradeNo=%s&amount=%.2f&currency=%s&email=%s&timestamp=%d",
-		tradeNo, amount, currency, email, timestamp)
+	return fmt.Sprintf("https://pay.binance.com/checkout?merchantTradeNo=%s&amount=%.2f&currency=%s×tamp=%d",
+		tradeNo, amount, currency, timestamp)
 }
 
 // isBinanceWebhookEnabled 检查 Binance Webhook 是否启用

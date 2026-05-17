@@ -2,9 +2,13 @@ package controller
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -46,7 +50,7 @@ type StripeWebhookRequest struct {
 func RequestStripeTopUp(c *gin.Context) {
 	var req StripePayRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "参数错误", "data": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"message": "请求参数错误"})
 		return
 	}
 
@@ -182,21 +186,44 @@ func StripeWebhook(c *gin.Context) {
 	logger.Info(ctx, fmt.Sprintf("Stripe webhook 收到: client_ip=%s signature=%s payload_size=%d", 
 		c.ClientIP(), signature[:min(20, len(signature))]+"...", len(payload)))
 
-	// 安全增强：验证 Stripe 签名
+	// 安全增强：验证 Stripe 签名 (HMAC-SHA256)
 	webhookSecret := common.GetPaymentSetting().StripeWebhookSecret
-	if webhookSecret == "" {
-		logger.Warn(ctx, "Stripe webhook secret 未配置")
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
+	if webhookSecret != "" {
+		// Stripe 签名格式: t=timestamp,v1=signature
+		parts := strings.Split(signature, ",")
+		var timestamp string
+		var sig string
+		for _, part := range parts {
+			kv := strings.SplitN(part, "=", 2)
+			if len(kv) == 2 {
+				switch kv[0] {
+				case "t":
+					timestamp = kv[1]
+				case "v1":
+					sig = kv[1]
+				}
+			}
+		}
+		if timestamp == "" || sig == "" {
+			logger.Warn(ctx, fmt.Sprintf("Stripe webhook 签名格式无效 client_ip=%s", c.ClientIP()))
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		// 构建待签名字符串: timestamp + "." + payload
+		signedPayload := timestamp + "." + string(payload)
+		mac := hmac.New(sha256.New, []byte(webhookSecret))
+		mac.Write([]byte(signedPayload))
+		expectedSignature := hex.EncodeToString(mac.Sum(nil))
 
-	// TODO: 使用 Stripe SDK 验证签名
-	// event, err := webhook.ConstructEvent(payload, signature, webhookSecret)
-	// if err != nil {
-	//     logger.Warn(ctx, fmt.Sprintf("Stripe webhook 验签失败: %q", err.Error()))
-	//     c.AbortWithStatus(http.StatusBadRequest)
-	//     return
-	// }
+		if !hmac.Equal([]byte(sig), []byte(expectedSignature)) {
+			logger.Warn(ctx, fmt.Sprintf("Stripe webhook 验签失败 client_ip=%s", c.ClientIP()))
+			c.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		logger.Info(ctx, "Stripe webhook 验签成功")
+	} else {
+		logger.Warn(ctx, "Stripe webhook secret 未配置，跳过签名验证")
+	}
 
 	// 解析事件（这里简化处理）
 	eventType := parseStripeEventType(payload)
