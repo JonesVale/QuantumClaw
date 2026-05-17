@@ -11,6 +11,7 @@ import {
   Copy,
   CheckCircle,
   XCircle,
+  Key,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
