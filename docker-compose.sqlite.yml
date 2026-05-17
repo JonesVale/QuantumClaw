@@ -19,7 +19,7 @@ services:
     container_name: quantumclaw
     restart: unless-stopped
     ports:
-      - "${PORT:-3666}:3000"
+      - "${PORT:-3666}:3666"
     environment:
       # Leave SQL_DSN empty to auto-detect SQLite
       SQL_DSN: ""
@@ -27,7 +27,7 @@ services:
       SQLITE_PATH: "/app/data/quantumclaw.db"
       SQLITE_BUSY_TIMEOUT: "${SQLITE_BUSY_TIMEOUT:-3000}"
       # App settings
-      PORT: "${PORT:-3000}"
+      PORT: "${PORT:-3666}"
       GIN_MODE: "${GIN_MODE:-release}"
       DEBUG: "${DEBUG:-false}"
       DEBUG_SQL: "${DEBUG_SQL:-false}"
@@ -107,7 +107,7 @@ services:
       - quantumclaw_data:/app/data
       - ${LOG_DIR:-./logs}:/app/logs
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/status"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3666/api/status"]
       interval: 30s
       timeout: 5s
       retries: 3

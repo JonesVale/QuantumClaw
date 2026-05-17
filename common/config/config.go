@@ -13,7 +13,7 @@ import (
 )
 
 var SystemName = "QuantumClaw"
-var ServerAddress = "http://localhost:3000"
+var ServerAddress = "http://localhost:3666"
 var Footer = ""
 var Logo = "/logo.webp"
 var TopUpLink = ""

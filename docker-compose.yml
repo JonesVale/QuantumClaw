@@ -15,7 +15,7 @@ services:
     container_name: quantumclaw
     restart: unless-stopped
     ports:
-      - "${PORT:-3666}:3000"
+      - "${PORT:-3666}:3666"
     environment:
       # Database
       SQL_DSN: "${SQL_DSN:-root:quantumclaw@tcp(mysql:3306)/quantumclaw?charset=utf8mb4&parseTime=True&loc=Local}"
@@ -24,7 +24,7 @@ services:
       # Redis
       REDIS: "${REDIS:-redis:6379}"
       # App settings
-      PORT: "${PORT:-3000}"
+      PORT: "${PORT:-3666}"
       GIN_MODE: "${GIN_MODE:-release}"
       DEBUG: "${DEBUG:-false}"
       DEBUG_SQL: "${DEBUG_SQL:-false}"
@@ -109,7 +109,7 @@ services:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/status"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3666/api/status"]
       interval: 30s
       timeout: 5s
       retries: 3
