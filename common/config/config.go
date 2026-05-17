@@ -15,7 +15,7 @@ import (
 var SystemName = "QuantumClaw"
 var ServerAddress = "http://localhost:3000"
 var Footer = ""
-var Logo = "quantumclaw-logo.jpg"
+var Logo = "/logo.webp"
 var TopUpLink = ""
 var ChatLink = ""
 var QuotaPerUnit = 500 * 1000.0 // $0.002 / 1K tokens
