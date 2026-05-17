@@ -1,7 +1,6 @@
 # ============================================================
 # QuantumClaw - AI API Gateway & Token Distribution Platform
 # ============================================================
-version: "3.9"
 
 services:
   # -----------------------
@@ -82,6 +81,24 @@ services:
       RELAY_PROXY: "${RELAY_PROXY:-}"
       # Advanced
       NODE_TYPE: "${NODE_TYPE:-master}"
+      # WebAuthn/Passkey
+      WEBAUTHN_ENABLED: "${WEBAUTHN_ENABLED:-false}"
+      WEBAUTHN_RP_DISPLAY_NAME: "${WEBAUTHN_RP_DISPLAY_NAME:-QuantumClaw}"
+      WEBAUTHN_RP_ID: "${WEBAUTHN_RP_ID:-}"
+      WEBAUTHN_ORIGIN: "${WEBAUTHN_ORIGIN:-}"
+      # Security Headers
+      CSP_ENABLED: "${CSP_ENABLED:-true}"
+      CSP_REPORT_ONLY: "${CSP_REPORT_ONLY:-false}"
+      HSTS_ENABLED: "${HSTS_ENABLED:-true}"
+      HSTS_MAX_AGE: "${HSTS_MAX_AGE:-31536000}"
+      HSTS_INCLUDE_SUBDOMAINS: "${HSTS_INCLUDE_SUBDOMAINS:-true}"
+      HSTS_PRELOAD: "${HSTS_PRELOAD:-false}"
+      X_FRAME_OPTIONS: "${X_FRAME_OPTIONS:-DENY}"
+      X_CONTENT_TYPE_OPTIONS: "${X_CONTENT_TYPE_OPTIONS:-nosniff}"
+      X_XSS_PROTECTION: "${X_XSS_PROTECTION:-1; mode=block}"
+      REFERRER_POLICY: "${REFERRER_POLICY:-strict-origin-when-cross-origin}"
+      PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-geolocation=(), camera=(), microphone=()}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
     volumes:
       # Mount for data persistence (SQLite) or logs
       - quantumclaw_data:/app/data

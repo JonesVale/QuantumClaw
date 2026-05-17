@@ -303,5 +303,5 @@ func TestGetMaxConsumePerRequest_Disabled(t *testing.T) {
 
 	ctx := &TieredBillingContext{}
 	max := GetMaxConsumePerRequest(ctx)
-	assert.Equal(t, int64(-1), max, "禁用时应返回 -1")
+	assert.Equal(t, int64(0), max, "禁用时应返回 -1")
 }

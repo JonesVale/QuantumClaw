@@ -1,0 +1,130 @@
+# ============================================================
+# QuantumClaw - Lightweight SQLite Deployment
+# ============================================================
+# Single container: no MySQL, no Redis.
+# Uses SQLite for storage and in-memory cache.
+# Ideal for development, testing, and small-scale production.
+# ============================================================
+
+services:
+  # -----------------------
+  # QuantumClaw Application
+  # -----------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${IMAGE_TAG:-latest}
+    container_name: quantumclaw
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      # Leave SQL_DSN empty to auto-detect SQLite
+      SQL_DSN: ""
+      # SQLite database file path (inside container)
+      SQLITE_PATH: "/app/data/quantumclaw.db"
+      SQLITE_BUSY_TIMEOUT: "${SQLITE_BUSY_TIMEOUT:-3000}"
+      # App settings
+      PORT: "${PORT:-3000}"
+      GIN_MODE: "${GIN_MODE:-release}"
+      DEBUG: "${DEBUG:-false}"
+      DEBUG_SQL: "${DEBUG_SQL:-false}"
+      SESSION_SECRET: "${SESSION_SECRET:-}"
+      THEME: "${THEME:-default}"
+      # Initial root token
+      INITIAL_ROOT_TOKEN: "${INITIAL_ROOT_TOKEN:-}"
+      INITIAL_ROOT_ACCESS_TOKEN: "${INITIAL_ROOT_ACCESS_TOKEN:-}"
+      # Feature flags — in-memory cache works without Redis
+      MEMORY_CACHE_ENABLED: "${MEMORY_CACHE_ENABLED:-true}"
+      SYNC_FREQUENCY: "${SYNC_FREQUENCY:-600}"
+      ENABLE_METRIC: "${ENABLE_METRIC:-false}"
+      CHANNEL_TEST_FREQUENCY: "${CHANNEL_TEST_FREQUENCY:-300}"
+      BATCH_UPDATE_ENABLED: "${BATCH_UPDATE_ENABLED:-false}"
+      # OAuth providers
+      GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID:-}"
+      GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET:-}"
+      LARK_CLIENT_ID: "${LARK_CLIENT_ID:-}"
+      LARK_CLIENT_SECRET: "${LARK_CLIENT_SECRET:-}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID:-}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:-}"
+      OIDC_WELL_KNOWN: "${OIDC_WELL_KNOWN:-}"
+      # SMTP
+      SMTP_SERVER: "${SMTP_SERVER:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_ACCOUNT: "${SMTP_ACCOUNT:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
+      SMTP_TOKEN: "${SMTP_TOKEN:-}"
+      # Turnstile
+      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
+      # Payment - Stripe
+      STRIPE_ENABLED: "${STRIPE_ENABLED:-false}"
+      STRIPE_API_SECRET: "${STRIPE_API_SECRET:-}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
+      # Payment - 易支付
+      EPAY_ENABLED: "${EPAY_ENABLED:-false}"
+      EPAY_ID: "${EPAY_ID:-}"
+      EPAY_KEY: "${EPAY_KEY:-}"
+      EPAY_ADDRESS: "${EPAY_ADDRESS:-}"
+      # Payment - Creem
+      CREEM_ENABLED: "${CREEM_ENABLED:-false}"
+      CREEM_API_KEY: "${CREEM_API_KEY:-}"
+      CREEM_WEBHOOK_SECRET: "${CREEM_WEBHOOK_SECRET:-}"
+      # Payment - Waffo
+      WAFFO_ENABLED: "${WAFFO_ENABLED:-false}"
+      WAFFO_API_KEY: "${WAFFO_API_KEY:-}"
+      WAFFO_CURRENCY: "${WAFFO_CURRENCY:-USD}"
+      # Security
+      PAYMENT_SIGNATURE_SECRET: "${PAYMENT_SIGNATURE_SECRET:-}"
+      ALLOWED_REDIRECT_DOMAINS: "${ALLOWED_REDIRECT_DOMAINS:-}"
+      # Network
+      HTTPS_PROXY: "${HTTPS_PROXY:-}"
+      RELAY_PROXY: "${RELAY_PROXY:-}"
+      # Advanced
+      NODE_TYPE: "${NODE_TYPE:-master}"
+      # WebAuthn/Passkey
+      WEBAUTHN_ENABLED: "${WEBAUTHN_ENABLED:-false}"
+      WEBAUTHN_RP_DISPLAY_NAME: "${WEBAUTHN_RP_DISPLAY_NAME:-QuantumClaw}"
+      WEBAUTHN_RP_ID: "${WEBAUTHN_RP_ID:-}"
+      WEBAUTHN_ORIGIN: "${WEBAUTHN_ORIGIN:-}"
+      # Security Headers
+      CSP_ENABLED: "${CSP_ENABLED:-true}"
+      CSP_REPORT_ONLY: "${CSP_REPORT_ONLY:-false}"
+      HSTS_ENABLED: "${HSTS_ENABLED:-true}"
+      HSTS_MAX_AGE: "${HSTS_MAX_AGE:-31536000}"
+      HSTS_INCLUDE_SUBDOMAINS: "${HSTS_INCLUDE_SUBDOMAINS:-true}"
+      HSTS_PRELOAD: "${HSTS_PRELOAD:-false}"
+      X_FRAME_OPTIONS: "${X_FRAME_OPTIONS:-DENY}"
+      X_CONTENT_TYPE_OPTIONS: "${X_CONTENT_TYPE_OPTIONS:-nosniff}"
+      X_XSS_PROTECTION: "${X_XSS_PROTECTION:-1; mode=block}"
+      REFERRER_POLICY: "${REFERRER_POLICY:-strict-origin-when-cross-origin}"
+      PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-geolocation=(), camera=(), microphone=()}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
+    volumes:
+      # SQLite database is stored here for persistence
+      - quantumclaw_data:/app/data
+      - ${LOG_DIR:-./logs}:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - quantumclaw-net
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  quantumclaw_data:
+    driver: local
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  quantumclaw-net:
+    driver: bridge

@@ -15,17 +15,35 @@ var RedisEnabled = true
 
 // InitRedisClient This function is called after init()
 func InitRedisClient() (err error) {
-	if os.Getenv("REDIS_CONN_STRING") == "" {
-		RedisEnabled = false
-		logger.SysLog("REDIS_CONN_STRING not set, Redis is not enabled")
-		return nil
+	// 优先使用 REDIS_CONN_STRING，否则根据 REDIS_HOST/PORT/PASSWORD 构造
+	redisConnString := os.Getenv("REDIS_CONN_STRING")
+	if redisConnString == "" {
+		redisHost := os.Getenv("REDIS_HOST")
+		redisPort := os.Getenv("REDIS_PORT")
+		redisPassword := os.Getenv("REDIS_PASSWORD")
+		
+		if redisHost == "" {
+			RedisEnabled = false
+			logger.SysLog("REDIS_HOST not set, Redis is not enabled")
+			return nil
+		}
+		if redisPort == "" {
+			redisPort = "6379"
+		}
+		if redisPassword == "" {
+			redisConnString = "redis://" + redisHost + ":" + redisPort + "/0"
+		} else {
+			redisConnString = "redis://:" + redisPassword + "@" + redisHost + ":" + redisPort + "/0"
+		}
 	}
+	
+	// 设置 REDIS_CONN_STRING 供后续使用
+	os.Setenv("REDIS_CONN_STRING", redisConnString)
 	if os.Getenv("SYNC_FREQUENCY") == "" {
 		RedisEnabled = false
 		logger.SysLog("SYNC_FREQUENCY not set, Redis is disabled")
 		return nil
 	}
-	redisConnString := os.Getenv("REDIS_CONN_STRING")
 	if os.Getenv("REDIS_MASTER_NAME") == "" {
 		logger.SysLog("Redis is enabled")
 		opt, err := redis.ParseURL(redisConnString)
@@ -73,6 +91,11 @@ func RedisGet(key string) (string, error) {
 func RedisDel(key string) error {
 	ctx := context.Background()
 	return RDB.Del(ctx, key).Err()
+}
+
+func RedisIncr(key string, value int64) error {
+	ctx := context.Background()
+	return RDB.IncrBy(ctx, key, value).Err()
 }
 
 func RedisDecrease(key string, value int64) error {

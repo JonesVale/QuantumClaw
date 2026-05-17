@@ -24,11 +24,12 @@ const (
 	dataPrefixLength = len(dataPrefix)
 )
 
-func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.ErrorWithStatusCode, string, *model.Usage) {
+func StreamHandler(c *gin.Context, resp *http.Response, relayMode int, thinkingToContent bool) (*model.ErrorWithStatusCode, string, *model.Usage) {
 	responseText := ""
 	scanner := bufio.NewScanner(resp.Body)
 	scanner.Split(bufio.ScanLines)
 	var usage *model.Usage
+	var reasoningBuffer strings.Builder
 
 	common.SetEventStreamHeaders(c)
 
@@ -59,7 +60,31 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 				// but for empty choice and no usage, we should not pass it to client, this is for azure
 				continue // just ignore empty choice
 			}
-			render.StringData(c, data)
+			if thinkingToContent && len(streamResponse.Choices) > 0 {
+				// Handle ThinkingToContent: collect reasoning content and prepend as tag on last chunk
+				choice := &streamResponse.Choices[0]
+				if reasonContent, ok := choice.Delta.ReasoningContent.(string); ok && reasonContent != "" {
+					reasoningBuffer.WriteString(reasonContent)
+				}
+				choice.Delta.ReasoningContent = nil
+				if choice.FinishReason != nil && reasoningBuffer.Len() > 0 {
+					reasonTag := "[reasoning]" + reasoningBuffer.String() + "[/reasoning]"
+					if contentStr, ok := choice.Delta.Content.(string); ok {
+						choice.Delta.Content = reasonTag + contentStr
+					} else if choice.Delta.Content == nil {
+						choice.Delta.Content = reasonTag
+					}
+				}
+				modifiedData, err := json.Marshal(streamResponse)
+				if err != nil {
+					logger.SysError("error marshalling modified stream response: " + err.Error())
+					render.StringData(c, data)
+				} else {
+					render.StringData(c, string(modifiedData))
+				}
+			} else {
+				render.StringData(c, data)
+			}
 			for _, choice := range streamResponse.Choices {
 				responseText += conv.AsString(choice.Delta.Content)
 			}
@@ -96,7 +121,7 @@ func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.E
 	return nil, responseText, usage
 }
 
-func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName string) (*model.ErrorWithStatusCode, *model.Usage) {
+func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName string, thinkingToContent bool) (*model.ErrorWithStatusCode, *model.Usage) {
 	var textResponse SlimTextResponse
 	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -116,7 +141,29 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 			StatusCode: resp.StatusCode,
 		}, nil
 	}
-	// Reset response body
+
+	// Handle ThinkingToContent for non-stream responses
+	if thinkingToContent {
+		for i := range textResponse.Choices {
+			choice := &textResponse.Choices[i]
+			if reasonContent, ok := choice.Message.ReasoningContent.(string); ok && reasonContent != "" {
+				reasonTag := "[reasoning]" + reasonContent + "[/reasoning]"
+				if contentStr, ok := choice.Message.Content.(string); ok {
+					choice.Message.Content = reasonTag + contentStr
+				} else if choice.Message.Content == nil {
+					choice.Message.Content = reasonTag
+				}
+				choice.Message.ReasoningContent = nil
+			}
+		}
+		// Re-marshal modified response body
+		modifiedBody, marshalErr := json.Marshal(textResponse)
+		if marshalErr == nil {
+			responseBody = modifiedBody
+		}
+	}
+
+	// Reset response body (possibly modified)
 	resp.Body = io.NopCloser(bytes.NewBuffer(responseBody))
 
 	// We shouldn't set the header before we parse the response body, because the parse part may fail.

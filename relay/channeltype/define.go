@@ -53,5 +53,14 @@ const (
 	AliBailian
 	OpenAICompatible
 	GeminiOpenAICompatible
+	Codex
+	Dify
+	Jimeng
+	Jina
+	MokaAI
+	Submodel
+	VolcEngine
+	Xinference
+	ZhipuV4
 	Dummy
 )

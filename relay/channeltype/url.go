@@ -54,6 +54,15 @@ var ChannelBaseURLs = []string{
 	"",                                          // 50
 
 	"https://generativelanguage.googleapis.com/v1beta/openai/", // 51
+	"",                                          // 52 Codex
+	"",                                          // 53 Dify
+	"",                                          // 54 Jimeng
+	"",                                          // 55 Jina
+	"",                                          // 56 MokaAI
+	"",                                          // 57 Submodel
+	"https://ark.cn-beijing.volces.com",         // 58 VolcEngine
+	"",                                          // 59 Xinference
+	"https://open.bigmodel.cn",                  // 60 ZhipuV4
 }
 
 func init() {

@@ -1,0 +1,247 @@
+import { createFileRoute } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
+import { useQuery } from '@tanstack/react-query'
+import { DollarSign, CreditCard, History, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import apiClient from '@/lib/api'
+import { type ApiResponse } from '@/lib/api-extended'
+
+interface BillingRecord {
+  id: number
+  type: string
+  amount: number
+  currency: string
+  status: string
+  description: string
+  created_at: number
+}
+
+interface BillingStats {
+  total_income: number
+  total_expense: number
+  balance: number
+  pending_amount: number
+}
+
+interface BillingStatsResponse extends ApiResponse<BillingStats> {}
+interface BillingRecordsResponse extends ApiResponse<BillingRecord[]> {}
+
+async function getBillingStats(): Promise<BillingStatsResponse> {
+  const res = await apiClient.get('/api/billing/stats')
+  return res.data
+}
+
+async function getBillingRecords(): Promise<BillingRecordsResponse> {
+  const res = await apiClient.get('/api/billing/records')
+  return res.data
+}
+
+export const Route = createFileRoute('/_authenticated/billing')({
+  component: BillingPage,
+})
+
+function BillingPage() {
+  const { t } = useTranslation()
+
+  const { data: statsData, isLoading: statsLoading } = useQuery({
+    queryKey: ['billing-stats'],
+    queryFn: getBillingStats,
+    staleTime: 30 * 1000,
+  })
+
+  const { data: recordsData, isLoading: recordsLoading, refetch, isFetching } = useQuery({
+    queryKey: ['billing-records'],
+    queryFn: getBillingRecords,
+    staleTime: 30 * 1000,
+  })
+
+  const stats: BillingStats = statsData?.data || {
+    total_income: 0,
+    total_expense: 0,
+    balance: 0,
+    pending_amount: 0,
+  }
+
+  const records: BillingRecord[] = recordsData?.data || []
+
+  const getTypeText = (type: string) => {
+    const typeMap: Record<string, string> = {
+      'topup': t('Top-up'),
+      'payment': t('Payment'),
+      'refund': t('Refund'),
+      'subscription': t('Subscription'),
+      'usage': t('Usage'),
+    }
+    return typeMap[type] || type
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-500'
+      case 'pending':
+        return 'bg-yellow-500'
+      case 'failed':
+        return 'bg-red-500'
+      default:
+        return 'bg-gray-500'
+    }
+  }
+
+  const formatAmount = (amount: number, type: string) => {
+    const sign = type === 'income' || type === 'topup' || type === 'payment' ? '+' : '-'
+    return `${sign}${amount.toFixed(2)}`
+  }
+
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp * 1000).toLocaleString()
+  }
+
+  return (
+    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            {t('Billing')}
+          </h1>
+          <p className="text-muted-foreground mt-2 text-lg">
+            {t('View and manage your billing history and balance')}
+          </p>
+        </div>
+        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          {t('Refresh')}
+        </Button>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t('Balance')}</p>
+                <p className="text-2xl font-bold mt-1">${stats.balance.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t('Total Income')}</p>
+                <p className="text-2xl font-bold mt-1 text-green-600">+${stats.total_income.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t('Total Expense')}</p>
+                <p className="text-2xl font-bold mt-1 text-red-600">-${stats.total_expense.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
+                <TrendingDown className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t('Pending')}</p>
+                <p className="text-2xl font-bold mt-1 text-yellow-600">${stats.pending_amount.toFixed(2)}</p>
+              </div>
+              <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-yellow-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Transaction History */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <History className="h-6 w-6 text-blue-600" />
+            <CardTitle>{t('Transaction History')}</CardTitle>
+          </div>
+          <CardDescription>
+            {t('Recent billing transactions')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recordsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3 border-b border-dashed">
+                  <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-4 w-32 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-48 animate-pulse rounded bg-muted" />
+                  </div>
+                  <div className="h-6 w-24 animate-pulse rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          ) : records.length === 0 ? (
+            <div className="text-center py-8">
+              <History className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">{t('No transactions yet')}</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {records.map((record) => (
+                <div key={record.id} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 py-3 border-b border-dashed last:border-0">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    record.amount > 0 ? 'bg-green-50' : 'bg-red-50'
+                  }`}>
+                    {record.amount > 0 ? (
+                      <TrendingUp className="h-5 w-5 text-green-600" />
+                    ) : (
+                      <TrendingDown className="h-5 w-5 text-red-600" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{getTypeText(record.type)}</span>
+                      <Badge
+                        variant="secondary"
+                        className={`${getStatusColor(record.status)} text-white text-xs`}
+                      >
+                        {record.status}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{record.description}</p>
+                  </div>
+                  <div className="text-left sm:text-right">
+                    <p className={`font-medium ${record.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {record.amount > 0 ? '+' : ''}${record.amount.toFixed(2)}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{formatTime(record.created_at)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
+}

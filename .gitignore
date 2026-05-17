@@ -7,9 +7,16 @@ build
 *.db-journal
 logs
 data
-/web/node_modules
+web/**/node_modules
+web/**/dist
+web/default_legacy
+*.exe.local
 cmd.md
 .env
 /one-api
 temp
 .DS_Store
+*.bak
+electron/node_modules
+electron/out
+electron/dist

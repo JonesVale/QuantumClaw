@@ -43,6 +43,9 @@ type User struct {
 	WeChatId         string `json:"wechat_id" gorm:"column:wechat_id;index"`
 	LarkId           string `json:"lark_id" gorm:"column:lark_id;index"`
 	OidcId           string `json:"oidc_id" gorm:"column:oidc_id;index"`
+	DiscordId        string `json:"discord_id" gorm:"column:discord_id;index"`
+	LinuxDOId        string `json:"linuxdo_id" gorm:"column:linuxdo_id;index"`
+	TelegramId       string `json:"telegram_id" gorm:"column:telegram_id;index"`
 	CustomOAuthId    string `json:"custom_oauth_id" gorm:"column:custom_oauth_id;index"` // 格式: providerName:externalId
 	VerificationCode string `json:"verification_code" gorm:"-:all"`                                    // this field is only for Email verification, don't save it to database!
 	AccessToken      string `json:"access_token" gorm:"type:char(32);column:access_token;uniqueIndex"` // this token is for system management
@@ -52,6 +55,12 @@ type User struct {
 	Group            string `json:"group" gorm:"type:varchar(32);default:'default'"`
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
 	InviterId        int    `json:"inviter_id" gorm:"type:int;column:inviter_id;index"`
+}
+
+func CountUsers() (int64, error) {
+	var count int64
+	err := DB.Model(&User{}).Where("status != ?", UserStatusDeleted).Count(&count).Error
+	return count, err
 }
 
 func GetMaxUserId() int {
@@ -266,6 +275,30 @@ func (user *User) FillUserByWeChatId() error {
 	return nil
 }
 
+func (user *User) FillUserByDiscordId() error {
+	if user.DiscordId == "" {
+		return errors.New("discord id 为空！")
+	}
+	DB.Where(User{DiscordId: user.DiscordId}).First(user)
+	return nil
+}
+
+func (user *User) FillUserByLinuxDOId() error {
+	if user.LinuxDOId == "" {
+		return errors.New("linuxdo id 为空！")
+	}
+	DB.Where(User{LinuxDOId: user.LinuxDOId}).First(user)
+	return nil
+}
+
+func (user *User) FillUserByTelegramId() error {
+	if user.TelegramId == "" {
+		return errors.New("telegram id 为空！")
+	}
+	DB.Where(User{TelegramId: user.TelegramId}).First(user)
+	return nil
+}
+
 func (user *User) FillUserByUsername() error {
 	if user.Username == "" {
 		return errors.New("username 为空！")
@@ -292,6 +325,18 @@ func IsLarkIdAlreadyTaken(githubId string) bool {
 
 func IsOidcIdAlreadyTaken(oidcId string) bool {
 	return DB.Where("oidc_id = ?", oidcId).Find(&User{}).RowsAffected == 1
+}
+
+func IsDiscordIdAlreadyTaken(discordId string) bool {
+	return DB.Where("discord_id = ?", discordId).Find(&User{}).RowsAffected == 1
+}
+
+func IsLinuxDOIdAlreadyTaken(linuxdoId string) bool {
+	return DB.Where("linuxdo_id = ?", linuxdoId).Find(&User{}).RowsAffected == 1
+}
+
+func IsTelegramIdAlreadyTaken(telegramId string) bool {
+	return DB.Where("telegram_id = ?", telegramId).Find(&User{}).RowsAffected == 1
 }
 
 func IsUsernameAlreadyTaken(username string) bool {

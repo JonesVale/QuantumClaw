@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"github.com/quantumclaw/quantumclaw/controller"
@@ -13,18 +13,25 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter := router.Group("/api")
 	apiRouter.Use(gzip.Gzip(gzip.DefaultCompression))
 	apiRouter.Use(middleware.GlobalAPIRateLimit())
+	apiRouter.Use(middleware.SecurityHeaders())
 	{
 		apiRouter.GET("/status", controller.GetStatus)
+		apiRouter.GET("/setup/check", controller.CheckSetup)
+		apiRouter.POST("/setup/complete", middleware.CriticalRateLimit(), controller.CompleteSetup)
+		apiRouter.GET("/rss/articles", controller.GetRssArticles)
 		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
 		apiRouter.GET("/notice", controller.GetNotice)
 		apiRouter.GET("/about", controller.GetAbout)
 		apiRouter.GET("/home_page_content", controller.GetHomePageContent)
 
-		// 支付 Webhook 回调路由（不需要用户认证）
-		apiRouter.Any("/webhook/epay", controller.EpayNotify)             // 易支付回调
-		apiRouter.POST("/webhook/stripe", controller.StripeWebhook)       // Stripe Webhook
-		apiRouter.POST("/webhook/creem", controller.CreemWebhook)       // Creem Webhook
-		apiRouter.POST("/webhook/waffo", controller.WaffoWebhook)       // Waffo Webhook
+		languageController := controller.NewLanguageController()
+		languageController.RegisterRoutes(apiRouter)
+
+		apiRouter.Any("/webhook/epay", controller.EpayNotify)
+		apiRouter.POST("/webhook/stripe", controller.StripeWebhook)
+		apiRouter.POST("/webhook/creem", controller.CreemWebhook)
+		apiRouter.POST("/webhook/waffo", controller.WaffoWebhook)
+		apiRouter.POST("/webhook/binance", controller.BinanceWebhook)
 		apiRouter.GET("/verification", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.SendEmailVerification)
 		apiRouter.GET("/reset_password", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.SendPasswordResetEmail)
 		apiRouter.POST("/user/reset", middleware.CriticalRateLimit(), controller.ResetPassword)
@@ -34,7 +41,21 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/state", middleware.CriticalRateLimit(), auth.GenerateOAuthCode)
 		apiRouter.GET("/oauth/wechat", middleware.CriticalRateLimit(), auth.WeChatAuth)
 		apiRouter.GET("/oauth/wechat/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), auth.WeChatBind)
+		apiRouter.GET("/oauth/discord", middleware.CriticalRateLimit(), auth.DiscordOAuth)
+		apiRouter.GET("/oauth/linuxdo", middleware.CriticalRateLimit(), auth.LinuxDoOAuth)
+		apiRouter.GET("/oauth/discord/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), auth.DiscordBind)
+		apiRouter.GET("/oauth/linuxdo/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), auth.LinuxDoBind)
+		apiRouter.GET("/oauth/linuxdo/generate", middleware.CriticalRateLimit(), auth.GenerateLinuxDOAuthURL)
+		apiRouter.GET("/oauth/telegram", middleware.CriticalRateLimit(), auth.TelegramOAuth)
+		apiRouter.POST("/oauth/telegram", middleware.CriticalRateLimit(), auth.TelegramAuthHandler)
+		apiRouter.POST("/oauth/telegram/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), auth.TelegramBindHandler)
+		apiRouter.GET("/oauth/telegram/widget", middleware.CriticalRateLimit(), auth.GenerateTelegramWidgetOptions)
 		apiRouter.GET("/oauth/email/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), controller.EmailBind)
+
+		apiRouter.POST("/webauthn/register/begin", middleware.CriticalRateLimit(), auth.WebAuthnBeginRegistration)
+		apiRouter.POST("/webauthn/register/finish", middleware.CriticalRateLimit(), auth.WebAuthnFinishRegistration)
+		apiRouter.POST("/webauthn/login/begin", middleware.CriticalRateLimit(), auth.WebAuthnBeginAuthentication)
+		apiRouter.POST("/webauthn/login/finish", middleware.CriticalRateLimit(), auth.WebAuthnFinishAuthentication)
 		apiRouter.POST("/topup", middleware.AdminAuth(), controller.AdminTopUp)
 
 		userRoute := apiRouter.Group("/user")
@@ -43,33 +64,34 @@ func SetApiRouter(router *gin.Engine) {
 			userRoute.POST("/login", middleware.CriticalRateLimit(), controller.Login)
 			userRoute.GET("/logout", controller.Logout)
 
-			selfRoute := userRoute.Group("/")
+			selfRoute := userRoute.Group("/self")
 			selfRoute.Use(middleware.UserAuth())
 			{
 				selfRoute.GET("/dashboard", controller.GetUserDashboard)
-				selfRoute.GET("/self", controller.GetSelf)
-				selfRoute.PUT("/self", controller.UpdateSelf)
-				selfRoute.DELETE("/self", controller.DeleteSelf)
+				selfRoute.GET("/", controller.GetSelf)
+				selfRoute.PUT("/", controller.UpdateSelf)
+				selfRoute.DELETE("/", controller.DeleteSelf)
 				selfRoute.GET("/token", controller.GenerateAccessToken)
 				selfRoute.GET("/aff", controller.GetAffCode)
 				selfRoute.POST("/topup", controller.TopUp)
 				selfRoute.GET("/available_models", controller.GetUserAvailableModels)
-				
-				// 支付相关路由（安全增强版）
-				selfRoute.GET("/topup/info", controller.GetTopUpInfo)                              // 获取支付信息
-				selfRoute.POST("/topup/epay", controller.RequestEpayTopUp)                      // 易支付
-				selfRoute.POST("/topup/stripe", controller.RequestStripeTopUp)                  // Stripe支付
-				selfRoute.POST("/topup/creem", controller.RequestCreemTopUp)                   // Creem支付
-				selfRoute.POST("/topup/waffo", controller.RequestWaffoTopUp)                   // Waffo支付
-				selfRoute.GET("/topup/list", controller.GetTopUpList)                          // 查询订单列表
 
-				// 签到相关路由
-				selfRoute.GET("/checkin", controller.GetCheckinStatus)  // 获取签到状态
-				selfRoute.POST("/checkin", controller.DoCheckin)        // 执行签到
+				selfRoute.GET("/topup/info", controller.GetTopUpInfo)
+				selfRoute.POST("/topup/epay", controller.RequestEpayTopUp)
+				selfRoute.POST("/topup/stripe", controller.RequestStripeTopUp)
+				selfRoute.POST("/topup/creem", controller.RequestCreemTopUp)
+				selfRoute.POST("/topup/waffo", controller.RequestWaffoTopUp)
+				selfRoute.POST("/topup/binance", controller.RequestBinanceTopUp)
+				selfRoute.GET("/topup/list", controller.GetTopUpList)
 
-				// 订阅相关路由（用户端）
-				selfRoute.GET("/subscription/plans", controller.GetSubscriptionPlans) // 获取套餐列表
-				selfRoute.GET("/subscription/self", controller.GetSubscriptionSelf)   // 获取个人订阅
+				selfRoute.GET("/checkin", controller.GetCheckinStatus)
+				selfRoute.POST("/checkin", controller.DoCheckin)
+
+				selfRoute.GET("/subscription/plans", controller.GetSubscriptionPlans)
+				selfRoute.GET("/subscription/self", controller.GetSubscriptionSelf)
+
+				selfRoute.GET("/webauthn/credentials", auth.WebAuthnGetCredentials)
+				selfRoute.DELETE("/webauthn/credentials/:id", auth.WebAuthnDeleteCredential)
 			}
 
 			adminRoute := userRoute.Group("/")
@@ -107,6 +129,9 @@ func SetApiRouter(router *gin.Engine) {
 			channelRoute.DELETE("/:id", controller.DeleteChannel)
 		}
 		tokenRoute := apiRouter.Group("/token")
+		{
+			tokenRoute.GET("/query", controller.QueryTokenByKey)
+		}
 		tokenRoute.Use(middleware.UserAuth())
 		{
 			tokenRoute.GET("/", controller.GetAllTokens)
@@ -140,16 +165,13 @@ func SetApiRouter(router *gin.Engine) {
 			groupRoute.GET("/", controller.GetGroups)
 		}
 
-		// 订阅套餐管理（管理员）
 		subscriptionRoute := apiRouter.Group("/subscription")
 		{
-			// 用户端（需登录）
 			subscriptionRoute.Use(middleware.UserAuth())
 			subscriptionRoute.GET("/plans", controller.GetSubscriptionPlans)
 			subscriptionRoute.GET("/self", controller.GetSubscriptionSelf)
 		}
 
-		// 管理员订阅套餐 CRUD
 		adminSubscriptionRoute := apiRouter.Group("/admin/subscription")
 		adminSubscriptionRoute.Use(middleware.AdminAuth())
 		{
@@ -165,10 +187,8 @@ func SetApiRouter(router *gin.Engine) {
 			adminSubscriptionRoute.DELETE("/user-sub/:id", controller.AdminDeleteUserSubscription)
 		}
 
-		// ==================== 支付 Webhook 回调 ====================
 		apiRouter.POST("/webhook/waffo_pancake", controller.HandleWaffoPancakeWebhook)
 
-		// ==================== 2FA 两步验证路由 ====================
 		userTwoFARoute := apiRouter.Group("/user/2fa")
 		userTwoFARoute.Use(middleware.UserAuth())
 		{
@@ -179,7 +199,6 @@ func SetApiRouter(router *gin.Engine) {
 		}
 		apiRouter.POST("/user/2fa/verify", controller.VerifyLoginTwoFA)
 
-		// ==================== 模型同步路由 ====================
 		modelSyncRoute := apiRouter.Group("/admin/model-sync")
 		modelSyncRoute.Use(middleware.AdminAuth())
 		{
@@ -191,7 +210,6 @@ func SetApiRouter(router *gin.Engine) {
 			modelSyncRoute.GET("/search", controller.SearchModels)
 		}
 
-		// ==================== 渠道上游更新检测路由 ====================
 		upstreamRoute := apiRouter.Group("/admin/upstream")
 		upstreamRoute.Use(middleware.AdminAuth())
 		{
@@ -200,11 +218,9 @@ func SetApiRouter(router *gin.Engine) {
 			upstreamRoute.POST("/check", controller.CheckUpstreamUpdates)
 		}
 
-		// ==================== 性能监控路由 ====================
 		apiRouter.GET("/admin/performance", middleware.AdminAuth(), controller.GetPerformanceStats)
 		apiRouter.GET("/metrics", controller.GetPrometheusMetrics)
 
-		// ==================== 渠道亲和性路由 ====================
 		channelAffinityRoute := apiRouter.Group("/admin/channel-affinity")
 		channelAffinityRoute.Use(middleware.AdminAuth())
 		{
@@ -214,7 +230,6 @@ func SetApiRouter(router *gin.Engine) {
 			channelAffinityRoute.GET("/cache/stats", controller.GetChannelAffinityCacheStatsHandler)
 		}
 
-		// ==================== 自定义 OAuth 提供商路由 ====================
 		customOAuthRoute := apiRouter.Group("/admin/custom-oauth")
 		customOAuthRoute.Use(middleware.AdminAuth())
 		{
@@ -223,8 +238,27 @@ func SetApiRouter(router *gin.Engine) {
 			customOAuthRoute.PUT("/:id", controller.UpdateCustomOAuthProvider)
 			customOAuthRoute.DELETE("/:id", controller.DeleteCustomOAuthProvider)
 		}
-		// 用户端 OAuth 路由（不需要认证）
 		apiRouter.GET("/oauth/custom/:name", controller.CustomOAuthLogin)
 		apiRouter.GET("/oauth/custom/:name/callback", controller.CustomOAuthCallback)
+
+		taskRoute := apiRouter.Group("/task")
+		taskRoute.Use(middleware.UserAuth())
+		{
+			taskRoute.POST("/midjourney", controller.CreateMidjourneyTask)
+			taskRoute.GET("/midjourney/:task_id", controller.GetMidjourneyTask)
+			taskRoute.POST("/video", controller.CreateVideoTask)
+			taskRoute.POST("/suno", controller.CreateSunoTask)
+			taskRoute.GET("/:task_id", controller.GetTaskStatus)
+			taskRoute.GET("/", controller.ListUserTasks)
+			taskRoute.POST("/:task_id/cancel", controller.CancelTask)
+			taskRoute.DELETE("/:task_id", controller.DeleteTask)
+		}
+
+		adminTaskRoute := apiRouter.Group("/admin/task")
+		adminTaskRoute.Use(middleware.AdminAuth())
+		{
+			adminTaskRoute.GET("/", controller.AdminGetAllTasks)
+			adminTaskRoute.POST("/poll", controller.AdminPollTasks)
+		}
 	}
 }

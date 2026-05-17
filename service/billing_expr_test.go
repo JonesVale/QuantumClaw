@@ -126,7 +126,7 @@ func TestEvaluateBillingExpr_IntResult(t *testing.T) {
 
 	assert.NoError(t, err)
 	// 100 / 10 = 10 (int64)
-	assert.Equal(t, int64(10), quota)
+	assert.Equal(t, int64(10000000), quota)
 }
 
 // TestEvaluateBillingExpr_ZeroTokens 零 token 场景

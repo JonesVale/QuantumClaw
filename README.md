@@ -4,7 +4,7 @@
 
 
 <p align="center">
-  <a href="https://github.com/quantumclaw/quantumclaw"><img src="https://raw.githubusercontent.com/songquanpeng/one-api/main/web/default/public/logo.png" width="150" height="150" alt="quantumclaw logo"></a>
+  <a href="https://github.com/quantumclaw/quantumclaw"><img src="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/web/default/public/logo.png" width="150" height="150" alt="quantumclaw logo"></a>
 </p>
 
 <div align="center">
@@ -13,22 +13,22 @@
 
 _✨ 企业级 AI API 网关 - 安全、稳定、功能全面 ✨_
 
-_基于 One API 增强开发，支持 Stripe / Creem / Waffo / 易支付 等多支付方式_
+_基于 QuantumClaw 增强开发，支持 Stripe / Creem / Waffo / 易支付 等多支付方式_
 
 </div>
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/songquanpeng/one-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/songquanpeng/one-api?color=brightgreen" alt="license">
+  <a href="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/LICENSE">
+    <img src="https://img.shields.io/github/license/quantumclaw/quantumclaw?color=brightgreen" alt="license">
   </a>
   <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
-    <img src="https://img.shields.io/github/v/release/songquanpeng/one-api?color=brightgreen&include_prereleases" alt="release">
+    <img src="https://img.shields.io/github/v/release/quantumclaw/quantumclaw?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://hub.docker.com/repository/docker/justsong/one-api">
-    <img src="https://img.shields.io/docker/pulls/justsong/one-api?color=brightgreen" alt="docker pull">
+  <a href="https://hub.docker.com/repository/docker/quantumclaw/quantumclaw">
+    <img src="https://img.shields.io/docker/pulls/quantumclaw/quantumclaw?color=brightgreen" alt="docker pull">
   </a>
   <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
-    <img src="https://img.shields.io/github/downloads/songquanpeng/one-api/total?color=brightgreen&include_prereleases" alt="release">
+    <img src="https://img.shields.io/github/downloads/quantumclaw/quantumclaw/total?color=brightgreen&include_prereleases" alt="release">
   </a>
   <a href="https://goreportcard.com/report/github.com/quantumclaw/quantumclaw">
     <img src="https://goreportcard.com/badge/github.com/quantumclaw/quantumclaw" alt="GoReportCard">
@@ -59,11 +59,11 @@ _基于 One API 增强开发，支持 Stripe / Creem / Waffo / 易支付 等多�
 > 根据[《生成式人工智能服务管理暂行办法》](http://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
 
 > [!NOTE]
-> 稳定版 / 预览版镜像地址：[justsong/one-api](https://hub.docker.com/repository/docker/justsong/one-api)
-> 或者 [ghcr.io/songquanpeng/one-api](https://github.com/quantumclaw/quantumclaw/pkgs/container/one-api)
+> 稳定版 / 预览版镜像地址：[quantumclaw/quantumclaw](https://hub.docker.com/repository/docker/quantumclaw/quantumclaw)
+> 或者 [ghcr.io/quantumclaw/quantumclaw](https://github.com/quantumclaw/quantumclaw/pkgs/container/quantumclaw)
 >
-> alpha 版镜像地址：[justsong/one-api-alpha](https://hub.docker.com/repository/docker/justsong/one-api-alpha)
-> 或者 [ghcr.io/songquanpeng/one-api-alpha](https://github.com/quantumclaw/quantumclaw/pkgs/container/one-api-alpha)
+> alpha 版镜像地址：[quantumclaw/quantumclaw-alpha](https://hub.docker.com/repository/docker/quantumclaw/quantumclaw-alpha)
+> 或者 [ghcr.io/quantumclaw/quantumclaw-alpha](https://github.com/quantumclaw/quantumclaw/pkgs/container/quantumclaw-alpha)
 
 > [!WARNING]
 > 使用 root 用户初次登录系统后，务必修改默认密码 `123456`！
@@ -117,11 +117,11 @@ _基于 One API 增强开发，支持 Stripe / Creem / Waffo / 易支付 等多�
 19. 支持丰富的**自定义**设置，
     1. 支持自定义系统名称，logo 以及页脚。
     2. 支持自定义首页和关于页面，可以选择使用 HTML & Markdown 代码进行自定义，或者使用一个单独的网页通过 iframe 嵌入。
-20. 支持通过系统访问令牌调用管理 API，进而**在无需二开的情况下扩展和自定义** One API 的功能，详情请参考此处 [API 文档](./docs/API.md)。
+20. 支持通过系统访问令牌调用管理 API，进而**在无需二开的情况下扩展和自定义** QuantumClaw 的功能，详情请参考此处 [API 文档](./docs/API.md)。
 21. 支持 Cloudflare Turnstile 用户校验。
 22. 支持用户管理，支持**多种用户登录注册方式**：
     + 邮箱登录注册（支持注册邮箱白名单）以及通过邮箱进行密码重置。
-    + 支持[飞书授权登录](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/authen-v1/authorize/get)（[这里有 One API 的实现细节阐述供参考](https://iamazing.cn/page/feishu-oauth-login)）。
+    + 支持[飞书授权登录](https://open.feishu.cn/document/uAjLw4CM/ukTMukTMukTM/reference/authen-v1/authorize/get)（[这里有 QuantumClaw 的实现细节阐述供参考](https://iamazing.cn/page/feishu-oauth-login)）。
     + 支持 [GitHub 授权登录](https://github.com/settings/applications/new)。
     + 微信公众号授权（需要额外部署 [WeChat Server](https://github.com/songquanpeng/wechat-server)）。
 23. 支持主题切换，设置环境变量 `THEME` 即可，默认为 `default`，欢迎 PR 更多主题，具体参考[此处](./web/README.md)。
@@ -131,19 +131,19 @@ _基于 One API 增强开发，支持 Stripe / Creem / Waffo / 易支付 等多�
 ### 基于 Docker 进行部署
 ```shell
 # 使用 SQLite 的部署命令：
-docker run --name one-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/one-api:/data justsong/one-api
+docker run --name quantumclaw -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw
 # 使用 MySQL 的部署命令，在上面的基础上添加 `-e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi"`，请自行修改数据库连接参数，不清楚如何修改请参见下面环境变量一节。
 # 例如：
-docker run --name one-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/one-api:/data justsong/one-api
+docker run --name quantumclaw -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw
 ```
 
 其中，`-p 3000:3000` 中的第一个 `3000` 是宿主机的端口，可以根据需要进行修改。
 
-数据和日志将会保存在宿主机的 `/home/ubuntu/data/one-api` 目录，请确保该目录存在且具有写入权限，或者更改为合适的目录。
+数据和日志将会保存在宿主机的 `/home/ubuntu/data/quantumclaw` 目录，请确保该目录存在且具有写入权限，或者更改为合适的目录。
 
 如果启动失败，请添加 `--privileged=true`，具体参考 https://github.com/quantumclaw/quantumclaw/issues/482 。
 
-如果上面的镜像无法拉取，可以尝试使用 GitHub 的 Docker 镜像，将上面的 `justsong/one-api` 替换为 `ghcr.io/songquanpeng/one-api` 即可。
+如果上面的镜像无法拉取，可以尝试使用 GitHub 的 Docker 镜像，将上面的 `quantumclaw/quantumclaw` 替换为 `ghcr.io/quantumclaw/quantumclaw` 即可。
 
 如果你的并发量较大，**务必**设置 `SQL_DSN`，详见下面[环境变量](#环境变量)一节。
 
@@ -190,13 +190,33 @@ sudo service nginx restart
 
 > 仅启动方式不同，参数设置不变，请参考基于 Docker 部署部分
 
+**方案一：MySQL + Redis（标准部署）**
+
 ```shell
-# 目前支持 MySQL 启动，数据存储在 ./data/mysql 文件夹内
+# 数据存储在 ./data/mysql 和 ./data/redis 目录下
 docker-compose up -d
 
 # 查看部署状态
 docker-compose ps
 ```
+
+**方案二：SQLite（轻量单容器部署）**
+
+无需 MySQL 和 Redis，适用于开发、测试或小规模使用：
+
+```shell
+# 使用 SQLite 轻量模式启动（单容器，无外部数据库依赖）
+docker-compose -f docker-compose.sqlite.yml up -d
+
+# 查看部署状态
+docker-compose -f docker-compose.sqlite.yml ps
+```
+
+SQLite 数据库文件存储在 `quantumclaw_data` Docker 卷中，数据在容器重启后持久保留。
+可通过 `SQLITE_PATH` 环境变量自定义数据库路径（默认 `/app/data/quantumclaw.db`）。
+
+> 注意：如果同时设置了 `SQL_DSN` 和 `SQLITE_PATH`，`SQL_DSN` 优先级更高，将使用 MySQL/PostgreSQL。
+> 要使用 SQLite 模式，请确保 `SQL_DSN` 为空或未设置。
 
 ### 手动部署
 1. 从 [GitHub Releases](https://github.com/quantumclaw/quantumclaw/releases/latest) 下载可执行文件或者从源码编译：
@@ -204,19 +224,19 @@ docker-compose ps
    git clone https://github.com/quantumclaw/quantumclaw.git
 
    # 构建前端
-   cd one-api/web/default
+   cd quantumclaw/web/default
    npm install
    npm run build
 
    # 构建后端
    cd ../..
    go mod download
-   go build -ldflags "-s -w" -o one-api
+   go build -ldflags "-s -w" -o quantumclaw
    ````
 2. 运行：
    ```shell
-   chmod u+x one-api
-   ./one-api --port 3000 --log-dir ./logs
+   chmod u+x quantumclaw
+   ./quantumclaw --port 3000 --log-dir ./logs
    ```
 3. 访问 [http://localhost:3000/](http://localhost:3000/) 并登录。初始账号用户名为 `root`，密码为 `123456`。
 
@@ -239,7 +259,7 @@ docker-compose ps
 
 如果部署后访问出现空白页面，详见 [#97](https://github.com/quantumclaw/quantumclaw/issues/97)。
 
-### 部署第三方服务配合 One API 使用
+### 部署第三方服务配合 QuantumClaw 使用
 > 欢迎 PR 添加更多示例。
 
 #### ChatGPT Next Web
@@ -263,7 +283,7 @@ docker run --name chatgpt-web -d -p 3002:3002 -e OPENAI_API_BASE_URL=https://ope
 #### QChatGPT - QQ机器人
 项目主页：https://github.com/RockChinQ/QChatGPT
 
-根据[文档](https://qchatgpt.rockchin.top)完成部署后，在 `data/provider.json`设置`requester.openai-chat-completions.base-url`为 One API 实例地址，并填写 API Key 到 `keys.openai` 组中，设置 `model` 为要使用的模型名称。
+根据[文档](https://qchatgpt.rockchin.top)完成部署后，在 `data/provider.json`设置`requester.openai-chat-completions.base-url`为 QuantumClaw 实例地址，并填写 API Key 到 `keys.openai` 组中，设置 `model` 为要使用的模型名称。
 
 运行期间可以通过`!model`命令查看、切换可用模型。
 
@@ -276,7 +296,7 @@ docker run --name chatgpt-web -d -p 3002:3002 -e OPENAI_API_BASE_URL=https://ope
 
 点击以下按钮一键部署（部署后访问出现 404 请等待 3~5 分钟）：
 
-[![Deploy-on-Sealos.svg](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=one-api)
+[![Deploy-on-Sealos.svg](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=quantumclaw)
 
 </div>
 </details>
@@ -292,12 +312,12 @@ docker run --name chatgpt-web -d -p 3002:3002 -e OPENAI_API_BASE_URL=https://ope
 1. 首先 fork 一份代码。
 2. 进入 [Zeabur](https://zeabur.com?referralCode=songquanpeng)，登录，进入控制台。
 3. 新建一个 Project，在 Service -> Add Service 选择 Marketplace，选择 MySQL，并记下连接参数（用户名、密码、地址、端口）。
-4. 复制链接参数，运行 ```create database `one-api` ``` 创建数据库。
+4. 复制链接参数，运行 ```create database `quantumclaw` ``` 创建数据库。
 5. 然后在 Service -> Add Service，选择 Git（第一次使用需要先授权），选择你 fork 的仓库。
-6. Deploy 会自动开始，先取消。进入下方 Variable，添加一个 `PORT`，值为 `3000`，再添加一个 `SQL_DSN`，值为 `<username>:<password>@tcp(<addr>:<port>)/one-api` ，然后保存。 注意如果不填写 `SQL_DSN`，数据将无法持久化，重新部署后数据会丢失。
+6. Deploy 会自动开始，先取消。进入下方 Variable，添加一个 `PORT`，值为 `3000`，再添加一个 `SQL_DSN`，值为 `<username>:<password>@tcp(<addr>:<port>)/quantumclaw` ，然后保存。 注意如果不填写 `SQL_DSN`，数据将无法持久化，重新部署后数据会丢失。
 7. 选择 Redeploy。
-8. 进入下方 Domains，选择一个合适的域名前缀，如 "my-one-api"，最终域名为 "my-one-api.zeabur.app"，也可以 CNAME 自己的域名。
-9. 等待部署完成，点击生成的域名进入 One API。
+8. 进入下方 Domains，选择一个合适的域名前缀，如 "my-quantumclaw"，最终域名为 "my-quantumclaw.zeabur.app"，也可以 CNAME 自己的域名。
+9. 等待部署完成，点击生成的域名进入 QuantumClaw。
 
 </div>
 </details>
@@ -325,9 +345,9 @@ Render 可以直接部署 docker 镜像，不需要 fork 仓库：https://dashbo
 ## 使用方法
 在`渠道`页面中添加你的 API Key，之后在`令牌`页面中新增访问令牌。
 
-之后就可以使用你的令牌访问 One API 了，使用方式与 [OpenAI API](https://platform.openai.com/docs/api-reference/introduction) 一致。
+之后就可以使用你的令牌访问 QuantumClaw 了，使用方式与 [OpenAI API](https://platform.openai.com/docs/api-reference/introduction) 一致。
 
-你需要在各种用到 OpenAI API 的地方设置 API Base 为你的 One API 的部署地址，例如：`https://openai.justsong.cn`，API Key 则为你在 One API 中生成的令牌。
+你需要在各种用到 OpenAI API 的地方设置 API Base 为你的 QuantumClaw 的部署地址，例如：`https://openai.justsong.cn`，API Key 则为你在 QuantumClaw 中生成的令牌。
 
 注意，具体的 API Base 的格式取决于你所使用的客户端。
 
@@ -340,7 +360,7 @@ OPENAI_API_BASE="https://<HOST>:<PORT>/v1"
 ```mermaid
 graph LR
     A(用户)
-    A --->|使用 One API 分发的 key 进行请求| B(One API)
+    A --->|使用 QuantumClaw 分发的 key 进行请求| B(QuantumClaw)
     B -->|中继请求| C(OpenAI)
     B -->|中继请求| D(Azure)
     B -->|中继请求| E(其他 OpenAI API 格式下游渠道)
@@ -353,7 +373,7 @@ graph LR
 不加的话将会使用负载均衡的方式使用多个渠道。
 
 ### 环境变量
-> One API 支持从 `.env` 文件中读取环境变量，请参照 `.env.example` 文件，使用时请将其重命名为 `.env`。
+> QuantumClaw 支持从 `.env` 文件中读取环境变量，请参照 `.env.example` 文件，使用时请将其重命名为 `.env`。
 1. `REDIS_CONN_STRING`：设置之后将使用 Redis 作为缓存使用。
    + 例子：`REDIS_CONN_STRING=redis://default:redispw@localhost:49153`
    + 如果数据库访问延迟很低，没有必要启用 Redis，启用后反而会出现数据滞后的问题。
@@ -408,7 +428,7 @@ graph LR
 19. `USER_CONTENT_REQUEST_PROXY`：设置后使用该代理来请求用户上传的内容，例如图片。
 20. `SQLITE_BUSY_TIMEOUT`：SQLite 锁等待超时设置，单位为毫秒，默认 `3000`。
 21. `GEMINI_SAFETY_SETTING`：Gemini 的安全设置，默认 `BLOCK_NONE`。
-22. `GEMINI_VERSION`：One API 所使用的 Gemini 版本，默认为 `v1`。
+22. `GEMINI_VERSION`：QuantumClaw 所使用的 Gemini 版本，默认为 `v1`。
 23. `THEME`：系统的主题设置，默认为 `default`，具体可选值参考[此处](./web/README.md)。
 24. `ENABLE_METRIC`：是否根据请求成功率禁用渠道，默认不开启，可选值为 `true` 和 `false`。
 25. `METRIC_QUEUE_SIZE`：请求成功率统计队列大小，默认为 `10`。
@@ -436,11 +456,11 @@ https://openai.justsong.cn
 ![token](https://user-images.githubusercontent.com/39998050/233837971-dab488b7-6d96-43af-b640-a168e8d1c9bf.png)
 
 ## 常见问题
-1. 额度是什么？怎么计算的？One API 的额度计算有问题？
+1. 额度是什么？怎么计算的？QuantumClaw 的额度计算有问题？
    + 额度 = 分组倍率 * 模型倍率 * （提示 token 数 + 补全 token 数 * 补全倍率）
    + 其中补全倍率对于 GPT3.5 固定为 1.33，GPT4 为 2，与官方保持一致。
    + 如果是非流模式，官方接口会返回消耗的总 token，但是你要注意提示和补全的消耗倍率不一样。
-   + 注意，One API 的默认倍率就是官方倍率，是已经调整过的。
+   + 注意，QuantumClaw 的默认倍率就是官方倍率，是已经调整过的。
 2. 账户额度足够为什么提示额度不足？
    + 请检查你的令牌额度是否足够，这个和账户额度是分开的。
    + 令牌额度仅供用户设置最大使用量，用户可自由设置。
@@ -458,7 +478,7 @@ https://openai.justsong.cn
    + 上游渠道 429 了。
 7. 升级之后我的数据会丢失吗？
    + 如果使用 MySQL，不会。
-   + 如果使用 SQLite，需要按照我所给的部署命令挂载 volume 持久化 one-api.db 数据库文件，否则容器重启后数据会丢失。
+   + 如果使用 SQLite，需要按照我所给的部署命令挂载 volume 持久化 quantumclaw.db 数据库文件，否则容器重启后数据会丢失。
 8. 升级之前数据库需要做变更吗？
    + 一般情况下不需要，系统将在初始化的时候自动调整。
    + 如果需要的话，我会在更新日志中说明，并给出脚本。

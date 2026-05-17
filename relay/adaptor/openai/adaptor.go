@@ -76,7 +76,7 @@ func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *me
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
 	if meta.ChannelType == channeltype.OpenRouter {
 		req.Header.Set("HTTP-Referer", "https://github.com/quantumclaw/quantumclaw")
-		req.Header.Set("X-Title", "One API")
+		req.Header.Set("X-Title", "QuantumClaw")
 	}
 	return nil
 }
@@ -109,7 +109,7 @@ func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Read
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Meta) (usage *model.Usage, err *model.ErrorWithStatusCode) {
 	if meta.IsStream {
 		var responseText string
-		err, responseText, usage = StreamHandler(c, resp, meta.Mode)
+		err, responseText, usage = StreamHandler(c, resp, meta.Mode, meta.Config.ThinkingToContent)
 		if usage == nil || usage.TotalTokens == 0 {
 			usage = ResponseText2Usage(responseText, meta.ActualModelName, meta.PromptTokens)
 		}
@@ -122,7 +122,7 @@ func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Met
 		case relaymode.ImagesGenerations:
 			err, _ = ImageHandler(c, resp)
 		default:
-			err, usage = Handler(c, resp, meta.PromptTokens, meta.ActualModelName)
+			err, usage = Handler(c, resp, meta.PromptTokens, meta.ActualModelName, meta.Config.ThinkingToContent)
 		}
 	}
 	return

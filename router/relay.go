@@ -18,9 +18,10 @@ func SetRelayRouter(router *gin.Engine) {
 		modelsRouter.GET("/:model", controller.RetrieveModel)
 	}
 	relayV1Router := router.Group("/v1")
-	relayV1Router.Use(middleware.RelayPanicRecover(), middleware.TokenAuth(), middleware.Distribute())
+	relayV1Router.Use(middleware.RelayPanicRecover(), middleware.TokenAuth(), middleware.ModelRateLimit(), middleware.Distribute())
 	{
 		relayV1Router.Any("/oneapi/proxy/:channelid/*target", controller.Relay)
+		relayV1Router.POST("/responses", controller.Relay)
 		relayV1Router.POST("/completions", controller.Relay)
 		relayV1Router.POST("/chat/completions", controller.Relay)
 		relayV1Router.POST("/edits", controller.Relay)
@@ -70,5 +71,32 @@ func SetRelayRouter(router *gin.Engine) {
 		relayV1Router.POST("/threads/:id/runs/:runsId/cancel", controller.Relay)
 		relayV1Router.GET("/threads/:id/runs/:runsId/steps/:stepId", controller.Relay)
 		relayV1Router.GET("/threads/:id/runs/:runsId/steps", controller.Relay)
+
+		// ==================== 异步任务 relay（Midjourney / 视频生成 / Suno）====================
+		// 这些请求走异步任务系统：创建任务 → 返回 task_id → 后台处理 → 轮询状态
+		relayV1Router.Any("/mj/*path", controller.Relay)
+		relayV1Router.Any("/video/*path", controller.Relay)
+		relayV1Router.Any("/suno/*path", controller.Relay)
+
+		// ==================== Claude Messages API ====================
+		relayV1Router.POST("/messages", controller.Relay)
+
+		// ==================== OpenAI Batch API ====================
+		relayV1Router.POST("/batches", controller.Relay)
+		relayV1Router.GET("/batches/:id", controller.Relay)
+		relayV1Router.POST("/batches/:id/cancel", controller.Relay)
+
+		// ==================== OpenAI Vector Stores API ====================
+		relayV1Router.POST("/vector_stores", controller.Relay)
+		relayV1Router.GET("/vector_stores", controller.Relay)
+		relayV1Router.GET("/vector_stores/:id", controller.Relay)
+		relayV1Router.POST("/vector_stores/:id", controller.Relay)
+		relayV1Router.DELETE("/vector_stores/:id", controller.Relay)
+		relayV1Router.POST("/vector_stores/:id/file_batches", controller.Relay)
+		relayV1Router.GET("/vector_stores/:id/file_batches/:batchId", controller.Relay)
+		relayV1Router.POST("/vector_stores/:id/files", controller.Relay)
+		relayV1Router.GET("/vector_stores/:id/files", controller.Relay)
+		relayV1Router.DELETE("/vector_stores/:id/files/:fileId", controller.Relay)
+		relayV1Router.GET("/vector_stores/:id/files/:fileId", controller.Relay)
 	}
 }

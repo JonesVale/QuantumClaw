@@ -44,6 +44,15 @@ func relayHelper(c *gin.Context, relayMode int) *model.ErrorWithStatusCode {
 		err = RelayFilesHelper(c)
 	case relaymode.FineTuning:
 		err = RelayFineTuningHelper(c)
+	// 异步任务：Midjourney / 视频生成 / Suno 音乐
+	case relaymode.Midjourney:
+		fallthrough
+	case relaymode.VideoGeneration:
+		fallthrough
+	case relaymode.Suno:
+		controller.RelayAsyncTask(c)
+		// 异步任务不直接返回错误给客户端，已在函数内处理响应
+		return nil
 	default:
 		err = controller.RelayTextHelper(c)
 	}

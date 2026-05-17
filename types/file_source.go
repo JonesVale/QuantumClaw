@@ -1,0 +1,210 @@
+package types
+
+import (
+	"fmt"
+	"image"
+	"os"
+	"strings"
+	"sync"
+)
+
+// FileSource abstracts file sources (URL or base64), providing lazy-load and caching.
+type FileSource interface {
+	IsURL() bool
+	GetIdentifier() string
+	GetRawData() string
+	ClearRawData()
+	SetCache(data *CachedFileData)
+	GetCache() *CachedFileData
+	HasCache() bool
+	ClearCache()
+	IsRegistered() bool
+	SetRegistered(registered bool)
+	Mu() *sync.Mutex
+}
+
+// baseFileSource holds shared fields for all FileSource implementations.
+type baseFileSource struct {
+	cachedData  *CachedFileData
+	cacheLoaded bool
+	registered  bool
+	mu          sync.Mutex
+}
+
+func (b *baseFileSource) SetCache(data *CachedFileData) {
+	b.cachedData = data
+	b.cacheLoaded = true
+}
+
+func (b *baseFileSource) GetCache() *CachedFileData {
+	return b.cachedData
+}
+
+func (b *baseFileSource) HasCache() bool {
+	return b.cacheLoaded && b.cachedData != nil
+}
+
+func (b *baseFileSource) ClearCache() {
+	if b.cachedData != nil {
+		b.cachedData.Close()
+	}
+	b.cachedData = nil
+	b.cacheLoaded = false
+}
+
+func (b *baseFileSource) IsRegistered() bool {
+	return b.registered
+}
+
+func (b *baseFileSource) SetRegistered(registered bool) {
+	b.registered = registered
+}
+
+func (b *baseFileSource) Mu() *sync.Mutex {
+	return &b.mu
+}
+
+// URLSource implements FileSource for URL-based files.
+type URLSource struct {
+	baseFileSource
+	URL string
+}
+
+func (u *URLSource) IsURL() bool { return true }
+
+func (u *URLSource) GetIdentifier() string {
+	if len(u.URL) > 100 {
+		return u.URL[:100] + "..."
+	}
+	return u.URL
+}
+
+func (u *URLSource) GetRawData() string { return u.URL }
+
+func (u *URLSource) ClearRawData() {}
+
+// Base64Source implements FileSource for base64-encoded inline data.
+type Base64Source struct {
+	baseFileSource
+	Base64Data string
+	MimeType   string
+}
+
+func (b *Base64Source) IsURL() bool { return false }
+
+func (b *Base64Source) GetIdentifier() string {
+	if len(b.Base64Data) > 50 {
+		return "base64:" + b.Base64Data[:50] + "..."
+	}
+	return "base64:" + b.Base64Data
+}
+
+func (b *Base64Source) GetRawData() string { return b.Base64Data }
+
+func (b *Base64Source) ClearRawData() {
+	if len(b.Base64Data) > 1024 {
+		b.Base64Data = ""
+	}
+}
+
+// Constructors
+
+func NewURLFileSource(url string) *URLSource {
+	return &URLSource{URL: url}
+}
+
+func NewBase64FileSource(base64Data string, mimeType string) *Base64Source {
+	return &Base64Source{
+		Base64Data: base64Data,
+		MimeType:   mimeType,
+	}
+}
+
+func NewFileSourceFromData(data string, mimeType string) FileSource {
+	if strings.HasPrefix(data, "http://") || strings.HasPrefix(data, "https://") {
+		return NewURLFileSource(data)
+	}
+	return NewBase64FileSource(data, mimeType)
+}
+
+// CachedFileData holds cached file data (memory or disk).
+type CachedFileData struct {
+	base64Data  string
+	MimeType    string
+	Size        int64
+	DiskSize    int64
+	ImageConfig *image.Config
+	ImageFormat string
+	diskPath    string
+	isDisk      bool
+	diskMu      sync.Mutex
+	diskClosed  bool
+	statDecremented bool
+	OnClose     func(size int64)
+}
+
+func NewMemoryCachedData(base64Data string, mimeType string, size int64) *CachedFileData {
+	return &CachedFileData{
+		base64Data: base64Data,
+		MimeType:   mimeType,
+		Size:       size,
+		isDisk:     false,
+	}
+}
+
+func NewDiskCachedData(diskPath string, mimeType string, size int64) *CachedFileData {
+	return &CachedFileData{
+		diskPath: diskPath,
+		MimeType: mimeType,
+		Size:     size,
+		isDisk:   true,
+	}
+}
+
+func (c *CachedFileData) GetBase64Data() (string, error) {
+	if !c.isDisk {
+		return c.base64Data, nil
+	}
+	c.diskMu.Lock()
+	defer c.diskMu.Unlock()
+	if c.diskClosed {
+		return "", fmt.Errorf("disk cache already closed")
+	}
+	data, err := os.ReadFile(c.diskPath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read from disk cache: %w", err)
+	}
+	return string(data), nil
+}
+
+func (c *CachedFileData) SetBase64Data(data string) {
+	if !c.isDisk {
+		c.base64Data = data
+	}
+}
+
+func (c *CachedFileData) IsDisk() bool {
+	return c.isDisk
+}
+
+func (c *CachedFileData) Close() error {
+	if !c.isDisk {
+		c.base64Data = ""
+		return nil
+	}
+	c.diskMu.Lock()
+	defer c.diskMu.Unlock()
+	if c.diskClosed {
+		return nil
+	}
+	c.diskClosed = true
+	if c.diskPath != "" {
+		err := os.Remove(c.diskPath)
+		if err == nil && !c.statDecremented && c.OnClose != nil {
+			c.OnClose(c.DiskSize)
+			c.statDecremented = true
+		}
+		return err
+	}
+	return nil
+}

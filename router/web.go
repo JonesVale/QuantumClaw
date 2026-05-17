@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"embed"
@@ -7,7 +7,6 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common"
-	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/controller"
 	"github.com/quantumclaw/quantumclaw/middleware"
 	"net/http"
@@ -15,11 +14,12 @@ import (
 )
 
 func SetWebRouter(router *gin.Engine, buildFS embed.FS) {
-	indexPageData, _ := buildFS.ReadFile(fmt.Sprintf("web/build/%s/index.html", config.Theme))
+	indexPageData, _ := buildFS.ReadFile(fmt.Sprintf("web/default/dist/index.html"))
 	router.Use(gzip.Gzip(gzip.DefaultCompression))
 	router.Use(middleware.GlobalWebRateLimit())
 	router.Use(middleware.Cache())
-	router.Use(static.Serve("/", common.EmbedFolder(buildFS, fmt.Sprintf("web/build/%s", config.Theme))))
+	router.Use(middleware.SecurityHeaders())
+	router.Use(static.Serve("/", common.EmbedFolder(buildFS, "web/default/dist")))
 	router.NoRoute(func(c *gin.Context) {
 		if strings.HasPrefix(c.Request.RequestURI, "/v1") || strings.HasPrefix(c.Request.RequestURI, "/api") {
 			controller.RelayNotFound(c)

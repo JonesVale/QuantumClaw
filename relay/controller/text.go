@@ -18,6 +18,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/billing"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	"github.com/quantumclaw/quantumclaw/relay/model"
 )
@@ -34,6 +35,11 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 	meta.IsStream = textRequest.Stream
 
 	// map model name
+	// Parse reasoning/thinking suffixes from the model name and set defaults.
+	// e.g. "o3-mini-high" → base="o3-mini", ReasoningEffort="high"
+	//      "claude-3-7-sonnet-20250219-thinking" → Thinking=true
+	applyReasoningSuffix(textRequest)
+
 	meta.OriginModelName = textRequest.Model
 	textRequest.Model, _ = getMappedModelName(textRequest.Model, meta.ModelMapping)
 	meta.ActualModelName = textRequest.Model
@@ -112,4 +118,36 @@ func getRequestBody(c *gin.Context, meta *meta.Meta, textRequest *model.GeneralO
 	logger.Debugf(c.Request.Context(), "converted request: \n%s", string(jsonData))
 	requestBody = bytes.NewBuffer(jsonData)
 	return requestBody, nil
+}
+
+// applyReasoningSuffix parses reasoning/thinking suffixes from the model name
+// and sets the corresponding fields (ReasoningEffort, Thinking) on the request.
+// It also strips the suffix from the model name so downstream code sees the base model.
+//
+// Supported patterns:
+//   - o3-mini-high / o3-mini-medium / o3-mini-low
+//   - claude-*-thinking
+//   - gemini-*-thinking / gemini-*-nothinking / gemini-*-thinking-<budget>
+func applyReasoningSuffix(textRequest *model.GeneralOpenAIRequest) {
+	if textRequest == nil || textRequest.Model == "" {
+		return
+	}
+	base, reasoningEffort, thinking, _ := relaycommon.ParseModelSuffix(textRequest.Model)
+	if base == textRequest.Model {
+		// No suffix was recognized; no changes needed
+		return
+	}
+	// Update model to base name (suffix stripped)
+	textRequest.Model = base
+
+	// Set ReasoningEffort only if not already explicitly provided in the request body
+	if reasoningEffort != "" && textRequest.ReasoningEffort == nil {
+		textRequest.ReasoningEffort = &reasoningEffort
+	}
+
+	// Set Thinking flag
+	if textRequest.Thinking == nil {
+		boolVal := thinking
+		textRequest.Thinking = &boolVal
+	}
 }

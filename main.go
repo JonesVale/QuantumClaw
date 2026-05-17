@@ -1,6 +1,7 @@
-﻿package main
+package main
 
 import (
+	"context"
 	"embed"
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
+	"github.com/grafana/pyroscope-go"
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/quantumclaw/quantumclaw/common"
@@ -21,15 +23,44 @@ import (
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	"github.com/quantumclaw/quantumclaw/router"
+	"github.com/quantumclaw/quantumclaw/service"
 )
 
-//go:embed web/build/*
+//go:embed web/default/dist
 var buildFS embed.FS
+
+func startPyroscope() {
+	if config.PyroscopeURL == "" {
+		return
+	}
+	_, err := pyroscope.Start(pyroscope.Config{
+		ApplicationName: config.PyroscopeAppName,
+		ServerAddress:   config.PyroscopeURL,
+		BasicAuthUser:   config.PyroscopeBasicAuthUser,
+		BasicAuthPassword: config.PyroscopeBasicAuthPassword,
+		Logger:          pyroscope.StandardLogger,
+		ProfileTypes: []pyroscope.ProfileType{
+			pyroscope.ProfileCPU,
+			pyroscope.ProfileAllocObjects,
+			pyroscope.ProfileAllocSpace,
+			pyroscope.ProfileInuseObjects,
+			pyroscope.ProfileInuseSpace,
+			pyroscope.ProfileGoroutines,
+			pyroscope.ProfileMutexCount,
+			pyroscope.ProfileMutexDuration,
+			pyroscope.ProfileBlockCount,
+			pyroscope.ProfileBlockDuration,
+		},
+	})
+	if err != nil {
+		logger.SysWarn("failed to start pyroscope: " + err.Error())
+	}
+}
 
 func main() {
 	common.Init()
 	logger.SetupLogger()
-	logger.SysLogf("One API %s started", common.Version)
+	logger.SysLogf("QuantumClaw %s started", common.Version)
 
 	if os.Getenv("GIN_MODE") != gin.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
@@ -38,9 +69,15 @@ func main() {
 		logger.SysLog("running in debug mode")
 	}
 
+	// Start Pyroscope profiling
+	startPyroscope()
+
 	// Initialize SQL Database
 	model.InitDB()
 	model.InitLogDB()
+
+	// Initialize language types
+	model.InitLanguageTypes()
 
 	var err error
 	err = model.CreateRootAccountIfNeed()
@@ -91,8 +128,12 @@ func main() {
 	if config.EnableMetric {
 		logger.SysLog("metric enabled, will disable channel if too much request failed")
 	}
-	openai.InitTokenEncoders()
+	go openai.InitTokenEncoders()
 	client.Init()
+	go service.TaskPollingLoop()
+	go service.StartSubscriptionQuotaResetTask()
+	go service.StartRssService(context.Background())
+	service.LoadCustomOAuthProviders()
 
 	// Initialize i18n
 	if err := i18n.Init(); err != nil {

@@ -12,10 +12,10 @@ import (
 	"github.com/google/uuid"
 )
 
-var SystemName = "One API"
+var SystemName = "QuantumClaw"
 var ServerAddress = "http://localhost:3000"
 var Footer = ""
-var Logo = ""
+var Logo = "quantumclaw-logo.jpg"
 var TopUpLink = ""
 var ChatLink = ""
 var QuotaPerUnit = 500 * 1000.0 // $0.002 / 1K tokens
@@ -38,6 +38,7 @@ var EmailVerificationEnabled = false
 var GitHubOAuthEnabled = false
 var OidcEnabled = false
 var WeChatAuthEnabled = false
+var DiscordOAuthEnabled = false
 var TurnstileCheckEnabled = false
 var RegisterEnabled = true
 
@@ -82,6 +83,22 @@ var OidcUserinfoEndpoint = ""
 var WeChatServerAddress = ""
 var WeChatServerToken = ""
 var WeChatAccountQRCodeImageURL = ""
+
+var DiscordClientId = ""
+var DiscordClientSecret = ""
+
+var LinuxDOOAuthEnabled = false
+var LinuxDOClientId = ""
+var LinuxDOClientSecret = ""
+
+var TelegramOAuthEnabled = false
+var TelegramBotToken = ""
+var TelegramBotUsername = ""
+
+var WebAuthnEnabled = false
+var WebAuthnRPDisplayName = "QuantumClaw"
+var WebAuthnRPID = ""       // 留空则自动从 ServerAddress 提取
+var WebAuthnOrigin = ""     // 留空则自动从 ServerAddress 提取
 
 var MessagePusherAddress = ""
 var MessagePusherToken = ""
@@ -164,3 +181,55 @@ var UserContentRequestTimeout = env.Int("USER_CONTENT_REQUEST_TIMEOUT", 30)
 
 var EnforceIncludeUsage = env.Bool("ENFORCE_INCLUDE_USAGE", false)
 var TestPrompt = env.String("TEST_PROMPT", "Output only your specific model name with no additional text.")
+
+// ==================== 安全配置 ====================
+
+// CORS 允许的 Origins（逗号分隔）
+// 例如: "https://example.com,https://app.example.com"
+// 留空则禁止跨域请求（仅允许同源）
+var AllowedOrigins = env.StringSlice("ALLOWED_ORIGINS", []string{})
+var CORSAllowCredentials = env.Bool("CORS_ALLOW_CREDENTIALS", true)
+var CORSMaxAge = env.Int("CORS_MAX_AGE", 86400)
+
+func GetAllowedOrigins() []string {
+	origins := AllowedOrigins
+	if len(origins) == 0 {
+		return []string{"*"}
+	}
+	return origins
+}
+
+// CSP 配置
+var CSPReportOnly = env.Bool("CSP_REPORT_ONLY", false) // CSP 是否只报告不阻止
+
+// HSTS 配置
+var HSTSMaxAge = env.Int("HSTS_MAX_AGE", 31536000) // 默认 1 年 (秒)
+var HSTSIncludeSubDomains = env.Bool("HSTS_INCLUDE_SUBDOMAINS", false)
+var HSTSPreload = env.Bool("HSTS_PRELOAD", false)
+
+// X-Frame-Options 配置
+// 可选值: "DENY", "SAMEORIGIN"
+var XFrameOptions = env.String("X_FRAME_OPTIONS", "DENY")
+
+// X-XSS-Protection 配置
+var XSSProtectionEnabled = env.Bool("XSS_PROTECTION_ENABLED", true)
+
+// Referrer-Policy 配置
+// 可选值: "no-referrer", "no-referrer-when-downgrade", "origin", "origin-when-cross-origin",
+//          "same-origin", "strict-origin", "strict-origin-when-cross-origin", "unsafe-url"
+var ReferrerPolicy = env.String("REFERRER_POLICY", "strict-origin-when-cross-origin")
+
+// Permissions-Policy 配置 (原 Feature-Policy)
+// 例如: "camera=(), microphone=(), geolocation=()"
+var PermissionsPolicy = env.String("PERMISSIONS_POLICY", "camera=(), microphone=(), geolocation=()")
+
+// Pyroscope 持续剖析配置
+var PyroscopeURL = os.Getenv("PYROSCOPE_URL")
+var PyroscopeAppName = env.String("PYROSCOPE_APP_NAME", "quantumclaw")
+var PyroscopeBasicAuthUser = os.Getenv("PYROSCOPE_BASIC_AUTH_USER")
+var PyroscopeBasicAuthPassword = os.Getenv("PYROSCOPE_BASIC_AUTH_PASSWORD")
+
+// SSRF 防护配置
+var EnableSSRFProtection = env.Bool("ENABLE_SSRF_PROTECTION", true)
+var SSRFAllowedHosts = env.StringSlice("SSRF_ALLOWED_HOSTS", []string{}) // 允许的 Host 白名单
+var SSRFAllowedCIDRs = env.StringSlice("SSRF_ALLOWED_CIDRS", []string{}) // 允许的 CIDR 白名单

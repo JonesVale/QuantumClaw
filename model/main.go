@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"database/sql"
@@ -132,6 +132,14 @@ func InitDB() {
 		return
 	}
 	logger.SysLog("database migrated")
+
+	// Initialize language types
+	InitLanguageTypes()
+	logger.SysLog("language types initialized")
+
+	// Initialize Chinese language resources
+	InitChineseLanguageResources()
+	logger.SysLog("Chinese language resources initialized")
 }
 
 func migrateDB() error {
@@ -176,6 +184,34 @@ func migrateDB() error {
 	}
 	// 自定义 OAuth 提供商
 	if err = DB.AutoMigrate(&CustomOAuthProvider{}); err != nil {
+		return err
+	}
+	// 异步任务系统（Midjourney/视频生成/Suno音乐）
+	if err = DB.AutoMigrate(&AsyncTask{}); err != nil {
+		return err
+	}
+	if err = DB.AutoMigrate(&MidjourneyTask{}); err != nil {
+		return err
+	}
+	if err = DB.AutoMigrate(&VideoTask{}); err != nil {
+		return err
+	}
+	if err = DB.AutoMigrate(&SunoTask{}); err != nil {
+		return err
+	}
+	// WebAuthn/Passkey 无密码登录
+	if err = DB.AutoMigrate(&WebAuthnCredential{}); err != nil {
+		return err
+	}
+	// 多语言系统
+	if err = DB.AutoMigrate(&LanguageType{}); err != nil {
+		return err
+	}
+	if err = DB.AutoMigrate(&LanguageResource{}); err != nil {
+		return err
+	}
+	// RSS 文章
+	if err = DB.AutoMigrate(&RssArticle{}); err != nil {
 		return err
 	}
 	return nil

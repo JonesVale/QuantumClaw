@@ -48,6 +48,7 @@ func GetTopUpInfo(c *gin.Context) {
 		"enable_stripe_topup":  common.IsStripeEnabled(),
 		"enable_creem_topup":  common.IsCreemEnabled(),
 		"enable_waffo_topup":  common.IsWaffoEnabled(),
+		"enable_binance_topup": common.IsBinanceEnabled(),
 		"pay_methods":          payMethods,
 		"min_topup":            common.GetMinTopUp(),
 		"amount_options":       common.GetAmountOptions(),

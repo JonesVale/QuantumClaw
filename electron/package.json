@@ -1,0 +1,54 @@
+{
+  "name": "quantumclaw-desktop",
+  "version": "1.0.0",
+  "description": "QuantumClaw Desktop - AI API Gateway Management",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win --x64",
+    "build:mac": "electron-builder --mac --x64",
+    "build:linux": "electron-builder --linux --x64"
+  },
+  "author": "QuantumClaw Team",
+  "license": "MIT",
+  "dependencies": {
+    "electron-updater": "^6.3.0"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "ai.quantumclaw.desktop",
+    "productName": "QuantumClaw",
+    "directories": {
+      "output": "dist"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "quantumclaw",
+      "repo": "quantumclaw-desktop"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "../web/default/public/logo.webp"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "../web/default/public/logo.webp",
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "../web/default/public/logo.webp"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    },
+    "extraMetadata": {
+      "main": "main.js"
+    }
+  }
+}

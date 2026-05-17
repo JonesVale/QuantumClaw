@@ -1,48 +1,41 @@
-# ============================================================
+﻿# ============================================================
 # Stage 1: Build Frontend
 # ============================================================
-FROM node:20-alpine AS frontend-builder
+FROM node:22-alpine AS frontend-builder
 
 WORKDIR /app
 
 # Copy only package files first (for better Docker layer caching)
-COPY web/package*.json web/THEMES ./
 COPY web/default/package*.json ./default/
-COPY web/berry/package*.json ./berry/
-COPY web/air/package*.json ./air/
 
-# Install dependencies for all themes
-RUN echo "default" > THEMES && \
-    cd default && npm install --legacy-peer-deps && \
-    cd ../berry && npm install --legacy-peer-deps && \
-    cd ../air && npm install --legacy-peer-deps && \
-    cd ..
+# Install dependencies
+RUN cd default && npm install && cd ..
 
-# Copy theme source files
+# Copy frontend source files
 COPY web/default ./default/
-COPY web/berry ./berry/
-COPY web/air ./air/
 
-# Build all themes (output goes to web/build/<theme>)
+# Build frontend with Rsbuild, output to /app/web/build/default
 ARG VERSION=dev
-RUN for theme in default berry air; do \
-        echo "Building theme: $theme" && \
-        cd "$theme" && \
-        REACT_APP_VERSION=${VERSION} DISABLE_ESLINT_PLUGIN=true npm run build && \
-        cd .. && \
-        mv "$theme/build" web/build/"$theme" || true; \
-    done && \
-    mkdir -p web/build && \
-    ls -la web/build/
+RUN mkdir -p /app/web/build && \
+    cd default && \
+    VITE_REACT_APP_VERSION=${VERSION} npx rsbuild build && \
+    cd .. && \
+    mv default/dist /app/web/build/default && \
+    echo "Build output:" && ls -la /app/web/build/default/
 
 # ============================================================
 # Stage 2: Build Go Backend
 # ============================================================
-FROM golang:1.22-alpine AS backend-builder
+FROM golang:1.23-alpine AS backend-builder
 
-RUN apk add --no-cache git ca-certificates tzdata
+# 瀹夎 CGO 渚濊禆锛圫QLite3 闇€瑕侊級
+RUN apk add --no-cache git ca-certificates tzdata build-base
 
 WORKDIR /app
+
+# 璁剧疆鍥藉唴 Go 妯″潡浠ｇ悊锛堣В鍐冲浗鍐呯綉缁滈棶棰橈級
+ENV GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,direct
+ENV GOSUMDB=off
 
 # Install goxz for cross-compilation (optional, for smaller image)
 # COPY --from=frontend-builder /app/web/build ./web/build
@@ -55,11 +48,16 @@ RUN go mod download
 COPY . .
 
 # Copy built frontend
-COPY --from=frontend-builder /app/web/build ./web/build
+COPY --from=frontend-builder /app/web/build/default ./web/default/dist
 
-# Build with version info
+# Copy static assets to dist directory
+COPY web/default/public/logo.png ./web/default/dist/logo.png
+
+COPY web/default/public/favicon.ico ./web/default/dist/favicon.ico
+
+# Build with version info (CGO_ENABLED=1 for SQLite3 driver)
 ARG VERSION=dev
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
     go build -ldflags="-s -w -X github.com/quantumclaw/quantumclaw/common.Version=${VERSION}" \
     -o quantumclaw .
 
@@ -107,3 +105,4 @@ ENV LOG_DIR=/app/logs
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["./quantumclaw"]
+

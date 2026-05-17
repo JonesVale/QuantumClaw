@@ -30,6 +30,9 @@ func InitOptionMap() {
 	config.OptionMap["GitHubOAuthEnabled"] = strconv.FormatBool(config.GitHubOAuthEnabled)
 	config.OptionMap["OidcEnabled"] = strconv.FormatBool(config.OidcEnabled)
 	config.OptionMap["WeChatAuthEnabled"] = strconv.FormatBool(config.WeChatAuthEnabled)
+	config.OptionMap["TelegramOAuthEnabled"] = strconv.FormatBool(config.TelegramOAuthEnabled)
+	config.OptionMap["TelegramBotToken"] = ""
+	config.OptionMap["TelegramBotUsername"] = ""
 	config.OptionMap["TurnstileCheckEnabled"] = strconv.FormatBool(config.TurnstileCheckEnabled)
 	config.OptionMap["RegisterEnabled"] = strconv.FormatBool(config.RegisterEnabled)
 	config.OptionMap["AutomaticDisableChannelEnabled"] = strconv.FormatBool(config.AutomaticDisableChannelEnabled)
@@ -135,6 +138,10 @@ func updateOptionMap(key string, value string) (err error) {
 			config.OidcEnabled = boolValue
 		case "WeChatAuthEnabled":
 			config.WeChatAuthEnabled = boolValue
+		case "TelegramOAuthEnabled":
+			config.TelegramOAuthEnabled = boolValue
+		case "LinuxDOOAuthEnabled":
+			config.LinuxDOOAuthEnabled = boolValue
 		case "TurnstileCheckEnabled":
 			config.TurnstileCheckEnabled = boolValue
 		case "RegisterEnabled":
@@ -175,6 +182,10 @@ func updateOptionMap(key string, value string) (err error) {
 		config.GitHubClientId = value
 	case "GitHubClientSecret":
 		config.GitHubClientSecret = value
+	case "LinuxDOClientId":
+		config.LinuxDOClientId = value
+	case "LinuxDOClientSecret":
+		config.LinuxDOClientSecret = value
 	case "LarkClientId":
 		config.LarkClientId = value
 	case "LarkClientSecret":
@@ -203,6 +214,10 @@ func updateOptionMap(key string, value string) (err error) {
 		config.WeChatServerToken = value
 	case "WeChatAccountQRCodeImageURL":
 		config.WeChatAccountQRCodeImageURL = value
+	case "TelegramBotToken":
+		config.TelegramBotToken = value
+	case "TelegramBotUsername":
+		config.TelegramBotUsername = value
 	case "MessagePusherAddress":
 		config.MessagePusherAddress = value
 	case "MessagePusherToken":

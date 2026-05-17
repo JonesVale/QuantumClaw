@@ -1,6 +1,11 @@
 package controller
 
 import (
+	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -128,34 +133,23 @@ func RequestWaffoTopUp(c *gin.Context) {
 	})
 }
 
-// @Summary Waffo Webhook 回调
-// @Description 处理 Waffo 支付回调
-// @Tags Payment
-// @Accept json
-// @Produce json
-// @Success 200 {string} string "OK"
-// @Failure 400 {string} string "Bad Request"
-// @Router /api/webhook/waffo [post]
+// WaffoWebhook 处理 Waffo webhook 回调
 func WaffoWebhook(c *gin.Context) {
 	ctx := c.Request.Context()
 
-	// 安全检查：验证 webhook 是否启用
 	if !common.IsWaffoEnabled() {
 		logger.Warn(ctx, "Waffo webhook 被拒绝: 功能未启用")
 		c.AbortWithStatus(http.StatusForbidden)
 		return
 	}
 
-	// 安全增强：读取并限制请求体大小
 	bodyBytes, err := io.ReadAll(io.LimitReader(c.Request.Body, WaffoWebhookMaxBodySize))
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("Waffo webhook 读取请求体失败: %q", err.Error()))
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	_ = bodyBytes // 已读取，TODO: 验证 Waffo 签名时使用
 
-	// TODO: 验证 Waffo 签名
 	signature := c.GetHeader("Waffo-Signature")
 	if signature == "" {
 		logger.Warn(ctx, "Waffo webhook 缺少签名")
@@ -163,35 +157,86 @@ func WaffoWebhook(c *gin.Context) {
 		return
 	}
 
-	logger.Info(ctx, fmt.Sprintf("Waffo webhook 收到: client_ip=%s", c.ClientIP()))
+	settings := common.GetPaymentSetting()
+	apiKey := settings.WaffoApiKey
+	if settings.WaffoSandbox {
+		apiKey = settings.WaffoSandboxApiKey
+	}
 
-	// 解析 webhook 数据
+	if !verifyWaffoSignature(bodyBytes, signature, apiKey) {
+		logger.Warn(ctx, "Waffo webhook 签名验证失败")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	var webhookReq WaffoWebhookRequest
-	// 注意：这里需要使用正确的 JSON 解析方法
-	// 暂时跳过解析，直接返回成功
-	_ = webhookReq
+	if err := json.Unmarshal(bodyBytes, &webhookReq); err != nil {
+		logger.Error(ctx, fmt.Sprintf("Waffo webhook 解析JSON失败: %q", err.Error()))
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
-	// TODO: 处理 Waffo 事件
-	// handleWaffoPaymentCompleted(ctx, &webhookReq)
+	handleWaffoPaymentCompleted(ctx, &webhookReq)
 
 	c.Status(http.StatusOK)
 }
 
+// verifyWaffoSignature 验证 Waffo webhook 签名
+func verifyWaffoSignature(payload []byte, signature string, secret string) bool {
+	mac := hmac.New(sha256.New, []byte(secret))
+	mac.Write(payload)
+	expectedSignature := hex.EncodeToString(mac.Sum(nil))
+	return hmac.Equal([]byte(signature), []byte(expectedSignature))
+}
+
+// handleWaffoPaymentCompleted 处理 Waffo 支付完成事件
+func handleWaffoPaymentCompleted(ctx context.Context, req *WaffoWebhookRequest) {
+	if req.EventType != "payment.completed" {
+		logger.Info(ctx, fmt.Sprintf("Waffo webhook 收到非支付完成事件: %s", req.EventType))
+		return
+	}
+
+	topUp, err := model.GetTopUpByTradeNo(req.OrderID)
+	if err != nil {
+		logger.Error(ctx, fmt.Sprintf("Waffo webhook 查询订单失败: order_id=%s error=%q", req.OrderID, err.Error()))
+		return
+	}
+
+	if topUp.Status != model.TopUpStatusPending {
+		logger.Info(ctx, fmt.Sprintf("Waffo webhook 订单状态非待支付: order_id=%s status=%s", req.OrderID, topUp.Status))
+		return
+	}
+
+	if err := model.CompleteTopUp(req.OrderID, model.PaymentProviderWaffo, topUp.Amount); err != nil {
+		logger.Error(ctx, fmt.Sprintf("Waffo webhook 更新订单状态失败: order_id=%s error=%q", req.OrderID, err.Error()))
+		return
+	}
+
+	logger.Info(ctx, fmt.Sprintf("Waffo 支付成功: order_id=%s amount=%d money=%.2f", req.OrderID, topUp.Amount, topUp.Money))
+}
+
 // calculateWaffoPayMoney 计算 Waffo 支付金额
 func calculateWaffoPayMoney(amount int64, group string) float64 {
-	// TODO: 集成 Waffo 的价格配置
-	// 暂时使用通用计算方式
+	settings := common.GetPaymentSetting()
+	unitPrice := settings.WaffoUnitPrice
+	if unitPrice <= 0 {
+		unitPrice = 0.002
+	}
 	topupGroupRatio := common.GetTopupGroupRatio(group)
 	if topupGroupRatio == 0 {
 		topupGroupRatio = 1
 	}
-	return float64(amount) * 0.002 * topupGroupRatio
+	return float64(amount) * unitPrice * topupGroupRatio
 }
 
 // genWaffoCheckoutURL 生成 Waffo 支付链接
-// TODO: 集成 Waffo SDK
 func genWaffoCheckoutURL(tradeNo string, email string, amount float64, payMethodType string) string {
-	return fmt.Sprintf("https://waffo.com/checkout/%s?amount=%.2f", tradeNo, amount)
+	settings := common.GetPaymentSetting()
+	baseURL := "https://api.waffo.com"
+	if settings.WaffoSandbox {
+		baseURL = "https://sandbox.waffo.com"
+	}
+	return fmt.Sprintf("%s/checkout/%s?amount=%.2f&email=%s&pay_method=%s", baseURL, tradeNo, amount, email, payMethodType)
 }
 
 // isWaffoWebhookEnabled 检查 Waffo Webhook 是否启用

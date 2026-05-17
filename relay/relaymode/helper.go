@@ -4,7 +4,9 @@ import "strings"
 
 func GetByPath(path string) int {
 	relayMode := Unknown
-	if strings.HasPrefix(path, "/v1/chat/completions") {
+	if strings.HasPrefix(path, "/v1/responses") {
+		relayMode = Responses
+	} else if strings.HasPrefix(path, "/v1/chat/completions") {
 		relayMode = ChatCompletions
 	} else if strings.HasPrefix(path, "/v1/completions") {
 		relayMode = Completions
@@ -34,6 +36,24 @@ func GetByPath(path string) int {
 		relayMode = Files
 	} else if strings.HasPrefix(path, "/v1/fine_tuning") {
 		relayMode = FineTuning
+	} else if strings.HasPrefix(path, "/mj/") {
+		// Midjourney 异步任务：/mj/submit/*  /mj/task/*
+		relayMode = Midjourney
+	} else if strings.HasPrefix(path, "/video/") {
+		// 视频生成异步任务：/video/submit/*  /video/task/*
+		relayMode = VideoGeneration
+	} else if strings.HasPrefix(path, "/suno/") {
+		// Suno 音乐生成异步任务：/suno/submit/*  /suno/task/*
+		relayMode = Suno
+	} else if strings.HasPrefix(path, "/v1/messages") {
+		// Claude Messages native API
+		relayMode = ClaudeMessages
+	} else if strings.HasPrefix(path, "/v1/batches") {
+		// OpenAI Batch API
+		relayMode = Batches
+	} else if strings.HasPrefix(path, "/v1/vector_stores") {
+		// OpenAI Vector Stores API
+		relayMode = VectorStores
 	}
 	return relayMode
 }

@@ -157,6 +157,25 @@ func (t *Token) GetModels() string {
 	return *t.Models
 }
 
+func GetTokenByKey(key string, useCache bool) (*Token, error) {
+	if key == "" {
+		return nil, errors.New("key is empty")
+	}
+	if useCache {
+		return CacheGetTokenByKey(key)
+	}
+	keyCol := "`key`"
+	if common.UsingPostgreSQL {
+		keyCol = `"key"`
+	}
+	var token Token
+	err := DB.Where(keyCol+" = ?", key).First(&token).Error
+	if err != nil {
+		return nil, err
+	}
+	return &token, nil
+}
+
 func DeleteTokenById(id int, userId int) (err error) {
 	// Why we need userId here? In case user want to delete other's token.
 	if id == 0 || userId == 0 {

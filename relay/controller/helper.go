@@ -103,6 +103,22 @@ func postConsumeQuota(ctx context.Context, usage *relaymodel.Usage, meta *meta.M
 	completionRatio := billingratio.GetCompletionRatio(textRequest.Model, meta.ChannelType)
 	promptTokens := usage.PromptTokens
 	completionTokens := usage.CompletionTokens
+
+	// Apply prompt cache billing ratio if available
+	cacheBillingRatio := meta.Config.CacheBillingRatio
+	if cacheBillingRatio > 0 && usage.PromptTokensDetails != nil && usage.PromptTokensDetails.CachedTokens > 0 {
+		cachedTokens := usage.PromptTokensDetails.CachedTokens
+		if cachedTokens > promptTokens {
+			cachedTokens = promptTokens
+		}
+		nonCachedTokens := promptTokens - cachedTokens
+		// cached tokens are billed at reduced rate, non-cached at full rate
+		promptTokens = nonCachedTokens + int(math.Ceil(float64(cachedTokens)*cacheBillingRatio))
+		if promptTokens < 0 {
+			promptTokens = 0
+		}
+	}
+
 	quota = int64(math.Ceil((float64(promptTokens) + float64(completionTokens)*completionRatio) * ratio))
 	if ratio != 0 && quota <= 0 {
 		quota = 1

@@ -265,6 +265,7 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 	common.SetEventStreamHeaders(c)
 
 	var usage model.Usage
+	var cachedTokens int
 	var modelName string
 	var id string
 	var lastToolCallChoice openai.ChatCompletionsStreamResponseChoice
@@ -288,6 +289,12 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 		if meta != nil {
 			usage.PromptTokens += meta.Usage.InputTokens
 			usage.CompletionTokens += meta.Usage.OutputTokens
+			if meta.Usage.CacheReadInputTokens > 0 {
+				cachedTokens += meta.Usage.CacheReadInputTokens
+			}
+			if meta.Usage.CacheCreationInputTokens > 0 {
+				cachedTokens += meta.Usage.CacheCreationInputTokens
+			}
 			if len(meta.Id) > 0 { // only message_start has an id, otherwise it's a finish_reason event.
 				modelName = meta.Model
 				id = fmt.Sprintf("chatcmpl-%s", meta.Id)
@@ -332,6 +339,11 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 	if err != nil {
 		return openai.ErrorWrapper(err, "close_response_body_failed", http.StatusInternalServerError), nil
 	}
+	if cachedTokens > 0 {
+		usage.PromptTokensDetails = &model.PromptTokensDetails{
+			CachedTokens: cachedTokens,
+		}
+	}
 	return nil, &usage
 }
 
@@ -362,10 +374,22 @@ func Handler(c *gin.Context, resp *http.Response, promptTokens int, modelName st
 	}
 	fullTextResponse := ResponseClaude2OpenAI(&claudeResponse)
 	fullTextResponse.Model = modelName
+	cachedTokens := 0
+	if claudeResponse.Usage.CacheReadInputTokens > 0 {
+		cachedTokens += claudeResponse.Usage.CacheReadInputTokens
+	}
+	if claudeResponse.Usage.CacheCreationInputTokens > 0 {
+		cachedTokens += claudeResponse.Usage.CacheCreationInputTokens
+	}
 	usage := model.Usage{
 		PromptTokens:     claudeResponse.Usage.InputTokens,
 		CompletionTokens: claudeResponse.Usage.OutputTokens,
 		TotalTokens:      claudeResponse.Usage.InputTokens + claudeResponse.Usage.OutputTokens,
+	}
+	if cachedTokens > 0 {
+		usage.PromptTokensDetails = &model.PromptTokensDetails{
+			CachedTokens: cachedTokens,
+		}
 	}
 	fullTextResponse.Usage = usage
 	jsonResponse, err := json.Marshal(fullTextResponse)

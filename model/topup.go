@@ -47,11 +47,12 @@ const (
 
 // PaymentMethod 支付方式
 const (
-	PaymentMethodEpay        = "epay"
-	PaymentMethodStripe      = "stripe"
-	PaymentMethodCreem       = "creem"
-	PaymentMethodWaffo       = "waffo"
+	PaymentMethodEpay         = "epay"
+	PaymentMethodStripe       = "stripe"
+	PaymentMethodCreem        = "creem"
+	PaymentMethodWaffo        = "waffo"
 	PaymentMethodWaffoPancake = "waffo_pancake"
+	PaymentMethodBinance      = "binance"
 )
 
 // PaymentProvider 支付提供商
@@ -61,6 +62,7 @@ const (
 	PaymentProviderCreem        = "creem"
 	PaymentProviderWaffo        = "waffo"
 	PaymentProviderWaffoPancake = "waffo_pancake"
+	PaymentProviderBinance      = "binance"
 )
 
 // 错误信息

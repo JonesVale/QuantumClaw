@@ -17,7 +17,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/logger"
 )
 
-// ==================== 支付配置（安全增强版）====================
+// ==================== 支付配置(安全增强版)====================
 
 var (
 	paymentSettingOnce sync.Once
@@ -26,26 +26,26 @@ var (
 
 // PaymentSetting 支付设置
 type PaymentSetting struct {
-	// 易支付（Epay）配置
+	// 易支付(Epay)配置
 	EpayEnabled bool   `json:"epay_enabled"`
 	EpayId      string `json:"epay_id"`
 	EpayKey     string `json:"epay_key"`
 	EpayAddress string `json:"epay_address"`
-	
+
 	// Stripe 配置
 	StripeEnabled      bool    `json:"stripe_enabled"`
 	StripeApiSecret   string  `json:"stripe_api_secret"`
 	StripeWebhookSecret string `json:"stripe_webhook_secret"`
 	StripeMinTopUp    int     `json:"stripe_min_topup"`
 	StripeUnitPrice   float64 `json:"stripe_unit_price"`
-	
+
 	// Creem 配置
 	CreemEnabled       bool   `json:"creem_enabled"`
 	CreemApiKey       string `json:"creem_api_key"`
 	CreemWebhookSecret string `json:"creem_webhook_secret"`
 	CreemTestMode     bool   `json:"creem_test_mode"`
 	CreemProducts     string `json:"creem_products"` // JSON 字符串
-	
+
 	// Waffo 配置
 	WaffoEnabled        bool   `json:"waffo_enabled"`
 	WaffoSandbox       bool   `json:"waffo_sandbox"`
@@ -54,20 +54,29 @@ type PaymentSetting struct {
 	WaffoMinTopUp      int    `json:"waffo_min_topup"`
 	WaffoUnitPrice     float64 `json:"waffo_unit_price"`
 	WaffoCurrency      string  `json:"waffo_currency"`
-	
+
+	// Binance Pay 配置
+	BinanceEnabled       bool   `json:"binance_enabled"`
+	BinanceApiKey        string `json:"binance_api_key"`
+	BinanceSecretKey     string `json:"binance_secret_key"`
+	BinanceMerchantId    string `json:"binance_merchant_id"`
+	BinanceMinTopUp      int    `json:"binance_min_topup"`
+	BinanceUnitPrice     float64 `json:"binance_unit_price"`
+	BinanceCurrency      string  `json:"binance_currency"`
+
 	// 通用配置
 	MinTopUp       int               `json:"min_topup"`
 	AmountOptions  []int            `json:"amount_options"`
 	AmountDiscount map[int]float64  `json:"amount_discount"`
 	PayMethods     []map[string]string `json:"pay_methods"`
-	
+
 	// 安全配置
 	PaymentSignatureSecret string `json:"payment_signature_secret"` // 订单签名密钥
 	PaymentNotifyURL       string `json:"payment_notify_url"`      // 支付回调URL
 	PaymentReturnURL       string `json:"payment_return_url"`      // 支付返回URL
 }
 
-// GetPaymentSetting 获取支付设置（单例模式）
+// GetPaymentSetting 获取支付设置(单例模式)
 func GetPaymentSetting() *PaymentSetting {
 	paymentSettingOnce.Do(func() {
 		paymentSetting = &PaymentSetting{
@@ -76,6 +85,7 @@ func GetPaymentSetting() *PaymentSetting {
 			StripeEnabled:        false,
 			CreemEnabled:         false,
 			WaffoEnabled:         false,
+			BinanceEnabled:       false,
 			StripeMinTopUp:       1,
 			WaffoMinTopUp:        1,
 			MinTopUp:             1,
@@ -84,13 +94,13 @@ func GetPaymentSetting() *PaymentSetting {
 			PayMethods:            []map[string]string{},
 			PaymentSignatureSecret: getEnvOrDefault("PAYMENT_SIGNATURE_SECRET", generateRandomSecret()),
 		}
-		
+
 		// 从环境变量加载配置
 		loadPaymentConfigFromEnv(paymentSetting)
-		
+
 		logger.SysLog("支付配置加载完成")
 	})
-	
+
 	return paymentSetting
 }
 
@@ -103,7 +113,7 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 		settings.EpayKey = os.Getenv("EPAY_KEY")
 		settings.EpayAddress = os.Getenv("EPAY_ADDRESS")
 	}
-	
+
 	// Stripe 配置
 	if os.Getenv("STRIPE_ENABLED") == "true" {
 		settings.StripeEnabled = true
@@ -115,7 +125,7 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 			}
 		}
 	}
-	
+
 	// Creem 配置
 	if os.Getenv("CREEM_ENABLED") == "true" {
 		settings.CreemEnabled = true
@@ -124,7 +134,7 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 		settings.CreemTestMode = os.Getenv("CREEM_TEST_MODE") == "true"
 		settings.CreemProducts = os.Getenv("CREEM_PRODUCTS")
 	}
-	
+
 	// Waffo 配置
 	if os.Getenv("WAFFO_ENABLED") == "true" {
 		settings.WaffoEnabled = true
@@ -138,24 +148,38 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 		}
 		settings.WaffoCurrency = getEnvOrDefault("WAFFO_CURRENCY", "USD")
 	}
-	
+
+	// Binance Pay 配置
+	if os.Getenv("BINANCE_ENABLED") == "true" {
+		settings.BinanceEnabled = true
+		settings.BinanceApiKey = os.Getenv("BINANCE_API_KEY")
+		settings.BinanceSecretKey = os.Getenv("BINANCE_SECRET_KEY")
+		settings.BinanceMerchantId = os.Getenv("BINANCE_MERCHANT_ID")
+		if minStr := os.Getenv("BINANCE_MIN_TOPUP"); minStr != "" {
+			if min, err := strconv.Atoi(minStr); err == nil {
+				settings.BinanceMinTopUp = min
+			}
+		}
+		settings.BinanceCurrency = getEnvOrDefault("BINANCE_CURRENCY", "USDT")
+	}
+
 	// 通用配置
 	if minStr := os.Getenv("MIN_TOPUP"); minStr != "" {
 		if min, err := strconv.Atoi(minStr); err == nil {
 			settings.MinTopUp = min
 		}
 	}
-	
+
 	// 支付签名密钥
 	if secret := os.Getenv("PAYMENT_SIGNATURE_SECRET"); secret != "" {
 		settings.PaymentSignatureSecret = secret
 	}
 }
 
-// generateRandomSecret 生成随机密钥（用于订单签名）
+// generateRandomSecret 生成随机密钥(用于订单签名)
 func generateRandomSecret() string {
 	secret := GetRandomString(32)
-	logger.SysLog("生成随机支付签名密钥（请设置为环境变量 PAYMENT_SIGNATURE_SECRET）")
+	logger.SysLog("生成随机支付签名密钥(请设置为环境变量 PAYMENT_SIGNATURE_SECRET)")
 	return secret
 }
 
@@ -213,7 +237,7 @@ func GetPayMethods() []map[string]string {
 
 // IsValidPayMethod 检查支付方式是否有效
 func IsValidPayMethod(method string) bool {
-	validMethods := []string{"epay", "stripe", "creem", "waffo", "waffo_pancake"}
+	validMethods := []string{"epay", "stripe", "creem", "waffo", "waffo_pancake", "binance"}
 	for _, m := range validMethods {
 		if m == method {
 			return true
@@ -222,17 +246,17 @@ func IsValidPayMethod(method string) bool {
 	return false
 }
 
-// HmacSha256 计算HMAC-SHA256签名（用于订单签名和Webhook验证）
+// HmacSha256 计算HMAC-SHA256签名(用于订单签名和Webhook验证)
 func HmacSha256(data string, secret string) string {
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(data))
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-// ValidateRedirectURL 验证重定向URL（防止钓鱼攻击）
-// 安全增强：
+// ValidateRedirectURL 验证重定向URL(防止钓鱼攻击)
+// 安全增强:
 // 1. 检查URL格式
-// 2. 检查域名是否在白名单中（从环境变量配置）
+// 2. 检查域名是否在白名单中(从环境变量配置)
 // 3. 防止开放重定向漏洞
 func ValidateRedirectURL(redirectURL string) error {
 	if redirectURL == "" {
@@ -311,24 +335,24 @@ func GetPaymentReturnURL() string {
 // SavePaymentSetting 保存支付设置到数据库
 func SavePaymentSetting(settings *PaymentSetting) error {
 	// TODO: 将设置保存到数据库或配置文件
-	// 对于生产环境，应该加密敏感字段（API密钥等）
-	
+	// 对于生产环境,应该加密敏感字段(API密钥等)
+
 	// 序列化为JSON
 	data, err := json.Marshal(settings)
 	if err != nil {
 		return err
 	}
-	_ = data // 已序列化，TODO: 保存到数据库 Option 表
-	
+	_ = data // 已序列化,TODO: 保存到数据库 Option 表
+
 	// 重新加载配置
 	paymentSettingOnce = sync.Once{}
 	paymentSetting = nil
-	
+
 	logger.SysLog("支付设置已保存")
 	return nil
 }
 
-// getEnvOrDefault 获取环境变量，如果不存在则返回默认值
+// getEnvOrDefault 获取环境变量,如果不存在则返回默认值
 func getEnvOrDefault(key, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val
@@ -336,7 +360,7 @@ func getEnvOrDefault(key, defaultVal string) string {
 	return defaultVal
 }
 
-// ResetPaymentSetting 重置支付配置（重新从环境变量加载）
+// ResetPaymentSetting 重置支付配置(重新从环境变量加载)
 func ResetPaymentSetting() {
 	paymentSettingOnce = sync.Once{}
 	paymentSetting = nil
@@ -344,10 +368,10 @@ func ResetPaymentSetting() {
 	logger.SysLog("支付配置已重置")
 }
 
-// GetPrice 获取单价（每配额单位对应的价格）
+// GetPrice 获取单价(每配额单位对应的价格)
 func GetPrice() float64 {
 	// 从 config 包读取 QuotaPerUnit
-	// 1 单位 = config.QuotaPerUnit 配额，对应 $0.002
+	// 1 单位 = config.QuotaPerUnit 配额,对应 $0.002
 	// 因此 1 配额 = 0.002 / 500000 = 4e-9 美元
 	return 0.002 / 500000.0
 }
@@ -356,7 +380,7 @@ func GetPrice() float64 {
 // 不同用户组可能有不同的充值折扣比例
 func GetTopupGroupRatio(group string) float64 {
 	// TODO: 从数据库或缓存中读取用户组比例配置
-	// 目前默认返回 1.0（无折扣）
+	// 目前默认返回 1.0(无折扣)
 	groupRatios := map[string]float64{
 		"vip":   0.95, // VIP 95折
 		"svip":  0.90, // SVIP 9折
@@ -369,13 +393,13 @@ func GetTopupGroupRatio(group string) float64 {
 	return 1.0
 }
 
-// GetRandomString 生成指定长度的随机字符串（用于密钥、验证码等）
+// GetRandomString 生成指定长度的随机字符串(用于密钥、验证码等)
 func GetRandomString(length int) string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, length)
 	randomBytes := make([]byte, length)
 	if _, err := rand.Read(randomBytes); err != nil {
-		// 如果获取随机数失败，使用时间戳作为备用
+		// 如果获取随机数失败,使用时间戳作为备用
 		for i := range b {
 			b[i] = charset[int(time.Now().UnixNano()/int64(i+1))%len(charset)]
 		}
@@ -387,12 +411,22 @@ func GetRandomString(length int) string {
 	return string(b)
 }
 
-// GetTimestamp 获取当前Unix时间戳（秒）
+// IsBinanceEnabled 检查Binance Pay是否启用
+func IsBinanceEnabled() bool {
+	return GetPaymentSetting().BinanceEnabled
+}
+
+// GetBinanceMinTopUp 获取Binance最小充值金额
+func GetBinanceMinTopUp() int {
+	return GetPaymentSetting().BinanceMinTopUp
+}
+
+// GetTimestamp 获取当前Unix时间戳(秒)
 func GetTimestamp() int64 {
 	return time.Now().Unix()
 }
 
-// GetEnvOrDefault 获取环境变量值，如果为空则返回默认值
+// GetEnvOrDefault 获取环境变量值,如果为空则返回默认值
 func GetEnvOrDefault(key string, defaultVal string) string {
 	if val := os.Getenv(key); val != "" {
 		return val

@@ -6,6 +6,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
 	"strings"
 )
 
@@ -46,6 +47,9 @@ func getRequestModel(c *gin.Context) (string, error) {
 			modelRequest.Model = "whisper-1"
 		}
 	}
+	// Strip reasoning/thinking suffixes from the model name for channel lookup.
+	// e.g. "o3-mini-high" → "o3-mini", "claude-3-7-sonnet-20250219-thinking" → "claude-3-7-sonnet-20250219"
+	modelRequest.Model = relaycommon.StripModelSuffix(modelRequest.Model)
 	return modelRequest.Model, nil
 }
 

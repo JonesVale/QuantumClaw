@@ -3,32 +3,32 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/songquanpeng/one-api"><img src="https://raw.githubusercontent.com/songquanpeng/one-api/main/web/default/public/logo.png" width="150" height="150" alt="one-api logo"></a>
+  <a href="https://github.com/quantumclaw/quantumclaw"><img src="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/web/default/public/quantumclaw-logo.jpg" width="150" height="150" alt="QuantumClaw logo"></a>
 </p>
 
 <div align="center">
 
-# One API
+# QuantumClaw
 
 _✨ Access all LLM through the standard OpenAI API format, easy to deploy & use ✨_
 
 </div>
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/songquanpeng/one-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/songquanpeng/one-api?color=brightgreen" alt="license">
+  <a href="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/LICENSE">
+    <img src="https://img.shields.io/github/license/quantumclaw/quantumclaw?color=brightgreen" alt="license">
   </a>
-  <a href="https://github.com/songquanpeng/one-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/songquanpeng/one-api?color=brightgreen&include_prereleases" alt="release">
+  <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
+    <img src="https://img.shields.io/github/v/release/quantumclaw/quantumclaw?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://hub.docker.com/repository/docker/justsong/one-api">
-    <img src="https://img.shields.io/docker/pulls/justsong/one-api?color=brightgreen" alt="docker pull">
+  <a href="https://hub.docker.com/repository/docker/quantumclaw/quantumclaw">
+    <img src="https://img.shields.io/docker/pulls/quantumclaw/quantumclaw?color=brightgreen" alt="docker pull">
   </a>
-  <a href="https://github.com/songquanpeng/one-api/releases/latest">
-    <img src="https://img.shields.io/github/downloads/songquanpeng/one-api/total?color=brightgreen&include_prereleases" alt="release">
+  <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
+    <img src="https://img.shields.io/github/downloads/quantumclaw/quantumclaw/total?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://goreportcard.com/report/github.com/songquanpeng/one-api">
-    <img src="https://goreportcard.com/badge/github.com/songquanpeng/one-api" alt="GoReportCard">
+  <a href="https://goreportcard.com/report/github.com/quantumclaw/quantumclaw">
+    <img src="https://goreportcard.com/badge/github.com/quantumclaw/quantumclaw" alt="GoReportCard">
   </a>
 </p>
 
@@ -37,11 +37,11 @@ _✨ Access all LLM through the standard OpenAI API format, easy to deploy & use
   ·
   <a href="#usage">Usage</a>
   ·
-  <a href="https://github.com/songquanpeng/one-api/issues">Feedback</a>
+  <a href="https://github.com/quantumclaw/quantumclaw/issues">Feedback</a>
   ·
   <a href="#screenshots">Screenshots</a>
   ·
-  <a href="https://openai.justsong.cn/">Live Demo</a>
+  <a href="https://openai.quantumclaw.ai/">Live Demo</a>
   ·
   <a href="#faq">FAQ</a>
   ·
@@ -82,25 +82,25 @@ _✨ Access all LLM through the standard OpenAI API format, easy to deploy & use
 17. Supports user management and multiple user login/registration methods:
     + Email login/registration and password reset via email.
     + [GitHub OAuth](https://github.com/settings/applications/new).
-    + WeChat Official Account authorization (requires additional deployment of [WeChat Server](https://github.com/songquanpeng/wechat-server)).
+    + WeChat Official Account authorization (requires additional deployment of [WeChat Server](https://github.com/quantumclaw/wechat-server)).
 18. Immediate support and encapsulation of other major model APIs as they become available.
 
 ## Deployment
 ### Docker Deployment
 
 Deployment command:
-`docker run --name one-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/one-api:/data justsong/one-api`
+`docker run --name quantumclaw -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw`
 
 Update command: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrrr/watchtower -cR`
 
 The first `3000` in `-p 3000:3000` is the port of the host, which can be modified as needed.
 
-Data will be saved in the `/home/ubuntu/data/one-api` directory on the host. Ensure that the directory exists and has write permissions, or change it to a suitable directory.
+Data will be saved in the `/home/ubuntu/data/quantumclaw` directory on the host. Ensure that the directory exists and has write permissions, or change it to a suitable directory.
 
 Nginx reference configuration:
 ```
 server{
-   server_name openai.justsong.cn;  # Modify your domain name accordingly
+   server_name openai.quantumclaw.ai;  # Modify your domain name accordingly
 
    location / {
           client_max_body_size  64m;
@@ -129,24 +129,24 @@ sudo service nginx restart
 The initial account username is `root` and password is `123456`.
 
 ### Manual Deployment
-1. Download the executable file from [GitHub Releases](https://github.com/songquanpeng/one-api/releases/latest) or compile from source:
+1. Download the executable file from [GitHub Releases](https://github.com/quantumclaw/quantumclaw/releases/latest) or compile from source:
    ```shell
-   git clone https://github.com/songquanpeng/one-api.git
+   git clone https://github.com/quantumclaw/quantumclaw.git
 
    # Build the frontend
-   cd one-api/web/default
+   cd quantumclaw/web/default
    npm install
    npm run build
 
    # Build the backend
    cd ../..
    go mod download
-   go build -ldflags "-s -w" -o one-api
+   go build -ldflags "-s -w" -o quantumclaw
    ```
 2. Run:
    ```shell
-   chmod u+x one-api
-   ./one-api --port 3000 --log-dir ./logs
+   chmod u+x quantumclaw
+   ./quantumclaw --port 3000 --log-dir ./logs
    ```
 3. Access [http://localhost:3000/](http://localhost:3000/) and log in. The initial account username is `root` and password is `123456`.
 
@@ -164,9 +164,9 @@ For more detailed deployment tutorials, please refer to [this page](https://iama
 Please refer to the [environment variables](#environment-variables) section for details on using environment variables.
 
 ### Deployment on Control Panels (e.g., Baota)
-Refer to [#175](https://github.com/songquanpeng/one-api/issues/175) for detailed instructions.
+Refer to [#175](https://github.com/quantumclaw/quantumclaw/issues/175) for detailed instructions.
 
-If you encounter a blank page after deployment, refer to [#97](https://github.com/songquanpeng/one-api/issues/97) for possible solutions.
+If you encounter a blank page after deployment, refer to [#97](https://github.com/quantumclaw/quantumclaw/issues/97) for possible solutions.
 
 ### Deployment on Third-Party Platforms
 <details>
@@ -177,7 +177,7 @@ If you encounter a blank page after deployment, refer to [#97](https://github.co
 
 > Click the button below to deploy with one click.👇
 
-[![](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=one-api)
+[![](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=quantumclaw)
 
 
 </div>
@@ -192,14 +192,14 @@ If you encounter a blank page after deployment, refer to [#97](https://github.co
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/7Q0KO3)
 
 1. First, fork the code.
-2. Go to [Zeabur](https://zeabur.com?referralCode=songquanpeng), log in, and enter the console.
+2. Go to [Zeabur](https://zeabur.com?referralCode=quantumclaw), log in, and enter the console.
 3. Create a new project. In Service -> Add Service, select Marketplace, and choose MySQL. Note down the connection parameters (username, password, address, and port).
-4. Copy the connection parameters and run ```create database `one-api` ``` to create the database.
+4. Copy the connection parameters and run ```create database `quantumclaw` ``` to create the database.
 5. Then, in Service -> Add Service, select Git (authorization is required for the first use) and choose your forked repository.
-6. Automatic deployment will start, but please cancel it for now. Go to the Variable tab, add a `PORT` with a value of `3000`, and then add a `SQL_DSN` with a value of `<username>:<password>@tcp(<addr>:<port>)/one-api`. Save the changes. Please note that if `SQL_DSN` is not set, data will not be persisted, and the data will be lost after redeployment.
+6. Automatic deployment will start, but please cancel it for now. Go to the Variable tab, add a `PORT` with a value of `3000`, and then add a `SQL_DSN` with a value of `<username>:<password>@tcp(<addr>:<port>)/quantumclaw`. Save the changes. Please note that if `SQL_DSN` is not set, data will not be persisted, and the data will be lost after redeployment.
 7. Select Redeploy.
-8. In the Domains tab, select a suitable domain name prefix, such as "my-one-api". The final domain name will be "my-one-api.zeabur.app". You can also CNAME your own domain name.
-9. Wait for the deployment to complete, and click on the generated domain name to access One API.
+8. In the Domains tab, select a suitable domain name prefix, such as "my-quantumclaw". The final domain name will be "my-quantumclaw.zeabur.app". You can also CNAME your own domain name.
+9. Wait for the deployment to complete, and click on the generated domain name to access QuantumClaw.
 
 </div>
 </details>
@@ -214,16 +214,16 @@ After the system starts, log in as the `root` user to further configure the syst
 ## Usage
 Add your API Key on the `Channels` page, and then add an access token on the `Tokens` page.
 
-You can then use your access token to access One API. The usage is consistent with the [OpenAI API](https://platform.openai.com/docs/api-reference/introduction).
+You can then use your access token to access QuantumClaw. The usage is consistent with the [OpenAI API](https://platform.openai.com/docs/api-reference/introduction).
 
-In places where the OpenAI API is used, remember to set the API Base to your One API deployment address, for example: `https://openai.justsong.cn`. The API Key should be the token generated in One API.
+In places where the OpenAI API is used, remember to set the API Base to your QuantumClaw deployment address, for example: `https://openai.quantumclaw.ai`. The API Key should be the token generated in QuantumClaw.
 
 Note that the specific API Base format depends on the client you are using.
 
 ```mermaid
 graph LR
     A(User)
-    A --->|Request| B(One API)
+    A --->|Request| B(QuantumClaw)
     B -->|Relay Request| C(OpenAI)
     B -->|Relay Request| D(Azure)
     B -->|Relay Request| E(Other downstream channels)
@@ -244,7 +244,7 @@ If the channel ID is not provided, load balancing will be used to distribute the
 4. `LOG_SQL_DSN`: When set, a separate database will be used for the `logs` table; please use MySQL or PostgreSQL.
     + Example: `LOG_SQL_DSN=root:123456@tcp(localhost:3306)/oneapi-logs`
 5. `FRONTEND_BASE_URL`: When set, the specified frontend address will be used instead of the backend address.
-    + Example: `FRONTEND_BASE_URL=https://openai.justsong.cn`
+    + Example: `FRONTEND_BASE_URL=https://openai.quantumclaw.ai`
 6. 'MEMORY_CACHE_ENABLED': Enabling memory caching can cause a certain delay in updating user quotas, with optional values of 'true' and 'false'. If not set, it defaults to 'false'.
 7. `SYNC_FREQUENCY`: When set, the system will periodically sync configurations from the database, with the unit in seconds. If not set, no sync will happen.
     + Example: `SYNC_FREQUENCY=60`
@@ -273,7 +273,7 @@ If the channel ID is not provided, load balancing will be used to distribute the
 19. `USER_CONTENT_REQUEST_PROXY`: After setting up, use this agent to request content uploaded by users, such as images.
 20. `SQLITE_BUSY_TIMEOUT`: SQLite lock wait timeout setting, measured in milliseconds, default to '3000'.
 21. `GEMINI_SAFETY_SETTING`: Gemini's security settings are set to 'BLOCK-NONE' by default.
-22. `GEMINI_VERSION`: The Gemini version used by the One API, which defaults to 'v1'.
+22. `GEMINI_VERSION`: The Gemini version used by the QuantumClaw, which defaults to 'v1'.
 23. `THE`: The system's theme setting, default to 'default', specific optional values refer to [here] (./web/README. md).
 24. `ENABLE_METRIC`: Whether to disable channels based on request success rate, default not enabled, optional values are 'true' and 'false'.
 25. `METRIC_QUEUE_SIZE`: Request success rate statistics queue size, default to '10'.
@@ -294,7 +294,7 @@ If the channel ID is not provided, load balancing will be used to distribute the
 ![token](https://user-images.githubusercontent.com/39998050/233837971-dab488b7-6d96-43af-b640-a168e8d1c9bf.png)
 
 ## FAQ
-1. What is quota? How is it calculated? Does One API have quota calculation issues?
+1. What is quota? How is it calculated? Does QuantumClaw have quota calculation issues?
     + Quota = Group multiplier * Model multiplier * (number of prompt tokens + number of completion tokens * completion multiplier)
     + The completion multiplier is fixed at 1.33 for GPT3.5 and 2 for GPT4, consistent with the official definition.
     + If it is not a stream mode, the official API will return the total number of tokens consumed. However, please note that the consumption multipliers for prompts and completions are different.

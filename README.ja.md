@@ -3,32 +3,32 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/songquanpeng/one-api"><img src="https://raw.githubusercontent.com/songquanpeng/one-api/main/web/default/public/logo.png" width="150" height="150" alt="one-api logo"></a>
+  <a href="https://github.com/quantumclaw/quantumclaw"><img src="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/web/default/public/logo.png" width="150" height="150" alt="quantumclaw logo"></a>
 </p>
 
 <div align="center">
 
-# One API
+# QuantumClaw
 
 _✨ 標準的な OpenAI API フォーマットを通じてすべての LLM にアクセスでき、導入と利用が容易です ✨_
 
 </div>
 
 <p align="center">
-  <a href="https://raw.githubusercontent.com/songquanpeng/one-api/main/LICENSE">
-    <img src="https://img.shields.io/github/license/songquanpeng/one-api?color=brightgreen" alt="license">
+  <a href="https://raw.githubusercontent.com/quantumclaw/quantumclaw/main/LICENSE">
+    <img src="https://img.shields.io/github/license/quantumclaw/quantumclaw?color=brightgreen" alt="license">
   </a>
-  <a href="https://github.com/songquanpeng/one-api/releases/latest">
-    <img src="https://img.shields.io/github/v/release/songquanpeng/one-api?color=brightgreen&include_prereleases" alt="release">
+  <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
+    <img src="https://img.shields.io/github/v/release/quantumclaw/quantumclaw?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://hub.docker.com/repository/docker/justsong/one-api">
-    <img src="https://img.shields.io/docker/pulls/justsong/one-api?color=brightgreen" alt="docker pull">
+  <a href="https://hub.docker.com/repository/docker/quantumclaw/quantumclaw">
+    <img src="https://img.shields.io/docker/pulls/quantumclaw/quantumclaw?color=brightgreen" alt="docker pull">
   </a>
-  <a href="https://github.com/songquanpeng/one-api/releases/latest">
-    <img src="https://img.shields.io/github/downloads/songquanpeng/one-api/total?color=brightgreen&include_prereleases" alt="release">
+  <a href="https://github.com/quantumclaw/quantumclaw/releases/latest">
+    <img src="https://img.shields.io/github/downloads/quantumclaw/quantumclaw/total?color=brightgreen&include_prereleases" alt="release">
   </a>
-  <a href="https://goreportcard.com/report/github.com/songquanpeng/one-api">
-    <img src="https://goreportcard.com/badge/github.com/songquanpeng/one-api" alt="GoReportCard">
+  <a href="https://goreportcard.com/report/github.com/quantumclaw/quantumclaw">
+    <img src="https://goreportcard.com/badge/github.com/quantumclaw/quantumclaw" alt="GoReportCard">
   </a>
 </p>
 
@@ -37,11 +37,11 @@ _✨ 標準的な OpenAI API フォーマットを通じてすべての LLM に�
   ·
   <a href="#usage">使用方法</a>
   ·
-  <a href="https://github.com/songquanpeng/one-api/issues">フィードバック</a>
+  <a href="https://github.com/quantumclaw/quantumclaw/issues">フィードバック</a>
   ·
   <a href="#screenshots">スクリーンショット</a>
   ·
-  <a href="https://openai.justsong.cn/">ライブデモ</a>
+  <a href="https://openai.quantumclaw.ai/">ライブデモ</a>
   ·
   <a href="#faq">FAQ</a>
   ·
@@ -82,25 +82,25 @@ _✨ 標準的な OpenAI API フォーマットを通じてすべての LLM に�
 17. ユーザー管理と複数のユーザーログイン/登録方法をサポート:
     + 電子メールによるログイン/登録とパスワードリセット。
     + [GitHub OAuth](https://github.com/settings/applications/new)。
-    + WeChat 公式アカウントの認証（[WeChat Server](https://github.com/songquanpeng/wechat-server)の追加導入が必要）。
+    + WeChat 公式アカウントの認証（[WeChat Server](https://github.com/quantumclaw/wechat-server)の追加導入が必要）。
 18. 他の主要なモデル API が利用可能になった場合、即座にサポートし、カプセル化する。
 
 ## デプロイメント
 ### Docker デプロイメント
 
 デプロイコマンド:
-`docker run --name one-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/one-api:/data justsong/one-api`。
+`docker run --name quantumclaw -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/quantumclaw:/data quantumclaw/quantumclaw`。
 
 コマンドを更新する: `docker run --rm -v /var/run/docker.sock:/var/run/docker.sock containrr/watchtower -cR`。
 
 `-p 3000:3000` の最初の `3000` はホストのポートで、必要に応じて変更できます。
 
-データはホストの `/home/ubuntu/data/one-api` ディレクトリに保存される。このディレクトリが存在し、書き込み権限があることを確認する、もしくは適切なディレクトリに変更してください。
+データはホストの `/home/ubuntu/data/quantumclaw` ディレクトリに保存される。このディレクトリが存在し、書き込み権限があることを確認する、もしくは適切なディレクトリに変更してください。
 
 Nginxリファレンス設定:
 ```
 server{
-   server_name openai.justsong.cn;  # ドメイン名は適宜変更
+   server_name openai.quantumclaw.ai;  # ドメイン名は適宜変更
 
    location / {
           client_max_body_size  64m;
@@ -130,24 +130,24 @@ sudo service nginx restart
 初期アカウントのユーザー名は `root` で、パスワードは `123456` です。
 
 ### マニュアルデプロイ
-1. [GitHub Releases](https://github.com/songquanpeng/one-api/releases/latest) から実行ファイルをダウンロードする、もしくはソースからコンパイルする:
+1. [GitHub Releases](https://github.com/quantumclaw/quantumclaw/releases/latest) から実行ファイルをダウンロードする、もしくはソースからコンパイルする:
    ```shell
-   git clone https://github.com/songquanpeng/one-api.git
+   git clone https://github.com/quantumclaw/quantumclaw.git
 
    # フロントエンドのビルド
-   cd one-api/web/default
+   cd quantumclaw/web/default
    npm install
    npm run build
 
    # バックエンドのビルド
    cd ../..
    go mod download
-   go build -ldflags "-s -w" -o one-api
+   go build -ldflags "-s -w" -o quantumclaw
    ```
 2. 実行:
    ```shell
-   chmod u+x one-api
-   ./one-api --port 3000 --log-dir ./logs
+   chmod u+x quantumclaw
+   ./quantumclaw --port 3000 --log-dir ./logs
    ```
 3. [http://localhost:3000/](http://localhost:3000/) にアクセスし、ログインする。初期アカウントのユーザー名は `root`、パスワードは `123456` である。
 
@@ -165,9 +165,9 @@ sudo service nginx restart
 Please refer to the [environment variables](#environment-variables) section for details on using environment variables.
 
 ### コントロールパネル（例: Baota）への展開
-詳しい手順は [#175](https://github.com/songquanpeng/one-api/issues/175) を参照してください。
+詳しい手順は [#175](https://github.com/quantumclaw/quantumclaw/issues/175) を参照してください。
 
-配置後に空白のページが表示される場合は、[#97](https://github.com/songquanpeng/one-api/issues/97) を参照してください。
+配置後に空白のページが表示される場合は、[#97](https://github.com/quantumclaw/quantumclaw/issues/97) を参照してください。
 
 ### サードパーティプラットフォームへのデプロイ
 <details>
@@ -178,7 +178,7 @@ Please refer to the [environment variables](#environment-variables) section for 
 
 > 下のボタンをクリックすると、ワンクリックで展開できます。👇
 
-[![](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=one-api)
+[![](https://raw.githubusercontent.com/labring-actions/templates/main/Deploy-on-Sealos.svg)](https://cloud.sealos.io/?openapp=system-fastdeploy?templateName=quantumclaw)
 
 
 </div>
@@ -193,14 +193,14 @@ Please refer to the [environment variables](#environment-variables) section for 
 [![Deploy on Zeabur](https://zeabur.com/button.svg)](https://zeabur.com/templates/7Q0KO3)
 
 1. まず、コードをフォークする。
-2. [Zeabur](https://zeabur.com?referralCode=songquanpeng) にアクセスしてログインし、コンソールに入る。
+2. [Zeabur](https://zeabur.com?referralCode=quantumclaw) にアクセスしてログインし、コンソールに入る。
 3. 新しいプロジェクトを作成します。Service -> Add ServiceでMarketplace を選択し、MySQL を選択する。接続パラメータ（ユーザー名、パスワード、アドレス、ポート）をメモします。
-4. 接続パラメータをコピーし、```create database `one-api` ``` を実行してデータベースを作成する。
+4. 接続パラメータをコピーし、```create database `quantumclaw` ``` を実行してデータベースを作成する。
 5. その後、Service -> Add Service で Git を選択し（最初の使用には認証が必要です）、フォークしたリポジトリを選択します。
-6. 自動デプロイが開始されますが、一旦キャンセルしてください。Variable タブで `PORT` に `3000` を追加し、`SQL_DSN` に `<username>:<password>@tcp(<addr>:<port>)/one-api` を追加します。変更を保存する。SQL_DSN` が設定されていないと、データが永続化されず、再デプロイ後にデータが失われるので注意すること。
+6. 自動デプロイが開始されますが、一旦キャンセルしてください。Variable タブで `PORT` に `3000` を追加し、`SQL_DSN` に `<username>:<password>@tcp(<addr>:<port>)/quantumclaw` を追加します。変更を保存する。SQL_DSN` が設定されていないと、データが永続化されず、再デプロイ後にデータが失われるので注意すること。
 7. 再デプロイを選択します。
-8. Domains タブで、"my-one-api" のような適切なドメイン名の接頭辞を選択する。最終的なドメイン名は "my-one-api.zeabur.app" となります。独自のドメイン名を CNAME することもできます。
-9. デプロイが完了するのを待ち、生成されたドメイン名をクリックして One API にアクセスします。
+8. Domains タブで、"my-quantumclaw" のような適切なドメイン名の接頭辞を選択する。最終的なドメイン名は "my-quantumclaw.zeabur.app" となります。独自のドメイン名を CNAME することもできます。
+9. デプロイが完了するのを待ち、生成されたドメイン名をクリックして QuantumClaw にアクセスします。
 
 </div>
 </details>
@@ -215,16 +215,16 @@ Please refer to the [environment variables](#environment-variables) section for 
 ## 使用方法
 `Channels` ページで API Key を追加し、`Tokens` ページでアクセストークンを追加する。
 
-アクセストークンを使って One API にアクセスすることができる。使い方は [OpenAI API](https://platform.openai.com/docs/api-reference/introduction) と同じです。
+アクセストークンを使って QuantumClaw にアクセスすることができる。使い方は [OpenAI API](https://platform.openai.com/docs/api-reference/introduction) と同じです。
 
-OpenAI API が使用されている場所では、API Base に One API のデプロイアドレスを設定することを忘れないでください（例: `https://openai.justsong.cn`）。API Key は One API で生成されたトークンでなければなりません。
+OpenAI API が使用されている場所では、API Base に QuantumClaw のデプロイアドレスを設定することを忘れないでください（例: `https://openai.quantumclaw.ai`）。API Key は QuantumClaw で生成されたトークンでなければなりません。
 
 具体的な API Base のフォーマットは、使用しているクライアントに依存することに注意してください。
 
 ```mermaid
 graph LR
     A(ユーザ)
-    A --->|リクエスト| B(One API)
+    A --->|リクエスト| B(QuantumClaw)
     B -->|中継リクエスト| C(OpenAI)
     B -->|中継リクエスト| D(Azure)
     B -->|中継リクエスト| E(その他のダウンストリームチャンネル)
@@ -269,7 +269,7 @@ graph LR
 ![token](https://user-images.githubusercontent.com/39998050/233837971-dab488b7-6d96-43af-b640-a168e8d1c9bf.png)
 
 ## FAQ
-1. ノルマとは何か？どのように計算されますか？One API にはノルマ計算の問題はありますか？
+1. ノルマとは何か？どのように計算されますか？QuantumClaw にはノルマ計算の問題はありますか？
     + ノルマ = グループ倍率 * モデル倍率 * (プロンプトトークンの数 + 完了トークンの数 * 完了倍率)
     + 完了倍率は、公式の定義と一致するように、GPT3.5 では 1.33、GPT4 では 2 に固定されています。
     + ストリームモードでない場合、公式 API は消費したトークンの総数を返す。ただし、プロンプトとコンプリートの消費倍率は異なるので注意してください。

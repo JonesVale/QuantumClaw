@@ -50,6 +50,16 @@ type ChannelConfig struct {
 	Plugin            string `json:"plugin,omitempty"`
 	VertexAIProjectID string `json:"vertex_ai_project_id,omitempty"`
 	VertexAIADC       string `json:"vertex_ai_adc,omitempty"`
+	// CacheBillingRatio controls the billing ratio for cached prompt tokens (0-1 range).
+	// When set to 0.5, cached tokens are billed at 50% of normal rate.
+	// 0 (default) means cache billing is disabled and cached tokens are billed at full rate.
+	CacheBillingRatio float64 `json:"cache_billing_ratio,omitempty"`
+	// PromptCacheEnabled explicitly enables/disables prompt cache support.
+	// If nil, cache detection is automatic based on provider capabilities.
+	PromptCacheEnabled *bool `json:"prompt_cache_enabled,omitempty"`
+	// ThinkingToContent converts reasoning_content (thinking tokens) into
+	// [reasoning]...[/reasoning] tags appended to the final response content.
+	ThinkingToContent bool `json:"thinking_to_content,omitempty"`
 }
 
 func GetAllChannels(startIdx int, num int, scope string) ([]*Channel, error) {

@@ -11,6 +11,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/cohere"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/coze"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/deepl"
+	"github.com/quantumclaw/quantumclaw/relay/adaptor/dify"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/gemini"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/ollama"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
@@ -64,6 +65,8 @@ func GetAdaptor(apiType int) adaptor.Adaptor {
 		return &proxy.Adaptor{}
 	case apitype.Replicate:
 		return &replicate.Adaptor{}
+	case apitype.Dify:
+		return &dify.Adaptor{}
 	}
 	return nil
 }
