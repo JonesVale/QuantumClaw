@@ -60,8 +60,8 @@ func SetApiRouter(router *gin.Engine) {
 
 		userRoute := apiRouter.Group("/user")
 		{
-			userRoute.POST("/register", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.Register)
-			userRoute.POST("/login", middleware.CriticalRateLimit(), controller.Login)
+			userRoute.POST("/register", middleware.CriticalRateLimit(), middleware.LoginRateLimit(), middleware.TurnstileCheck(), controller.Register)
+			userRoute.POST("/login", middleware.CriticalRateLimit(), middleware.LoginRateLimit(), controller.Login)
 			userRoute.GET("/logout", controller.Logout)
 
 			selfRoute := userRoute.Group("/self")

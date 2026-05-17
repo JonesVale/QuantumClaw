@@ -174,7 +174,7 @@ func SendPasswordResetEmail(c *gin.Context) {
 			<p style="color: #666;">如果按钮无法点击，请复制以下链接到浏览器中打开：</p>
 			<p style="background-color: #f8f8f8; padding: 10px; border-radius: 4px; word-break: break-all;">%s</p>
 			<p style="color: #666;">重置链接 %d 分钟内有效，如果不是本人操作，请忽略。</p>
-		`, config.SystemName, link, link, common.VerificationValidMinutes),
+		`, config.SystemName, link, link, common.PasswordResetValidMinutes),
 	)
 	err := message.SendEmail(subject, email, content)
 	if err != nil {

@@ -10,7 +10,11 @@ import (
 	"github.com/quantumclaw/quantumclaw/model"
 	"net/http"
 	"strings"
+	"time"
 )
+
+// sessionMaxAge is the maximum session lifetime in seconds (24 hours)
+const sessionMaxAge = 86400
 
 func authHelper(c *gin.Context, minRole int) {
 	session := sessions.Default(c)
@@ -18,6 +22,23 @@ func authHelper(c *gin.Context, minRole int) {
 	role := session.Get("role")
 	id := session.Get("id")
 	status := session.Get("status")
+
+	// Check session age if present
+	if loginTimeRaw := session.Get("login_time"); loginTimeRaw != nil {
+		if loginTime, ok := loginTimeRaw.(int64); ok {
+			if time.Now().Unix()-loginTime > sessionMaxAge {
+				session.Clear()
+				_ = session.Save()
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"success": false,
+					"message": "会话已过期，请重新登录",
+				})
+				c.Abort()
+				return
+			}
+		}
+	}
+
 	if username == nil {
 		// Check access token
 		accessToken := c.Request.Header.Get("Authorization")

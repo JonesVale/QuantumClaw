@@ -71,6 +71,7 @@ func SetupLogin(user *model.User, c *gin.Context) {
 	session.Set("username", user.Username)
 	session.Set("role", user.Role)
 	session.Set("status", user.Status)
+	session.Set("login_time", time.Now().Unix())
 	err := session.Save()
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -110,6 +111,38 @@ func Logout(c *gin.Context) {
 	})
 }
 
+// ValidatePasswordStrength checks password strength and returns an error message if weak
+func ValidatePasswordStrength(password string) string {
+	if len(password) < 8 {
+		return "密码长度至少8位"
+	}
+	hasUpper := false
+	hasNumber := false
+	hasSpecial := false
+	for _, c := range password {
+		switch {
+		case c >= 'A' && c <= 'Z':
+			hasUpper = true
+		case c >= 'a' && c <= 'z':
+			// lowercase is acceptable
+		case c >= '0' && c <= '9':
+			hasNumber = true
+		default:
+			hasSpecial = true
+		}
+	}
+	if !hasUpper {
+		return "密码需要包含大写字母"
+	}
+	if !hasNumber {
+		return "密码需要包含数字"
+	}
+	if !hasSpecial {
+		return "密码需要包含特殊字符"
+	}
+	return ""
+}
+
 func Register(c *gin.Context) {
 	ctx := c.Request.Context()
 	if !config.RegisterEnabled {
@@ -139,6 +172,14 @@ func Register(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": i18n.Translate(c, "invalid_input"),
+		})
+		return
+	}
+	// Enforce password strength policy
+	if msg := ValidatePasswordStrength(user.Password); msg != "" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": msg,
 		})
 		return
 	}

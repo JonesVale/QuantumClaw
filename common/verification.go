@@ -21,6 +21,7 @@ var verificationMutex sync.Mutex
 var verificationMap map[string]verificationValue
 var verificationMapMaxSize = 10
 var VerificationValidMinutes = 10
+var PasswordResetValidMinutes = 30
 
 func GenerateVerificationCode(length int) string {
 	code := uuid.New().String()
@@ -48,7 +49,11 @@ func VerifyCodeWithKey(key string, code string, purpose string) bool {
 	defer verificationMutex.Unlock()
 	value, okay := verificationMap[purpose+key]
 	now := time.Now()
-	if !okay || int(now.Sub(value.time).Seconds()) >= VerificationValidMinutes*60 {
+	validMinutes := VerificationValidMinutes
+	if purpose == PasswordResetPurpose {
+		validMinutes = PasswordResetValidMinutes
+	}
+	if !okay || int(now.Sub(value.time).Seconds()) >= validMinutes*60 {
 		return false
 	}
 	return code == value.code

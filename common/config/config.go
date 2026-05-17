@@ -121,6 +121,9 @@ var RootUserEmail = ""
 
 var IsMasterNode = os.Getenv("NODE_TYPE") != "slave"
 
+// ForceHTTPS when true, HTTP requests are redirected to HTTPS
+var ForceHTTPS = strings.ToLower(os.Getenv("FORCE_HTTPS")) == "true"
+
 // ==================== 生产环境强化配置 ====================
 // CryptoSecret: 共享Redis数据加密密钥(多机部署必须设置)
 var CryptoSecret = os.Getenv("CRYPTO_SECRET")

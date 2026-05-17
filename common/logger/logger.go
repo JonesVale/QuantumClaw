@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"sync"
@@ -17,6 +18,62 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 )
+
+// sensitiveFields are field names whose values should be redacted from logs
+var sensitiveFields = []string{
+	"password",
+	"secret",
+	"token",
+	"key",
+	"authorization",
+	"access_token",
+	"refresh_token",
+	"api_key",
+	"private_key",
+	"secret_key",
+}
+
+// sensitivePatterns are compiled regex patterns for efficient sanitization
+var sensitivePatterns []*regexp.Regexp
+
+func init() {
+	for _, field := range sensitiveFields {
+		// Match JSON keys: "field": "value" or "field":"value"
+		pattern := fmt.Sprintf(`"%s"\s*:\s*"[^"]+"`, regexp.QuoteMeta(field))
+		re, err := regexp.Compile(pattern)
+		if err == nil {
+			sensitivePatterns = append(sensitivePatterns, re)
+		}
+		// Match URL query params: field=value& or field=value
+		pattern2 := fmt.Sprintf(`(%s=)[^&\s]+`, regexp.QuoteMeta(field))
+		re2, err2 := regexp.Compile(pattern2)
+		if err2 == nil {
+			sensitivePatterns = append(sensitivePatterns, re2)
+		}
+		// Match form-encoded or Authorization header
+		pattern3 := fmt.Sprintf(`(?i)(Authorization|Bearer|%s)\s*[:=]\s*\S+`, regexp.QuoteMeta(field))
+		re3, err3 := regexp.Compile(pattern3)
+		if err3 == nil {
+			sensitivePatterns = append(sensitivePatterns, re3)
+		}
+	}
+}
+
+// SanitizeLogInput redacts sensitive information from log messages
+func SanitizeLogInput(data string) string {
+	result := data
+	for _, re := range sensitivePatterns {
+		result = re.ReplaceAllStringFunc(result, func(match string) string {
+			// Preserve the key/field name but replace the value
+			idx := strings.LastIndexAny(match, "=:")
+			if idx >= 0 && idx < len(match)-1 {
+				return match[:idx+1] + "***"
+			}
+			return match
+		})
+	}
+	return result
+}
 
 type loggerLevel string
 
@@ -133,7 +190,9 @@ func logHelper(ctx context.Context, level loggerLevel, msg string) {
 	}
 	lineInfo, funcName := getLineInfo()
 	now := time.Now()
-	_, _ = fmt.Fprintf(writer, "[%s] %v%s%s %s%s \n", level, now.Format("2006/01/02 - 15:04:05"), requestId, lineInfo, funcName, msg)
+	// Sanitize sensitive data from log messages
+	sanitizedMsg := SanitizeLogInput(msg)
+	_, _ = fmt.Fprintf(writer, "[%s] %v%s%s %s%s \n", level, now.Format("2006/01/02 - 15:04:05"), requestId, lineInfo, funcName, sanitizedMsg)
 	SetupLogger()
 	if level == loggerFatal {
 		os.Exit(1)

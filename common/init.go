@@ -1,6 +1,8 @@
 ﻿package common
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"flag"
 	"fmt"
 	"github.com/quantumclaw/quantumclaw/common/config"
@@ -42,6 +44,20 @@ func Init() {
 			logger.SysError("SESSION_SECRET is set to an example value, please change it to a random string.")
 		} else {
 			config.SessionSecret = os.Getenv("SESSION_SECRET")
+		}
+	}
+
+	// Enhance SessionSecret with quantum random data if available
+	if QRNGEnabled {
+		quantumBytes, err := GetQuantumRandomBytes(16)
+		if err == nil {
+			// XOR quantum bytes into the UUID-based secret
+			// This makes the session secret truly unpredictable
+			hasher := sha256.New()
+			hasher.Write([]byte(config.SessionSecret))
+			hasher.Write(quantumBytes)
+			config.SessionSecret = hex.EncodeToString(hasher.Sum(nil))
+			logger.SysLog("session secret enhanced with quantum random data")
 		}
 	}
 	if os.Getenv("SQLITE_PATH") != "" {

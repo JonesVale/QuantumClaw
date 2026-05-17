@@ -6,12 +6,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/middleware"
 	"net/http"
 	"os"
 	"strings"
 )
 
 func SetRouter(router *gin.Engine, buildFS embed.FS) {
+	router.Use(middleware.HTTPSRedirect())
 	SetApiRouter(router)
 	SetDashboardRouter(router)
 	SetRelayRouter(router)
