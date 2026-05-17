@@ -7,7 +7,7 @@ import {
   Mail,
   DollarSign, KeyRound, BarChart3, Network,
   Menu, X, Shield, Activity,
-  ChevronDown, Check
+  ChevronDown, Check, Newspaper, BookOpen
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -61,10 +61,11 @@ function HomePage() {
   ]
 
   const heroCards = [
-    { title: t('Qwen3.6'), desc: t('Native multimodal, more stable reasoning'), link: 'https://chat.deepseek.com' },
-    { title: t('Claude 3.5'), desc: t('Anthropic Strongest Reasoning'), link: 'https://claude.ai' },
-    { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com' },
-    { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com' },
+    { title: t('Qwen3.6'), desc: t('Native multimodal, more stable reasoning'), link: 'https://qwen.alibaba.com', grad: 'from-blue-500 to-purple-600' },
+    { title: t('Claude 3.5'), desc: t('Anthropic Strongest Reasoning'), link: 'https://claude.ai', grad: 'from-orange-500 to-amber-600' },
+    { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com', grad: 'from-green-500 to-emerald-600' },
+    { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com', grad: 'from-indigo-500 to-cyan-600' },
+    { title: t('DeepSeek V3'), desc: t('Most Cost-Effective'), link: 'https://chat.deepseek.com', grad: 'from-blue-500 to-cyan-600' },
   ]
 
   const modelApps = [
@@ -97,6 +98,20 @@ function HomePage() {
     { value: '10M+', label: t('Monthly Requests') },
   ]
 
+  const newsIcons: Record<string, React.ReactNode> = {
+    'Machine Heart': <Newspaper style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'QbitAI': <Newspaper style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    '36Kr AI': <Newspaper style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'Leiphone': <Newspaper style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'OpenAI Blog': <Brain style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'Anthropic': <Brain style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'Google AI': <Brain style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'MIT Tech Review': <Globe style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'ArXiv': <BookOpen style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'Hugging Face': <Globe style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+    'Reddit AI': <Globe style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
+  }
+
   useEffect(() => { setCurrentLang(i18n.language) }, [i18n.language])
 
   const changeLang = (code: string) => {
@@ -109,7 +124,7 @@ function HomePage() {
   return (
     <>
       <nav className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800" style={{ height: 'clamp(44px, 7vh, 56px)' }}>
-        <div className="mx-auto flex items-center h-full justify-between" style={{ maxWidth: 'min(92vw, 1400px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+        <div className="mx-auto flex items-center h-full justify-between" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
           <Link to="/" className="flex items-center gap-x-1 shrink-0">
             <img src="/logo.webp" alt="" className="rounded-lg object-cover" style={{ width: 'clamp(24px, 3vw, 32px)', height: 'clamp(24px, 3vw, 32px)' }} />
             <span className="font-bold hidden sm:inline" style={{ fontSize: 'clamp(12px, 1.2vw, 14px)' }}>{t('QuantumClaw')}</span>
@@ -189,7 +204,7 @@ function HomePage() {
       </nav>
 
       <main className="bg-white dark:bg-slate-950">
-        <div className="mx-auto" style={{ maxWidth: 'min(92vw, 1400px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+        <div className="mx-auto" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
 
           {/* HERO */}
           <section style={{ paddingTop: 'clamp(24px, 5vw, 64px)', paddingBottom: 'clamp(24px, 5vw, 64px)' }}>
@@ -216,12 +231,12 @@ function HomePage() {
               </div>
             </div>
 
-            <div style={{ maxWidth: 'min(100%, 1000px)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(140px, 20vw, 280px), 1fr))', gap: 'clamp(6px, 1vw, 16px)' }}>
+            <div style={{ maxWidth: 'min(100%, 1200px)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(140px, 20vw, 280px), 1fr))', gap: 'clamp(6px, 1vw, 16px)' }}>
               {heroCards.map((card, i) => (
                 <a key={i} href={card.link} target="_blank" rel="noopener noreferrer"
                   className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(10px, 1.5vw, 24px)' }}>
-                  <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-[clamp(6px, 0.8vw, 16px)]"
+                  <div className={"rounded-lg bg-gradient-to-br " + card.grad + " flex items-center justify-center mb-[clamp(6px, 0.8vw, 16px)]"}
                     style={{ width: 'clamp(24px, 3vw, 36px)', height: 'clamp(24px, 3vw, 36px)' }}>
                     <img src="/logo.webp" alt="" className="rounded-lg object-cover" style={{ width: '100%', height: '100%' }} />
                   </div>
@@ -324,7 +339,10 @@ function HomePage() {
                 <a key={i} href={src.url} target="_blank" rel="noopener noreferrer"
                   className="group flex items-center justify-between rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-md hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(8px, 1vw, 16px) clamp(10px, 1.5vw, 20px)' }}>
-                  <span className="font-medium group-hover:text-blue-600 transition-colors truncate" style={{ fontSize: 'clamp(11px, 1vw, 14px)' }}>{t(src.name)}</span>
+                  <span className="font-medium group-hover:text-blue-600 transition-colors truncate inline-flex items-center gap-1.5" style={{ fontSize: 'clamp(11px, 1vw, 14px)' }}>
+                    {newsIcons[src.name] || <Brain style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />}
+                    {t(src.name)}
+                  </span>
                   <span className="px-[clamp(3px, 0.3vw, 6px)] py-[clamp(1px, 0.2vw, 3px)] rounded bg-slate-100 dark:bg-slate-800 text-slate-500 shrink-0 ml-1"
                     style={{ fontSize: 'clamp(8px, 0.7vw, 10px)' }}>{t(src.lang)}</span>
                 </a>
@@ -353,7 +371,7 @@ function HomePage() {
 
         {/* FOOTER */}
         <footer className="border-t border-slate-200 dark:border-slate-800">
-          <div className="mx-auto" style={{ maxWidth: 'min(92vw, 1400px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+          <div className="mx-auto" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
             <div style={{ paddingTop: 'clamp(16px, 2vw, 32px)', paddingBottom: 'clamp(16px, 2vw, 32px)' }}>
               <div className="flex flex-col sm:flex-row items-center justify-between" style={{ gap: 'clamp(8px, 1.5vw, 16px)' }}>
                 <div className="flex items-center gap-2">
