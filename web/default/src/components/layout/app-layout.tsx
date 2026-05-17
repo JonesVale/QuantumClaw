@@ -723,6 +723,8 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
 function AppLayout() {
 
+  const { t } = useTranslation()
+
   const [collapsed, setCollapsed] = useState(false)
 
   const [mobileOpen, setMobileOpen] = useState(false)
