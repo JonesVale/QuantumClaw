@@ -15,7 +15,7 @@ services:
     container_name: quantumclaw
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3666}:3000"
     environment:
       # Database
       SQL_DSN: "${SQL_DSN:-root:quantumclaw@tcp(mysql:3306)/quantumclaw?charset=utf8mb4&parseTime=True&loc=Local}"

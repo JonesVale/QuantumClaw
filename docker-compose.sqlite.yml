@@ -19,7 +19,7 @@ services:
     container_name: quantumclaw
     restart: unless-stopped
     ports:
-      - "${PORT:-3000}:3000"
+      - "${PORT:-3666}:3000"
     environment:
       # Leave SQL_DSN empty to auto-detect SQLite
       SQL_DSN: ""
