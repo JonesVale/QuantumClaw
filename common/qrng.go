@@ -26,8 +26,9 @@ import (
 var (
 	QRNGEnabled = false
 	// QRNGSourceURL: 量子随机数源 API 地址
-	// 国外默认: https://qrng.anu.edu.au/API/jsonI.php
-	// 国内可选: 用户自建或可用国内量子源
+	// 国外(默认澳洲国立大学): https://qrng.anu.edu.au/API/jsonI.php
+	// 国内自建服务:  请指向自建或内网量子随机数服务
+	// 国内可用服务:  百度AI云 / 阿里云 等商业量子随机数服务
 	QRNGSourceURL = "https://qrng.anu.edu.au/API/jsonI.php"
 
 	// qrngSeed 缓存从量子源获取的种子
