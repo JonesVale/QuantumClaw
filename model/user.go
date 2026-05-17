@@ -63,6 +63,15 @@ func CountUsers() (int64, error) {
 	return count, err
 }
 
+func GetRootUser() (*User, error) {
+	var user User
+	err := DB.Where("role = ?", RoleRootUser).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func GetMaxUserId() int {
 	var user User
 	DB.Last(&user)
