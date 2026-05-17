@@ -137,8 +137,8 @@ var MaxRequestBodyMB = env.Int("MAX_REQUEST_BODY_MB", 32)
 // ErrorLogEnabled: 独立错误日志开关
 var ErrorLogEnabled = strings.ToLower(os.Getenv("ERROR_LOG_ENABLED")) == "true"
 
-// QRNGEnabled: use quantum random number generator for enhanced security
-var QRNGEnabled = strings.ToLower(os.Getenv("QRNG_ENABLED")) == "true"
+// QRNGEnabled: use quantum random number generator for enhanced security (default: true)
+var QRNGEnabled = os.Getenv("QRNG_ENABLED") != "false"
 // QRNGSourceURL: quantum random number source URL (default: ANU, can point to domestic source)
 var QRNGSourceURL = func() string {
 	if v := os.Getenv("QRNG_SOURCE_URL"); v != "" {
