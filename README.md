@@ -12,11 +12,7 @@ QuantumClaw 是一个**企业级 AI API 网关**（基于 One API 衍生开发�
 | **缓存** | Redis（可选），内置 HybridCache |
 | **部署** | Docker Compose（MySQL + Redis 标准版 / SQLite 轻量版）|
 
-### 项目结构
 
-- **22 个顶级目录**：`.github`, `bin`, `common`, `constant`, `controller`, `deploy`, `docs`, `dto`, `electron`, `i18n`, `logs`, `middleware`, `model`, `monitor`, `pkg`, `relay`, `router`, `service`, `setting`, `types`, `web`
-- **~399 个 Go 文件**，**45 个前端 TSX 文件**（24 个路由页面）
-- **2 个可执行文件**：根目录 `quantumclaw.exe` (48.9MB)，`bin/quantumclaw.exe` (48.9MB) — 3 个 VERSION 文件互为副本
 
 ### 项目健康度（截至 2026-05-17 16:04）
 
