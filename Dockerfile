@@ -51,7 +51,7 @@ COPY . .
 COPY --from=frontend-builder /app/web/build/default ./web/default/dist
 
 # Copy static assets to dist directory
-COPY web/default/public/logo.png ./web/default/dist/logo.png
+COPY web/default/public/logo.webp ./web/default/dist/logo.webp
 
 COPY web/default/public/favicon.ico ./web/default/dist/favicon.ico
 
@@ -86,8 +86,8 @@ COPY --from=backend-builder /app/quantumclaw .
 # Copy static files (if any)
 COPY --from=backend-builder /app/web ./web
 
-# Create logs directory
-RUN mkdir -p /app/logs && chown quantumclaw:quantumclaw /app/logs
+# Create data and logs directories
+RUN mkdir -p /app/logs /app/data && chown -R quantumclaw:quantumclaw /app/logs /app/data
 
 USER quantumclaw
 
