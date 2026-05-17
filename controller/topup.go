@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -69,20 +70,14 @@ func GetTopUpInfo(c *gin.Context) {
 func RequestEpayTopUp(c *gin.Context) {
 	var req TopUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "参数错误", "data": err.Error()})
-		return
-	}
-
-	// 验证支付方式
-	if !common.IsValidPayMethod(req.PaymentMethod) {
-		c.JSON(http.StatusOK, gin.H{"message": "不支持的支付方式"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "参数错误"})
 		return
 	}
 
 	// 验证金额
 	minTopUp := common.GetMinTopUp()
 	if req.Amount < int64(minTopUp) {
-		c.JSON(http.StatusOK, gin.H{"message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
 		return
 	}
 
@@ -90,50 +85,91 @@ func RequestEpayTopUp(c *gin.Context) {
 	userId := c.GetInt("id")
 	user, err := model.GetUserById(userId, false)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"message": "获取用户信息失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取用户信息失败"})
 		return
 	}
 
-	// 计算支付金额（服务器端计算，防止客户端篡改）
+	// 计算支付金额
 	payMoney := calculatePayMoney(req.Amount, user.Group)
 
 	// 创建订单
 	tradeNo, err := model.GenerateSecureTradeNo(userId)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("生成订单号失败 user_id=%d error=%q", userId, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"message": "创建订单失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "创建订单失败"})
 		return
 	}
 
 	topUp := &model.TopUp{
-		UserId:          userId,
-		Amount:           req.Amount,
-		Money:            payMoney,
-		TradeNo:          tradeNo,
-		PaymentMethod:    req.PaymentMethod,
-		PaymentProvider:  model.PaymentProviderEpay,
-		UserIP:           c.ClientIP(),
-		UserAgent:        c.GetHeader("User-Agent"),
+		UserId:         userId,
+		Amount:         req.Amount,
+		Money:          payMoney,
+		TradeNo:        tradeNo,
+		PaymentMethod:  req.PaymentMethod,
+		PaymentProvider: model.PaymentProviderEpay,
+		UserIP:         c.ClientIP(),
+		UserAgent:      c.GetHeader("User-Agent"),
 	}
 
 	if err := topUp.Insert(); err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("创建充值订单失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"message": "创建订单失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "创建订单失败"})
 		return
 	}
 
-	// TODO: 调用易支付SDK创建支付链接
-	// 这里需要集成 go-epay 库
+	// 生成Epay支付链接
+	epayCfg := common.GetEpayConfig()
+	if epayCfg == nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("Epay未配置 user_id=%d", userId))
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "支付渠道未配置"})
+		return
+	}
 
-	logger.Info(c.Request.Context(), fmt.Sprintf("易支付订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f", 
-		userId, tradeNo, req.Amount, payMoney))
+	// 确定支付类型（从PaymentMethod后缀解析，或默认支付宝）
+	payType := common.EpayTypeAlipay
+	if req.PaymentMethod == "epay_wxpay" || req.PaymentMethod == "wxpay" {
+		payType = common.EpayTypeWxpay
+	} else if req.PaymentMethod == "epay_qqpay" || req.PaymentMethod == "qqpay" {
+		payType = common.EpayTypeQQPay
+	}
+
+	serverAddr := common.GetEnvOrDefault("SERVER_ADDR", ":3666")
+	// 去掉端口前缀":"获取host
+	notifyHost := strings.TrimPrefix(serverAddr, ":")
+	if !strings.Contains(notifyHost, "://") {
+		notifyHost = "http://" + notifyHost
+	}
+	notifyURL := notifyHost + "/api/webhook/epay"
+	returnURL := notifyHost + "/wallet"
+
+	epayParams := common.EpayParams{
+		Type:       payType,
+		OutTradeNo: tradeNo,
+		NotifyURL:  notifyURL,
+		ReturnURL:  returnURL,
+		Name:       fmt.Sprintf("QuantumClaw充值-%d配额", req.Amount),
+		Money:      payMoney,
+		ClientIP:   c.ClientIP(),
+	}
+
+	payURL, err := common.BuildEpayPayURL(epayCfg, epayParams)
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("生成Epay支付链接失败 user_id=%d error=%q", userId, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
+		return
+	}
+
+	logger.Info(c.Request.Context(), fmt.Sprintf("Epay订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f pay_type=%s",
+		userId, tradeNo, req.Amount, payMoney, payType))
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "success",
+		"success": true,
 		"data": gin.H{
-			"trade_no": tradeNo,
-			"amount":   req.Amount,
-			"money":    payMoney,
+			"trade_no":    tradeNo,
+			"amount":      req.Amount,
+			"money":       payMoney,
+			"payment_url": payURL,
+			"pay_type":    payType,
 		},
 	})
 }
@@ -146,11 +182,106 @@ func RequestEpayTopUp(c *gin.Context) {
 // @Success 200 {string} string "success"
 // @Router /api/user/topup/epay/notify [post]
 func EpayNotify(c *gin.Context) {
-	// TODO: 实现Epay回调处理
-	// 1. 验证签名
-	// 2. 更新订单状态
-	// 3. 充值用户配额
-	logger.Info(c.Request.Context(), "Epay回调收到")
+	ctx := c.Request.Context()
+
+	// 检查Epay是否启用
+	epayCfg := common.GetEpayConfig()
+	if epayCfg == nil {
+		logger.Warn(ctx, "Epay回调被拒绝: 功能未启用")
+		c.String(http.StatusForbidden, "fail")
+		return
+	}
+
+	// 解析回调参数 (Epay以GET方式回调)
+	var params map[string]string
+	if c.Request.Method == "GET" {
+		params = common.ParseEpayNotifyParams(c.Request.URL.RawQuery)
+	} else {
+		// POST方式回调
+		if err := c.Request.ParseForm(); err != nil {
+			logger.Warn(ctx, fmt.Sprintf("Epay回调参数解析失败: %s", err.Error()))
+			c.String(http.StatusOK, "fail")
+			return
+		}
+		params = make(map[string]string)
+		for k, v := range c.Request.PostForm {
+			if len(v) > 0 {
+				params[k] = v[0]
+			}
+		}
+	}
+
+	if len(params) == 0 {
+		logger.Warn(ctx, "Epay回调参数为空")
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 验证签名
+	if !common.VerifyEpaySign(params, epayCfg.Key) {
+		logger.Warn(ctx, fmt.Sprintf("Epay回调签名验证失败 client_ip=%s trade_no=%s", 
+			c.ClientIP(), params["out_trade_no"]))
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 获取订单号
+	tradeNo := params["out_trade_no"]
+	if tradeNo == "" {
+		logger.Warn(ctx, "Epay回调缺少订单号")
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 检查交易状态
+	tradeStatus := params["trade_status"]
+	if tradeStatus != "TRADE_SUCCESS" {
+		logger.Info(ctx, fmt.Sprintf("Epay回调交易未完成: trade_no=%s status=%s", tradeNo, tradeStatus))
+		c.String(http.StatusOK, "success")
+		return
+	}
+
+	// 获取本地订单
+	topUp, err := model.GetTopUpByTradeNo(tradeNo)
+	if err != nil {
+		logger.Error(ctx, fmt.Sprintf("Epay订单不存在: trade_no=%s", tradeNo))
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 验证支付提供商
+	if topUp.PaymentProvider != model.PaymentProviderEpay {
+		logger.Warn(ctx, fmt.Sprintf("Epay支付提供商不匹配: trade_no=%s expected=%s actual=%s",
+			tradeNo, model.PaymentProviderEpay, topUp.PaymentProvider))
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 防止重复处理
+	if topUp.Status != model.TopUpStatusPending {
+		logger.Info(ctx, fmt.Sprintf("Epay订单已处理: trade_no=%s status=%s", tradeNo, topUp.Status))
+		c.String(http.StatusOK, "success")
+		return
+	}
+
+	// 更新订单状态
+	if err := model.UpdateTopUpStatus(tradeNo, model.PaymentProviderEpay, model.TopUpStatusSuccess); err != nil {
+		logger.Error(ctx, fmt.Sprintf("Epay更新订单状态失败: trade_no=%s error=%q", tradeNo, err.Error()))
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	// 充值用户配额
+	if err := model.CompleteTopUp(tradeNo, model.PaymentProviderEpay, topUp.Amount); err != nil {
+		logger.Error(ctx, fmt.Sprintf("Epay充值配额失败: trade_no=%s error=%q", tradeNo, err.Error()))
+		c.String(http.StatusOK, "fail")
+		return
+	}
+
+	logger.Info(ctx, fmt.Sprintf("Epay充值成功: trade_no=%s user_id=%d amount=%d money=%.2f",
+		tradeNo, topUp.UserId, topUp.Amount, topUp.Money))
+
+	// 返回success给Epay平台（Epay要求返回"success"表示处理完成）
 	c.String(http.StatusOK, "success")
 }
 

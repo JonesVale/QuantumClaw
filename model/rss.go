@@ -11,7 +11,7 @@ type RssArticle struct {
 	Id          int       `json:"id" gorm:"primaryKey;autoIncrement"`
 	Source      string    `json:"source" gorm:"index;type:varchar(100)"`
 	Title       string    `json:"title" gorm:"type:text"`
-	Link        string    `json:"link" gorm:"type:text;uniqueIndex:idx_rss_link"`
+	Link        string    `json:"link" gorm:"type:varchar(512);uniqueIndex:idx_rss_link"`
 	Description string    `json:"description" gorm:"type:text"`
 	Author      string    `json:"author" gorm:"type:varchar(200)"`
 	PublishedAt time.Time `json:"published_at" gorm:"index"`

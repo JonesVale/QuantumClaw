@@ -34,6 +34,11 @@ function ProfilePage() {
   const [totpQrUri, setTotpQrUri] = useState('')
   const [showSetupKey, setShowSetupKey] = useState(false)
   const [enablingTotp, setEnablingTotp] = useState(false)
+  const [totpCode, setTotpCode] = useState('')
+  const [verifyingTotp, setVerifyingTotp] = useState(false)
+  const [backupCodes, setBackupCodes] = useState<string[]>([])
+  const [disablingTotp, setDisablingTotp] = useState(false)
+  const [disableCode, setDisableCode] = useState('')
   const [passkeys, setPasskeys] = useState<{ id: string; name: string; created_at: string }[]>([])
   const [registeringPasskey, setRegisteringPasskey] = useState(false)
 
@@ -228,34 +233,82 @@ function ProfilePage() {
               size="sm"
               onClick={async () => {
                 if (twoFAStatus?.enabled) {
-                  const res = await fetch('/api/user/2fa/disable', { method: 'POST' })
-                  const data = await res.json()
-                  if (data.success) {
-                    toast.success(t('2FA disabled'))
-                    queryClient.invalidateQueries({ queryKey: ['2fa-status'] })
+                  if (disablingTotp) {
+                    // Confirm disable with code
+                    setDisablingTotp(false)
+                    setDisableCode('')
                   } else {
-                    toast.error(data.message || t('Failed to disable 2FA'))
+                    setDisablingTotp(true)
                   }
                 } else {
                   setEnablingTotp(true)
                   setShowSetupKey(false)
-                  const res = await fetch('/api/user/2fa/enable', { method: 'POST' })
+                  setBackupCodes([])
+                  setTotpCode('')
+                  const res = await fetch('/api/user/2fa/init', { method: 'POST' })
                   const data = await res.json()
                   if (data.success) {
-                    setTotpSecret(data.secret || data.data?.secret || '')
-                    setTotpQrUri(data.uri || data.data?.uri || '')
+                    setTotpSecret(data.data?.secret || '')
+                    setTotpQrUri(data.data?.qr_code_url || '')
                     setShowSetupKey(true)
                     toast.success(t('Scan the QR code with your authenticator app'))
                   } else {
-                    toast.error(data.message || t('Failed to enable 2FA'))
-                    setEnablingTotp(false)
+                    toast.error(data.message || t('Failed to initialize 2FA'))
                   }
+                  setEnablingTotp(false)
                 }
               }}
               disabled={enablingTotp}
             >
               {enablingTotp ? t('Setting up...') : twoFAStatus?.enabled ? t('Disable') : t('Enable')}
             </Button>
+            {disablingTotp && (
+              <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 space-y-2">
+                <p className="text-sm font-medium text-red-700 dark:text-red-300">
+                  {t('Enter your TOTP code to disable 2FA')}
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    placeholder="123456"
+                    value={disableCode}
+                    onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  />
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    disabled={disableCode.length !== 6}
+                    onClick={async () => {
+                      const res = await fetch('/api/user/2fa/disable', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: disableCode }),
+                      })
+                      const data = await res.json()
+                      if (data.success) {
+                        toast.success(t('2FA disabled'))
+                        setDisablingTotp(false)
+                        setDisableCode('')
+                        queryClient.invalidateQueries({ queryKey: ['2fa-status'] })
+                      } else {
+                        toast.error(data.message || t('Failed to disable 2FA'))
+                      }
+                    }}
+                  >
+                    {t('Confirm Disable')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setDisablingTotp(false); setDisableCode('') }}
+                  >
+                    {t('Cancel')}
+                  </Button>
+                </div>
+              </div>
+            )}
             {showSetupKey && (
               <div className="mt-3 p-3 rounded-lg border bg-muted/50 space-y-2">
                 <div className="flex items-center gap-2">
@@ -289,8 +342,61 @@ function ProfilePage() {
                     </Button>
                   </div>
                 )}
+                <div className="space-y-2 mt-3">
+                  <Label htmlFor="totp-code">{t('Enter 6-digit TOTP code')}</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id="totp-code"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={totpCode}
+                      onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    />
+                    <Button
+                      size="sm"
+                      disabled={totpCode.length !== 6 || verifyingTotp}
+                      onClick={async () => {
+                        setVerifyingTotp(true)
+                        const res = await fetch('/api/user/2fa/enable', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ code: totpCode }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setBackupCodes(data.data?.backup_codes || [])
+                          setShowSetupKey(false)
+                          toast.success(t('2FA enabled'))
+                          queryClient.invalidateQueries({ queryKey: ['2fa-status'] })
+                        } else {
+                          toast.error(data.message || t('Invalid code'))
+                        }
+                        setVerifyingTotp(false)
+                      }}
+                    >
+                      {verifyingTotp ? t('Verifying...') : t('Verify & Enable')}
+                    </Button>
+                  </div>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {t('Once configured, you can disable setup and 2FA will be active')}
+                  {t('Scan QR code, enter the 6-digit code, then click Verify & Enable')}
+                </p>
+              </div>
+            )}
+            {backupCodes.length > 0 && (
+              <div className="mt-3 p-3 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 space-y-2">
+                <p className="text-sm font-medium text-green-700 dark:text-green-300">
+                  {t('2FA Enabled! Backup codes:')}
+                </p>
+                <div className="grid grid-cols-2 gap-1">
+                  {backupCodes.map((code, i) => (
+                    <code key={i} className="p-1 text-xs rounded border bg-background font-mono">{code}</code>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('Each code works once. Save them securely.')}
                 </p>
               </div>
             )}

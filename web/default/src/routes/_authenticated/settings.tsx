@@ -116,6 +116,15 @@ function SettingsPage() {
   const [channelTestFrequency, setChannelTestFrequency] = useState('')
   const [batchTestCount, setBatchTestCount] = useState('')
 
+  // ── Company Info ──
+  const [companyName, setCompanyName] = useState('')
+  const [companyTaxId, setCompanyTaxId] = useState('')
+  const [companyAddress, setCompanyAddress] = useState('')
+  const [companyPhone, setCompanyPhone] = useState('')
+  const [companyBank, setCompanyBank] = useState('')
+  const [companyBankAccount, setCompanyBankAccount] = useState('')
+  const [companyAlipayQr, setCompanyAlipayQr] = useState('')
+
   // ── Security ──
   const [minPasswordLength, setMinPasswordLength] = useState('')
   const [requireSpecialChars, setRequireSpecialChars] = useState(false)
@@ -207,6 +216,14 @@ function SettingsPage() {
     setIpWhitelist(getOptionValue('IPWhitelist', ''))
     setIpBlacklist(getOptionValue('IPBlacklist', ''))
     setSsrfProtection(getOptionValue('EnableSSRFProtection', 'true') === 'true')
+
+    setCompanyName(getOptionValue('CompanyName', '深圳市中科劲纬智能有限公司'))
+    setCompanyTaxId(getOptionValue('CompanyTaxId', '91440300MA5GH45W8C'))
+    setCompanyAddress(getOptionValue('CompanyAddress', '深圳市宝安区石岩街道塘头社区塘头大道33号东海创意园205A'))
+    setCompanyPhone(getOptionValue('CompanyPhone', '15920005303'))
+    setCompanyBank(getOptionValue('CompanyBank', '深圳农村商业银行股份有限公司应人石支行'))
+    setCompanyBankAccount(getOptionValue('CompanyBankAccount', '000396168236'))
+    setCompanyAlipayQr(getOptionValue('CompanyAlipayQr', '/payment/alipay-qr.jpg'))
   }, [optionsData])
 
   const saveMutation = useMutation({
@@ -593,6 +610,38 @@ function SettingsPage() {
                 </div>
               </div>
 
+              {/* Company Info */}
+              <div className="space-y-3 rounded-lg border p-4">
+                <h3 className="font-semibold">{t('Company Payment Info')}</h3>
+                <p className="text-xs text-muted-foreground">{t('Shown on Wallet page for B2B transfers')}</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>{t('Company Name')}</Label>
+                    <Input value={companyName} onChange={(e) => setCompanyName(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Tax ID')}</Label>
+                    <Input value={companyTaxId} onChange={(e) => setCompanyTaxId(e.target.value)} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>{t('Address')}</Label>
+                    <Input value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Phone')}</Label>
+                    <Input value={companyPhone} onChange={(e) => setCompanyPhone(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Bank Name')}</Label>
+                    <Input value={companyBank} onChange={(e) => setCompanyBank(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('Bank Account')}</Label>
+                    <Input value={companyBankAccount} onChange={(e) => setCompanyBankAccount(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+
               <Button
                 onClick={() =>
                   handleSave({
@@ -616,6 +665,13 @@ function SettingsPage() {
                     BinanceMerchantId: binanceMerchantId,
                     MinTopUp: minTopUp || '1',
                     CacheBillingRatio: cacheBillingRatio || '1.0',
+                    CompanyName: companyName,
+                    CompanyTaxId: companyTaxId,
+                    CompanyAddress: companyAddress,
+                    CompanyPhone: companyPhone,
+                    CompanyBank: companyBank,
+                    CompanyBankAccount: companyBankAccount,
+                    CompanyAlipayQr: companyAlipayQr,
                   })
                 }
                 disabled={saveMutation.isPending}

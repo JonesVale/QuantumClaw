@@ -92,14 +92,14 @@ RUN mkdir -p /app/logs /app/data && chown -R quantumclaw:quantumclaw /app/logs /
 USER quantumclaw
 
 # Expose default port
-EXPOSE 3000
+EXPOSE 3666
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget -qO- http://localhost:3000/api/status || exit 1
+    CMD wget -qO- http://localhost:3666/api/status || exit 1
 
 # Default environment variables
-ENV PORT=3000
+ENV PORT=3666
 ENV GIN_MODE=release
 ENV LOG_DIR=/app/logs
 

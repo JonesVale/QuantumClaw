@@ -395,7 +395,8 @@ function HomePage() {
               </div>
               <div className="text-center text-slate-400 border-t border-slate-100 dark:border-slate-800"
                 style={{ marginTop: 'clamp(12px, 1.5vw, 20px)', paddingTop: 'clamp(8px, 1vw, 16px)', fontSize: 'clamp(9px, 0.8vw, 11px)' }}>
-                &copy; {new Date().getFullYear()} {t('QuantumClaw')}
+                <p>&copy; {new Date().getFullYear()} {t('QuantumClaw')} · 深圳市中科劲纬智能有限公司</p>
+                <p className="mt-0.5">粤ICP备2021033000号-1 · 深公网安备 · 深圳农村商业银行应人石支行 000396168236</p>
               </div>
             </div>
           </div>

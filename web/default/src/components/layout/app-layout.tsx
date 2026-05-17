@@ -826,9 +826,8 @@ function AppLayout() {
         {/* Footer */}
 
         <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
-
-          {t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}
-
+          <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
+          <p className="mt-1">深圳市中科劲纬智能有限公司 · 粤ICP备2021033000号-1</p>
         </footer>
 
       </div>
