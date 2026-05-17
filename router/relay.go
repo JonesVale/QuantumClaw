@@ -1,6 +1,9 @@
 ﻿package router
 
 import (
+	"net/http"
+
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/controller"
 	"github.com/quantumclaw/quantumclaw/middleware"
 
@@ -10,6 +13,13 @@ import (
 func SetRelayRouter(router *gin.Engine) {
 	router.Use(middleware.CORS())
 	router.Use(middleware.GzipDecodeMiddleware())
+	// Request body size limit (MaxRequestBodyMB MB)
+	if config.MaxRequestBodyMB > 0 {
+		router.Use(func(c *gin.Context) {
+			c.Request.Body = http.MaxBytesReader(c.Writer, c.Request.Body, int64(config.MaxRequestBodyMB)*1024*1024)
+			c.Next()
+		})
+	}
 	// https://platform.openai.com/docs/api-reference/introduction
 	modelsRouter := router.Group("/v1/models")
 	modelsRouter.Use(middleware.TokenAuth())

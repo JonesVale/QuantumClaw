@@ -121,6 +121,19 @@ var RootUserEmail = ""
 
 var IsMasterNode = os.Getenv("NODE_TYPE") != "slave"
 
+// ==================== 生产环境强化配置 ====================
+// CryptoSecret: 共享Redis数据加密密钥(多机部署必须设置)
+var CryptoSecret = os.Getenv("CRYPTO_SECRET")
+
+// StreamingTimeout: SSE流式响应超时(秒),默认300
+var StreamingTimeout = env.Int("STREAMING_TIMEOUT", 300)
+
+// MaxRequestBodyMB: 请求体大小限制(MB),超限返回413
+var MaxRequestBodyMB = env.Int("MAX_REQUEST_BODY_MB", 32)
+
+// ErrorLogEnabled: 独立错误日志开关
+var ErrorLogEnabled = strings.ToLower(os.Getenv("ERROR_LOG_ENABLED")) == "true"
+
 var requestInterval, _ = strconv.Atoi(os.Getenv("POLLING_INTERVAL"))
 var RequestInterval = time.Duration(requestInterval) * time.Second
 
