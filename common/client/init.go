@@ -28,7 +28,7 @@ func Init() {
 			Timeout:   time.Second * time.Duration(config.UserContentRequestTimeout),
 		}
 	} else {
-		UserContentRequestHTTPClient = &http.Client{}
+		UserContentRequestHTTPClient = &http.Client{Timeout: 10 * time.Second}
 	}
 	var transport http.RoundTripper
 	if config.RelayProxy != "" {
