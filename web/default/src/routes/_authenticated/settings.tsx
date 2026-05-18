@@ -278,46 +278,44 @@ function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <TabsList className="flex lg:flex-col w-full lg:w-48 shrink-0 h-auto flex-wrap lg:flex-nowrap">
-            <TabsTrigger value="general" className="w-full justify-start">
-              <Settings className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('General')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="billing" className="w-full justify-start">
-              <DollarSign className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Billing')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="ratelimit" className="w-full justify-start">
-              <Gauge className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Rate Limit')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="registration" className="w-full justify-start">
-              <UserPlus className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Registration')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="smtp" className="w-full justify-start">
-              <Mail className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('SMTP')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="oauth" className="w-full justify-start">
-              <Lock className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('OAuth')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="notification" className="w-full justify-start">
-              <Bell className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Notification')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="performance" className="w-full justify-start">
-              <Zap className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Performance')}</span>
-            </TabsTrigger>
-            <TabsTrigger value="security" className="w-full justify-start">
-              <Shield className="h-4 w-4 mr-2 shrink-0" />
-              <span className="truncate">{t('Security')}</span>
-            </TabsTrigger>
-          </TabsList>
-          <div className="flex-1 min-w-0">
+        <TabsList className="flex-wrap h-auto gap-y-1 text-xs sm:text-sm">
+          <TabsTrigger value="general" className="px-2 sm:px-3">
+            <Settings className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('General')}
+          </TabsTrigger>
+          <TabsTrigger value="billing" className="px-2 sm:px-3">
+            <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Billing')}
+          </TabsTrigger>
+          <TabsTrigger value="ratelimit" className="px-2 sm:px-3">
+            <Gauge className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Rate Limit')}
+          </TabsTrigger>
+          <TabsTrigger value="registration" className="px-2 sm:px-3">
+            <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Registration')}
+          </TabsTrigger>
+          <TabsTrigger value="smtp" className="px-2 sm:px-3">
+            <Mail className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('SMTP')}
+          </TabsTrigger>
+          <TabsTrigger value="oauth" className="px-2 sm:px-3">
+            <Lock className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('OAuth')}
+          </TabsTrigger>
+          <TabsTrigger value="notification" className="px-2 sm:px-3">
+            <Bell className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Notification')}
+          </TabsTrigger>
+          <TabsTrigger value="performance" className="px-2 sm:px-3">
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Performance')}
+          </TabsTrigger>
+          <TabsTrigger value="security" className="px-2 sm:px-3">
+            <Shield className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+            {t('Security')}
+          </TabsTrigger>
+        </TabsList>
 
         {/* ════════════════════════════════════════════════════ General ═══ */}
         <TabsContent value="general">
@@ -1417,8 +1415,6 @@ function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        </div>
-      </div>
       </Tabs>
     </div>
   )
