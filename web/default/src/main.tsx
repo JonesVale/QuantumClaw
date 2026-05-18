@@ -97,6 +97,21 @@ declare module '@tanstack/react-router' {
           localStorage.setItem('status', JSON.stringify(s))
         }
         if (s?.logo) applyFaviconToDom(s.logo as string)
+        // Write footer_html to system config store for the homepage
+        if (s?.footer_html) {
+          try {
+            const raw = localStorage.getItem('qc-system-config')
+            if (raw) {
+              const parsed = JSON.parse(raw)
+              parsed.state = parsed.state || {}
+              parsed.state.config = parsed.state.config || {}
+              parsed.state.config.footerHtml = s.footer_html as string
+              localStorage.setItem('qc-system-config', JSON.stringify(parsed))
+            }
+          } catch {
+            /* empty */
+          }
+        }
       })
       .catch(() => {})
   } catch {

@@ -20,3 +20,5 @@ temp
 electron/node_modules
 electron/out
 electron/dist
+# Release builds
+release/

@@ -22,7 +22,9 @@ services:
       # Separate log DB (optional)
       # LOG_SQL_DSN: "user:pass@tcp(log-mysql:3306)/quantumclaw_logs?charset=utf8mb4&parseTime=True&loc=Local"
       # Redis
-      REDIS: "${REDIS:-redis:6379}"
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-redis-daae3a223e4e40f3907d}"
       # App settings
       PORT: "${PORT:-3666}"
       GIN_MODE: "${GIN_MODE:-release}"
@@ -31,7 +33,7 @@ services:
       # Free Chat (Groq)
       GROQ_API_KEY: "${GROQ_API_KEY:-}"
       DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
-      SESSION_SECRET: "${SESSION_SECRET:-}"
+      SESSION_SECRET: "${SESSION_SECRET:-6b198275ddf2427f8db24532723ec924d9497245c3374dbeb2fd3f799358f991}"
       THEME: "${THEME:-default}"
       # Initial root token
       INITIAL_ROOT_TOKEN: "${INITIAL_ROOT_TOKEN:-}"
@@ -101,7 +103,7 @@ services:
       X_XSS_PROTECTION: "${X_XSS_PROTECTION:-1; mode=block}"
       REFERRER_POLICY: "${REFERRER_POLICY:-strict-origin-when-cross-origin}"
       PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-geolocation=(), camera=(), microphone=()}"
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-*}"
     volumes:
       # Mount for data persistence (SQLite) or logs
       - quantumclaw_data:/app/data

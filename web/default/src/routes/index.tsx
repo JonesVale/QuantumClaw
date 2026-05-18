@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth-store'
+import { useSystemConfigStore } from '@/stores/system-config-store'
 import { CustomerServiceFloating } from '@/components/customer-service'
 
 export const Route = createFileRoute('/')({
@@ -44,6 +45,7 @@ function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
   const { loggedIn } = useAuthStore()
+  const { config: sysConfig } = useSystemConfigStore()
 
   const getNavItems = (loggedIn: boolean) => [
     { to: '/', label: t('Home') },
@@ -401,7 +403,17 @@ function HomePage() {
               <div className="text-center text-slate-400 border-t border-slate-100 dark:border-slate-800"
                 style={{ marginTop: 'clamp(12px, 1.5vw, 20px)', paddingTop: 'clamp(8px, 1vw, 16px)', fontSize: 'clamp(9px, 0.8vw, 11px)' }}>
                 <p>&copy; {new Date().getFullYear()} {t('QuantumClaw')} · {t('AI API Gateway')}</p>
-                
+                {sysConfig?.footerHtml ? (
+                  <div className="flex justify-center gap-3 mt-1"
+                    dangerouslySetInnerHTML={{ __html: sysConfig.footerHtml }} />
+                ) : (
+                  <p style={{ marginTop: 'clamp(2px, 0.3vw, 6px)' }}>
+                    <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"
+                      className="text-slate-400 hover:text-blue-600 transition-colors">
+                      粤ICP备XXXXXXXX号-1
+                    </a>
+                  </p>
+                )}
               </div>
             </div>
           </div>

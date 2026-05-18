@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { useAuthStore } from '@/stores/auth-store'
-import { signIn } from '@/lib/api-extended'
+import { signIn, register } from '@/lib/api-extended'
 import { toast } from 'sonner'
 import { getTelegramWidgetInfo } from '@/lib/api-extended'
 export const Route = createFileRoute('/(auth)/sign-in')({
@@ -25,9 +25,11 @@ function SignInPage() {
   const { auth } = useAuthStore()
   const router = useRouter()
   const { redirect: redirectUrl } = useSearch({ strict: false })
+  const [mode, setMode] = useState<'login' | 'register'>('login')
   const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
   // Load Telegram widget info
   useEffect(() => {
@@ -88,6 +90,33 @@ function SignInPage() {
       setLoading(false)
     }
   }
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password !== confirmPassword) {
+      toast.error(t('Passwords do not match'))
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await register({
+        username,
+        password,
+        display_name: username,
+      })
+      if (res.success) {
+        toast.success(t('Registration successful! Please sign in.'))
+        setMode('login')
+        setConfirmPassword('')
+      } else {
+        toast.error(res.message || t('Registration failed'))
+      }
+    } catch {
+      toast.error(t('Registration failed'))
+    } finally {
+      setLoading(false)
+    }
+  }
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 mx-auto max-w-[min(96vw,1600px)] w-full">
       <Card className="w-full sm:max-w-md">
@@ -97,35 +126,95 @@ function SignInPage() {
           <CardDescription>{t('AI API Gateway & Management Platform')}</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="username">{t('Username')}</Label>
-              <Input
-                id="username"
-                placeholder={t('Username or email')}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">{t('Password')}</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? t('Signing in...') : t('Sign In')}
-            </Button>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              No account? <a href="/api/user/register" className="text-blue-600 hover:underline font-medium">Register now</a>
-            </p>
-          </form>
+          <div className="flex mb-4 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
+            <button
+              type="button"
+              onClick={() => { setMode('login'); setConfirmPassword('') }}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-blue-600 text-white' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            >
+              {t('Sign In')}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setMode('register'); setConfirmPassword('') }}
+              className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-blue-600 text-white' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            >
+              {t('Register')}
+            </button>
+          </div>
+
+          {mode === 'login' ? (
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username">{t('Username')}</Label>
+                <Input
+                  id="username"
+                  placeholder={t('Username or email')}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">{t('Password')}</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? t('Signing in...') : t('Sign In')}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleRegister} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reg-username">{t('Username')}</Label>
+                <Input
+                  id="reg-username"
+                  placeholder={t('Choose a username')}
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  required
+                  minLength={3}
+                  maxLength={12}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-password">{t('Password')}</Label>
+                <Input
+                  id="reg-password"
+                  type="password"
+                  placeholder={t('At least 8 characters')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={8}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-confirm-password">{t('Confirm Password')}</Label>
+                <Input
+                  id="reg-confirm-password"
+                  type="password"
+                  placeholder={t('Re-enter password')}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                {confirmPassword && password !== confirmPassword && (
+                  <p className="text-xs text-red-500">{t('Passwords do not match')}</p>
+                )}
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                {loading ? t('Registering...') : t('Register')}
+              </Button>
+            </form>
+          )}
           {botUsername && (
             <>
               <Separator className="my-4" />

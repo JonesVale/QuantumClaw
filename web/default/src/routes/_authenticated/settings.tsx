@@ -41,6 +41,8 @@ function SettingsPage() {
   const [systemName, setSystemName] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [footerHtml, setFooterHtml] = useState('')
+  // ⚠️ 后端使用 Footer（不是 FooterHTML）作为 option key
+  // 见 model/option.go case "Footer": config.Footer = value
 
   // ── Billing ──
   const [defaultCurrency, setDefaultCurrency] = useState('')
@@ -140,7 +142,7 @@ function SettingsPage() {
 
     setSystemName(getOptionValue('SystemName', 'QuantumClaw'))
     setLogoUrl(getOptionValue('Logo', '/logo.png'))
-    setFooterHtml(getOptionValue('FooterHTML', ''))
+    setFooterHtml(getOptionValue('Footer', ''))
 
     setDefaultCurrency(getOptionValue('DefaultCurrency', 'USD'))
     setStripePublicKey(getOptionValue('StripePublicKey', ''))
@@ -276,44 +278,46 @@ function SettingsPage() {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="general">
-            <Settings className="h-4 w-4 mr-2" />
-            {t('General')}
-          </TabsTrigger>
-          <TabsTrigger value="billing">
-            <DollarSign className="h-4 w-4 mr-2" />
-            {t('Billing')}
-          </TabsTrigger>
-          <TabsTrigger value="ratelimit">
-            <Gauge className="h-4 w-4 mr-2" />
-            {t('RateLimit')}
-          </TabsTrigger>
-          <TabsTrigger value="registration">
-            <UserPlus className="h-4 w-4 mr-2" />
-            {t('Registration')}
-          </TabsTrigger>
-          <TabsTrigger value="smtp">
-            <Mail className="h-4 w-4 mr-2" />
-            {t('SMTP')}
-          </TabsTrigger>
-          <TabsTrigger value="oauth">
-            <Lock className="h-4 w-4 mr-2" />
-            {t('OAuth')}
-          </TabsTrigger>
-          <TabsTrigger value="notification">
-            <Bell className="h-4 w-4 mr-2" />
-            {t('Notification')}
-          </TabsTrigger>
-          <TabsTrigger value="performance">
-            <Zap className="h-4 w-4 mr-2" />
-            {t('Performance')}
-          </TabsTrigger>
-          <TabsTrigger value="security">
-            <Shield className="h-4 w-4 mr-2" />
-            {t('Security')}
-          </TabsTrigger>
-        </TabsList>
+        <div className="flex flex-col lg:flex-row gap-6">
+          <TabsList className="flex lg:flex-col w-full lg:w-48 shrink-0 h-auto flex-wrap lg:flex-nowrap">
+            <TabsTrigger value="general" className="w-full justify-start">
+              <Settings className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('General')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="billing" className="w-full justify-start">
+              <DollarSign className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Billing')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="ratelimit" className="w-full justify-start">
+              <Gauge className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Rate Limit')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="registration" className="w-full justify-start">
+              <UserPlus className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Registration')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="smtp" className="w-full justify-start">
+              <Mail className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('SMTP')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="oauth" className="w-full justify-start">
+              <Lock className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('OAuth')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="notification" className="w-full justify-start">
+              <Bell className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Notification')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="performance" className="w-full justify-start">
+              <Zap className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Performance')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="security" className="w-full justify-start">
+              <Shield className="h-4 w-4 mr-2 shrink-0" />
+              <span className="truncate">{t('Security')}</span>
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex-1 min-w-0">
 
         {/* ════════════════════════════════════════════════════ General ═══ */}
         <TabsContent value="general">
@@ -350,15 +354,18 @@ function SettingsPage() {
                 <Input
                   value={footerHtml}
                   onChange={(e) => setFooterHtml(e.target.value)}
-                  placeholder="<a href='...'>...</a>"
+                  placeholder={'<a href="https://beian.miit.gov.cn/" target="_blank">粤ICP备XXXXXXXX号-1</a>'}
                 />
+                <p className="text-xs text-muted-foreground">
+                  {t('Shown at the bottom of the homepage. Supports HTML — use it for ICP record number, legal links, etc.')}
+                </p>
               </div>
               <Button
                 onClick={() =>
                   handleSave({
                     SystemName: systemName,
                     Logo: logoUrl,
-                    FooterHTML: footerHtml,
+                    Footer: footerHtml,
                   })
                 }
                 disabled={saveMutation.isPending}
@@ -1410,6 +1417,8 @@ function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        </div>
+      </div>
       </Tabs>
     </div>
   )
