@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import {
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/_authenticated/api-docs')({
   component: ApiDocsPage,
 })
 
-// ── Types ──────────────────────────────────────────────────────────
+// 鈹€鈹€ Types 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 interface Endpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -49,7 +49,7 @@ interface EndpointCategory {
   endpoints: Endpoint[]
 }
 
-// ── Code Block Component ───────────────────────────────────────────
+// 鈹€鈹€ Code Block Component 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function CodeBlock({ code, language = 'bash' }: { code: string; language?: string }) {
   const { t } = useTranslation()
@@ -80,7 +80,7 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
   )
 }
 
-// ── Endpoint Card ───────────────────────────────────────────────────
+// 鈹€鈹€ Endpoint Card 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
   const { t } = useTranslation()
@@ -181,7 +181,7 @@ function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
   )
 }
 
-// ── Category Section ───────────────────────────────────────────────
+// 鈹€鈹€ Category Section 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function CategorySection({ category }: { category: EndpointCategory }) {
   const { t } = useTranslation()
@@ -202,7 +202,7 @@ function CategorySection({ category }: { category: EndpointCategory }) {
   )
 }
 
-// ── Base URL ────────────────────────────────────────────────────────
+// 鈹€鈹€ Base URL 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function BaseUrlBanner() {
   const { t } = useTranslation()
@@ -217,7 +217,7 @@ function BaseUrlBanner() {
   )
 }
 
-// ── Endpoint Data ──────────────────────────────────────────────────
+// 鈹€鈹€ Endpoint Data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 const API_ENDPOINTS: EndpointCategory[] = [
   {
@@ -471,12 +471,12 @@ const API_ENDPOINTS: EndpointCategory[] = [
   },
 ]
 
-// ── Page Component ─────────────────────────────────────────────────
+// 鈹€鈹€ Page Component 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 function ApiDocsPage() {
   const { t } = useTranslation()
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6">
+    <div className=" w-full p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">

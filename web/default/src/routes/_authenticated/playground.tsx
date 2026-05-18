@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, Trash2, Settings2 } from 'lucide-react'
@@ -247,7 +247,7 @@ function PlaygroundPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full flex min-h-[600px] flex-col gap-4 p-4 sm:p-6">
+    <div className=" w-full flex min-h-[600px] flex-col gap-4 p-4 sm:p-6">
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -429,7 +429,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('View full image')} ↗
+                        {t('View full image')} 鈫?
                       </a>
                     </div>
                   )}
@@ -526,7 +526,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('Download')} ↗
+                        {t('Download')} 鈫?
                       </a>
                     </div>
                   )}
@@ -599,7 +599,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('Download')} ↗
+                        {t('Download')} 鈫?
                       </a>
                     </div>
                   )}

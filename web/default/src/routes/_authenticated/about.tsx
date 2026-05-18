@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_authenticated/about')({
 
 function AboutPage() {
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6">
+    <div className=" w-full p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="text-center py-8">
         <div className="flex items-center justify-center mb-4">

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
@@ -116,7 +116,7 @@ function StatCard({ title, value, description, icon: Icon, trend, loading, color
   )
 }
 
-// 模拟图表数据
+// 妯℃嫙鍥捐〃鏁版嵁
 const chartData = [
   { name: 'Mon', requests: 2400, cost: 12.5 },
   { name: 'Tue', requests: 1398, cost: 8.2 },
@@ -207,7 +207,7 @@ function DashboardPage() {
   const modelUsage = stats?.model_usage ?? []
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 min-h-screen mx-auto max-w-[min(96vw,1600px)] w-full bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="p-4 sm:p-6 space-y-6 min-h-screen  w-full bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>

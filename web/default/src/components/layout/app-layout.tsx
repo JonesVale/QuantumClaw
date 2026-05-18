@@ -1,4 +1,4 @@
-/**
+﻿/**
 
  * QuantumClaw - Main Application Layout
 
@@ -367,7 +367,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
 
 
-// ── Breadcrumbs ────────────────────────────────────────────────────
+// 鈹€鈹€ Breadcrumbs 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 const breadcrumbMap: Record<string, string> = {
 
@@ -587,7 +587,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
           <TooltipContent>
 
-            {i18n.language === 'zh-CN' ? 'Switch to English' : '切换到中文'}
+            {i18n.language === 'zh-CN' ? 'Switch to English' : '鍒囨崲鍒颁腑鏂?}
 
           </TooltipContent>
 
@@ -743,7 +743,7 @@ function AppLayout() {
 
           'hidden shrink-0 transition-all duration-200 md:block',
 
-          collapsed ? 'w-16' : 'md:w-56 lg:w-60 xl:w-64 2xl:w-72'
+          collapsed ? 'w-16' : 'w-56 lg:w-60 xl:w-64 2xl:w-72'
 
         )}
 
@@ -827,7 +827,7 @@ function AppLayout() {
 
         <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
           <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
-          <p className="mt-1">深圳市中科劲纬智能有限公司 · 粤ICP备2021033000号-1</p>
+          <p className="mt-1">娣卞湷甯備腑绉戝姴绾櫤鑳芥湁闄愬叕鍙?路 绮CP澶?021033000鍙?1</p>
         </footer>
 
       </div>

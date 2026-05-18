@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -123,7 +123,7 @@ function WalletPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -336,7 +336,7 @@ function WalletPage() {
   )
 }
 
-// ==================== 企业转账组件 ====================
+// ==================== 浼佷笟杞处缁勪欢 ====================
 
 function CompanyPaymentCard() {
   const { t } = useTranslation()
@@ -356,11 +356,11 @@ function CompanyPaymentCard() {
     return opt?.value || fallback
   }
   const companyInfo = {
-    company_name: getOption('CompanyName', '深圳市中科劲纬智能有限公司'),
+    company_name: getOption('CompanyName', '娣卞湷甯備腑绉戝姴绾櫤鑳芥湁闄愬叕鍙?),
     tax_id: getOption('CompanyTaxId', '91440300MA5GH45W8C'),
-    address: getOption('CompanyAddress', '深圳市宝安区石岩街道塘头社区塘头大道33号东海创意园205A'),
+    address: getOption('CompanyAddress', '娣卞湷甯傚疂瀹夊尯鐭冲博琛楅亾濉樺ご绀惧尯濉樺ご澶ч亾33鍙蜂笢娴峰垱鎰忓洯205A'),
     phone: getOption('CompanyPhone', '15920005303'),
-    bank_name: getOption('CompanyBank', '深圳农村商业银行股份有限公司应人石支行'),
+    bank_name: getOption('CompanyBank', '娣卞湷鍐滄潙鍟嗕笟閾惰鑲′唤鏈夐檺鍏徃搴斾汉鐭虫敮琛?),
     bank_account: getOption('CompanyBankAccount', '000396168236'),
     alipay_qr_url: getOption('CompanyAlipayQr', '/payment/alipay-qr.jpg'),
   }
@@ -381,7 +381,7 @@ function CompanyPaymentCard() {
         <CardDescription>{t('For B2B payments via bank transfer or Alipay')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* 公司开票信息 */}
+        {/* 鍏徃寮€绁ㄤ俊鎭?*/}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
           <div className="flex justify-between gap-2 p-2 rounded bg-muted/50">
             <span className="text-muted-foreground whitespace-nowrap">{t('Company')}</span>
@@ -401,7 +401,7 @@ function CompanyPaymentCard() {
           </div>
         </div>
 
-        {/* 银行账户 */}
+        {/* 閾惰璐︽埛 */}
         <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 space-y-2">
           <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
             <Landmark className="h-4 w-4" />
@@ -423,7 +423,7 @@ function CompanyPaymentCard() {
           </div>
         </div>
 
-        {/* 支付宝收款码 */}
+        {/* 鏀粯瀹濇敹娆剧爜 */}
         {companyInfo.alipay_qr_url && (
           <div className="flex flex-col items-center gap-2 p-3 rounded-lg border">
             <span className="text-sm font-medium text-muted-foreground">{t('Alipay Business QR')}</span>

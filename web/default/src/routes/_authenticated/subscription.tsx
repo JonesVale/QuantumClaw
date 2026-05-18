@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { CreditCard, RefreshCw } from 'lucide-react'
@@ -57,7 +57,7 @@ function SubscriptionPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -123,7 +123,7 @@ function SubscriptionPage() {
                   </div>
                   {sub.cancel_at_period_end && (
                     <div className="flex items-center gap-2 text-sm text-yellow-600 dark:text-yellow-400">
-                      <span>⚠️</span>
+                      <span>鈿狅笍</span>
                       <span>{t('Subscription will be canceled at period end')}</span>
                     </div>
                   )}

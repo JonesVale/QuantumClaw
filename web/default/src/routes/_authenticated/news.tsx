@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
@@ -38,7 +38,7 @@ type LangTab = (typeof LANG_TABS)[number]
 
 const LANG_LABELS: Record<string, string> = {
   all: 'All',
-  zh: '中文',
+  zh: '涓枃',
   en: 'EN',
 }
 
@@ -66,7 +66,7 @@ function truncateText(text: string, maxLen: number): string {
   // Strip extra whitespace
   const clean = text.replace(/\s+/g, ' ').trim()
   if (clean.length <= maxLen) return clean
-  return clean.slice(0, maxLen) + '…'
+  return clean.slice(0, maxLen) + '鈥?
 }
 
 function ArticleCard({ article }: { article: RssArticle }) {
@@ -130,7 +130,7 @@ function LoadingState() {
   return (
     <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
-      <p className="text-sm">{t('Loading articles…')}</p>
+      <p className="text-sm">{t('Loading articles鈥?)}</p>
     </div>
   )
 }
@@ -178,7 +178,7 @@ function NewsPage() {
   }, [activeLang])
 
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-8 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className=" w-full p-4 sm:p-6 space-y-8 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
