@@ -150,18 +150,17 @@ func RequestBinanceTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（需要集成 Binance Pay SDK）
-	checkoutURL := genBinanceCheckoutURL(tradeNo, user.Email, payMoney, "")
-	if checkoutURL == "" {
-		logger.Warn(c.Request.Context(), fmt.Sprintf("Binance SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Binance Pay SDK 未配置，订单已记录",
-			"data": gin.H{
-				"trade_no": tradeNo,
-				"amount":   req.Amount,
-				"money":    payMoney,
-			},
-		})
+	// 调用 Binance Pay API 创建订单
+	checkoutURL, _, err := common.CreateBinancePayOrder(&common.StripeCheckoutParams{
+		TradeNo:     tradeNo,
+		Amount:      req.Amount,
+		PayMoney:    payMoney,
+		UserEmail:   user.Email,
+		ProductName: fmt.Sprintf("Quota x%d", req.Amount),
+	})
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("Binance Pay 创建订单失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"message": "创建支付链接失败: " + err.Error()})
 		return
 	}
 

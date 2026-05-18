@@ -2,14 +2,10 @@ package controller
 
 import (
 	"context"
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -145,20 +141,23 @@ func RequestStripeTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（需要集成 Stripe SDK）
-	checkoutURL := genStripeCheckoutSession(tradeNo, "", user.Email, req.Amount, req.SuccessURL, req.CancelURL)
-	if checkoutURL == "" {
-		logger.Warn(c.Request.Context(), fmt.Sprintf("Stripe SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Stripe SDK 未配置，订单已记录",
-			"data": gin.H{
-				"trade_no": tradeNo,
-				"amount":   req.Amount,
-				"money":    payMoney,
-			},
-		})
+	// 调用 Stripe API 创建 Checkout Session
+	checkoutURL, sessionID, err := common.CreateStripeCheckoutSession(&common.StripeCheckoutParams{
+		TradeNo:     tradeNo,
+		Amount:      req.Amount,
+		PayMoney:    payMoney,
+		UserEmail:   user.Email,
+		SuccessURL:  req.SuccessURL,
+		CancelURL:   req.CancelURL,
+		NotifyURL:   common.GetPaymentNotifyURL(),
+		ProductName: fmt.Sprintf("Quota x%d", req.Amount),
+	})
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("Stripe 创建 Checkout Session 失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"message": "创建支付链接失败: " + err.Error()})
 		return
 	}
+	_ = sessionID
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("Stripe 充值订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f", 
 		userId, tradeNo, req.Amount, payMoney))
@@ -207,46 +206,18 @@ func StripeWebhook(c *gin.Context) {
 	logger.Info(ctx, fmt.Sprintf("Stripe webhook 收到: client_ip=%s signature=%s payload_size=%d", 
 		c.ClientIP(), signature[:min(20, len(signature))]+"...", len(payload)))
 
-	// 安全增强：验证 Stripe 签名 (HMAC-SHA256)
+	// 使用 Stripe SDK 验证 webhook 签名
 	webhookSecret := common.GetPaymentSetting().StripeWebhookSecret
-	if webhookSecret != "" {
-		// Stripe 签名格式: t=timestamp,v1=signature
-		parts := strings.Split(signature, ",")
-		var timestamp string
-		var sig string
-		for _, part := range parts {
-			kv := strings.SplitN(part, "=", 2)
-			if len(kv) == 2 {
-				switch kv[0] {
-				case "t":
-					timestamp = kv[1]
-				case "v1":
-					sig = kv[1]
-				}
-			}
-		}
-		if timestamp == "" || sig == "" {
-			logger.Warn(ctx, fmt.Sprintf("Stripe webhook 签名格式无效 client_ip=%s", c.ClientIP()))
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		// 构建待签名字符串: timestamp + "." + payload
-		signedPayload := timestamp + "." + string(payload)
-		mac := hmac.New(sha256.New, []byte(webhookSecret))
-		mac.Write([]byte(signedPayload))
-		expectedSignature := hex.EncodeToString(mac.Sum(nil))
-
-		if !hmac.Equal([]byte(sig), []byte(expectedSignature)) {
-			logger.Warn(ctx, fmt.Sprintf("Stripe webhook 验签失败 client_ip=%s", c.ClientIP()))
-			c.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-		logger.Info(ctx, "Stripe webhook 验签成功")
-	} else {
-		logger.Warn(ctx, "Stripe webhook secret 未配置，跳过签名验证")
+	eventType, tradeNoFromEvent, verifyErr := common.VerifyStripeWebhook(payload, signature, webhookSecret)
+	if verifyErr != nil {
+		logger.Warn(ctx, fmt.Sprintf("Stripe webhook 验签失败: %q client_ip=%s", verifyErr.Error(), c.ClientIP()))
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
 	}
+	logger.Info(ctx, "Stripe webhook 验签成功")
+	_ = tradeNoFromEvent
 
-	// 解析 Stripe webhook 事件
+	// 解析 webhook 事件数据
 	var event StripeWebhookEvent
 	if err := json.Unmarshal(payload, &event); err != nil {
 		logger.Error(ctx, fmt.Sprintf("Stripe webhook JSON 解析失败: %q", err.Error()))
@@ -254,16 +225,16 @@ func StripeWebhook(c *gin.Context) {
 		return
 	}
 
-	logger.Info(ctx, fmt.Sprintf("Stripe webhook 事件类型: %s", event.Type))
+	logger.Info(ctx, fmt.Sprintf("Stripe webhook 事件类型: %s", eventType))
 
 	// 处理不同的事件类型
-	switch event.Type {
+	switch eventType {
 	case "checkout.session.completed":
 		handleStripeCheckoutCompleted(ctx, event)
 	case "checkout.session.expired":
 		handleStripeSessionExpired(ctx, event)
 	default:
-		logger.Info(ctx, fmt.Sprintf("Stripe webhook 忽略事件: %s", event.Type))
+		logger.Info(ctx, fmt.Sprintf("Stripe webhook 忽略事件: %s", eventType))
 	}
 
 	c.Status(http.StatusOK)

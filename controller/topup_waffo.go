@@ -121,18 +121,18 @@ func RequestWaffoTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（需要集成 Waffo SDK）
-	checkoutURL := genWaffoCheckoutURL(tradeNo, user.Email, payMoney, req.PayMethodType)
-	if checkoutURL == "" {
-		logger.Warn(c.Request.Context(), fmt.Sprintf("Waffo SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Waffo SDK 未配置，订单已记录",
-			"data": gin.H{
-				"trade_no": tradeNo,
-				"amount":   req.Amount,
-				"money":    payMoney,
-			},
-		})
+	// 调用 Waffo API 创建订单
+	checkoutURL, _, err := common.CreateWaffoOrder(&common.StripeCheckoutParams{
+		TradeNo:     tradeNo,
+		Amount:      req.Amount,
+		PayMoney:    payMoney,
+		UserEmail:   user.Email,
+		SuccessURL:  common.GetPaymentSetting().PaymentReturnURL,
+		ProductName: fmt.Sprintf("Quota x%d", req.Amount),
+	})
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("Waffo 创建订单失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"message": "创建支付链接失败: " + err.Error()})
 		return
 	}
 

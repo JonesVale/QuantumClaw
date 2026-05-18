@@ -208,18 +208,19 @@ func RequestCreemTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（需要集成 Creem SDK）
-	checkoutURL := genCreemCheckoutURL(tradeNo, selectedProduct, user.Email)
-	if checkoutURL == "" {
-		logger.Warn(c.Request.Context(), fmt.Sprintf("Creem SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
-		c.JSON(http.StatusOK, gin.H{
-			"message": "Creem SDK 未配置，订单已记录",
-			"data": gin.H{
-				"trade_no": tradeNo,
-				"amount":   selectedProduct.Quota,
-				"money":    selectedProduct.Price,
-			},
-		})
+	// 调用 Creem API 创建 checkout
+	checkoutURL, _, err := common.CreateCreemCheckout(&common.StripeCheckoutParams{
+		TradeNo:     tradeNo,
+		Amount:      selectedProduct.Quota,
+		PayMoney:    selectedProduct.Price,
+		UserEmail:   user.Email,
+		SuccessURL:  common.GetPaymentSetting().PaymentReturnURL,
+		CancelURL:   common.GetPaymentSetting().PaymentReturnURL,
+		ProductName: selectedProduct.Name,
+	})
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("Creem 创建 checkout 失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"message": "创建支付链接失败: " + err.Error()})
 		return
 	}
 

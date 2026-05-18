@@ -44,6 +44,7 @@ type PaymentSetting struct {
 	CreemApiKey       string `json:"creem_api_key"`
 	CreemWebhookSecret string `json:"creem_webhook_secret"`
 	CreemTestMode     bool   `json:"creem_test_mode"`
+	CreemProductID    string `json:"creem_product_id"`
 	CreemProducts     string `json:"creem_products"` // JSON 字符串
 
 	// Waffo 配置
@@ -132,6 +133,7 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 		settings.CreemApiKey = os.Getenv("CREEM_API_KEY")
 		settings.CreemWebhookSecret = os.Getenv("CREEM_WEBHOOK_SECRET")
 		settings.CreemTestMode = os.Getenv("CREEM_TEST_MODE") == "true"
+		settings.CreemProductID = os.Getenv("CREEM_PRODUCT_ID")
 		settings.CreemProducts = os.Getenv("CREEM_PRODUCTS")
 	}
 
