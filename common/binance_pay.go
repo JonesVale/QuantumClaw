@@ -17,14 +17,13 @@ import (
 // ==================== Binance Pay 支付集成 ====================
 
 const (
-	binancePayAPI = "https://bpay.binanceapi.com"
-	// Binance Pay API 路径
-	binanceOrderCreatePath = "/binancepay/openapi/v2/order"
+	binancePayAPI           = "https://bpay.binanceapi.com"
+	binanceOrderCreatePath  = "/binancepay/openapi/v2/order"
 )
 
 // BinanceOrderRequest Binance Pay 创建订单请求
 type BinanceOrderRequest struct {
-	MerchantTradeNo string `json:"merchantTradeNo"`
+	MerchantTradeNo string  `json:"merchantTradeNo"`
 	TotalFee        float64 `json:"totalFee"`
 	Currency        string  `json:"currency"`
 	ProductType     string  `json:"productType"`
@@ -41,28 +40,27 @@ type BinanceOrderResponse struct {
 	Error   string `json:"error,omitempty"`
 	ErrorMsg string `json:"errorMessage,omitempty"`
 	Data    *struct {
-		PrepayID     string `json:"prepayId"`
-		TradeNo      string `json:"tradeNo"`
-		Currency     string `json:"currency"`
-		TotalFee     string `json:"totalFee"`
-		MerchantID   string `json:"merchantId"`
-		ExpireTime   int64  `json:"expireTime"`
-		CheckoutURL  string `json:"checkoutUrl"`
+		PrepayID    string `json:"prepayId"`
+		TradeNo     string `json:"tradeNo"`
+		Currency    string `json:"currency"`
+		TotalFee    string `json:"totalFee"`
+		MerchantID  string `json:"merchantId"`
+		ExpireTime  int64  `json:"expireTime"`
+		CheckoutURL string `json:"checkoutUrl"`
 	} `json:"data,omitempty"`
 }
 
 // BinanceWebhookPayload Binance Pay webhook payload
 type BinanceWebhookPayload struct {
 	BizType   string `json:"bizType"`
-	Data      string `json:"data"` // Base64 encoded JSON
+	Data      string `json:"data"`
 	SignType  string `json:"signType"`
 	Sign      string `json:"sign"`
 	Timestamp int64  `json:"timestamp"`
 }
 
-// CreateBinancePayOrder 创建 Binance Pay 订单
-// 使用 Binance Pay REST API v2
-func CreateBinancePayOrder(params *StripeCheckoutParams) (checkoutURL string, prepayID string, err error) {
+// CreateBinancePayOrder 创建 Binance Pay 订单（REST API v2）
+func CreateBinancePayOrder(params *PaymentCheckoutParams) (checkoutURL string, prepayID string, err error) {
 	ps := GetPaymentSetting()
 	if ps.BinanceApiKey == "" || ps.BinanceSecretKey == "" {
 		return "", "", fmt.Errorf("Binance Pay API Key 未配置")
@@ -93,7 +91,7 @@ func CreateBinancePayOrder(params *StripeCheckoutParams) (checkoutURL string, pr
 		return "", "", fmt.Errorf("binance request marshal: %w", err)
 	}
 
-	// Binance Pay 签名：timestamp + nonce + body
+	// Binance Pay 签名: timestamp + nonce + body
 	timestamp := fmt.Sprintf("%d", time.Now().UnixMilli())
 	nonce := fmt.Sprintf("%d", time.Now().UnixNano())
 	payloadToSign := timestamp + "\n" + nonce + "\n" + string(body) + "\n"
@@ -135,8 +133,7 @@ func CreateBinancePayOrder(params *StripeCheckoutParams) (checkoutURL string, pr
 		return "", "", fmt.Errorf("binance order failed: %s (code=%s)", errMsg, result.Code)
 	}
 
-	logger.SysLog(fmt.Sprintf("Binance Pay 订单创建成功: trade_no=%s prepay_id=%s", params.TradeNo, result.Data.PrepayID))
-
+	logger.SysLog(fmt.Sprintf("Binance Pay order created: trade_no=%s prepay_id=%s", params.TradeNo, result.Data.PrepayID))
 	return result.Data.CheckoutURL, result.Data.PrepayID, nil
 }
 

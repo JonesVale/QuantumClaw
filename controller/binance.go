@@ -151,7 +151,7 @@ func RequestBinanceTopUp(c *gin.Context) {
 	}
 
 	// 调用 Binance Pay API 创建订单
-	checkoutURL, _, err := common.CreateBinancePayOrder(&common.StripeCheckoutParams{
+	checkoutURL, _, err := common.CreateBinancePayOrder(&common.PaymentCheckoutParams{
 		TradeNo:     tradeNo,
 		Amount:      req.Amount,
 		PayMoney:    payMoney,
@@ -346,14 +346,3 @@ func calculateBinancePayMoney(amount int64, group string) float64 {
 	return float64(amount) * unitPrice * topupGroupRatio
 }
 
-// genBinanceCheckoutURL 生成 Binance Pay 支付链接
-// 注意: 需要集成 Binance Pay SDK 后实现
-//       当前返回空字符串表示 SDK 未集成
-func genBinanceCheckoutURL(_ string, _ string, _ float64, _ string) string {
-	return ""
-}
-
-// isBinanceWebhookEnabled 检查 Binance Webhook 是否启用
-func isBinanceWebhookEnabled() bool {
-	return common.IsBinanceEnabled()
-}

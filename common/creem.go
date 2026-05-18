@@ -17,31 +17,30 @@ import (
 // ==================== Creem.io 支付集成 ====================
 
 const (
-	creemAPI        = "https://api.creem.io"
-	creemSandboxAPI = "https://test-api.creem.io"
-	// Creem 创建 checkout 路径
+	creemAPI         = "https://api.creem.io"
+	creemSandboxAPI  = "https://test-api.creem.io"
 	creemCheckoutPath = "/v1/checkouts"
 )
 
 // CreemCheckoutRequest Creem 创建 checkout 请求
 type CreemCheckoutRequest struct {
-	ProductID       string `json:"product_id"`
-	SuccessURL      string `json:"success_url"`
-	CancelURL       string `json:"cancel_url"`
-	WebhookURL      string `json:"webhook_url,omitempty"`
+	ProductID       string            `json:"product_id"`
+	SuccessURL      string            `json:"success_url"`
+	CancelURL       string            `json:"cancel_url"`
+	WebhookURL      string            `json:"webhook_url,omitempty"`
 	Metadata        map[string]string `json:"metadata,omitempty"`
-	CustomerEmail   string `json:"customer_email,omitempty"`
-	ClientReference string `json:"client_reference_id,omitempty"`
+	CustomerEmail   string            `json:"customer_email,omitempty"`
+	ClientReference string            `json:"client_reference_id,omitempty"`
 }
 
 // CreemCheckoutResponse Creem 创建 checkout 响应
 type CreemCheckoutResponse struct {
-	ID          string `json:"id"`
-	URL         string `json:"url"`
-	Status      string `json:"status"`
-	ProductID   string `json:"product_id"`
-	Amount      int64  `json:"amount"`
-	Currency    string `json:"currency"`
+	ID        string `json:"id"`
+	URL       string `json:"url"`
+	Status    string `json:"status"`
+	ProductID string `json:"product_id"`
+	Amount    int64  `json:"amount"`
+	Currency  string `json:"currency"`
 }
 
 // CreemWebhookPayload Creem webhook payload
@@ -50,9 +49,8 @@ type CreemWebhookPayload struct {
 	Data  json.RawMessage `json:"data"`
 }
 
-// CreateCreemCheckout 创建 Creem checkout session
-// 使用 Creem REST API（非官方，HTTP 接口）
-func CreateCreemCheckout(params *StripeCheckoutParams) (checkoutURL string, sessionID string, err error) {
+// CreateCreemCheckout 创建 Creem checkout session（REST API）
+func CreateCreemCheckout(params *PaymentCheckoutParams) (checkoutURL string, sessionID string, err error) {
 	ps := GetPaymentSetting()
 
 	if ps.CreemApiKey == "" {
@@ -69,7 +67,6 @@ func CreateCreemCheckout(params *StripeCheckoutParams) (checkoutURL string, sess
 		notifyURL = ps.PaymentNotifyURL
 	}
 
-	// Creem 需要先创建产品，这里用 metadata 传递自定义金额
 	req := CreemCheckoutRequest{
 		ProductID:       ps.CreemProductID,
 		SuccessURL:      params.SuccessURL,
@@ -78,10 +75,10 @@ func CreateCreemCheckout(params *StripeCheckoutParams) (checkoutURL string, sess
 		CustomerEmail:   params.UserEmail,
 		ClientReference: params.TradeNo,
 		Metadata: map[string]string{
-			"trade_no":   params.TradeNo,
-			"amount":     fmt.Sprintf("%.2f", params.PayMoney),
-			"quota":      fmt.Sprintf("%d", params.Amount),
-			"product":    params.ProductName,
+			"trade_no": params.TradeNo,
+			"amount":   fmt.Sprintf("%.2f", params.PayMoney),
+			"quota":    fmt.Sprintf("%d", params.Amount),
+			"product":  params.ProductName,
 		},
 	}
 
@@ -107,7 +104,6 @@ func CreateCreemCheckout(params *StripeCheckoutParams) (checkoutURL string, sess
 
 	respBody, _ := io.ReadAll(resp.Body)
 
-	// Creem 可能返回 201 或 200
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		return "", "", fmt.Errorf("creem api error: status=%d body=%s", resp.StatusCode, string(respBody))
 	}
@@ -121,13 +117,11 @@ func CreateCreemCheckout(params *StripeCheckoutParams) (checkoutURL string, sess
 		return "", "", fmt.Errorf("creem response missing checkout URL")
 	}
 
-	logger.SysLog(fmt.Sprintf("Creem checkout 创建成功: session_id=%s trade_no=%s", result.ID, params.TradeNo))
-
+	logger.SysLog(fmt.Sprintf("Creem checkout created: session_id=%s trade_no=%s", result.ID, params.TradeNo))
 	return result.URL, result.ID, nil
 }
 
-// VerifyCreemWebhook 验证 Creem webhook 签名
-// Creem 使用 x-webhook-signature header (HMAC-SHA256 of payload)
+// VerifyCreemWebhook 验证 Creem webhook 签名 (HMAC-SHA256)
 func VerifyCreemWebhook(payload []byte, signature string) bool {
 	ps := GetPaymentSetting()
 	if ps.CreemWebhookSecret == "" {

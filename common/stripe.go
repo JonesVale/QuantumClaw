@@ -10,10 +10,10 @@ import (
 
 // ==================== Stripe 支付集成 ====================
 
-// StripeCheckoutParams 创建 Stripe Checkout Session 的参数
-type StripeCheckoutParams struct {
+// PaymentCheckoutParams 通用的支付 checkout 参数
+type PaymentCheckoutParams struct {
 	TradeNo       string
-	Amount        int64  // 配额数量
+	Amount        int64   // 配额数量
 	PayMoney      float64 // 实际支付金额（元）
 	UserEmail     string
 	SuccessURL    string
@@ -24,7 +24,7 @@ type StripeCheckoutParams struct {
 
 // CreateStripeCheckoutSession 创建 Stripe Checkout Session
 // 返回 checkout URL 和 session ID
-func CreateStripeCheckoutSession(params *StripeCheckoutParams) (checkoutURL string, sessionID string, err error) {
+func CreateStripeCheckoutSession(params *PaymentCheckoutParams) (checkoutURL string, sessionID string, err error) {
 	ps := GetPaymentSetting()
 	if ps.StripeApiSecret == "" {
 		return "", "", fmt.Errorf("Stripe API Secret 未配置")
@@ -32,7 +32,7 @@ func CreateStripeCheckoutSession(params *StripeCheckoutParams) (checkoutURL stri
 
 	stripe.Key = ps.StripeApiSecret
 
-	// 金额单位转换：元 → 分（Stripe 使用最小货币单位）
+	// 金额单位转换：元 -> 分（Stripe 使用最小货币单位）
 	unitAmount := int64(params.PayMoney * 100)
 
 	domain := ps.PaymentReturnURL
@@ -69,8 +69,6 @@ func CreateStripeCheckoutSession(params *StripeCheckoutParams) (checkoutURL stri
 	}
 
 	if params.NotifyURL != "" {
-		// Stripe 使用 Dashboard 配置 webhook，代码中不需要设置
-		// 但保存到 metadata 供回调参考
 		if sessionParams.Params.Metadata == nil {
 			sessionParams.Params.Metadata = make(map[string]string)
 		}
@@ -86,7 +84,7 @@ func CreateStripeCheckoutSession(params *StripeCheckoutParams) (checkoutURL stri
 }
 
 // VerifyStripeWebhook 验证 Stripe Webhook 签名
-// 返回解析后的事件类型和 payload
+// 返回解析后的事件类型和 trade_no
 func VerifyStripeWebhook(payload []byte, sigHeader string, webhookSecret string) (eventType string, tradeNo string, err error) {
 	if webhookSecret == "" {
 		return "", "", fmt.Errorf("Stripe webhook secret 未配置")
@@ -109,7 +107,7 @@ func VerifyStripeWebhook(payload []byte, sigHeader string, webhookSecret string)
 	return string(event.Type), tradeNo, nil
 }
 
-// GetStripeEventType 从事件中提取 type
+// GetStripeEventType 从事件中提取 type（别名）
 func GetStripeEventType(payload []byte, sigHeader string, webhookSecret string) (string, string, error) {
 	return VerifyStripeWebhook(payload, sigHeader, webhookSecret)
 }

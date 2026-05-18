@@ -17,9 +17,8 @@ import (
 // ==================== Waffo 支付集成 ====================
 
 const (
-	waffoProdAPI = "https://www.waffo.com"
-	waffoSandboxAPI = "https://www.waffo.com" // Waffo sandbox 同域名
-	// Waffo 创建订单路径
+	waffoProdAPI         = "https://www.waffo.com"
+	waffoSandboxAPI      = "https://www.waffo.com"
 	waffoOrderCreatePath = "/api/v1/order/create"
 )
 
@@ -36,9 +35,8 @@ type WaffoOrderCreateRequest struct {
 	ProductDetail    string `json:"productDetail,omitempty"`
 	ReturnURL        string `json:"returnUrl,omitempty"`
 	WebhookURL       string `json:"webhookUrl,omitempty"`
-	// 以下为扩展字段
-	MerchantUserID string `json:"merchantUserId,omitempty"`
-	Note           string `json:"note,omitempty"`
+	MerchantUserID   string `json:"merchantUserId,omitempty"`
+	Note             string `json:"note,omitempty"`
 }
 
 // WaffoOrderCreateResponse Waffo 创建订单响应
@@ -46,11 +44,11 @@ type WaffoOrderCreateResponse struct {
 	Code    string `json:"code"`
 	Message string `json:"message,omitempty"`
 	Data    *struct {
-		PaymentID      string `json:"paymentId"`
-		TradeNo        string `json:"tradeNo"`
-		RedirectURL    string `json:"redirectUrl"`
-		OrderStatus    string `json:"orderStatus"`
-		ExpireTime     int64  `json:"expireTime"`
+		PaymentID   string `json:"paymentId"`
+		TradeNo     string `json:"tradeNo"`
+		RedirectURL string `json:"redirectUrl"`
+		OrderStatus string `json:"orderStatus"`
+		ExpireTime  int64  `json:"expireTime"`
 	} `json:"data,omitempty"`
 }
 
@@ -67,8 +65,8 @@ type WaffoWebhookPayload struct {
 	Timestamp       int64  `json:"timestamp"`
 }
 
-// CreateWaffoOrder 创建 Waffo 支付订单
-func CreateWaffoOrder(params *StripeCheckoutParams) (redirectURL string, paymentID string, err error) {
+// CreateWaffoOrder 创建 Waffo 支付订单（REST API）
+func CreateWaffoOrder(params *PaymentCheckoutParams) (redirectURL string, paymentID string, err error) {
 	ps := GetPaymentSetting()
 	if ps.WaffoApiKey == "" {
 		return "", "", fmt.Errorf("Waffo API Key 未配置")
@@ -84,7 +82,6 @@ func CreateWaffoOrder(params *StripeCheckoutParams) (redirectURL string, payment
 		notifyURL = ps.PaymentNotifyURL
 	}
 
-	// Waffo 金额以字符串形式发送（按 API 文档）
 	orderAmount := fmt.Sprintf("%.2f", params.PayMoney)
 	orderCurrency := ps.WaffoCurrency
 	if orderCurrency == "" {
@@ -142,23 +139,20 @@ func CreateWaffoOrder(params *StripeCheckoutParams) (redirectURL string, payment
 		return "", "", fmt.Errorf("waffo response missing redirect URL")
 	}
 
-	logger.SysLog(fmt.Sprintf("Waffo 订单创建成功: payment_id=%s trade_no=%s", result.Data.PaymentID, params.TradeNo))
-
+	logger.SysLog(fmt.Sprintf("Waffo order created: payment_id=%s trade_no=%s", result.Data.PaymentID, params.TradeNo))
 	return result.Data.RedirectURL, result.Data.PaymentID, nil
 }
 
 // VerifyWaffoWebhook 验证 Waffo webhook 签名
-// Waffo 签名规则：按照参数名排序后拼接 value + api_key → SHA256
+// Waffo 签名: SHA256(paymentId + merchantOrderId + tradeNo + orderStatus + orderAmount + orderCurrency + apiKey)
 func VerifyWaffoWebhook(payload WaffoWebhookPayload, apiKey string) bool {
 	if apiKey == "" {
 		return false
 	}
 
-	// Waffo 签名：paymentId + merchantOrderId + tradeNo + orderStatus + orderAmount + orderCurrency + apiKey
 	signStr := payload.PaymentID + payload.MerchantOrderID + payload.TradeNo +
 		payload.OrderStatus + payload.OrderAmount + payload.OrderCurrency + apiKey
 
-	// Waffo webhook 签名：SHA256(paymentId + merchantOrderId + tradeNo + orderStatus + orderAmount + orderCurrency + apiKey)
 	hash := sha256.Sum256([]byte(signStr))
 	expected := hex.EncodeToString(hash[:])
 

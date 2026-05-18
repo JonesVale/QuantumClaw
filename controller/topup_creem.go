@@ -209,7 +209,7 @@ func RequestCreemTopUp(c *gin.Context) {
 	}
 
 	// 调用 Creem API 创建 checkout
-	checkoutURL, _, err := common.CreateCreemCheckout(&common.StripeCheckoutParams{
+	checkoutURL, _, err := common.CreateCreemCheckout(&common.PaymentCheckoutParams{
 		TradeNo:     tradeNo,
 		Amount:      selectedProduct.Quota,
 		PayMoney:    selectedProduct.Price,
@@ -358,14 +358,3 @@ func handleCreemCheckoutCompleted(ctx context.Context, event *CreemWebhookEvent)
 		referenceId, topUp.UserId, topUp.Amount, topUp.Money))
 }
 
-// genCreemCheckoutURL 生成 Creem 支付链接
-// 注意: 需要集成 Creem SDK 后实现
-//       当前返回空字符串表示 SDK 未集成
-func genCreemCheckoutURL(_ string, _ *CreemProduct, _ string) string {
-	return ""
-}
-
-// CreemWebhookAvailability 检查 Creem Webhook 是否可用
-func isCreemWebhookEnabled() bool {
-	return common.IsCreemEnabled()
-}

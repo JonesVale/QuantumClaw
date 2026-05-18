@@ -142,7 +142,7 @@ func RequestStripeTopUp(c *gin.Context) {
 	}
 
 	// 调用 Stripe API 创建 Checkout Session
-	checkoutURL, sessionID, err := common.CreateStripeCheckoutSession(&common.StripeCheckoutParams{
+	checkoutURL, sessionID, err := common.CreateStripeCheckoutSession(&common.PaymentCheckoutParams{
 		TradeNo:     tradeNo,
 		Amount:      req.Amount,
 		PayMoney:    payMoney,
@@ -312,23 +312,6 @@ func handleStripeSessionExpired(ctx context.Context, event StripeWebhookEvent) {
 	}
 
 	logger.Info(ctx, fmt.Sprintf("Stripe 订单已过期: trade_no=%s", tradeNo))
-}
-
-// genStripeCheckoutSession 生成 Stripe Checkout Session
-// 注意: 需要集成 github.com/stripe/stripe-go/v81 后实现
-//       当前返回空字符串表示 SDK 未集成，请先安装 Stripe SDK
-func genStripeCheckoutSession(_ string, _ string, _ string, _ int64, _ string, _ string) string {
-	return ""
-}
-
-// isStripeWebhookEnabled 检查 Stripe Webhook 是否启用
-func isStripeWebhookEnabled() bool {
-	return common.IsStripeEnabled()
-}
-
-// getStripePayMoney 计算 Stripe 支付金额
-func getStripePayMoney(amount float64, group string) float64 {
-	return calculateStripePayMoney(int64(amount), group)
 }
 
 

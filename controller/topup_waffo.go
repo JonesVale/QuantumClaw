@@ -122,7 +122,7 @@ func RequestWaffoTopUp(c *gin.Context) {
 	}
 
 	// 调用 Waffo API 创建订单
-	checkoutURL, _, err := common.CreateWaffoOrder(&common.StripeCheckoutParams{
+	checkoutURL, _, err := common.CreateWaffoOrder(&common.PaymentCheckoutParams{
 		TradeNo:     tradeNo,
 		Amount:      req.Amount,
 		PayMoney:    payMoney,
@@ -246,14 +246,3 @@ func calculateWaffoPayMoney(amount int64, group string) float64 {
 	return float64(amount) * unitPrice * topupGroupRatio
 }
 
-// genWaffoCheckoutURL 生成 Waffo 支付链接
-// 注意: 需要集成 Waffo SDK 后实现
-//       当前返回空字符串表示 SDK 未集成
-func genWaffoCheckoutURL(_ string, _ string, _ float64, _ string) string {
-	return ""
-}
-
-// isWaffoWebhookEnabled 检查 Waffo Webhook 是否启用
-func isWaffoWebhookEnabled() bool {
-	return common.IsWaffoEnabled()
-}
