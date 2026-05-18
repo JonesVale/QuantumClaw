@@ -71,7 +71,22 @@ function AboutPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+    
+      {/* Company Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('Company Info')}</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div><span className="font-medium">{t('Company Name')}:</span> 深圳市中科劲纬智能有限公司</div>
+          <div><span className="font-medium">{t('Tax ID')}:</span> 91440300MA5GH45W8C</div>
+          <div><span className="font-medium">{t('Address')}:</span> 深圳市宝安区石岩街道塘头社区塘头大道33号东海创意园205A</div>
+          <div><span className="font-medium">{t('Phone')}:</span> 15920005303</div>
+          <div><span className="font-medium">{t('Bank')}:</span> 深圳农村商业银行股份有限公司应人石支行</div>
+          <div><span className="font-medium">{t('Bank Account')}:</span> 000396168236</div>
+        </CardContent>
+      </Card>
+</div>
   )
 }
 
