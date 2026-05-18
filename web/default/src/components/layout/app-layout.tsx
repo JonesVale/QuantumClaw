@@ -296,7 +296,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
       <div className="flex h-14 items-center border-b px-3">
 
-        <Link to="/dashboard" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2">
 
           <img src="/logo.webp" alt="QuantumClaw" className="h-8 w-8 rounded-lg object-cover" />
 
@@ -418,7 +418,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
 
     <nav className="flex items-center gap-1 text-xs md:text-sm text-muted-foreground mb-3" aria-label="Breadcrumb">
 
-      <Link to="/dashboard" className="hover:text-foreground transition-colors">
+      <Link to="/" className="hover:text-foreground transition-colors">
 
         <Home className="h-3.5 w-3.5" />
 
@@ -827,8 +827,16 @@ function AppLayout() {
         {/* Footer */}
 
         <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
-          <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
-          
+          <div className="flex items-center justify-center gap-3">
+            <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
+            <span className="text-muted-foreground/40">|</span>
+            <button
+              onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ群号已复制: 587600277'); }}
+              className="text-blue-500 hover:text-blue-400 transition-colors"
+            >
+              💬 QQ 群: 587600277
+            </button>
+          </div>
         </footer>
 
       </div>

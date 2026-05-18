@@ -31,6 +31,9 @@ services:
       GIN_MODE: "${GIN_MODE:-release}"
       DEBUG: "${DEBUG:-false}"
       DEBUG_SQL: "${DEBUG_SQL:-false}"
+      # Free Chat (Groq)
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
       SESSION_SECRET: "${SESSION_SECRET:-}"
       THEME: "${THEME:-default}"
       # Initial root token

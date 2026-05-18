@@ -13,7 +13,16 @@ import (
 )
 
 var SystemName = "QuantumClaw"
-var ServerAddress = "http://localhost:3666"
+var ServerAddress = func() string {
+	if addr := os.Getenv("SERVER_ADDR"); addr != "" {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3666"
+		}
+		return "http://localhost:" + port
+	}
+	return os.Getenv("SERVER_ADDRESS")
+}()
 var Footer = ""
 var Logo = "/logo.webp"
 var TopUpLink = ""

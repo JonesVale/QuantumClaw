@@ -392,6 +392,10 @@ function HomePage() {
                   <a href="mailto:contact@quantumclaw.ai" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
                     <Mail style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('联系我们')}
                   </a>
+                  <a onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ群号已复制: 587600277'); }}
+                     className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)] cursor-pointer">
+                    <MessageSquare style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />QQ 群: 587600277
+                  </a>
                 </div>
               </div>
               <div className="text-center text-slate-400 border-t border-slate-100 dark:border-slate-800"

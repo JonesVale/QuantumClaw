@@ -8,6 +8,7 @@ import { Link } from '@tanstack/react-router'
 
 const QQ1 = '634165717'
 const QQ2 = '108768250'
+const QQ3 = '587600277'
 const WECHAT = '634165717'
 
 export function CustomerServiceFloating() {
@@ -102,6 +103,11 @@ export function CustomerServiceFloating() {
                       {' / '}
                       <a href={`tencent://message/?uin=${QQ2}&Site=&Menu=yes`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                         {QQ2}
+                      </a>
+                      {' / '}
+                      <a onClick={() => { navigator.clipboard.writeText(QQ3); alert('QQ群号已复制: ' + QQ3); }}
+                         className="text-blue-600 hover:underline cursor-pointer">
+                        群{QQ3}
                       </a>
                     </span>
                   </div>

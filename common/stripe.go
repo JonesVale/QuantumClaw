@@ -3,6 +3,7 @@ package common
 import (
 	"fmt"
 
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/stripe/stripe-go/v81"
 	"github.com/stripe/stripe-go/v81/checkout/session"
 	"github.com/stripe/stripe-go/v81/webhook"
@@ -38,6 +39,9 @@ func CreateStripeCheckoutSession(params *PaymentCheckoutParams) (checkoutURL str
 	domain := ps.PaymentReturnURL
 	if domain == "" {
 		domain = params.SuccessURL
+	}
+	if domain == "" {
+		domain = config.ServerAddress
 	}
 	if domain == "" {
 		domain = "http://localhost:3666"

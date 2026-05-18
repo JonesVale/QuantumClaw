@@ -26,6 +26,7 @@ func SetApiRouter(router *gin.Engine) {
 
 		languageController := controller.NewLanguageController()
 		languageController.RegisterRoutes(apiRouter)
+		controller.RegisterFreeChatRoutes(apiRouter)
 
 		apiRouter.Any("/webhook/epay", middleware.WebhookIPWhitelist(), controller.EpayNotify)
 		apiRouter.POST("/webhook/stripe", middleware.WebhookIPWhitelist(), controller.StripeWebhook)
