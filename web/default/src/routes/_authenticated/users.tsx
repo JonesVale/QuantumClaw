@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -260,7 +260,7 @@ function UsersPage() {
                     <TableRow key={u.id}>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-medium">{u.username}</TableCell>
-                      <TableCell>{u.display_name || '鈥?}</TableCell>
+                      <TableCell>{u.display_name || '—'}</TableCell>
                       <TableCell>
                         <Badge variant={u.role >= 100 ? 'default' : u.role >= 10 ? 'secondary' : 'outline'}>
                           {u.role >= 100 ? t('Super Admin') : u.role >= 10 ? t('Admin') : t('User')}

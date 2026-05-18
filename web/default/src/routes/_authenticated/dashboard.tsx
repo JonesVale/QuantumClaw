@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
@@ -116,7 +116,7 @@ function StatCard({ title, value, description, icon: Icon, trend, loading, color
   )
 }
 
-// 妯℃嫙鍥捐〃鏁版嵁
+// 模拟图表数据
 const chartData = [
   { name: 'Mon', requests: 2400, cost: 12.5 },
   { name: 'Tue', requests: 1398, cost: 8.2 },

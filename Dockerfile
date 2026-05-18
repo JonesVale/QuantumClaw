@@ -7,7 +7,7 @@ WORKDIR /app
 
 # 1. Install deps (cached when package.json unchanged)
 COPY web/default/package*.json ./default/
-RUN cd default && npm ci && cd ..
+RUN cd default && npm install --legacy-peer-deps && cd ..
 
 # 2. Build frontend
 COPY web/default ./default/

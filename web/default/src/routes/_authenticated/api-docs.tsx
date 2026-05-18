@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import {
@@ -32,7 +32,7 @@ export const Route = createFileRoute('/_authenticated/api-docs')({
   component: ApiDocsPage,
 })
 
-// 鈹€鈹€ Types 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Types ──────────────────────────────────────────────────────────
 
 interface Endpoint {
   method: 'GET' | 'POST' | 'PUT' | 'DELETE'
@@ -49,7 +49,7 @@ interface EndpointCategory {
   endpoints: Endpoint[]
 }
 
-// 鈹€鈹€ Code Block Component 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Code Block Component ───────────────────────────────────────────
 
 function CodeBlock({ code, language = 'bash' }: { code: string; language?: string }) {
   const { t } = useTranslation()
@@ -80,7 +80,7 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
   )
 }
 
-// 鈹€鈹€ Endpoint Card 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Endpoint Card ───────────────────────────────────────────────────
 
 function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
   const { t } = useTranslation()
@@ -181,7 +181,7 @@ function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
   )
 }
 
-// 鈹€鈹€ Category Section 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Category Section ───────────────────────────────────────────────
 
 function CategorySection({ category }: { category: EndpointCategory }) {
   const { t } = useTranslation()
@@ -202,7 +202,7 @@ function CategorySection({ category }: { category: EndpointCategory }) {
   )
 }
 
-// 鈹€鈹€ Base URL 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Base URL ────────────────────────────────────────────────────────
 
 function BaseUrlBanner() {
   const { t } = useTranslation()
@@ -217,7 +217,7 @@ function BaseUrlBanner() {
   )
 }
 
-// 鈹€鈹€ Endpoint Data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Endpoint Data ──────────────────────────────────────────────────
 
 const API_ENDPOINTS: EndpointCategory[] = [
   {
@@ -471,7 +471,7 @@ const API_ENDPOINTS: EndpointCategory[] = [
   },
 ]
 
-// 鈹€鈹€ Page Component 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Page Component ─────────────────────────────────────────────────
 
 function ApiDocsPage() {
   const { t } = useTranslation()

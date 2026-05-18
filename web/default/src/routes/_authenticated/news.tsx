@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
@@ -38,7 +38,7 @@ type LangTab = (typeof LANG_TABS)[number]
 
 const LANG_LABELS: Record<string, string> = {
   all: 'All',
-  zh: '涓枃',
+  zh: '中文',
   en: 'EN',
 }
 
@@ -66,7 +66,7 @@ function truncateText(text: string, maxLen: number): string {
   // Strip extra whitespace
   const clean = text.replace(/\s+/g, ' ').trim()
   if (clean.length <= maxLen) return clean
-  return clean.slice(0, maxLen) + '鈥?
+  return clean.slice(0, maxLen) + '…'
 }
 
 function ArticleCard({ article }: { article: RssArticle }) {
@@ -130,7 +130,7 @@ function LoadingState() {
   return (
     <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
-      <p className="text-sm">{t('Loading articles鈥?)}</p>
+      <p className="text-sm">{t('Loading articles…')}</p>
     </div>
   )
 }

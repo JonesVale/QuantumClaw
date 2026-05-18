@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -37,12 +37,12 @@ function SettingsPage() {
   const getOptionValue = (key: string, fallback: string = '') =>
     options.find((o) => o.key === key)?.value || fallback
 
-  // 鈹€鈹€ General 鈹€鈹€
+  // ── General ──
   const [systemName, setSystemName] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
   const [footerHtml, setFooterHtml] = useState('')
 
-  // 鈹€鈹€ Billing 鈹€鈹€
+  // ── Billing ──
   const [defaultCurrency, setDefaultCurrency] = useState('')
   const [stripePublicKey, setStripePublicKey] = useState('')
   const [stripeApiSecret, setStripeApiSecret] = useState('')
@@ -64,28 +64,28 @@ function SettingsPage() {
   const [minTopUp, setMinTopUp] = useState('')
   const [cacheBillingRatio, setCacheBillingRatio] = useState('')
 
-  // 鈹€鈹€ RateLimit 鈹€鈹€
+  // ── RateLimit ──
   const [globalApiRateLimit, setGlobalApiRateLimit] = useState('')
   const [globalWebRateLimit, setGlobalWebRateLimit] = useState('')
   const [ipRateLimitInput, setIpRateLimitInput] = useState('')
   const [turnstileSiteKey, setTurnstileSiteKey] = useState('')
   const [turnstileSecretKey, setTurnstileSecretKey] = useState('')
 
-  // 鈹€鈹€ Registration 鈹€鈹€
+  // ── Registration ──
   const [registerEnabled, setRegisterEnabled] = useState(true)
   const [emailVerification, setEmailVerification] = useState(false)
   const [turnstileCheck, setTurnstileCheck] = useState(false)
   const [defaultUserGroup, setDefaultUserGroup] = useState('')
   const [allowedEmails, setAllowedEmails] = useState('')
 
-  // 鈹€鈹€ SMTP 鈹€鈹€
+  // ── SMTP ──
   const [smtpHost, setSmtpHost] = useState('')
   const [smtpPort, setSmtpPort] = useState('')
   const [smtpUsername, setSmtpUsername] = useState('')
   const [smtpPassword, setSmtpPassword] = useState('')
   const [smtpFrom, setSmtpFrom] = useState('')
 
-  // 鈹€鈹€ OAuth 鈹€鈹€
+  // ── OAuth ──
   const [githubClientId, setGithubClientId] = useState('')
   const [githubClientSecret, setGithubClientSecret] = useState('')
   const [googleClientId, setGoogleClientId] = useState('')
@@ -102,21 +102,21 @@ function SettingsPage() {
   const [discordClientId, setDiscordClientId] = useState('')
   const [discordClientSecret, setDiscordClientSecret] = useState('')
 
-  // 鈹€鈹€ Notification 鈹€鈹€
+  // ── Notification ──
   const [emailNotification, setEmailNotification] = useState(false)
   const [webhookUrl, setWebhookUrl] = useState('')
   const [notifyCheckin, setNotifyCheckin] = useState(false)
   const [notifyTopup, setNotifyTopup] = useState(false)
   const [notifyUsageThreshold, setNotifyUsageThreshold] = useState(false)
 
-  // 鈹€鈹€ Performance 鈹€鈹€
+  // ── Performance ──
   const [memoryCacheEnabled, setMemoryCacheEnabled] = useState(false)
   const [cacheSyncFrequency, setCacheSyncFrequency] = useState('')
   const [enableMetric, setEnableMetric] = useState(false)
   const [channelTestFrequency, setChannelTestFrequency] = useState('')
   const [batchTestCount, setBatchTestCount] = useState('')
 
-  // 鈹€鈹€ Company Info 鈹€鈹€
+  // ── Company Info ──
   const [companyName, setCompanyName] = useState('')
   const [companyTaxId, setCompanyTaxId] = useState('')
   const [companyAddress, setCompanyAddress] = useState('')
@@ -125,7 +125,7 @@ function SettingsPage() {
   const [companyBankAccount, setCompanyBankAccount] = useState('')
   const [companyAlipayQr, setCompanyAlipayQr] = useState('')
 
-  // 鈹€鈹€ Security 鈹€鈹€
+  // ── Security ──
   const [minPasswordLength, setMinPasswordLength] = useState('')
   const [requireSpecialChars, setRequireSpecialChars] = useState(false)
   const [sessionTimeout, setSessionTimeout] = useState('')
@@ -134,7 +134,7 @@ function SettingsPage() {
   const [ipBlacklist, setIpBlacklist] = useState('')
   const [ssrfProtection, setSsrfProtection] = useState(false)
 
-  // 鈹€鈹€ Sync local state from loaded options 鈹€鈹€
+  // ── Sync local state from loaded options ──
   useEffect(() => {
     if (!optionsData?.data) return
 
@@ -217,11 +217,11 @@ function SettingsPage() {
     setIpBlacklist(getOptionValue('IPBlacklist', ''))
     setSsrfProtection(getOptionValue('EnableSSRFProtection', 'true') === 'true')
 
-    setCompanyName(getOptionValue('CompanyName', '娣卞湷甯備腑绉戝姴绾櫤鑳芥湁闄愬叕鍙?))
+    setCompanyName(getOptionValue('CompanyName', '深圳市中科劲纬智能有限公司'))
     setCompanyTaxId(getOptionValue('CompanyTaxId', '91440300MA5GH45W8C'))
-    setCompanyAddress(getOptionValue('CompanyAddress', '娣卞湷甯傚疂瀹夊尯鐭冲博琛楅亾濉樺ご绀惧尯濉樺ご澶ч亾33鍙蜂笢娴峰垱鎰忓洯205A'))
+    setCompanyAddress(getOptionValue('CompanyAddress', '深圳市宝安区石岩街道塘头社区塘头大道33号东海创意园205A'))
     setCompanyPhone(getOptionValue('CompanyPhone', '15920005303'))
-    setCompanyBank(getOptionValue('CompanyBank', '娣卞湷鍐滄潙鍟嗕笟閾惰鑲′唤鏈夐檺鍏徃搴斾汉鐭虫敮琛?))
+    setCompanyBank(getOptionValue('CompanyBank', '深圳农村商业银行股份有限公司应人石支行'))
     setCompanyBankAccount(getOptionValue('CompanyBankAccount', '000396168236'))
     setCompanyAlipayQr(getOptionValue('CompanyAlipayQr', '/payment/alipay-qr.jpg'))
   }, [optionsData])
@@ -315,7 +315,7 @@ function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 General 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════════════ General ═══ */}
         <TabsContent value="general">
           <Card>
             <CardHeader>
@@ -370,7 +370,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 Billing 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════════════ Billing ═══ */}
         <TabsContent value="billing">
           <Card>
             <CardHeader>
@@ -395,11 +395,11 @@ function SettingsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="CNY">CNY (楼)</SelectItem>
-                      <SelectItem value="EUR">EUR (鈧?</SelectItem>
-                      <SelectItem value="GBP">GBP (拢)</SelectItem>
-                      <SelectItem value="JPY">JPY (楼)</SelectItem>
-                      <SelectItem value="KRW">KRW (鈧?</SelectItem>
+                      <SelectItem value="CNY">CNY (¥)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                      <SelectItem value="GBP">GBP (£)</SelectItem>
+                      <SelectItem value="JPY">JPY (¥)</SelectItem>
+                      <SelectItem value="KRW">KRW (₩)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -473,7 +473,7 @@ function SettingsPage() {
 
               {/* Epay */}
               <div className="space-y-3 rounded-lg border p-4">
-                <h3 className="font-semibold">Epay (鏄撴敮浠?</h3>
+                <h3 className="font-semibold">Epay (易支付)</h3>
                 <div className="flex flex-row items-center justify-between">
                   <div>
                     <Label>{t('Enable Epay')}</Label>
@@ -498,7 +498,7 @@ function SettingsPage() {
                     type="password"
                     value={epayKey}
                     onChange={(e) => setEpayKey(e.target.value)}
-                    placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                    placeholder="••••••••"
                   />
                 </div>
                 <div className="space-y-2">
@@ -530,7 +530,7 @@ function SettingsPage() {
                     type="password"
                     value={creemApiKey}
                     onChange={(e) => setCreemApiKey(e.target.value)}
-                    placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                    placeholder="••••••••"
                   />
                 </div>
               </div>
@@ -554,7 +554,7 @@ function SettingsPage() {
                     type="password"
                     value={waffoApiKey}
                     onChange={(e) => setWaffoApiKey(e.target.value)}
-                    placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                    placeholder="••••••••"
                   />
                 </div>
                 <div className="flex flex-row items-center justify-between rounded-lg border p-3">
@@ -588,7 +588,7 @@ function SettingsPage() {
                     type="password"
                     value={binanceApiKey}
                     onChange={(e) => setBinanceApiKey(e.target.value)}
-                    placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                    placeholder="••••••••"
                   />
                 </div>
                 <div className="space-y-2">
@@ -597,7 +597,7 @@ function SettingsPage() {
                     type="password"
                     value={binanceSecretKey}
                     onChange={(e) => setBinanceSecretKey(e.target.value)}
-                    placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                    placeholder="••••••••"
                   />
                 </div>
                 <div className="space-y-2">
@@ -683,7 +683,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?RateLimit 鈺愨晲鈺?*/}
+        {/* ═══════════════════════════════════════════════════ RateLimit ═══ */}
         <TabsContent value="ratelimit">
           <Card>
             <CardHeader>
@@ -763,7 +763,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 Registration 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════ Registration ═══ */}
         <TabsContent value="registration">
           <Card>
             <CardHeader>
@@ -849,7 +849,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺?SMTP 鈺愨晲鈺?*/}
+        {/* ═════════════════════════════════════════════════════ SMTP ═══ */}
         <TabsContent value="smtp">
           <Card>
             <CardHeader>
@@ -891,7 +891,7 @@ function SettingsPage() {
                   type="password"
                   value={smtpPassword}
                   onChange={(e) => setSmtpPassword(e.target.value)}
-                  placeholder="鈥⑩€⑩€⑩€⑩€⑩€⑩€⑩€?
+                  placeholder="••••••••"
                 />
               </div>
               <div className="space-y-2">
@@ -932,7 +932,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 OAuth 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════════════ OAuth ═══ */}
         <TabsContent value="oauth">
           <Card>
             <CardHeader>
@@ -1120,7 +1120,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 Notification 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════ Notification ═══ */}
         <TabsContent value="notification">
           <Card>
             <CardHeader>
@@ -1211,7 +1211,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 Performance 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════ Performance ═══ */}
         <TabsContent value="performance">
           <Card>
             <CardHeader>
@@ -1292,7 +1292,7 @@ function SettingsPage() {
           </Card>
         </TabsContent>
 
-        {/* 鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲鈺愨晲 Security 鈺愨晲鈺?*/}
+        {/* ════════════════════════════════════════════════ Security ═══ */}
         <TabsContent value="security">
           <Card>
             <CardHeader>

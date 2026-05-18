@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect } from 'react'
 import { Send, Bot, User, Loader2, Trash2, Settings2 } from 'lucide-react'
@@ -429,7 +429,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('View full image')} 鈫?
+                        {t('View full image')} ↗
                       </a>
                     </div>
                   )}
@@ -526,7 +526,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('Download')} 鈫?
+                        {t('Download')} ↗
                       </a>
                     </div>
                   )}
@@ -599,7 +599,7 @@ function PlaygroundPage() {
                         rel="noopener noreferrer"
                         className="text-sm text-blue-500 hover:underline mt-1 inline-block"
                       >
-                        {t('Download')} 鈫?
+                        {t('Download')} ↗
                       </a>
                     </div>
                   )}

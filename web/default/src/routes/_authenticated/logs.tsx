@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -137,7 +137,7 @@ function LogsPage() {
                       <TableCell className="text-muted-foreground text-xs">
                         {log.created_at
                           ? dayjs(log.created_at * 1000).format('MM-DD HH:mm:ss')
-                          : '鈥?}
+                          : '—'}
                       </TableCell>
                     </TableRow>
                   ))
