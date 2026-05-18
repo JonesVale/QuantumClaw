@@ -68,7 +68,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "访问地址："
-    $port = if ($env:PORT) { $env:PORT } else { "3000" }
+    $port = if ($env:PORT) { $env:PORT } else { "3666" }
     Write-Host "  - 主页: http://localhost:$port"
     Write-Host "  - API: http://localhost:$port/api"
     Write-Host ""

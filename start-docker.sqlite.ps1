@@ -54,8 +54,8 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "========================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "访问地址："
-    Write-Host "  - 主页: http://localhost:3000"
-    Write-Host "  - API: http://localhost:3000/api"
+    Write-Host "  - 主页: http://localhost:3666"
+    Write-Host "  - API: http://localhost:3666/api"
     Write-Host ""
     Write-Host "查看日志："
     Write-Host "  - docker compose -f docker-compose.sqlite.yml logs -f"

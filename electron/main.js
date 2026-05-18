@@ -292,7 +292,7 @@ function createWindow() {
 
   // Dev mode: load from local server, Prod mode: load from bundled build
   const isDev = process.env.NODE_ENV === 'development';
-  const serverUrl = process.env.QC_SERVER_URL || 'http://localhost:3000';
+  const serverUrl = process.env.QC_SERVER_URL || 'http://localhost:3666';
 
   if (isDev) {
     mainWindow.loadURL(serverUrl);

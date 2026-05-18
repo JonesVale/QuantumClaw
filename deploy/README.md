@@ -39,7 +39,7 @@ bash install.sh --db-type mysql --domain your-api.example.com
 
 ## First Login
 
-1. Open your browser and visit `http://<server-ip>:3000` (or your domain)
+1. Open your browser and visit `http://<server-ip>:3666` (or your domain)
 2. Log in with:
    - **Username**: `root`
    - **Password**: `123456`
@@ -108,7 +108,7 @@ docker compose logs -f
 ### Service not starting
 ```bash
 docker compose logs quantumclaw
-netstat -tlnp | grep 3000
+netstat -tlnp | grep 3666
 ```
 
 ### Nginx not working
@@ -123,7 +123,7 @@ systemctl status nginx
 2. **Set `INITIAL_ROOT_TOKEN` and `SESSION_SECRET`** to secure random values
 3. **Use HTTPS** (BaoTa's SSL feature or Let's Encrypt) for production
 4. **Regularly update** the Docker images
-5. **Restrict port 3000** to localhost only if using Nginx (already configured by the script)
+5. **Restrict port 3666** to localhost only if using Nginx (already configured by the script)
 
 ## License
 
