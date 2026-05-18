@@ -17,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useAuthStore } from '@/stores/auth-store'
+import { CustomerServiceFloating } from '@/components/customer-service'
 
 export const Route = createFileRoute('/')({
   component: HomePage,
@@ -401,7 +402,8 @@ function HomePage() {
             </div>
           </div>
         </footer>
-      </main>
+      <CustomerServiceFloating />
+			</main>
     </>
   )
 }

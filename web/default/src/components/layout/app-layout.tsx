@@ -115,6 +115,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { signOut } from '@/lib/api-extended'
 
 import { cn } from '@/lib/utils'
+import { CustomerServiceFloating } from '@/components/customer-service'
 
 import { useState } from 'react'
 
@@ -839,6 +840,8 @@ function AppLayout() {
 }
 
 
+
+			<CustomerServiceFloating />
 
 export default AppLayout
 
