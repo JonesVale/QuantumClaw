@@ -4,8 +4,12 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
+	"time"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -172,8 +176,29 @@ func main() {
 		port = strconv.Itoa(*common.Port)
 	}
 	logger.SysLogf("server started on http://localhost:%s", port)
-	err = server.Run(":" + port)
-	if err != nil {
-		logger.FatalLog("failed to start HTTP server: " + err.Error())
+
+	// 优雅关闭：监听 SIGINT/SIGTERM
+	srv := &http.Server{Addr: ":" + port, Handler: server}
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			logger.FatalLog("failed to start HTTP server: " + err.Error())
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	sig := <-quit
+	logger.SysLogf("received signal %v, shutting down gracefully...", sig)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		logger.SysError("server forced to shutdown: " + err.Error())
 	}
+
+	if err := model.CloseDB(); err != nil {
+		logger.SysError("failed to close database: " + err.Error())
+	}
+	logger.SysLog("server exited")
 }
