@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/service"
 	"github.com/quantumclaw/quantumclaw/setting/operation_setting"
 	"github.com/gin-gonic/gin"
@@ -65,6 +66,7 @@ func saveSettingToDB(key string, v interface{}) {
 	if err != nil {
 		return
 	}
-	_ = data
-	// TODO: model.UpdateOption(key, string(data))
+	if err := model.UpdateOption(key, string(data)); err != nil {
+		// 日志由 model.UpdateOption 输出
+	}
 }

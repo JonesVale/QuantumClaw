@@ -69,7 +69,9 @@ func RelayMidjourneyTask(c *gin.Context) {
 		promptEn = v
 	}
 	if promptEn == "" {
-		// TODO: 调用翻译服务将prompt翻译为英文
+		// 未提供英文 prompt，使用中文 prompt 直接传给 Midjourney
+		// Midjourney 会尝试理解，但中文 prompt 可能影响出图质量
+		// 如需翻译，可接入 TranslateService 接口（待实现）
 		promptEn = prompt
 	}
 

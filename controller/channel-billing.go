@@ -415,7 +415,7 @@ func updateAllChannelsBalance() error {
 		if channel.Status != model.ChannelStatusEnabled {
 			continue
 		}
-		// TODO: support Azure
+		// Azure 等类型需额外 API 适配，暂跳过自动余额检测
 		if channel.Type != channeltype.OpenAI && channel.Type != channeltype.Custom {
 			continue
 		}

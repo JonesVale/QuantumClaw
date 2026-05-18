@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-contrib/sessions"
@@ -28,7 +29,20 @@ func RequirePaymentAuth() gin.HandlerFunc {
 
 		// Check if admin user has TOTP 2FA enabled
 		_, twofaErr := model.GetTwoFAByUserId(userId)
-		has2FA := hasPasskey || twofaErr == nil
+
+		// 安全处理：仅 ErrTwoFANotFound 视为"未启用 2FA"
+		// 其他错误（DB 超时等）视为"无法确定 2FA 状态"→ 阻止操作（fail-close）
+		has2FA := hasPasskey
+		if twofaErr == nil {
+			has2FA = true
+		} else if !errors.Is(twofaErr, model.ErrTwoFANotFound) {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"success": false,
+				"message": "验证 2FA 状态失败",
+			})
+			c.Abort()
+			return
+		}
 
 		if has2FA {
 			session := sessions.Default(c)

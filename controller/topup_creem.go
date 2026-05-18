@@ -208,8 +208,20 @@ func RequestCreemTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（TODO: 调用 Creem API）
+	// 生成支付链接（需要集成 Creem SDK）
 	checkoutURL := genCreemCheckoutURL(tradeNo, selectedProduct, user.Email)
+	if checkoutURL == "" {
+		logger.Warn(c.Request.Context(), fmt.Sprintf("Creem SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Creem SDK 未配置，订单已记录",
+			"data": gin.H{
+				"trade_no": tradeNo,
+				"amount":   selectedProduct.Quota,
+				"money":    selectedProduct.Price,
+			},
+		})
+		return
+	}
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("Creem 充值订单创建成功 user_id=%d trade_no=%s product_id=%s quota=%d money=%.2f", 
 		userId, tradeNo, selectedProduct.ProductId, selectedProduct.Quota, selectedProduct.Price))
@@ -346,12 +358,10 @@ func handleCreemCheckoutCompleted(ctx context.Context, event *CreemWebhookEvent)
 }
 
 // genCreemCheckoutURL 生成 Creem 支付链接
-// TODO: 集成 Creem API
-func genCreemCheckoutURL(tradeNo string, product *CreemProduct, email string) string {
-	// 这里应该调用 Creem API 创建支付链接
-	// 返回示例：https://creem.io/checkout?product_id=xxx&reference=xxx
-	return fmt.Sprintf("https://creem.io/checkout?product_id=%s&reference=%s&email=%s", 
-		product.ProductId, tradeNo, email)
+// 注意: 需要集成 Creem SDK 后实现
+//       当前返回空字符串表示 SDK 未集成
+func genCreemCheckoutURL(_ string, _ *CreemProduct, _ string) string {
+	return ""
 }
 
 // CreemWebhookAvailability 检查 Creem Webhook 是否可用

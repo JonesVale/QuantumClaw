@@ -66,7 +66,34 @@ func authHelper(c *gin.Context, minRole int) {
 			return
 		}
 	}
-	if status.(int) == model.UserStatusDisabled || blacklist.IsUserBanned(id.(int)) {
+
+	// 安全性检查：status/role/id 必须在有值后才能断言
+	if status == nil || role == nil || id == nil {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"success": false,
+			"message": "会话数据不完整，请重新登录",
+		})
+		session.Clear()
+		_ = session.Save()
+		c.Abort()
+		return
+	}
+
+	statusInt, statusOk := status.(int)
+	roleInt, roleOk := role.(int)
+	idInt, idOk := id.(int)
+	if !statusOk || !roleOk || !idOk {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "会话数据类型异常，请重新登录",
+		})
+		session.Clear()
+		_ = session.Save()
+		c.Abort()
+		return
+	}
+
+	if statusInt == model.UserStatusDisabled || blacklist.IsUserBanned(idInt) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "用户已被封禁",
@@ -77,7 +104,7 @@ func authHelper(c *gin.Context, minRole int) {
 		c.Abort()
 		return
 	}
-	if role.(int) < minRole {
+	if roleInt < minRole {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "无权进行此操作，权限不足",

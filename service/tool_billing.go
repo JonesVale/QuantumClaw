@@ -1,13 +1,8 @@
 package service
 
-// ToolBilling handles billing for tool calls (function calling, web search, etc.).
-// This is a stub for future implementation.
-type ToolBilling struct {
-	ToolName string
-}
-
-// RecordToolUsage records the quota consumption for a tool call.
-// TODO: implement tool billing logic
+// RecordToolUsage records the quota consumption for a tool call
+// (function calling, web search, code interpreter, etc.).
 func RecordToolUsage(toolName string, userID int, quota int64) error {
+	RecordConsumeLog(userID, 0, 0, 0, "tool:"+toolName, "", int(quota), "tool:"+toolName)
 	return nil
 }

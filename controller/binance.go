@@ -150,8 +150,20 @@ func RequestBinanceTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（TODO: 集成 Binance Pay SDK）
+	// 生成支付链接（需要集成 Binance Pay SDK）
 	checkoutURL := genBinanceCheckoutURL(tradeNo, user.Email, payMoney, "")
+	if checkoutURL == "" {
+		logger.Warn(c.Request.Context(), fmt.Sprintf("Binance SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Binance Pay SDK 未配置，订单已记录",
+			"data": gin.H{
+				"trade_no": tradeNo,
+				"amount":   req.Amount,
+				"money":    payMoney,
+			},
+		})
+		return
+	}
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("Binance 充值订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f",
 		userId, tradeNo, req.Amount, payMoney))
@@ -336,18 +348,10 @@ func calculateBinancePayMoney(amount int64, group string) float64 {
 }
 
 // genBinanceCheckoutURL 生成 Binance Pay 支付链接
-// TODO: 集成 Binance Pay SDK
-func genBinanceCheckoutURL(tradeNo string, email string, amount float64, currency string) string {
-	settings := common.GetPaymentSetting()
-	if currency == "" {
-		currency = settings.BinanceCurrency
-	}
-	if currency == "" {
-		currency = "USDT"
-	}
-	timestamp := time.Now().UnixMilli()
-	return fmt.Sprintf("https://pay.binance.com/checkout?merchantTradeNo=%s&amount=%.2f&currency=%s×tamp=%d",
-		tradeNo, amount, currency, timestamp)
+// 注意: 需要集成 Binance Pay SDK 后实现
+//       当前返回空字符串表示 SDK 未集成
+func genBinanceCheckoutURL(_ string, _ string, _ float64, _ string) string {
+	return ""
 }
 
 // isBinanceWebhookEnabled 检查 Binance Webhook 是否启用

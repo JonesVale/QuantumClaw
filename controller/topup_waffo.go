@@ -121,8 +121,20 @@ func RequestWaffoTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（TODO: 集成 Waffo SDK）
+	// 生成支付链接（需要集成 Waffo SDK）
 	checkoutURL := genWaffoCheckoutURL(tradeNo, user.Email, payMoney, req.PayMethodType)
+	if checkoutURL == "" {
+		logger.Warn(c.Request.Context(), fmt.Sprintf("Waffo SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Waffo SDK 未配置，订单已记录",
+			"data": gin.H{
+				"trade_no": tradeNo,
+				"amount":   req.Amount,
+				"money":    payMoney,
+			},
+		})
+		return
+	}
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("Waffo 充值订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f", 
 		userId, tradeNo, req.Amount, payMoney))
@@ -235,13 +247,10 @@ func calculateWaffoPayMoney(amount int64, group string) float64 {
 }
 
 // genWaffoCheckoutURL 生成 Waffo 支付链接
-func genWaffoCheckoutURL(tradeNo string, email string, amount float64, payMethodType string) string {
-	settings := common.GetPaymentSetting()
-	baseURL := "https://api.waffo.com"
-	if settings.WaffoSandbox {
-		baseURL = "https://sandbox.waffo.com"
-	}
-	return fmt.Sprintf("%s/checkout/%s?amount=%.2f&email=%s&pay_method=%s", baseURL, tradeNo, amount, email, payMethodType)
+// 注意: 需要集成 Waffo SDK 后实现
+//       当前返回空字符串表示 SDK 未集成
+func genWaffoCheckoutURL(_ string, _ string, _ float64, _ string) string {
+	return ""
 }
 
 // isWaffoWebhookEnabled 检查 Waffo Webhook 是否启用

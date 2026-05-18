@@ -177,10 +177,6 @@ func FatalLogf(format string, a ...any) {
 }
 
 func logHelper(ctx context.Context, level loggerLevel, msg string) {
-	writer := gin.DefaultErrorWriter
-	if level == loggerINFO {
-		writer = gin.DefaultWriter
-	}
 	var requestId string
 	if ctx != nil {
 		rawRequestId := helper.GetRequestID(ctx)
@@ -192,8 +188,17 @@ func logHelper(ctx context.Context, level loggerLevel, msg string) {
 	now := time.Now()
 	// Sanitize sensitive data from log messages
 	sanitizedMsg := SanitizeLogInput(msg)
+	// DEBUG 级别仅在 DebugEnabled 时写入
+	if level == loggerDEBUG {
+		writer := gin.DefaultWriter
+		_, _ = fmt.Fprintf(writer, "[%s] %v%s%s %s%s \n", level, now.Format("2006/01/02 - 15:04:05"), requestId, lineInfo, funcName, sanitizedMsg)
+		return
+	}
+	writer := gin.DefaultErrorWriter
+	if level == loggerINFO {
+		writer = gin.DefaultWriter
+	}
 	_, _ = fmt.Fprintf(writer, "[%s] %v%s%s %s%s \n", level, now.Format("2006/01/02 - 15:04:05"), requestId, lineInfo, funcName, sanitizedMsg)
-	SetupLogger()
 	if level == loggerFatal {
 		os.Exit(1)
 	}

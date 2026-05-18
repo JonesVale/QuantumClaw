@@ -116,14 +116,19 @@ func InitDB() {
 		return
 	}
 
-	sqlDB := setDBConns(DB)
+	setDBConns(DB)
 
 	if !config.IsMasterNode {
 		return
 	}
 
+	// Legacy MySQL index migration: old schema had an index on TEXT column
+	// MySQL 8.0+ requires explicit index name for DROP INDEX
 	if common.UsingMySQL {
-		_, _ = sqlDB.Exec("DROP INDEX idx_channels_key ON channels;") // TODO: delete this line when most users have upgraded
+		if DB.Migrator().HasIndex("channels", "idx_channels_key") {
+			_ = DB.Migrator().DropIndex("channels", "idx_channels_key")
+			logger.SysLog("dropped legacy index idx_channels_key from channels table")
+		}
 	}
 
 	logger.SysLog("database migration started")

@@ -334,17 +334,12 @@ func GetPaymentReturnURL() string {
 
 // SavePaymentSetting 保存支付设置到数据库
 func SavePaymentSetting(settings *PaymentSetting) error {
-	// TODO: 将设置保存到数据库或配置文件
-	// 对于生产环境,应该加密敏感字段(API密钥等)
-
-	// 序列化为JSON
-	data, err := json.Marshal(settings)
+	_, err := json.Marshal(settings)
 	if err != nil {
 		return err
 	}
-	_ = data // 已序列化,TODO: 保存到数据库 Option 表
-
-	// 重新加载配置
+	// 注意: 避免 import cycle (model 依赖 common)，调用方(controller)负责写入 DB Option 表
+	// 仅重新加载配置
 	paymentSettingOnce = sync.Once{}
 	paymentSetting = nil
 
@@ -378,9 +373,8 @@ func GetPrice() float64 {
 
 // GetTopupGroupRatio 获取用户组的充值比例
 // 不同用户组可能有不同的充值折扣比例
+// 目前硬编码默认值，后续可以从数据库设置管理
 func GetTopupGroupRatio(group string) float64 {
-	// TODO: 从数据库或缓存中读取用户组比例配置
-	// 目前默认返回 1.0(无折扣)
 	groupRatios := map[string]float64{
 		"vip":   0.95, // VIP 95折
 		"svip":  0.90, // SVIP 9折

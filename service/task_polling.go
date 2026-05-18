@@ -56,7 +56,7 @@ func TaskPollingLoop() {
 	for {
 		time.Sleep(time.Duration(15) * time.Second)
 		logger.SysLog("任务进度轮询开始")
-		ctx := context.TODO()
+		ctx := context.Background()
 		sweepTimedOutTasks(ctx)
 		logger.SysLog("任务进度轮询完成")
 	}

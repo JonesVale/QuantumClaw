@@ -1,11 +1,12 @@
 package controller
 
 import (
-	"context"
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"image/png"
 	"bytes"
+	"math/big"
 	"net/http"
 	"strings"
 	"time"
@@ -245,21 +246,17 @@ func DisableTwoFA(c *gin.Context) {
 
 func GetTwoFAStatus(c *gin.Context) {
 	userId := c.GetInt("id")
-	twoFA, err := model.GetTwoFAByUserId(userId)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success":       true,
-			"twofa_enabled": false,
-		})
-		return
+	_, err := model.GetTwoFAByUserId(userId)
+	twofaEnabled := err == nil
+	backupCodesRemaining := 0
+	if twofaEnabled {
+		backupCodesRemaining = model.CountRemainingBackupCodes(userId)
 	}
-	backupCodesRemaining := model.CountRemainingBackupCodes(userId)
 	c.JSON(http.StatusOK, gin.H{
 		"success":                true,
-		"twofa_enabled":          true,
+		"twofa_enabled":          twofaEnabled,
 		"backup_codes_remaining": backupCodesRemaining,
 	})
-	_ = twoFA
 }
 
 // ==================== 工具函数 ====================
@@ -275,13 +272,16 @@ func generateBackupCodes(n int) []string {
 
 func generateBackupCode() string {
 	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	charsetLen := big.NewInt(int64(len(charset)))
 	b := make([]byte, 10)
-	r := time.Now().UnixNano()
 	for i := range b {
-		b[i] = charset[int(r/int64(i+1))%len(charset)]
+		n, err := rand.Int(rand.Reader, charsetLen)
+		if err != nil {
+			// Fallback: 理论上不会发生，但兜底
+			b[i] = '0'
+			continue
+		}
+		b[i] = charset[n.Int64()]
 	}
 	return string(b)
 }
-
-// avoid unused import
-var _ = context.Background

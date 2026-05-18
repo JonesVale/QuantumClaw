@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,10 +34,18 @@ type StripePayRequest struct {
 	CancelURL  string `json:"cancel_url,omitempty"`
 }
 
-// StripeWebhookRequest Stripe webhook请求结构
-type StripeWebhookRequest struct {
-	Type   string `json:"type"`
-	Object string `json:"object"`
+// StripeWebhookEvent Stripe webhook 事件结构（仅解析所需字段）
+type StripeWebhookEvent struct {
+	Type string `json:"type"`
+	Data struct {
+		Object struct {
+			ID              string `json:"id"`
+			Status          string `json:"status"`
+			PaymentStatus   string `json:"payment_status"`
+			ClientReferenceID string `json:"client_reference_id"`
+			Metadata        map[string]string `json:"metadata"`
+		} `json:"object"`
+	} `json:"data"`
 }
 
 // @Summary 请求 Stripe 支付
@@ -136,8 +145,20 @@ func RequestStripeTopUp(c *gin.Context) {
 		return
 	}
 
-	// 生成支付链接（使用 Stripe SDK）
+	// 生成支付链接（需要集成 Stripe SDK）
 	checkoutURL := genStripeCheckoutSession(tradeNo, "", user.Email, req.Amount, req.SuccessURL, req.CancelURL)
+	if checkoutURL == "" {
+		logger.Warn(c.Request.Context(), fmt.Sprintf("Stripe SDK 未集成，订单已创建但无法生成支付链接 trade_no=%s", tradeNo))
+		c.JSON(http.StatusOK, gin.H{
+			"message": "Stripe SDK 未配置，订单已记录",
+			"data": gin.H{
+				"trade_no": tradeNo,
+				"amount":   req.Amount,
+				"money":    payMoney,
+			},
+		})
+		return
+	}
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("Stripe 充值订单创建成功 user_id=%d trade_no=%s amount=%d money=%.2f", 
 		userId, tradeNo, req.Amount, payMoney))
@@ -225,66 +246,47 @@ func StripeWebhook(c *gin.Context) {
 		logger.Warn(ctx, "Stripe webhook secret 未配置，跳过签名验证")
 	}
 
-	// 解析事件（这里简化处理）
-	eventType := parseStripeEventType(payload)
+	// 解析 Stripe webhook 事件
+	var event StripeWebhookEvent
+	if err := json.Unmarshal(payload, &event); err != nil {
+		logger.Error(ctx, fmt.Sprintf("Stripe webhook JSON 解析失败: %q", err.Error()))
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
 
-	logger.Info(ctx, fmt.Sprintf("Stripe webhook 事件类型: %s", eventType))
+	logger.Info(ctx, fmt.Sprintf("Stripe webhook 事件类型: %s", event.Type))
 
 	// 处理不同的事件类型
-	switch eventType {
+	switch event.Type {
 	case "checkout.session.completed":
-		handleStripeCheckoutCompleted(ctx, payload, c.ClientIP())
+		handleStripeCheckoutCompleted(ctx, event)
 	case "checkout.session.expired":
-		handleStripeSessionExpired(ctx, payload)
+		handleStripeSessionExpired(ctx, event)
 	default:
-		logger.Info(ctx, fmt.Sprintf("Stripe webhook 忽略事件: %s", eventType))
+		logger.Info(ctx, fmt.Sprintf("Stripe webhook 忽略事件: %s", event.Type))
 	}
 
 	c.Status(http.StatusOK)
 }
 
-// parseStripeEventType 解析 Stripe 事件类型
-func parseStripeEventType(payload []byte) string {
-	// 简单的 JSON 解析（实际应该使用 Stripe SDK）
-	// 查找 "type" 字段
-	for i := 0; i < len(payload)-6; i++ {
-		if string(payload[i:i+6]) == "\"type\":" {
-			// 跳过空白找到引号
-			j := i + 6
-			for j < len(payload) && (payload[j] == ' ' || payload[j] == '"') {
-				j++
-			}
-			// 读取到引号为止
-			start := j
-			for j < len(payload) && payload[j] != '"' {
-				j++
-			}
-			return string(payload[start:j])
-		}
-	}
-	return ""
-}
-
 // handleStripeCheckoutCompleted 处理 Stripe Checkout 完成事件
-func handleStripeCheckoutCompleted(ctx context.Context, payload []byte, clientIP string) {
-	// 解析事件数据
-	tradeNo := extractStripeReferenceId(payload)
+func handleStripeCheckoutCompleted(ctx context.Context, event StripeWebhookEvent) {
+	obj := event.Data.Object
+	tradeNo := obj.ClientReferenceID
 	if tradeNo == "" {
-		logger.Warn(ctx, "Stripe checkout.completed 缺少订单号")
+		logger.Warn(ctx, "Stripe checkout.completed 缺少订单号 (client_reference_id)")
+		return
+	}
+
+	// 验证 checkout session 状态
+	if obj.Status != "complete" {
+		logger.Info(ctx, fmt.Sprintf("Stripe checkout 状态非 complete，跳过: trade_no=%s status=%s", tradeNo, obj.Status))
 		return
 	}
 
 	// 验证支付状态
-	status := extractStripeStatus(payload)
-	if status != "complete" {
-		logger.Info(ctx, fmt.Sprintf("Stripe checkout 状态非 complete，跳过: trade_no=%s status=%s", tradeNo, status))
-		return
-	}
-
-	// 验证支付状态（payment_status）
-	paymentStatus := extractStripePaymentStatus(payload)
-	if paymentStatus != "paid" {
-		logger.Info(ctx, fmt.Sprintf("Stripe 支付未完成，等待异步结果: trade_no=%s payment_status=%s", tradeNo, paymentStatus))
+	if obj.PaymentStatus != "paid" {
+		logger.Info(ctx, fmt.Sprintf("Stripe 支付未完成，等待异步结果: trade_no=%s payment_status=%s", tradeNo, obj.PaymentStatus))
 		return
 	}
 
@@ -325,10 +327,10 @@ func handleStripeCheckoutCompleted(ctx context.Context, payload []byte, clientIP
 }
 
 // handleStripeSessionExpired 处理 Stripe 会话过期事件
-func handleStripeSessionExpired(ctx context.Context, payload []byte) {
-	tradeNo := extractStripeReferenceId(payload)
+func handleStripeSessionExpired(ctx context.Context, event StripeWebhookEvent) {
+	tradeNo := event.Data.Object.ClientReferenceID
 	if tradeNo == "" {
-		logger.Warn(ctx, "Stripe checkout.expired 缺少订单号")
+		logger.Warn(ctx, "Stripe checkout.expired 缺少订单号 (client_reference_id)")
 		return
 	}
 
@@ -341,66 +343,11 @@ func handleStripeSessionExpired(ctx context.Context, payload []byte) {
 	logger.Info(ctx, fmt.Sprintf("Stripe 订单已过期: trade_no=%s", tradeNo))
 }
 
-// extractStripeReferenceId 从 payload 中提取 reference_id（订单号）
-func extractStripeReferenceId(payload []byte) string {
-	// 查找 "client_reference_id" 字段
-	marker := "\"client_reference_id\":\""
-	for i := 0; i < len(payload)-len(marker); i++ {
-		if string(payload[i:i+len(marker)]) == marker {
-			j := i + len(marker)
-			start := j
-			for j < len(payload) && payload[j] != '"' {
-				j++
-			}
-			return string(payload[start:j])
-		}
-	}
-	return ""
-}
-
-// extractStripeStatus 从 payload 中提取 session status
-func extractStripeStatus(payload []byte) string {
-	marker := "\"status\":\""
-	for i := 0; i < len(payload)-len(marker); i++ {
-		if string(payload[i:i+len(marker)]) == marker {
-			j := i + len(marker)
-			start := j
-			for j < len(payload) && payload[j] != '"' {
-				j++
-			}
-			return string(payload[start:j])
-		}
-	}
-	return ""
-}
-
-// extractStripePaymentStatus 从 payload 中提取 payment_status
-func extractStripePaymentStatus(payload []byte) string {
-	marker := "\"payment_status\":\""
-	for i := 0; i < len(payload)-len(marker); i++ {
-		if string(payload[i:i+len(marker)]) == marker {
-			j := i + len(marker)
-			start := j
-			for j < len(payload) && payload[j] != '"' {
-				j++
-			}
-			return string(payload[start:j])
-		}
-	}
-	return ""
-}
-
 // genStripeCheckoutSession 生成 Stripe Checkout Session
-// TODO: 集成 Stripe SDK
-func genStripeCheckoutSession(tradeNo string, customerId string, email string, amount int64, successURL string, cancelURL string) string {
-	// 这里应该调用 Stripe SDK 创建 Checkout Session
-	// 返回示例：https://checkout.stripe.com/c/pay/xxx
-	notifyURL := common.GetPaymentNotifyURL()
-	if notifyURL == "" {
-		notifyURL = common.GetPaymentSetting().PaymentNotifyURL
-	}
-	return fmt.Sprintf("https://checkout.stripe.com/c/pay/%s?reference=%s&amount=%d", 
-		tradeNo, tradeNo, amount)
+// 注意: 需要集成 github.com/stripe/stripe-go/v81 后实现
+//       当前返回空字符串表示 SDK 未集成，请先安装 Stripe SDK
+func genStripeCheckoutSession(_ string, _ string, _ string, _ int64, _ string, _ string) string {
+	return ""
 }
 
 // isStripeWebhookEnabled 检查 Stripe Webhook 是否启用
@@ -413,10 +360,4 @@ func getStripePayMoney(amount float64, group string) float64 {
 	return calculateStripePayMoney(int64(amount), group)
 }
 
-// helper function
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
+

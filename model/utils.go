@@ -52,7 +52,7 @@ func batchUpdate() {
 		store := batchUpdateStores[i]
 		batchUpdateStores[i] = make(map[int]int64)
 		batchUpdateLocks[i].Unlock()
-		// TODO: maybe we can combine updates with same key?
+		// map 已天然合并相同 key 的累加值
 		for key, value := range store {
 			switch i {
 			case BatchUpdateTypeUserQuota:
