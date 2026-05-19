@@ -77,7 +77,11 @@ func Relay(c *gin.Context) {
 	channelName := c.GetString(ctxkey.ChannelName)
 	group := c.GetString(ctxkey.Group)
 	originalModel := c.GetString(ctxkey.OriginalModel)
-	go processChannelRelayError(ctx, userId, channelId, channelName, *bizErr)
+	// 传值复制，避免 goroutine 闭包捕获指针
+	{
+		firstBizErr := *bizErr
+		go processChannelRelayError(ctx, userId, channelId, channelName, firstBizErr)
+	}
 	requestId := c.GetString(helper.RequestIdKey)
 	retryTimes := config.RetryTimes
 	if !shouldRetry(c, bizErr.StatusCode) {
@@ -97,21 +101,25 @@ func Relay(c *gin.Context) {
 		middleware.SetupContextForSelectedChannel(c, channel, originalModel)
 		requestBody, err := common.GetRequestBody(c)
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
-		bizErr = relayHelper(c, relayMode)
-		if bizErr == nil {
+		retryErr := relayHelper(c, relayMode)
+		if retryErr == nil {
 			return
 		}
 		channelId := c.GetInt(ctxkey.ChannelId)
 		lastFailedChannelId = channelId
 		channelName := c.GetString(ctxkey.ChannelName)
-		go processChannelRelayError(ctx, userId, channelId, channelName, *bizErr)
+		// 传值复制，避免 goroutine 闭包捕获指针
+		{
+			errCopy := *retryErr
+			go processChannelRelayError(ctx, userId, channelId, channelName, errCopy)
+		}
+		bizErr = retryErr
 	}
 	if bizErr != nil {
 		if bizErr.StatusCode == http.StatusTooManyRequests {
 			bizErr.Error.Message = "当前分组上游负载已饱和，请稍后再试"
 		}
 
-		// BUG: bizErr is in race condition
 		bizErr.Error.Message = helper.MessageWithRequestId(bizErr.Error.Message, requestId)
 		c.JSON(bizErr.StatusCode, gin.H{
 			"error": bizErr.Error,

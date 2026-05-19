@@ -7,9 +7,10 @@ import (
 	"fmt"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"log"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
 var (
@@ -18,6 +19,55 @@ var (
 	PrintHelp    = flag.Bool("help", false, "print help and exit")
 	LogDir       = flag.String("log-dir", "./logs", "specify the log directory")
 )
+
+// CleanupOldLogs 清理 logs/ 目录下超过 7 天的 .log 文件
+func CleanupOldLogs() {
+	logDir := *LogDir
+	if logDir == "" {
+		logDir = "./logs"
+	}
+	entries, err := os.ReadDir(logDir)
+	if err != nil {
+		logger.SysError("failed to read log directory for cleanup: " + err.Error())
+		return
+	}
+	now := time.Now()
+	deletedCount := 0
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if !strings.HasSuffix(name, ".log") {
+			continue
+		}
+		// 从文件名提取日期: quantumclaw-YYYYMMDD.log 或 oneapi-YYYYMMDD.log
+		var dateStr string
+		if strings.HasPrefix(name, "quantumclaw-") || strings.HasPrefix(name, "oneapi-") {
+			dateStr = strings.TrimSuffix(strings.TrimPrefix(name, "quantumclaw-"), ".log")
+			dateStr = strings.TrimSuffix(strings.TrimPrefix(dateStr, "oneapi-"), ".log")
+		}
+		if len(dateStr) != 8 {
+			continue
+		}
+		logDate, err := time.Parse("20060102", dateStr)
+		if err != nil {
+			continue
+		}
+		if now.Sub(logDate).Hours() > 7*24 {
+			fullPath := filepath.Join(logDir, name)
+			if rmErr := os.Remove(fullPath); rmErr != nil {
+				logger.SysError("failed to remove old log: " + fullPath + ": " + rmErr.Error())
+			} else {
+				deletedCount++
+				logger.SysLog("removed old log: " + fullPath)
+			}
+		}
+	}
+	if deletedCount > 0 {
+		logger.SysLogf("cleaned up %d old log file(s) (older than 7 days)", deletedCount)
+	}
+}
 
 func printHelp() {
 	fmt.Println("QuantumClaw " + Version + " - AI API Gateway & Management Platform.")
@@ -67,14 +117,22 @@ func Init() {
 		var err error
 		*LogDir, err = filepath.Abs(*LogDir)
 		if err != nil {
-			log.Fatal(err)
-		}
-		if _, err := os.Stat(*LogDir); os.IsNotExist(err) {
-			err = os.Mkdir(*LogDir, 0777)
-			if err != nil {
-				log.Fatal(err)
+			logger.SysError("failed to resolve log directory: " + err.Error())
+			*LogDir = "./logs"
+		} else {
+			if _, statErr := os.Stat(*LogDir); os.IsNotExist(statErr) {
+				if mkErr := os.Mkdir(*LogDir, 0777); mkErr != nil {
+					logger.SysError("failed to create log directory: " + mkErr.Error())
+					*LogDir = "./logs"
+				}
 			}
 		}
 		logger.LogDir = *LogDir
 	}
+
+	// 启动时清理超过 7 天的旧日志
+	CleanupOldLogs()
+
+	// 启动验证码过期清理任务
+	StartVerificationCleanupTask()
 }

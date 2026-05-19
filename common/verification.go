@@ -19,7 +19,7 @@ const (
 
 var verificationMutex sync.Mutex
 var verificationMap map[string]verificationValue
-var verificationMapMaxSize = 10
+var verificationMapMaxSize = 10000
 var VerificationValidMinutes = 10
 var PasswordResetValidMinutes = 30
 
@@ -73,6 +73,19 @@ func removeExpiredPairs() {
 			delete(verificationMap, key)
 		}
 	}
+}
+
+// StartVerificationCleanupTask 启动后台 goroutine，每 5 分钟清理过期验证码
+func StartVerificationCleanupTask() {
+	go func() {
+		ticker := time.NewTicker(5 * time.Minute)
+		defer ticker.Stop()
+		for range ticker.C {
+			verificationMutex.Lock()
+			removeExpiredPairs()
+			verificationMutex.Unlock()
+		}
+	}()
 }
 
 func init() {

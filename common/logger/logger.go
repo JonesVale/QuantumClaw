@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -98,7 +97,8 @@ func SetupLogger() {
 			}
 			fd, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 			if err != nil {
-				log.Fatal("failed to open log file")
+				SysError("failed to open log file, logging to stdout only: " + err.Error())
+				return
 			}
 			gin.DefaultWriter = io.MultiWriter(os.Stdout, fd)
 			gin.DefaultErrorWriter = io.MultiWriter(os.Stderr, fd)
@@ -200,7 +200,7 @@ func logHelper(ctx context.Context, level loggerLevel, msg string) {
 	}
 	_, _ = fmt.Fprintf(writer, "[%s] %v%s%s %s%s \n", level, now.Format("2006/01/02 - 15:04:05"), requestId, lineInfo, funcName, sanitizedMsg)
 	if level == loggerFatal {
-		os.Exit(1)
+		fmt.Fprintf(os.Stderr, "[FATAL] %v %s\n", now.Format("2006/01/02 - 15:04:05"), sanitizedMsg)
 	}
 }
 

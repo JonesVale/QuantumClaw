@@ -1,5 +1,7 @@
 package channeltype
 
+import "fmt"
+
 var ChannelBaseURLs = []string{
 	"",                              // 0
 	"https://api.openai.com",        // 1
@@ -65,8 +67,11 @@ var ChannelBaseURLs = []string{
 	"https://open.bigmodel.cn",                  // 60 ZhipuV4
 }
 
-func init() {
+// ValidateChannelBaseURLs 验证 ChannelBaseURLs 长度是否与 Dummy 常量匹配
+// 若不一致返回错误，避免运行时 panic
+func ValidateChannelBaseURLs() error {
 	if len(ChannelBaseURLs) != Dummy {
-		panic("channel base urls length not match")
+		return fmt.Errorf("channel base urls length %d does not match Dummy %d", len(ChannelBaseURLs), Dummy)
 	}
+	return nil
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/client"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -65,6 +66,12 @@ func main() {
 	common.Init()
 	logger.SetupLogger()
 	logger.SysLogf("QuantumClaw %s started", common.Version)
+
+	// 验证频道类型定义一致性
+	if err := channeltype.ValidateChannelBaseURLs(); err != nil {
+		logger.SysError(err.Error())
+		os.Exit(1)
+	}
 
 	if os.Getenv("GIN_MODE") != gin.DebugMode {
 		gin.SetMode(gin.ReleaseMode)
