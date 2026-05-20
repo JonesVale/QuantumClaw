@@ -440,5 +440,10 @@
   "chat_no_response": "未收到回复。",
   "chat_error_prefix": "错误",
   "binance": "币安",
-  "Binance Pay": "币安支付"
+  "Binance Pay": "币安支付",
+  "Quantum Computing": "量子计算",
+  "Quantum": "量子",
+  "Select type": "选择类型",
+  "Manage AI and Quantum computing channels": "管理 AI 大模型与量子算力渠道",
+  "Add a new AI or Quantum computing provider channel": "添加新的 AI 大模型或量子算力供应商渠道"
 }

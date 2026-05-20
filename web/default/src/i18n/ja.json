@@ -322,5 +322,10 @@
   "MIT Tech Review": "MIT Tech Review",
   "OpenAI Blog": "OpenAI Blog",
   "Qwen3.6": "Qwen3.6",
-  "Reddit AI": "Reddit AI"
+  "Reddit AI": "Reddit AI",
+  "Quantum Computing": "量子コンピューティング",
+  "Quantum": "量子",
+  "Select type": "タイプを選択",
+  "Manage AI and Quantum computing channels": "AIモデルと量子コンピューティングチャネルを管理",
+  "Add a new AI or Quantum computing provider channel": "新しいAIまたは量子コンピューティングプロバイダーチャンネルを追加"
 }

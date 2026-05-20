@@ -322,5 +322,10 @@
   "MIT Tech Review": "MIT Tech Review",
   "OpenAI Blog": "OpenAI Blog",
   "Qwen3.6": "Qwen3.6",
-  "Reddit AI": "Reddit AI"
+  "Reddit AI": "Reddit AI",
+  "Quantum Computing": "Квантовые вычисления",
+  "Quantum": "Квантовый",
+  "Select type": "Выберите тип",
+  "Manage AI and Quantum computing channels": "Управление каналами ИИ и квантовыми вычислениями",
+  "Add a new AI or Quantum computing provider channel": "Добавить новый канал ИИ или квантовых вычислений"
 }

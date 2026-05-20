@@ -477,5 +477,10 @@
   "chat_no_response": "No response received.",
   "chat_error_prefix": "Error",
   "binance": "Binance",
-  "Binance Pay": "Binance Pay"
+  "Binance Pay": "Binance Pay",
+  "Quantum Computing": "Quantum Computing",
+  "Quantum": "Quantum",
+  "Select type": "Select type",
+  "Manage AI and Quantum computing channels": "Manage AI and Quantum computing channels",
+  "Add a new AI or Quantum computing provider channel": "Add a new AI or Quantum computing provider channel"
 }

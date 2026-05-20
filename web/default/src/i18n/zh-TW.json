@@ -337,5 +337,10 @@
   "Hugging Face": "Hugging Face",
   "Reddit AI": "Reddit AI",
   "中文": "中文",
-  "EN": "EN"
+  "EN": "EN",
+  "Quantum Computing": "量子計算",
+  "Quantum": "量子",
+  "Select type": "選擇類型",
+  "Manage AI and Quantum computing channels": "管理 AI 大模型與量子算力渠道",
+  "Add a new AI or Quantum computing provider channel": "添加新的 AI 大模型或量子算力供應商渠道"
 }
