@@ -7,15 +7,15 @@ import (
 // LanguageType — 语言版本类型，LanguagesType = 显示名 = 查询条件
 type LanguageType struct {
 	Id            int    `json:"id" gorm:"primaryKey;autoIncrement"`
-	LanguagesType string `json:"languages_type" gorm:"type:varchar(64);uniqueIndex;not null"`
+	LanguagesType string `json:"languages_type" gorm:"type:varchar(64);uniqueIndex"`
 	AddTime       string `json:"add_time" gorm:"type:varchar(32)"`
 }
 
 // LanguageEntry — T_Languages 翻译条目
 type LanguageEntry struct {
 	Id            int    `json:"id" gorm:"primaryKey;autoIncrement"`
-	LanguagesType string `json:"languages_type" gorm:"type:varchar(64);index;not null"`
-	LCode         string `json:"lcode" gorm:"type:varchar(128);index;not null"`
+	LanguagesType string `json:"languages_type" gorm:"type:varchar(64);index"`
+	LCode         string `json:"lcode" gorm:"type:varchar(128);index"`
 	Display       string `json:"display" gorm:"type:text"`
 }
 
