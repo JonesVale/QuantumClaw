@@ -247,6 +247,16 @@ func testChannels(ctx context.Context, notify bool, scope string) error {
 	go func() {
 		for _, channel := range channels {
 			isChannelEnabled := channel.Status == model.ChannelStatusEnabled
+
+			// 量子渠道：用量子测试逻辑
+			if channel.Type >= 100 {
+				_, testErr := testQuantumChannel(ctx, channel)
+				if testErr != nil && isChannelEnabled {
+					monitor.DisableChannel(channel.Id, channel.Name, testErr.Error())
+				}
+				continue
+			}
+
 			tik := time.Now()
 			testRequest := buildTestRequest("")
 			_, err, openaiErr := testChannel(ctx, channel, testRequest)
