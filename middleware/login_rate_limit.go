@@ -44,7 +44,7 @@ type loginAttempt struct {
 
 // LoginRateLimit limits login/register attempts per account (user+ip)
 // Rate: 10 attempts per 15-minute window
-// After 5 consecutive failures, account-user is locked for 15 minutes
+// After 3 consecutive failures, account-user is locked for 24 hours (daily reset)
 // Uses c.GetRawData() (cached) to read username without consuming the body
 func LoginRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -78,16 +78,15 @@ func LoginRateLimit() gin.HandlerFunc {
 
 		// Check if locked
 		if !attempt.lockedUntil.IsZero() && now.Before(attempt.lockedUntil) {
-			remaining := time.Until(attempt.lockedUntil).Round(time.Second).String()
 			attempt.mu.Unlock()
 			unlock()
 			logger.Warn(c.Request.Context(), "rate limited (locked) login: "+lockKey)
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"message":      "登录锁定，请 " + remaining + " 后重试，或使用紧急重置",
+				"message":      "连续3次密码错误，账号已锁定24小时。24小时后自动解锁或用紧急重置",
 				"success":      false,
 				"locked":       true,
 				"locked_until": attempt.lockedUntil.Unix(),
-				"hint":         "Use POST /api/password/emergency-reset with EMERGENCY_RESET_TOKEN to reset",
+				"hint":         "POST /api/password/emergency-reset",
 			})
 			return
 		}
@@ -129,9 +128,9 @@ func LoginRateLimit() gin.HandlerFunc {
 
 		if c.Writer.Status() != http.StatusOK {
 			attempt.consecutiveFails++
-			if attempt.consecutiveFails >= 5 {
-				attempt.lockedUntil = now.Add(15 * time.Minute)
-				logger.Warn(c.Request.Context(), "login locked (5 consecutive failures): "+lockKey)
+			if attempt.consecutiveFails >= 3 {
+				attempt.lockedUntil = now.Add(24 * time.Hour)
+				logger.Warn(c.Request.Context(), "login locked (3 consecutive failures, 24h): "+lockKey)
 			}
 		} else {
 			// Login success, reset counters
