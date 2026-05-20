@@ -32,4 +32,10 @@ const (
 	Batches
 	// OpenAI Vector Stores API
 	VectorStores
+
+	// ==================== 量子算力任务 ====================
+	QuantumRun
+	QuantumStatus
+	QuantumCancel
+	QuantumBackends
 )

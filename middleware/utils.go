@@ -1,13 +1,16 @@
-﻿package middleware
+package middleware
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/gin-gonic/gin"
+
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
-	"strings"
 )
 
 func abortWithMessage(c *gin.Context, statusCode int, message string) {
@@ -27,6 +30,8 @@ func getRequestModel(c *gin.Context) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("common.UnmarshalBodyReusable failed: %w", err)
 	}
+
+	// AI 请求的默认模型名
 	if strings.HasPrefix(c.Request.URL.Path, "/v1/moderations") {
 		if modelRequest.Model == "" {
 			modelRequest.Model = "text-moderation-stable"
@@ -47,9 +52,29 @@ func getRequestModel(c *gin.Context) (string, error) {
 			modelRequest.Model = "whisper-1"
 		}
 	}
-	// Strip reasoning/thinking suffixes from the model name for channel lookup.
-	// e.g. "o3-mini-high" → "o3-mini", "claude-3-7-sonnet-20250219-thinking" → "claude-3-7-sonnet-20250219"
-	modelRequest.Model = relaycommon.StripModelSuffix(modelRequest.Model)
+
+	// 量子算力：从 backend 字段提取后端名称作为请求模型
+	if strings.HasPrefix(c.Request.URL.Path, "/v1/quantum") {
+		if modelRequest.Model == "" {
+			var qReq struct {
+				Backend string `json:"backend"`
+			}
+			body, err := common.GetRequestBody(c)
+			if err == nil && len(body) > 0 {
+				json.Unmarshal(body, &qReq)
+				if qReq.Backend != "" {
+					modelRequest.Model = qReq.Backend
+				}
+			}
+		}
+		// 量子请求不进行后缀剥离
+		return modelRequest.Model, nil
+	}
+
+	// 常规 AI 请求：剥离 reasoning/thinking 后缀
+	if modelRequest.Model != "" {
+		modelRequest.Model = relaycommon.StripModelSuffix(modelRequest.Model)
+	}
 	return modelRequest.Model, nil
 }
 

@@ -18,6 +18,7 @@ func SetRouter(router *gin.Engine, buildFS embed.FS) {
 	SetApiRouter(router)
 	SetDashboardRouter(router)
 	SetRelayRouter(router)
+	SetQuantumRouter(router)
 	frontendBaseUrl := os.Getenv("FRONTEND_BASE_URL")
 	if config.IsMasterNode && frontendBaseUrl != "" {
 		frontendBaseUrl = ""

@@ -54,6 +54,14 @@ func GetByPath(path string) int {
 	} else if strings.HasPrefix(path, "/v1/vector_stores") {
 		// OpenAI Vector Stores API
 		relayMode = VectorStores
+	} else if strings.HasPrefix(path, "/v1/quantum/run") {
+		relayMode = QuantumRun
+	} else if strings.HasPrefix(path, "/v1/quantum/status") {
+		relayMode = QuantumStatus
+	} else if strings.HasPrefix(path, "/v1/quantum/cancel") {
+		relayMode = QuantumCancel
+	} else if strings.HasPrefix(path, "/v1/quantum/backends") {
+		relayMode = QuantumBackends
 	}
 	return relayMode
 }

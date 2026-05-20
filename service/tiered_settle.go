@@ -18,6 +18,11 @@ type TieredBillingContext struct {
 	OutputTokens    int
 	CacheHits       int // 缓存命中 token 数
 	CacheMisses     int // 缓存未命中 token 数
+
+	// 量子算力计费变量
+	Qubits int `json:"qubits"`
+	Shots  int `json:"shots"`
+	Gates  int `json:"gates"`
 }
 
 // ==================== 分层计费解析 ====================
@@ -34,6 +39,10 @@ func EvaluateBillingExpr(ctx *TieredBillingContext, expr string) (int64, error) 
 		"output_tokens": int64(ctx.OutputTokens),
 		"cache_hits":    int64(ctx.CacheHits),
 		"cache_misses":  int64(ctx.CacheMisses),
+		// 量子算力
+		"qubits": int64(ctx.Qubits),
+		"shots":  int64(ctx.Shots),
+		"gates":  int64(ctx.Gates),
 	}
 	output, err := EvaluateExpr(expr, env)
 	if err != nil {
