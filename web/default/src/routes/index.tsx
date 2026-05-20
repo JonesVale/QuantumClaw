@@ -407,7 +407,7 @@ function HomePage() {
               </div>
               <div className="text-center text-slate-400 border-t border-slate-100 dark:border-slate-800"
                 style={{ marginTop: 'clamp(12px, 1.5vw, 20px)', paddingTop: 'clamp(8px, 1vw, 16px)', fontSize: 'clamp(9px, 0.8vw, 11px)' }}>
-                <p>&copy; {new Date().getFullYear()} {t('QuantumClaw')} · {t('AI API Gateway')}</p>
+                <p>{t('Copyright')} &copy; 2017-2026 {t('Shenzhen Zhongke Jingwei Intelligent Co., Ltd.')} {t('All Rights Reserved')}.</p>
                 {sysConfig?.footerHtml ? (
                   <div className="flex justify-center gap-3 mt-1"
                     dangerouslySetInnerHTML={{ __html: sysConfig.footerHtml }} />
@@ -415,7 +415,7 @@ function HomePage() {
                   <p style={{ marginTop: 'clamp(2px, 0.3vw, 6px)' }}>
                     <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"
                       className="text-slate-400 hover:text-blue-600 transition-colors">
-                      粤ICP备XXXXXXXX号-1
+                      粤ICP备21033000号
                     </a>
                   </p>
                 )}
