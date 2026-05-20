@@ -22,3 +22,5 @@ electron/out
 electron/dist
 # Release builds
 release/
+
+*.log
