@@ -29,7 +29,8 @@ function SignInPage() {
   const [loading, setLoading] = useState(false)
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [affCode, setAffCode] = useState('')
+const [confirmPassword, setConfirmPassword] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
   // Load Telegram widget info
   useEffect(() => {

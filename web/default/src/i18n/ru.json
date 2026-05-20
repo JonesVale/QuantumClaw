@@ -343,5 +343,7 @@
   "聚合调用 AI 大模型 + 量子算力资源": "Агрегация моделей ИИ + квантовых вычислительных ресурсов",
   "Quantum Computing Billing": "Квантовые вычисления",
   "Set quantum billing formulas with these variables:": "Установите формулы квантовых вычислений с этими переменными:",
-  "Example: qubits * shots * 0.001": "Пример: qubits * shots * 0.001"
+  "Example: qubits * shots * 0.001": "Пример: qubits * shots * 0.001",
+  "Invite Code": "Код приглашения",
+  "Invite code (optional)": "Код приглашения (необязательно)"
 }

@@ -461,5 +461,7 @@
   "聚合调用 AI 大模型 + 量子算力资源": "聚合调用 AI 大模型 + 量子算力资源",
   "Quantum Computing Billing": "量子算力计费",
   "Set quantum billing formulas with these variables:": "使用以下变量设置量子计费公式：",
-  "Example: qubits * shots * 0.001": "示例：qubits * shots * 0.001"
+  "Example: qubits * shots * 0.001": "示例：qubits * shots * 0.001",
+  "Invite Code": "邀请码",
+  "Invite code (optional)": "邀请码（选填）"
 }

@@ -343,5 +343,7 @@
   "聚合调用 AI 大模型 + 量子算力资源": "Tổng hợp mô hình AI + tài nguyên điện toán lượng tử",
   "Quantum Computing Billing": "Thanh toán lượng tử",
   "Set quantum billing formulas with these variables:": "Đặt công thức thanh toán lượng tử với các biến sau:",
-  "Example: qubits * shots * 0.001": "Ví dụ: qubits * shots * 0.001"
+  "Example: qubits * shots * 0.001": "Ví dụ: qubits * shots * 0.001",
+  "Invite Code": "Mã mời",
+  "Invite code (optional)": "Mã mời (không bắt buộc)"
 }

@@ -31,6 +31,7 @@ export async function register(data: {
   password: string
   email?: string
   display_name?: string
+  aff_code?: string
 }): Promise<ApiResponse> {
   const res = await apiClient.post('/api/user/register', data)
   return res.data
