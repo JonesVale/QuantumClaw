@@ -77,6 +77,38 @@ func GetTranslations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": translations})
 }
 
+// SeedTranslations — 从前端 JSON 导入翻译到 T_Languages
+// POST /api/languages/seed  body: {"languages_type": "English", "entries": [{"lcode":"key","display":"val","fromname":"seed"}]}
+func SeedTranslations(c *gin.Context) {
+	var req struct {
+		LanguagesType string `json:"languages_type"`
+		Entries       []struct {
+			LCode    string `json:"lcode"`
+			Display  string `json:"display"`
+			FromName string `json:"fromname,omitempty"`
+		} `json:"entries"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid request"})
+		return
+	}
+	if req.LanguagesType == "" || len(req.Entries) == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "languages_type and entries required"})
+		return
+	}
+	for _, e := range req.Entries {
+		if e.LCode == "" {
+			continue
+		}
+		model.DB.Create(&model.LanguageEntry{
+			LanguagesType: req.LanguagesType,
+			LCode:         e.LCode,
+			Display:       e.Display,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "seeded", "count": len(req.Entries)})
+}
+
 // UseLanguage 切换当前用户语言
 // POST /api/language/switch  body: {"lang": "English"}
 func UseLanguage(c *gin.Context) {

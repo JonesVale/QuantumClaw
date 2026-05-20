@@ -1,4 +1,4 @@
-package router
+﻿package router
 
 import (
 	"github.com/quantumclaw/quantumclaw/controller"
@@ -309,6 +309,11 @@ func SetApiRouter(router *gin.Engine) {
 		// Emergency password reset (requires env token, no session needed)
 		apiRouter.POST("/password/emergency-reset", middleware.CriticalRateLimit(), controller.EmergencyPasswordReset)
 
+		// Language / T_Languages routes
+		apiRouter.GET("/languages", controller.GetLanguages)
+		apiRouter.GET("/translations", controller.GetTranslations)
+		apiRouter.POST("/languages/seed", middleware.AdminAuth(), controller.SeedTranslations)
+
 		// Distributor routes
 		distributorRoute := apiRouter.Group("/distributor")
 		distributorRoute.Use(middleware.AdminAuth())
@@ -324,3 +329,4 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/distributor/self", middleware.UserAuth(), controller.GetMyDistributor)
 	}
 }
+
