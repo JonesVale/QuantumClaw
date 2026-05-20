@@ -98,6 +98,9 @@ func main() {
 	// Initialize language types
 	model.InitLanguageTypes()
 
+	// Initialize T_Languages translation tables (seed if empty)
+	model.InitLanguageTables()
+
 	var err error
 	err = model.CreateRootAccountIfNeed()
 	if err != nil {

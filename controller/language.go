@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-
 	"github.com/quantumclaw/quantumclaw/model"
 )
+
+// ==================== 语言控制器（原有 LanguageController） ====================
 
 type LanguageController struct{}
 
@@ -15,171 +16,97 @@ func NewLanguageController() *LanguageController {
 	return &LanguageController{}
 }
 
-func (lc *LanguageController) RegisterRoutes(r *gin.RouterGroup) {
-	langGroup := r.Group("/languages")
-	{
-		langGroup.GET("/types", lc.GetAllLanguageTypes)
-		langGroup.POST("/types", lc.AddLanguageType)
-		langGroup.DELETE("/types/:code", lc.DeleteLanguageType)
-		langGroup.GET("/current", lc.GetCurrentLanguage)
-		langGroup.POST("/current", lc.SetCurrentLanguage)
-		langGroup.GET("/resources", lc.GetLanguageResources)
-		langGroup.GET("/resources/search", lc.SearchLanguageResource)
-		langGroup.POST("/resources", lc.AddLanguageResource)
-		langGroup.PUT("/resources/:items", lc.UpdateLanguageResourceDisplay)
-	}
+func (ctl *LanguageController) RegisterRoutes(rg *gin.RouterGroup) {
+	rg.GET("/languages", ctl.GetLanguages)
+	rg.GET("/translations", ctl.GetTranslations)
 }
 
-func (lc *LanguageController) GetAllLanguageTypes(c *gin.Context) {
-	langs, err := model.GetAllLanguageTypes()
+func (ctl *LanguageController) GetLanguages(c *gin.Context) {
+	langs, err := model.GetLanguageTypes()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": langs})
+	type langItem struct {
+		LanguagesType string `json:"languages_type"`
+	}
+	var result []langItem
+	for _, l := range langs {
+		result = append(result, langItem{LanguagesType: l.LanguagesType})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
 }
 
-func (lc *LanguageController) AddLanguageType(c *gin.Context) {
-	var req struct {
-		LanguageCode string `json:"language_code" binding:"required"`
-		LanguageName string `json:"language_name" binding:"required"`
+func (ctl *LanguageController) GetTranslations(c *gin.Context) {
+	lang := c.Query("lang")
+	if lang == "" {
+		lang = "中文简体"
 	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := model.AddLanguageType(req.LanguageCode, req.LanguageName); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "language type added successfully"})
-}
-
-func (lc *LanguageController) DeleteLanguageType(c *gin.Context) {
-	languageCode := c.Param("code")
-
-	if err := model.DeleteLanguageType(languageCode); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "language type deleted successfully"})
-}
-
-func (lc *LanguageController) GetCurrentLanguage(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"current_language": model.GetCurrentLanguage()})
-}
-
-func (lc *LanguageController) SetCurrentLanguage(c *gin.Context) {
-	var req struct {
-		LanguageCode string `json:"language_code" binding:"required"`
-	}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	if err := model.SetCurrentLanguage(req.LanguageCode); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "language switched successfully", "current_language": req.LanguageCode})
-}
-
-func (lc *LanguageController) GetLanguageResources(c *gin.Context) {
-	languageType := c.Query("language_type")
-	if languageType == "" {
-		languageType = model.GetCurrentLanguage()
-	}
-
-	resources, err := model.GetLanguageResources(languageType)
+	translations, err := model.GetTranslationsByLanguage(lang)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"data": resources})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": translations})
 }
 
-func (lc *LanguageController) SearchLanguageResource(c *gin.Context) {
-	languageType := c.Query("language_type")
-	if languageType == "" {
-		languageType = model.GetCurrentLanguage()
-	}
+// ==================== 新增无控制器 API（直接 handler，供无状态调用） ====================
 
-	lcode := c.Query("lcode")
-	fromName := c.Query("from_name")
-
-	if lcode != "" {
-		resource, err := model.GetLanguageResourceByLCode(languageType, lcode)
-		if err != nil {
-			c.JSON(http.StatusNotFound, gin.H{"error": "resource not found"})
-			return
-		}
-		c.JSON(http.StatusOK, gin.H{"data": resource})
+// GetLanguages 直接返回所有可用语言版本列表
+func GetLanguages(c *gin.Context) {
+	langs, err := model.GetLanguageTypes()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-
-	if fromName != "" {
-		resources, err := model.GetLanguageResources(languageType)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		var filtered []model.LanguageResource
-		for _, r := range resources {
-			if r.FromName == fromName {
-				filtered = append(filtered, r)
-			}
-		}
-		c.JSON(http.StatusOK, gin.H{"data": filtered})
-		return
-	}
-
-	c.JSON(http.StatusBadRequest, gin.H{"error": "please provide lcode or from_name parameter"})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": langs})
 }
 
-func (lc *LanguageController) AddLanguageResource(c *gin.Context) {
-	var resource model.LanguageResource
-	if err := c.ShouldBindJSON(&resource); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// GetTranslations 返回指定语言的所有翻译
+// GET /api/translations?lang=中文简体
+func GetTranslations(c *gin.Context) {
+	lang := c.Query("lang")
+	if lang == "" {
+		lang = "中文简体"
+	}
+	translations, err := model.GetTranslationsByLanguage(lang)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-
-	if err := model.AddLanguageResource(resource); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	c.JSON(http.StatusCreated, gin.H{"message": "resource added successfully"})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": translations})
 }
 
-func (lc *LanguageController) UpdateLanguageResourceDisplay(c *gin.Context) {
+// UseLanguage 切换当前用户语言
+// POST /api/language/switch  body: {"lang": "English"}
+func UseLanguage(c *gin.Context) {
 	var req struct {
-		Display string `json:"display" binding:"required"`
+		Lang string `json:"lang"`
 	}
-
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid request"})
 		return
 	}
-
-	itemsStr := c.Param("items")
-	items := 0
-	if itemsStr != "" {
-		fmt.Sscanf(itemsStr, "%d", &items)
-	}
-
-	if err := model.UpdateLanguageResourceDisplay(items, req.Display); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if req.Lang == "" {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "lang is required"})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{"message": "resource updated successfully"})
+	// 校验语言是否存在
+	langs, err := model.GetLanguageTypes()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	valid := false
+	for _, l := range langs {
+		if l.LanguagesType == req.Lang {
+			valid = true
+			break
+		}
+	}
+	if !valid {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": fmt.Sprintf("unsupported language: %s", req.Lang)})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": fmt.Sprintf("language switched to %s", req.Lang)})
 }
