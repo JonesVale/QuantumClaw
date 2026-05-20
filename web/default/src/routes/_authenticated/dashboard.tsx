@@ -215,7 +215,7 @@ function DashboardPage() {
             {t('Welcome back')}, {userName}
           </h1>
           <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg">
-            {t('Here is an overview of your AI usage')}
+            {t('Overview of your AI model and quantum computing usage')}
           </p>
         </div>
         <Badge variant="outline" className="text-sm px-4 py-2 bg-white/50 dark:bg-slate-800/50">
