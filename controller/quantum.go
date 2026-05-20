@@ -36,7 +36,7 @@ func QuantumRelay(c *gin.Context) {
 	case relaymode.QuantumBackends:
 		quantumBackendsHandler(c)
 	default:
-		c.JSON(http.StatusBadRequest, gin.H{"error": "unknown quantum relay mode"})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "unknown quantum relay mode"})
 	}
 }
 
@@ -50,11 +50,10 @@ func quantumRunHandler(c *gin.Context) {
 		if result.CostQuota > 0 {
 			recordQuantumConsumption(c, result)
 		}
-		c.JSON(http.StatusOK, result)
+		c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
 		return
 	}
 
-	// 重试：按现有 AI relay 的模式
 	group := c.GetString(ctxkey.Group)
 	originalModel := c.GetString(ctxkey.OriginalModel)
 	retryTimes := config.RetryTimes
@@ -81,14 +80,14 @@ func quantumRunHandler(c *gin.Context) {
 			if result.CostQuota > 0 {
 				recordQuantumConsumption(c, result)
 			}
-			c.JSON(http.StatusOK, result)
+			c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
 			return
 		}
 		lastFailedChannelID = channelID
 	}
 
 	c.JSON(http.StatusServiceUnavailable, gin.H{
-		"error": "all quantum channels failed, please try again later",
+		"success": false, "message": "all quantum channels failed, please try again later",
 	})
 }
 
@@ -118,17 +117,17 @@ func quantumStatusHandler(c *gin.Context) {
 
 	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
 		return
 	}
 	setupAdaptorAuth(c, qAdaptor)
 
 	result, err := qAdaptor.QueryTask(c.Request.Context(), taskID)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, result)
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
 }
 
 func quantumCancelHandler(c *gin.Context) {
@@ -137,16 +136,16 @@ func quantumCancelHandler(c *gin.Context) {
 
 	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
 		return
 	}
 	setupAdaptorAuth(c, qAdaptor)
 
 	if err := qAdaptor.CancelTask(c.Request.Context(), taskID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"status": "cancelled"})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "cancelled"})
 }
 
 func quantumBackendsHandler(c *gin.Context) {
@@ -154,17 +153,17 @@ func quantumBackendsHandler(c *gin.Context) {
 
 	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
 		return
 	}
 	setupAdaptorAuth(c, qAdaptor)
 
 	backends, err := qAdaptor.ListBackends(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"backends": backends})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": backends})
 }
 
 func setupAdaptorAuth(c *gin.Context, qa quantum.QuantumAdaptor) {
