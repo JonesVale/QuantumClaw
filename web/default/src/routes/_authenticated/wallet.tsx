@@ -1,8 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign, Building, Landmark } from 'lucide-react'
+import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -123,7 +123,7 @@ function WalletPage() {
   }
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -250,9 +250,6 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      {/* Corporate Transfer */}
-      <CompanyPaymentCard />
-
       {/* Top-up History */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
@@ -334,114 +331,71 @@ function WalletPage() {
       </Card>
     </div>
   )
-}
-
-// ==================== 企业转账组件 ====================
-
-function CompanyPaymentCard() {
-  const { t } = useTranslation()
-  const { data: optionsData } = useQuery({
-    queryKey: ['system-options-company'],
-    queryFn: async () => {
-      const res = await fetch('/api/option')
-      if (!res.ok) return []
-      const json = await res.json()
-      return json?.data || []
-    },
-    staleTime: 60 * 1000,
-    retry: false,
-  })
-  const getOption = (key: string, fallback: string) => {
-    const opt = (optionsData as any[])?.find((o: any) => o.key === key)
-    return opt?.value || fallback
-  }
-  const companyInfo = {
-    company_name: getOption('CompanyName', '深圳市中科劲纬智能有限公司'),
-    tax_id: getOption('CompanyTaxId', '91440300MA5GH45W8C'),
-    address: getOption('CompanyAddress', '深圳市宝安区石岩街道塘头社区塘头大道33号东海创意园205A'),
-    phone: getOption('CompanyPhone', '15920005303'),
-    bank_name: getOption('CompanyBank', '深圳农村商业银行股份有限公司应人石支行'),
-    bank_account: getOption('CompanyBankAccount', '000396168236'),
-    alipay_qr_url: getOption('CompanyAlipayQr', '/payment/alipay-qr.jpg'),
-  }
-  if (!companyInfo.bank_account) return null
-
-  const copyText = (text: string) => {
-    navigator.clipboard.writeText(text)
-    toast.success(t('Copied'))
-  }
-
-  return (
-    <Card className="w-full max-w-2xl border-blue-200 dark:border-blue-800">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Building className="h-4 w-4 text-blue-600" />
-          {t('Corporate Transfer')}
+  {/* Commission / Affiliate Section */}
+  <div className="grid gap-6 md:grid-cols-3 mt-6 border-t pt-6">
+    <Card className="border-green-200 dark:border-green-800">
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <TrendingUp className="h-4 w-4 text-green-600" />
+          Commission
         </CardTitle>
-        <CardDescription>{t('For B2B payments via bank transfer or Alipay')}</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* 公司开票信息 */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-          <div className="flex justify-between gap-2 p-2 rounded bg-muted/50">
-            <span className="text-muted-foreground whitespace-nowrap">{t('Company')}</span>
-            <span className="font-medium text-right">{companyInfo.company_name}</span>
-          </div>
-          <div className="flex justify-between gap-2 p-2 rounded bg-muted/50">
-            <span className="text-muted-foreground whitespace-nowrap">{t('Tax ID')}</span>
-            <span className="font-mono text-right">{companyInfo.tax_id}</span>
-          </div>
-          <div className="flex justify-between gap-2 p-2 rounded bg-muted/50 sm:col-span-2">
-            <span className="text-muted-foreground whitespace-nowrap">{t('Address')}</span>
-            <span className="text-right">{companyInfo.address}</span>
-          </div>
-          <div className="flex justify-between gap-2 p-2 rounded bg-muted/50">
-            <span className="text-muted-foreground whitespace-nowrap">{t('Phone')}</span>
-            <span className="font-mono text-right">{companyInfo.phone}</span>
-          </div>
-        </div>
-
-        {/* 银行账户 */}
-        <div className="p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 space-y-2">
-          <div className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
-            <Landmark className="h-4 w-4" />
-            {t('Bank Account')}
-          </div>
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <p className="text-sm">{companyInfo.bank_name}</p>
-              <p className="text-lg font-mono font-bold">{companyInfo.bank_account}</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => copyText(companyInfo.bank_account)}
-            >
-              <Copy className="h-3 w-3 mr-1" />
-              {t('Copy')}
-            </Button>
-          </div>
-        </div>
-
-        {/* 支付宝收款码 */}
-        {companyInfo.alipay_qr_url && (
-          <div className="flex flex-col items-center gap-2 p-3 rounded-lg border">
-            <span className="text-sm font-medium text-muted-foreground">{t('Alipay Business QR')}</span>
-            <img
-              src={companyInfo.alipay_qr_url}
-              alt="Alipay QR"
-              className="w-48 h-48 object-contain rounded"
-            />
-            <p className="text-xs text-muted-foreground">
-              {t('Scan with Alipay to pay')}
-            </p>
-          </div>
-        )}
-
-        <p className="text-xs text-muted-foreground italic">
-          {t('After transfer, contact admin with transaction receipt to credit your quota.')}
-        </p>
+      <CardContent>
+        <div className="text-3xl font-bold text-green-600">{Intl.NumberFormat().format(myCommission?.data?.total_commission || 0)}</div>
+        <p className="text-xs text-muted-foreground mt-1">Earned from referrals</p>
       </CardContent>
     </Card>
-  )
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Invite Link</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {myAffCode?.data?.aff_code ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <code className="flex-1 rounded bg-muted px-2 py-1 text-xs font-mono truncate">{myAffCode.data.aff_code}</code>
+              <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(myAffCode.data.aff_code) }}>
+                <Copy className="h-3 w-3" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">{window.location.origin}/sign-in?aff={myAffCode.data.aff_code}</p>
+          </div>
+        ) : <p className="text-sm text-muted-foreground">-</p>}
+      </CardContent>
+    </Card>
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Recent</CardTitle>
+      </CardHeader>
+      <CardContent className="max-h-36 overflow-y-auto">
+        {(myCommission?.data?.records || []).length > 0
+          ? myCommission.data.records.slice(0, 8).map((r) => (
+              <div key={r.id} className="flex justify-between items-center text-xs border-b py-1">
+                <span className={r.type === 'register' ? 'text-blue-500' : 'text-green-500'}>
+                  {r.type === 'register' ? 'Referral' : 'Usage'}
+                </span>
+                <span className="font-medium">+{Intl.NumberFormat().format(r.amount)}</span>
+              </div>
+            ))
+          : <p className="text-xs text-muted-foreground">No records</p>}
+      </CardContent>
+    </Card>
+  </div>
+  {(myWithdrawals?.data || []).length > 0 && (
+    <Card className="mt-4">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-sm">Withdrawals</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-1">
+        {myWithdrawals.data.slice(0, 8).map((w, i) => (
+          <div key={i} className="flex justify-between items-center text-xs border-b pb-1">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{Intl.NumberFormat().format(w.amount)}</span>
+            </div>
+            <span>{new Date(w.created_at).toLocaleDateString()}</span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )}
 }
