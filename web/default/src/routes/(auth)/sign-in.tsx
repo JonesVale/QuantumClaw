@@ -30,8 +30,19 @@ function SignInPage() {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [affCode, setAffCode] = useState('')
-const [confirmPassword, setConfirmPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
+
+  // Auto-fill invite code from URL (?aff=CODE)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('aff');
+    if (code) {
+      setAffCode(code);
+      setMode('register');
+    }
+  }, []);
+
   // Load Telegram widget info
   useEffect(() => {
     getTelegramWidgetInfo().then((res) => {
