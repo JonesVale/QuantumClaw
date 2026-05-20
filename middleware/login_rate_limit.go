@@ -1,7 +1,11 @@
 package middleware
 
 import (
+	"bytes"
+	"encoding/json"
+	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -13,21 +17,22 @@ var (
 	loginAttempts sync.Map
 )
 
-// ipMutexPool 为每个 IP 提供独立的互斥锁，避免热 IP 影响冷 IP
-type ipMutexPool struct {
+type accountMutexPool struct {
 	pool sync.Map
 }
 
-func (p *ipMutexPool) Lock(ip string) func() {
-	// 使用 *sync.Mutex 避免值拷贝
-	actual, _ := p.pool.LoadOrStore(ip, &sync.Mutex{})
+func (p *accountMutexPool) Lock(key string) func() {
+	actual, _ := p.pool.LoadOrStore(key, &sync.Mutex{})
 	mu := actual.(*sync.Mutex)
 	mu.Lock()
-	// 返回解锁函数
 	return mu.Unlock
 }
 
-var ipMutexes ipMutexPool
+var accountMutexes accountMutexPool
+
+func loginLockKey(ip, username string) string {
+	return ip + ":" + strings.ToLower(username)
+}
 
 type loginAttempt struct {
 	mu               sync.Mutex
@@ -37,45 +42,64 @@ type loginAttempt struct {
 	lockedUntil      time.Time
 }
 
-// LoginRateLimit limits login/register attempts per IP
+// LoginRateLimit limits login/register attempts per account (user+ip)
 // Rate: 10 attempts per 15-minute window
-// After 5 consecutive failures, account is locked for 15 minutes
+// After 5 consecutive failures, account-user is locked for 15 minutes
+// Uses c.GetRawData() (cached) to read username without consuming the body
 func LoginRateLimit() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
 		now := time.Now()
 
-		unlock := ipMutexes.Lock(ip)
+		// Read username from body without consuming it
+		username := "unknown"
+		rawData, err := c.GetRawData()
+		if err == nil && len(rawData) > 0 {
+			var body struct {
+				Username string `json:"username"`
+			}
+			if json.Unmarshal(rawData, &body) == nil && body.Username != "" {
+				username = strings.ToLower(body.Username)
+			}
+			// Re-store the body for downstream handlers
+			c.Request.Body = io.NopCloser(bytes.NewBuffer(rawData))
+		}
 
-		val, _ := loginAttempts.LoadOrStore(ip, &loginAttempt{
+		lockKey := loginLockKey(ip, username)
+
+		unlock := accountMutexes.Lock(lockKey)
+
+		val, _ := loginAttempts.LoadOrStore(lockKey, &loginAttempt{
 			firstFail: now,
 		})
 
 		attempt := val.(*loginAttempt)
-
-		// 上锁保护结构体字段的并发读写
 		attempt.mu.Lock()
 
-		// 检查是否被锁定
+		// Check if locked
 		if !attempt.lockedUntil.IsZero() && now.Before(attempt.lockedUntil) {
+			remaining := time.Until(attempt.lockedUntil).Round(time.Second).String()
 			attempt.mu.Unlock()
 			unlock()
-			logger.Warn(c.Request.Context(), "rate limited (locked) login from IP: "+ip)
+			logger.Warn(c.Request.Context(), "rate limited (locked) login: "+lockKey)
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"message": "请求过于频繁，请稍后再试",
-				"success": false,
+				"message":      "登录锁定，请 " + remaining + " 后重试，或使用紧急重置",
+				"success":      false,
+				"locked":       true,
+				"locked_until": attempt.lockedUntil.Unix(),
+				"hint":         "Use POST /api/password/emergency-reset with EMERGENCY_RESET_TOKEN to reset",
 			})
 			return
 		}
 
-		// 锁定到期后自动解锁
+		// Auto-unlock after lockout period
 		if !attempt.lockedUntil.IsZero() && !now.Before(attempt.lockedUntil) {
 			attempt.lockedUntil = time.Time{}
 			attempt.consecutiveFails = 0
 			attempt.count = 0
 		}
 
-		// 窗口过期后重置
+		// Reset window after 15 minutes
 		if now.Sub(attempt.firstFail) > 15*time.Minute {
 			attempt.count = 0
 			attempt.firstFail = now
@@ -86,9 +110,9 @@ func LoginRateLimit() gin.HandlerFunc {
 		if attempt.count > 10 {
 			attempt.mu.Unlock()
 			unlock()
-			logger.Warn(c.Request.Context(), "rate limited login from IP: "+ip)
+			logger.Warn(c.Request.Context(), "rate limited (window exceeded) login: "+lockKey)
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"message": "请求过于频繁，请稍后再试",
+				"message": "too many requests, please try again later",
 				"success": false,
 			})
 			return
@@ -99,18 +123,18 @@ func LoginRateLimit() gin.HandlerFunc {
 
 		c.Next()
 
-		// 响应后记录失败（重新上锁）
-		unlock2 := ipMutexes.Lock(ip)
+		// Post-response: track failures
+		unlock2 := accountMutexes.Lock(lockKey)
 		attempt.mu.Lock()
 
 		if c.Writer.Status() != http.StatusOK {
 			attempt.consecutiveFails++
 			if attempt.consecutiveFails >= 5 {
 				attempt.lockedUntil = now.Add(15 * time.Minute)
-				logger.Warn(c.Request.Context(), "login locked for IP due to consecutive failures: "+ip)
+				logger.Warn(c.Request.Context(), "login locked (5 consecutive failures): "+lockKey)
 			}
 		} else {
-			// 登录成功，重置计数器
+			// Login success, reset counters
 			attempt.count = 0
 			attempt.consecutiveFails = 0
 			attempt.lockedUntil = time.Time{}

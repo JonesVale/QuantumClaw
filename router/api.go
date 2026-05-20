@@ -65,6 +65,12 @@ func SetApiRouter(router *gin.Engine) {
 			userRoute.POST("/login", middleware.CriticalRateLimit(), middleware.LoginRateLimit(), controller.Login)
 			userRoute.GET("/logout", controller.Logout)
 
+			// Password management routes
+			userRoute.POST("/password/change", middleware.UserAuth(), controller.ChangePassword)
+			userRoute.POST("/password/admin_reset", middleware.AdminAuth(), controller.AdminResetUserPassword)
+			// Admin/info endpoint
+			userRoute.GET("/info", middleware.UserAuth(), controller.GetUserInfo)
+
 			selfRoute := userRoute.Group("/self")
 			selfRoute.Use(middleware.UserAuth())
 			{
@@ -288,5 +294,19 @@ func SetApiRouter(router *gin.Engine) {
 			adminTaskRoute.GET("/", controller.AdminGetAllTasks)
 			adminTaskRoute.POST("/poll", controller.AdminPollTasks)
 		}
+
+		// Password management routes
+		passwordRoute := apiRouter.Group("/password")
+		passwordRoute.Use(middleware.UserAuth())
+		{
+			passwordRoute.POST("/change", controller.ChangePassword)
+		}
+		adminPasswordRoute := apiRouter.Group("/password")
+		adminPasswordRoute.Use(middleware.AdminAuth())
+		{
+			adminPasswordRoute.POST("/reset-user", controller.AdminResetUserPassword)
+		}
+		// Emergency password reset (requires env token, no session needed)
+		apiRouter.POST("/password/emergency-reset", middleware.CriticalRateLimit(), controller.EmergencyPasswordReset)
 	}
 }

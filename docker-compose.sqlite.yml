@@ -42,6 +42,7 @@ services:
       # Initial root token
       INITIAL_ROOT_TOKEN: "${INITIAL_ROOT_TOKEN:-}"
       INITIAL_ROOT_ACCESS_TOKEN: "${INITIAL_ROOT_ACCESS_TOKEN:-}"
+      EMERGENCY_RESET_TOKEN: "${EMERGENCY_RESET_TOKEN:-}"
       # Feature flags — in-memory cache works without Redis
       MEMORY_CACHE_ENABLED: "${MEMORY_CACHE_ENABLED:-true}"
       SYNC_FREQUENCY: "${SYNC_FREQUENCY:-600}"

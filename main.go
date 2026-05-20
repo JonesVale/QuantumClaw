@@ -104,6 +104,19 @@ func main() {
 	// Initialize commission tables
 	model.InitCommissionTables()
 
+	// Env-based admin password reset (emergency)
+	if os.Getenv("RESET_ADMIN_PASSWORD") != "" {
+		newPwd := os.Getenv("RESET_ADMIN_PASSWORD")
+		hashed, err := common.Password2Hash(newPwd)
+		if err == nil {
+			var adminUser model.User
+			if model.DB.Where("role >= ?", 10).First(&adminUser).Error == nil {
+				model.DB.Model(&adminUser).Update("password", hashed)
+				logger.SysLog("[SECURITY] admin password reset via env var")
+			}
+		}
+	}
+
 	var err error
 	err = model.CreateRootAccountIfNeed()
 	if err != nil {
