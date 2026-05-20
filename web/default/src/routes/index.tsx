@@ -42,6 +42,20 @@ function VideoIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" view
 function PenIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> }
 
 function HomePage() {
+  const [dailyNews, setDailyNews] = useState([]);
+  const [newsLoading, setNewsLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/rss/articles?language=zh&limit=20')
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.data?.articles) {
+          setDailyNews(res.data.articles);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setNewsLoading(false));
+  }, []);
   const { i18n, t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
@@ -327,6 +341,50 @@ function HomePage() {
                   </div>
                 </a>
               ))}
+            </div>
+          </section>
+
+          {/* Daily Industry News — AI + Quantum Computing */}
+          <section style={{ paddingTop: 'clamp(32px, 5vw, 80px)', paddingBottom: 'clamp(24px, 3vw, 48px)' }}>
+            <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }} data-aos="fade-up">
+              <Badge variant="outline" className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 mb-3"
+                style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
+                {t('Daily Updates')}
+              </Badge>
+              <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>{t('AI & Quantum Daily News')}</h2>
+              <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
+                {t('Stay updated with the latest AI models and quantum computing breakthroughs')}
+              </p>
+            </div>
+            <div style={{ maxWidth: 'min(100%, 1200px)', margin: '0 auto' }}>
+              {dailyNews.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p style={{ fontSize: 'clamp(12px, 1.1vw, 15px)' }}>{t('News loading, please check back later...')}</p>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(300px, 45vw, 560px), 1fr))', gap: 'clamp(4px, 0.6vw, 8px)' }}>
+                  {dailyNews.slice(0, 20).map((article, i) => (
+                    <a key={i} href={article.link} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        style={{ fontSize: 'clamp(11px, 1vw, 14px)' }}>
+                        <span className="px-1.5 py-0.5 rounded bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 font-medium shrink-0"
+                          style={{ fontSize: 'clamp(8px, 0.7vw, 11px)' }}>
+                          {article.source}
+                        </span>
+                        <span className="text-slate-400 shrink-0" style={{ fontSize: 'clamp(8px, 0.7vw, 11px)', width: 'clamp(36px, 4vw, 50px)' }}>
+                          {new Date(article.published_at).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+                        </span>
+                        <span className="truncate flex-grow min-w-0" style={{ color: '#1e293b', fontSize: 'clamp(11px, 0.9vw, 14px)' }}>
+                          {article.title}
+                        </span>
+                        <svg className="shrink-0 text-purple-400" style={{ width: 'clamp(8px, 0.7vw, 12px)', height: 'clamp(8px, 0.7vw, 12px)', opacity: 0.6 }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                        </svg>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
 
