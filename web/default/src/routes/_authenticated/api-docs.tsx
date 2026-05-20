@@ -469,6 +469,57 @@ const API_ENDPOINTS: EndpointCategory[] = [
       },
     ],
   },
+  {
+    id: 'quantum',
+    title: 'Quantum Computing',
+    icon: Server,
+    endpoints: [
+      {
+        method: 'POST',
+        path: '/v1/quantum/run',
+        description: 'Submit a quantum circuit for execution. Supports multiple quantum backends including IonQ, IBM Q, Rigetti, AWS Braket, and Azure Quantum.',
+        auth: 'Bearer Token',
+        curl: `curl -X POST ${window.location.origin}/v1/quantum/run \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer sk-your-key-here" \\
+  -d '{
+    "backend": "ionq_harmony",
+    "shots": 1000,
+    "circuit": {
+      "qubits": 2,
+      "gates": [
+        {"name": "h", "targets": [0]},
+        {"name": "cx", "control": [0], "targets": [1]}
+      ]
+    }
+  }'`,
+      },
+      {
+        method: 'GET',
+        path: '/v1/quantum/status/:task_id',
+        description: 'Query the status and results of a submitted quantum task by task ID.',
+        auth: 'Bearer Token',
+        curl: `curl ${window.location.origin}/v1/quantum/status/qt_abc123 \\
+  -H "Authorization: Bearer sk-your-key-here"`,
+      },
+      {
+        method: 'POST',
+        path: '/v1/quantum/cancel/:task_id',
+        description: 'Cancel a running quantum task before it completes.',
+        auth: 'Bearer Token',
+        curl: `curl -X POST ${window.location.origin}/v1/quantum/cancel/qt_abc123 \\
+  -H "Authorization: Bearer sk-your-key-here"`,
+      },
+      {
+        method: 'GET',
+        path: '/v1/quantum/backends',
+        description: 'List available quantum backends for the configured quantum channel.',
+        auth: 'Bearer Token',
+        curl: `curl ${window.location.origin}/v1/quantum/backends \\
+  -H "Authorization: Bearer sk-your-key-here"`,
+      },
+    ],
+  },
 ]
 
 // ── Page Component ─────────────────────────────────────────────────
@@ -484,7 +535,7 @@ function ApiDocsPage() {
           {t('API Documentation')}
         </h1>
         <p className="text-muted-foreground">
-          {t('Comprehensive API reference for QuantumClaw. All endpoints are compatible with the OpenAI API format.')}
+          {t('Comprehensive API reference for QuantumClaw. Supports AI model APIs and Quantum computing endpoints.')}
         </p>
       </div>
 
