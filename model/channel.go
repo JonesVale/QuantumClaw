@@ -36,6 +36,7 @@ type Channel struct {
 	UsedQuota          int64   `json:"used_quota" gorm:"bigint;default:0"`
 	ModelMapping       *string `json:"model_mapping" gorm:"type:varchar(1024);default:''"`
 	Priority           *int64  `json:"priority" gorm:"bigint;default:0"`
+	CostPerUnit        float64 `json:"cost_per_unit" gorm:"type:decimal(10,4);default:0"`
 	Config             string  `json:"config"`
 	SystemPrompt       *string `json:"system_prompt" gorm:"type:text"`
 }

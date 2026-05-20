@@ -15,6 +15,55 @@ func GetChannelTypes(c *gin.Context) {
 	c.JSON(http.StatusOK, channeltype.ChannelTypeNames)
 }
 
+// GetChannelProfit 获取渠道利润分析
+func GetChannelProfit(c *gin.Context) {
+	channels, err := model.GetAllChannels(0, 0, "all")
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	type ProfitItem struct {
+		Id          int     `json:"id"`
+		Name        string  `json:"name"`
+		Type        int     `json:"type"`
+		UsedQuota   int64   `json:"used_quota"`
+		CostPerUnit float64 `json:"cost_per_unit"`
+		SellPrice   float64 `json:"sell_price"`
+		TotalCost   float64 `json:"total_cost"`
+		TotalRevenue float64 `json:"total_revenue"`
+		Profit      float64 `json:"profit"`
+		Margin      float64 `json:"margin"`
+	}
+	result := make([]ProfitItem, 0, len(channels))
+	for _, ch := range channels {
+		qp := config.QuotaPerUnit
+		sellPrice := 1.0 // 默认1倍
+		if qp > 0 {
+			sellPrice = 1.0 / qp * 1000000
+		}
+		used := float64(ch.UsedQuota) * sellPrice / 1000000
+		cost := float64(ch.UsedQuota) * ch.CostPerUnit / 1000000
+		profit := used - cost
+		margin := float64(0)
+		if used > 0 {
+			margin = profit / used * 100
+		}
+		result = append(result, ProfitItem{
+			Id:           ch.Id,
+			Name:         ch.Name,
+			Type:         ch.Type,
+			UsedQuota:    ch.UsedQuota,
+			CostPerUnit:  ch.CostPerUnit,
+			SellPrice:    sellPrice,
+			TotalCost:    cost,
+			TotalRevenue: used,
+			Profit:       profit,
+			Margin:       margin,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
+}
+
 func GetAllChannels(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Query("p"))
 	if p < 0 {
