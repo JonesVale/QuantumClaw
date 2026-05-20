@@ -19,7 +19,7 @@ function AboutPage() {
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
           QuantumClaw
         </h1>
-        <p className="text-muted-foreground mt-2">AI API Gateway & Token Distribution Platform</p>
+        <p className="text-muted-foreground mt-2">AI API Gateway & Quantum Computing Distribution Platform</p>
         <p className="text-sm text-muted-foreground mt-1">Version 1.0.0</p>
       </div>
 
@@ -27,8 +27,8 @@ function AboutPage() {
       <Card>
         <CardHeader><CardTitle>What is QuantumClaw?</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>QuantumClaw is an enterprise-grade AI API gateway that provides unified access to 50+ AI models from providers including OpenAI, Anthropic, Google, DeepSeek, and more.</p>
-          <p>Key capabilities include token aggregation and distribution, intelligent load balancing, quota management, multi-key rotation, and elastic billing.</p>
+          <p>QuantumClaw is an enterprise-grade AI API gateway and quantum computing distribution platform that provides unified access to 50+ AI models and 6 quantum computing platforms.</p>
+          <p>Key capabilities include token aggregation and distribution, intelligent load balancing, quota management, multi-key rotation, elastic billing, and quantum computing resource scheduling across IonQ, IBM Q, Rigetti, AWS Braket, and Azure Quantum.</p>
         </CardContent>
       </Card>
 
@@ -40,7 +40,7 @@ function AboutPage() {
             {[
               { icon: Shield, title: 'Token Management', desc: 'Create, manage, and rotate API keys with granular quotas' },
               { icon: Server, title: '50+ AI Models', desc: 'Unified access to OpenAI, Claude, Gemini, DeepSeek and more' },
-              { icon: Globe, title: 'Load Balancing', desc: 'Intelligent routing with failover across channels' },
+              { icon: Globe, title: 'Quantum Computing', desc: 'IonQ, IBM Q, Rigetti, AWS Braket multi-platform aggregation' },
               { icon: Code, title: 'OpenAPI Compatible', desc: 'Drop-in replacement for any OpenAI-compatible client' },
             ].map((f, i) => (
               <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
