@@ -356,5 +356,7 @@
   "Daily Updates": "Mises à jour quotidiennes",
   "AI & Quantum Daily News": "Actualités IA et quantique",
   "Stay updated with the latest AI models and quantum computing breakthroughs": "Restez informé des derniers modèles IA et des avancées quantiques",
-  "News loading, please check back later...": "Chargement des actualités..."
+  "News loading, please check back later...": "Chargement des actualités...",
+  "IonQ": "IonQ",
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "Calcul quantique : IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 plateformes majeures"
 }

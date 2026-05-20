@@ -79,14 +79,24 @@ function HomePage() {
     { icon: Shield, title: t('Quantum Computing'), desc: t('IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation'), grad: 'from-purple-500 to-indigo-500' },
   ]
 
+  // Brand favicon helper — uses Google's favicon API with emoji fallback
+  
+
   const heroCards = [
-    { title: t('Qwen3.6'), desc: t('Native multimodal, more stable reasoning'), link: 'https://qwen.alibaba.com', grad: 'from-blue-500 to-purple-600' },
-    { title: t('Claude 3.5'), desc: t('Anthropic Strongest Reasoning'), link: 'https://claude.ai', grad: 'from-orange-500 to-amber-600' },
-    { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com', grad: 'from-green-500 to-emerald-600' },
-    { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com', grad: 'from-indigo-500 to-cyan-600' },
-    { title: t('DeepSeek V3'), desc: t('Most Cost-Effective'), link: 'https://chat.deepseek.com', grad: 'from-blue-500 to-cyan-600' },
-    { title: t('Quantum'), desc: t('IonQ / IBM Q / Rigetti multi-platform'), link: 'https://ionq.com', grad: 'from-purple-500 to-pink-600' },
+    { title: t('Qwen3.6'), desc: t('Native multimodal, more stable reasoning'), link: 'https://qwen.alibaba.com', grad: 'from-blue-500 to-purple-600', logo: '🤖' },
+    { title: t('Claude 3.5'), desc: t('Anthropic Strongest Reasoning'), link: 'https://claude.ai', grad: 'from-orange-500 to-amber-600', logo: '🧠' },
+    { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com', grad: 'from-green-500 to-emerald-600', logo: '✨' },
+    { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com', grad: 'from-indigo-500 to-cyan-600', logo: '⭐' },
+    { title: t('DeepSeek V3'), desc: t('Most Cost-Effective'), link: 'https://chat.deepseek.com', grad: 'from-blue-500 to-cyan-600', logo: '🔍' },
+    { title: t('IonQ'), desc: t('Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms'), link: 'https://ionq.com', grad: 'from-purple-500 to-pink-600', logo: '⚛' },
   ]
+
+  // Preload brand favicons
+  useEffect(() => {
+    ['qwen.alibaba.com','claude.ai','chat.openai.com','gemini.google.com','chat.deepseek.com','ionq.com'].forEach(d => {
+      const img = new Image(); img.src = 'https://www.google.com/s2/favicons?domain='+d+'&sz=64';
+    });
+  }, []);
 
   const modelApps = [
     { name: t('Chat & Reasoning'), icon: MessageSquare, models: ['GPT-4o', 'Claude 3.5', 'Gemini 2.0', 'DeepSeek V3'], link: 'https://chat.openai.com', grad: 'from-blue-500 to-cyan-500' },
@@ -260,7 +270,7 @@ function HomePage() {
                   style={{ padding: 'clamp(10px, 1.5vw, 24px)' }}>
                   <div className={"rounded-lg bg-gradient-to-br " + card.grad + " flex items-center justify-center mb-[clamp(6px, 0.8vw, 16px)]"}
                     style={{ width: 'clamp(24px, 3vw, 36px)', height: 'clamp(24px, 3vw, 36px)' }}>
-                    <img src="/logo.webp" alt="" className="rounded-lg object-cover" style={{ width: '100%', height: '100%' }} />
+                    <img src={"https://www.google.com/s2/favicons?domain=" + card.link.replace("https://","").split("/")[0] + "&sz=64"} alt="" onError={(e)=>{e.currentTarget.style.display="none"; const p=e.currentTarget.parentElement; if(p){const s=document.createElement("span");s.textContent=card.logo;s.style.fontSize="clamp(12px,1.5vw,18px)";p.appendChild(s);}}} className="rounded-lg object-cover" style={{width:"100%",height:"100%"}} />
                   </div>
                   <h3 className="font-bold" style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', marginBottom: 'clamp(2px, 0.3vw, 6px)' }}>{t(card.title)}</h3>
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed" style={{ fontSize: 'clamp(9px, 1vw, 14px)' }}>{t(card.desc)}</p>

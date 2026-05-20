@@ -356,5 +356,7 @@
   "Daily Updates": "デイリー更新",
   "AI & Quantum Daily News": "AIと量子コンピューティング業界ニュース",
   "Stay updated with the latest AI models and quantum computing breakthroughs": "最新のAIモデルと量子コンピューティングのブレークスルーをチェック",
-  "News loading, please check back later...": "ニュースを読み込み中..."
+  "News loading, please check back later...": "ニュースを読み込み中...",
+  "IonQ": "IonQ",
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "量子コンピューティング：IonQ、IBM Q、Rigetti、AWS Braket、Azure Quantum — 6つの主要プラットフォーム"
 }
