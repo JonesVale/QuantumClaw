@@ -347,6 +347,23 @@ Render 可以直接部署 docker 镜像，不需要 fork 仓库：https://dashbo
 
 之后就可以使用你的令牌访问 QuantumClaw 了，使用方式与 [OpenAI API](https://platform.openai.com/docs/api-reference/introduction) 一致。
 
+### 量子算力平台支持
+
+QuantumClaw 支持聚合分发量子算力资源，兼容以下平台：
+
+| 平台 | Channel Type | 状态 |
+|------|-------------|------|
+| [IonQ](https://ionq.com) | 100 | ✅ 完整实现 |
+| [IBM Q](https://quantum.ibm.com) | 101 | ✅ 完整实现 |
+| [Rigetti](https://rigetti.com) | 102 | 🟡 桩实现 |
+| [AWS Braket](https://aws.amazon.com/braket) | 103 | 🟡 桩实现 |
+| [Azure Quantum](https://quantum.microsoft.com) | 104 | 🟡 桩实现 |
+
+**用量子算力：**
+- 创建 Channel 时选 `IonQ` / `IBM Q` 等类型，填入 API Key 和 Base URL
+- 使用同一 `sk-xxx` 令牌，请求路径改为 `/v1/quantum/run`
+- 计费规则支持 `qubits * shots * 0.001` 表达式
+
 你需要在各种用到 OpenAI API 的地方设置 API Base 为你的 QuantumClaw 的部署地址，例如：`https://openai.justsong.cn`，API Key 则为你在 QuantumClaw 中生成的令牌。
 
 注意，具体的 API Base 的格式取决于你所使用的客户端。

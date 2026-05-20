@@ -232,6 +232,23 @@ graph LR
 To specify which channel to use for the current request, you can add the channel ID after the token, for example: `Authorization: Bearer QUANTUMCLAW_KEY-CHANNEL_ID`.
 Note that the token needs to be created by an administrator to specify the channel ID.
 
+### Quantum Computing Platform Support
+
+QuantumClaw also supports quantum computing resource aggregation and distribution:
+
+| Platform | Channel Type | Status |
+|----------|-------------|--------|
+| [IonQ](https://ionq.com) | 100 | ✅ Full implementation |
+| [IBM Q](https://quantum.ibm.com) | 101 | ✅ Full implementation |
+| [Rigetti](https://rigetti.com) | 102 | 🟡 Stub |
+| [AWS Braket](https://aws.amazon.com/braket) | 103 | 🟡 Stub |
+| [Azure Quantum](https://quantum.microsoft.com) | 104 | 🟡 Stub |
+
+**Using Quantum Computing:**
+- Create a Channel with `IonQ` / `IBM Q` type, enter API Key and Base URL
+- Use the same `sk-xxx` token with endpoint `/v1/quantum/run`
+- Billing supports expr-lang: `qubits * shots * 0.001`
+
 If the channel ID is not provided, load balancing will be used to distribute the requests to multiple channels.
 
 ### Environment Variables

@@ -268,6 +268,23 @@ graph LR
 ![channel](https://user-images.githubusercontent.com/39998050/233837954-ae6683aa-5c4f-429f-a949-6645a83c9490.png)
 ![token](https://user-images.githubusercontent.com/39998050/233837971-dab488b7-6d96-43af-b640-a168e8d1c9bf.png)
 
+### 量子コンピューティングプラットフォーム
+
+QuantumClaw は量子コンピューティングリソースの集約もサポートしています：
+
+| プラットフォーム | タイプ | ステータス |
+|----------|--------|--------|
+| [IonQ](https://ionq.com) | 100 | ✅ 完全実装 |
+| [IBM Q](https://quantum.ibm.com) | 101 | ✅ 完全実装 |
+| [Rigetti](https://rigetti.com) | 102 | 🟡 スタブ |
+| [AWS Braket](https://aws.amazon.com/braket) | 103 | 🟡 スタブ |
+| [Azure Quantum](https://quantum.microsoft.com) | 104 | 🟡 スタブ |
+
+**量子コンピューティングの使用：**
+- チャンネル作成時に `IonQ` / `IBM Q` を選択し、APIキーとベースURLを入力
+- 同じ `sk-xxx` トークンを使用し、エンドポイントは `/v1/quantum/run`
+- 課金式: `qubits * shots * 0.001`
+
 ## FAQ
 1. ノルマとは何か？どのように計算されますか？QuantumClaw にはノルマ計算の問題はありますか？
     + ノルマ = グループ倍率 * モデル倍率 * (プロンプトトークンの数 + 完了トークンの数 * 完了倍率)
