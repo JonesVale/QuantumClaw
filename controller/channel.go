@@ -5,10 +5,15 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 	"net/http"
 	"strconv"
 	"strings"
 )
+
+func GetChannelTypes(c *gin.Context) {
+	c.JSON(http.StatusOK, channeltype.ChannelTypeNames)
+}
 
 func GetAllChannels(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Query("p"))

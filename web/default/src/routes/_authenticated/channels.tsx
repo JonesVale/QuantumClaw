@@ -53,6 +53,7 @@ import {
   type Channel,
   type ChannelFormData,
   getChannels,
+  getChannelTypes,
   createChannel,
   updateChannel,
   deleteChannel,
@@ -78,6 +79,30 @@ function ChannelFormDialog({
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const isEdit = !!channel
+
+  // 动态获取渠道类型（避免前端硬编码）
+  const { data: typeMap } = useQuery({
+    queryKey: ['channelTypes'],
+    queryFn: getChannelTypes,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  // 按 AI(<100) / 量子(>=100) 分组
+  const typeGroups = useMemo(() => {
+    const map = typeMap || {}
+    const ai: { id: number; name: string }[] = []
+    const quantum: { id: number; name: string }[] = []
+    Object.entries(map).forEach(([idStr, name]) => {
+      const id = Number(idStr)
+      if (id <= 0) return
+      if (id >= 100) {
+        quantum.push({ id, name })
+      } else if (id < 100) {
+        ai.push({ id, name })
+      }
+    })
+    return { ai, quantum }
+  }, [typeMap])
   const [form, setForm] = useState<ChannelFormData>({
     type: 1,
     key: '',
@@ -140,7 +165,7 @@ function ChannelFormDialog({
           <DialogDescription>
             {isEdit
               ? t('Update channel configuration')
-              : t('Add a new API provider channel')}
+              : t('Add a new AI or Quantum computing provider channel')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -161,18 +186,35 @@ function ChannelFormDialog({
                 onValueChange={(v) => setForm({ ...form, type: Number(v) })}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t('Select type')} />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">OpenAI</SelectItem>
-                  <SelectItem value="2">Azure OpenAI</SelectItem>
-                  <SelectItem value="3">Google Gemini</SelectItem>
-                  <SelectItem value="4">Anthropic</SelectItem>
-                  <SelectItem value="5">DeepSeek</SelectItem>
-                  <SelectItem value="11">AI Proxy</SelectItem>
-                  <SelectItem value="12">API2GPT</SelectItem>
-                  <SelectItem value="13">AIGC2D</SelectItem>
-                  <SelectItem value="14">SiliconFlow</SelectItem>
+                <SelectContent className="max-h-72">
+                  {/* AI 大模型渠道 */}
+                  {typeGroups.ai.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t('AI Models')}
+                      </div>
+                      {typeGroups.ai.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {/* 量子算力渠道 */}
+                  {typeGroups.quantum.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t pt-2 mt-1">
+                        {t('Quantum Computing')}
+                      </div>
+                      {typeGroups.quantum.map((t) => (
+                        <SelectItem key={t.id} value={String(t.id)}>
+                          {t.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -286,6 +328,7 @@ function ChannelsPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<string>('all')
+  const [typeCategory, setTypeCategory] = useState<string>('all')
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null)
   const queryClient = useQueryClient()
 
@@ -293,6 +336,13 @@ function ChannelsPage() {
     queryKey: ['channels'],
     queryFn: () => getChannels(),
     staleTime: 30 * 1000,
+  })
+
+  // 动态渠道类型名称映射
+  const { data: typeMap } = useQuery({
+    queryKey: ['channelTypes'],
+    queryFn: getChannelTypes,
+    staleTime: 10 * 60 * 1000,
   })
 
   const deleteMutation = useMutation({
@@ -326,9 +376,12 @@ function ChannelsPage() {
       const matchesStatus = status === 'all' || 
         (status === 'enabled' && ch.status === 1) ||
         (status === 'disabled' && ch.status === 2)
-      return matchesSearch && matchesStatus
+      const matchesCategory = typeCategory === 'all' ||
+        (typeCategory === 'ai' && Number(ch.type_) < 100) ||
+        (typeCategory === 'quantum' && Number(ch.type_) >= 100)
+      return matchesSearch && matchesStatus && matchesCategory
     })
-  }, [channels, search, status])
+  }, [channels, search, status, typeCategory])
 
   const getStatusBadge = (status: number) => {
     if (status === 1) {
@@ -338,18 +391,13 @@ function ChannelsPage() {
   }
 
   const getTypeBadge = (type: number) => {
-    const types: Record<number, string> = {
-      1: 'OpenAI',
-      2: 'Azure',
-      3: 'Gemini',
-      4: 'Claude',
-      5: 'DeepSeek',
-      11: 'Proxy',
-      12: 'API2GPT',
-      13: 'AIGC2D',
-      14: 'Silicon',
-    }
-    return <Badge variant="outline">{types[type] || `Type ${type}`}</Badge>
+    const typeName = typeMap?.[String(type)]
+    const isQuantum = type >= 100
+    return (
+      <Badge variant="outline" className={isQuantum ? 'border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300' : ''}>
+        {typeName || `Type ${type}`}
+      </Badge>
+    )
   }
 
   return (
@@ -361,7 +409,7 @@ function ChannelsPage() {
             {t('Channels')}
           </h1>
           <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base lg:text-lg">
-            {t('Manage AI service provider channels')}
+            {t('Manage AI and Quantum computing channels')}
           </p>
         </div>
         <Button onClick={() => setEditingChannel({} as Channel)} className="gap-2">
@@ -383,8 +431,18 @@ function ChannelsPage() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
+            <Select value={typeCategory} onValueChange={setTypeCategory}>
+              <SelectTrigger className="w-full sm:w-32">
+                <SelectValue placeholder={t('All Types')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('All Types')}</SelectItem>
+                <SelectItem value="ai">{t('AI Models')}</SelectItem>
+                <SelectItem value="quantum">{t('Quantum')}</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={status} onValueChange={setStatus}>
-              <SelectTrigger className="w-full sm:w-40">
+              <SelectTrigger className="w-full sm:w-32">
                 <SelectValue placeholder={t('Status')} />
               </SelectTrigger>
               <SelectContent>

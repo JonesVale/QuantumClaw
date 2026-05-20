@@ -125,6 +125,7 @@ func SetApiRouter(router *gin.Engine) {
 		channelRoute.Use(middleware.AdminAuth())
 		{
 			channelRoute.GET("/", controller.GetAllChannels)
+			channelRoute.GET("/types", controller.GetChannelTypes)
 			channelRoute.GET("/search", controller.SearchChannels)
 			channelRoute.GET("/models", controller.ListAllModels)
 			channelRoute.GET("/:id", controller.GetChannel)
