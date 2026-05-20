@@ -348,5 +348,12 @@
   "Your API Key": "您的 API 密鑰",
   "Quick Start": "快速開始",
   "Done": "完成",
-  "Overview of your AI model and quantum computing usage": "您的 AI 大模型與量子算力使用概覽"
+  "Overview of your AI model and quantum computing usage": "您的 AI 大模型與量子算力使用概覽",
+  "IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation": "IonQ / IBM Q / Rigetti / AWS Braket 等多平台聚合",
+  "IonQ / IBM Q / Rigetti multi-platform": "IonQ / IBM Q / Rigetti 等多平台",
+  "IonQ Harmony": "IonQ Harmony",
+  "IBM Sherbrooke": "IBM Sherbrooke",
+  "Rigetti Aspen": "Rigetti Aspen",
+  "Quantum Platforms": "量子平台",
+  "聚合调用 AI 大模型 + 量子算力资源": "聚合調用 AI 大模型 + 量子算力資源"
 }

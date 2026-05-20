@@ -1,6 +1,7 @@
 ﻿package controller
 
 import (
+	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
@@ -99,6 +100,27 @@ func init() {
 			})
 		}
 	}
+	// ==================== 量子算力后端注册 ====================
+	for qt := channeltype.IonQ; qt < channeltype.QuantumDummy; qt++ {
+		qAdaptor, err := relay.GetQuantumAdaptor(qt)
+		if err != nil {
+			continue
+		}
+		backends, _ := qAdaptor.ListBackends(context.Background())
+		provider := qAdaptor.ProviderName()
+		for _, backend := range backends {
+			models = append(models, OpenAIModels{
+				Id:         backend,
+				Object:     "model",
+				Created:    1626777600,
+				OwnedBy:    provider,
+				Permission: permission,
+				Root:       backend,
+				Parent:     nil,
+			})
+		}
+	}
+
 	modelsMap = make(map[string]OpenAIModels)
 	for _, model := range models {
 		modelsMap[model.Id] = model

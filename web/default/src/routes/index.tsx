@@ -7,7 +7,8 @@ import {
   Mail,
   DollarSign, KeyRound, BarChart3, Network,
   Menu, X, Shield, Activity,
-  ChevronDown, Check, Newspaper, BookOpen
+  ChevronDown, Check, Newspaper, BookOpen,
+  Server
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -61,6 +62,7 @@ function HomePage() {
     { icon: Shield, title: t('Security Protection'), desc: t('SSRF protection, IP whitelist, audit logs'), grad: 'from-orange-500 to-red-500' },
     { icon: DollarSign, title: t('Flexible Billing'), desc: t('Pay-as-you-go / Subscription / Rate control'), grad: 'from-indigo-500 to-blue-500' },
     { icon: Activity, title: t('Async Tasks'), desc: t('MJ/Video/Music task scheduling'), grad: 'from-pink-500 to-rose-500' },
+    { icon: Shield, title: t('Quantum Computing'), desc: t('IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation'), grad: 'from-purple-500 to-indigo-500' },
   ]
 
   const heroCards = [
@@ -69,6 +71,7 @@ function HomePage() {
     { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com', grad: 'from-green-500 to-emerald-600' },
     { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com', grad: 'from-indigo-500 to-cyan-600' },
     { title: t('DeepSeek V3'), desc: t('Most Cost-Effective'), link: 'https://chat.deepseek.com', grad: 'from-blue-500 to-cyan-600' },
+    { title: t('Quantum'), desc: t('IonQ / IBM Q / Rigetti multi-platform'), link: 'https://ionq.com', grad: 'from-purple-500 to-pink-600' },
   ]
 
   const modelApps = [
@@ -78,6 +81,7 @@ function HomePage() {
     { name: t('Audio & Video'), icon: VideoIcon, models: ['Suno', 'Runway', 'ElevenLabs'], link: 'https://suno.com', grad: 'from-pink-500 to-rose-500' },
     { name: t('Text & Writing'), icon: PenIcon, models: ['GPT-4o', 'Claude 3', 'Kimi', 'Moonshot'], link: 'https://www.grammarly.com', grad: 'from-green-500 to-emerald-500' },
     { name: t('Search & Knowledge'), icon: Brain, models: ['Perplexity', 'ArXiv', 'Hugging Face'], link: 'https://www.perplexity.ai', grad: 'from-indigo-500 to-blue-500' },
+    { name: t('Quantum Computing'), icon: Server, models: ['IonQ Harmony', 'IBM Sherbrooke', 'Rigetti Aspen'], link: 'https://ionq.com', grad: 'from-purple-500 to-pink-500' },
   ]
 
   const newsSources = [
@@ -98,6 +102,7 @@ function HomePage() {
     { value: '99.9%', label: t('Service Availability') },
     { value: '<50ms', label: t('Average Latency') },
     { value: '50+', label: t('AI Models') },
+    { value: '6', label: t('Quantum Platforms') },
     { value: '10M+', label: t('Monthly Requests') },
   ]
 
@@ -216,7 +221,7 @@ function HomePage() {
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">{t('QuantumClaw')}</span>
               </h1>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(13px, 1.5vw, 20px)', maxWidth: 'clamp(280px, 60vw, 600px)' }}>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{t('Key聚合分发')}</span> {t('·')} {t('一个Key聚合调用 50+ 主流 AI 模型')}
+                <span className="font-semibold text-slate-700 dark:text-slate-300">{t('Key聚合分发')}</span> {t('·')} {t('聚合调用 AI 大模型 + 量子算力资源')}
               </p>
               <div className="flex flex-wrap gap-y-2 gap-x-3 justify-center" style={{ marginTop: 'clamp(16px, 3vw, 32px)' }}>
                 <Link to="/sign-in"
@@ -258,10 +263,10 @@ function HomePage() {
                 Core Features
               </Badge>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>
-                {t('Token 聚合分发 · 企业级 AI 基础设施')}
+                {t('Token 聚合分发 · AI + 量子计算基础设施')}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
-                {t('一个平台统一管理所有 AI 密钥、配额、计费')}
+                {t('统一管理 AI 密钥、量子算力、配额、计费')}
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(200px, 28vw, 380px), 1fr))', gap: 'clamp(8px, 1.2vw, 24px)' }}>

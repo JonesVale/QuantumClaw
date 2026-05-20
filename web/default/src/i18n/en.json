@@ -488,5 +488,12 @@
   "Your API Key": "Your API Key",
   "Quick Start": "Quick Start",
   "Done": "Done",
-  "Overview of your AI model and quantum computing usage": "Overview of your AI model and quantum computing usage"
+  "Overview of your AI model and quantum computing usage": "Overview of your AI model and quantum computing usage",
+  "IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation": "IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation",
+  "IonQ / IBM Q / Rigetti multi-platform": "IonQ / IBM Q / Rigetti multi-platform",
+  "IonQ Harmony": "IonQ Harmony",
+  "IBM Sherbrooke": "IBM Sherbrooke",
+  "Rigetti Aspen": "Rigetti Aspen",
+  "Quantum Platforms": "Quantum Platforms",
+  "聚合调用 AI 大模型 + 量子算力资源": "Aggregate AI models + Quantum computing resources"
 }

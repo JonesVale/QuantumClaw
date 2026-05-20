@@ -333,5 +333,12 @@
   "Your API Key": "Khóa API của bạn",
   "Quick Start": "Bắt đầu nhanh",
   "Done": "Xong",
-  "Overview of your AI model and quantum computing usage": "Tổng quan về việc sử dụng mô hình AI và điện toán lượng tử"
+  "Overview of your AI model and quantum computing usage": "Tổng quan về việc sử dụng mô hình AI và điện toán lượng tử",
+  "IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation": "Tổng hợp đa nền tảng IonQ / IBM Q / Rigetti / AWS Braket",
+  "IonQ / IBM Q / Rigetti multi-platform": "Đa nền tảng IonQ / IBM Q / Rigetti",
+  "IonQ Harmony": "IonQ Harmony",
+  "IBM Sherbrooke": "IBM Sherbrooke",
+  "Rigetti Aspen": "Rigetti Aspen",
+  "Quantum Platforms": "Nền tảng lượng tử",
+  "聚合调用 AI 大模型 + 量子算力资源": "Tổng hợp mô hình AI + tài nguyên điện toán lượng tử"
 }
