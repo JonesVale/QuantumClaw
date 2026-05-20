@@ -308,5 +308,19 @@ func SetApiRouter(router *gin.Engine) {
 		}
 		// Emergency password reset (requires env token, no session needed)
 		apiRouter.POST("/password/emergency-reset", middleware.CriticalRateLimit(), controller.EmergencyPasswordReset)
+
+		// Distributor routes
+		distributorRoute := apiRouter.Group("/distributor")
+		distributorRoute.Use(middleware.AdminAuth())
+		{
+			distributorRoute.GET("/", controller.GetDistributors)
+			distributorRoute.POST("/", controller.CreateDistributor)
+			distributorRoute.PUT("/:id", controller.UpdateDistributor)
+			distributorRoute.GET("/:id/pricing", controller.GetDistributorPricing)
+			distributorRoute.PUT("/:id/pricing", controller.SetDistributorPricing)
+			distributorRoute.GET("/:id/revenue", controller.GetDistributorRevenue)
+		}
+		// Distributor self-service routes
+		apiRouter.GET("/distributor/self", middleware.UserAuth(), controller.GetMyDistributor)
 	}
 }

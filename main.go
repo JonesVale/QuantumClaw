@@ -104,6 +104,9 @@ func main() {
 	// Initialize commission tables
 	model.InitCommissionTables()
 
+	// Initialize distributor tables
+	model.InitDistributorTables()
+
 	// Env-based admin password reset (emergency)
 	if os.Getenv("RESET_ADMIN_PASSWORD") != "" {
 		newPwd := os.Getenv("RESET_ADMIN_PASSWORD")
