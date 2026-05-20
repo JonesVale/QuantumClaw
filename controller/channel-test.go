@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"os"
 	"fmt"
 	"io"
 	"net/http"
@@ -41,7 +42,12 @@ import (
 
 func buildTestRequest(model string) *relaymodel.GeneralOpenAIRequest {
 	if model == "" {
-		model = "gpt-3.5-turbo"
+		// 默认使用 auto 模式, 优先免费/低成本模型
+		model = "gpt-3.5-turbo" // 回落默认值
+		// 环境变量可覆盖: TEST_MODEL=auto 或 TEST_MODEL=deepseek-chat
+		if envModel := os.Getenv("TEST_MODEL"); envModel != "" {
+			model = envModel
+		}
 	}
 	testRequest := &relaymodel.GeneralOpenAIRequest{
 		Model: model,
