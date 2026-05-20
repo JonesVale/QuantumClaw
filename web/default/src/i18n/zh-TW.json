@@ -373,5 +373,14 @@
   "Stay updated with the latest AI models and quantum computing breakthroughs": "關注 AI 大模型與量子計算前沿突破，掌握行業最新動態",
   "News loading, please check back later...": "新聞加載中，請稍後查看...",
   "IonQ": "IonQ 量子",
-  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "量子計算：IonQ、IBM Q、Rigetti、AWS Braket、Azure Quantum 等 6 大平台"
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "量子計算：IonQ、IBM Q、Rigetti、AWS Braket、Azure Quantum 等 6 大平台",
+  "IBM Q": "IBM Q",
+  "Rigetti": "Rigetti",
+  "AWS Braket": "AWS Braket",
+  "Azure Quantum": "Azure Quantum",
+  "Trapped ion quantum computing with high fidelity": "離子阱量子計算，高保真度量子門操作",
+  "Superconducting qubit quantum processors": "超導量子比特處理器，全球領先的量子硬件",
+  "Hybrid quantum-classical computing platform": "混合量子-經典計算平台，可編程量子處理器",
+  "Cloud quantum computing service by AWS": "AWS 雲端量子計算服務，按需訪問量子硬件",
+  "Microsoft quantum computing ecosystem": "微軟量子計算生態系統，集成開發與模擬"
 }

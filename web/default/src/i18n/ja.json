@@ -358,5 +358,14 @@
   "Stay updated with the latest AI models and quantum computing breakthroughs": "最新のAIモデルと量子コンピューティングのブレークスルーをチェック",
   "News loading, please check back later...": "ニュースを読み込み中...",
   "IonQ": "IonQ",
-  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "量子コンピューティング：IonQ、IBM Q、Rigetti、AWS Braket、Azure Quantum — 6つの主要プラットフォーム"
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "量子コンピューティング：IonQ、IBM Q、Rigetti、AWS Braket、Azure Quantum — 6つの主要プラットフォーム",
+  "IBM Q": "IBM Q",
+  "Rigetti": "Rigetti",
+  "AWS Braket": "AWS Braket",
+  "Azure Quantum": "Azure Quantum",
+  "Trapped ion quantum computing with high fidelity": "トラップイオン量子コンピューティング、高忠実度",
+  "Superconducting qubit quantum processors": "超伝導量子ビットプロセッサ",
+  "Hybrid quantum-classical computing platform": "ハイブリッド量子-古典計算プラットフォーム",
+  "Cloud quantum computing service by AWS": "AWSによるクラウド量子コンピューティングサービス",
+  "Microsoft quantum computing ecosystem": "Microsoft量子コンピューティングエコシステム"
 }

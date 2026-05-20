@@ -358,5 +358,14 @@
   "Stay updated with the latest AI models and quantum computing breakthroughs": "Restez informé des derniers modèles IA et des avancées quantiques",
   "News loading, please check back later...": "Chargement des actualités...",
   "IonQ": "IonQ",
-  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "Calcul quantique : IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 plateformes majeures"
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "Calcul quantique : IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 plateformes majeures",
+  "IBM Q": "IBM Q",
+  "Rigetti": "Rigetti",
+  "AWS Braket": "AWS Braket",
+  "Azure Quantum": "Azure Quantum",
+  "Trapped ion quantum computing with high fidelity": "Calcul quantique à ions piégés, haute fidélité",
+  "Superconducting qubit quantum processors": "Processeurs quantiques à qubits supraconducteurs",
+  "Hybrid quantum-classical computing platform": "Plateforme de calcul hybride quantique-classique",
+  "Cloud quantum computing service by AWS": "Service de calcul quantique cloud par AWS",
+  "Microsoft quantum computing ecosystem": "Écosystème de calcul quantique Microsoft"
 }

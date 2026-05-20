@@ -88,7 +88,11 @@ function HomePage() {
     { title: t('GPT-4o'), desc: t('OpenAI Flagship Multimodal'), link: 'https://chat.openai.com', grad: 'from-green-500 to-emerald-600', logo: '✨' },
     { title: t('Gemini 2.0'), desc: t('Google Fast Reasoning'), link: 'https://gemini.google.com', grad: 'from-indigo-500 to-cyan-600', logo: '⭐' },
     { title: t('DeepSeek V3'), desc: t('Most Cost-Effective'), link: 'https://chat.deepseek.com', grad: 'from-blue-500 to-cyan-600', logo: '🔍' },
-    { title: t('IonQ'), desc: t('Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms'), link: 'https://ionq.com', grad: 'from-purple-500 to-pink-600', logo: '⚛' },
+    { title: t('IonQ'), desc: t('Trapped ion quantum computing with high fidelity'), link: 'https://ionq.com', grad: 'from-purple-500 to-pink-600', logo: '⚛' },
+    { title: t('IBM Q'), desc: t('Superconducting qubit quantum processors'), link: 'https://quantum.ibm.com', grad: 'from-blue-600 to-indigo-700', logo: '🔬' },
+    { title: t('Rigetti'), desc: t('Hybrid quantum-classical computing platform'), link: 'https://rigetti.com', grad: 'from-emerald-500 to-teal-600', logo: '🔗' },
+    { title: t('AWS Braket'), desc: t('Cloud quantum computing service by AWS'), link: 'https://aws.amazon.com/braket', grad: 'from-orange-500 to-red-600', logo: '☁️' },
+    { title: t('Azure Quantum'), desc: t('Microsoft quantum computing ecosystem'), link: 'https://quantum.microsoft.com', grad: 'from-cyan-500 to-blue-600', logo: '🟦' },
   ]
 
   // Preload brand favicons

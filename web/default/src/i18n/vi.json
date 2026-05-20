@@ -358,5 +358,14 @@
   "Stay updated with the latest AI models and quantum computing breakthroughs": "Cập nhật các mô hình AI mới nhất và đột phá điện toán lượng tử",
   "News loading, please check back later...": "Đang tải tin tức...",
   "IonQ": "IonQ",
-  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "Điện toán lượng tử: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 nền tảng chính"
+  "Quantum computing: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 major platforms": "Điện toán lượng tử: IonQ, IBM Q, Rigetti, AWS Braket, Azure Quantum — 6 nền tảng chính",
+  "IBM Q": "IBM Q",
+  "Rigetti": "Rigetti",
+  "AWS Braket": "AWS Braket",
+  "Azure Quantum": "Azure Quantum",
+  "Trapped ion quantum computing with high fidelity": "Điện toán lượng tử ion bẫy, độ trung thực cao",
+  "Superconducting qubit quantum processors": "Bộ xử lý lượng tử siêu dẫn",
+  "Hybrid quantum-classical computing platform": "Nền tảng tính toán lai lượng tử-cổ điển",
+  "Cloud quantum computing service by AWS": "Dịch vụ điện toán lượng tử đám mây của AWS",
+  "Microsoft quantum computing ecosystem": "Hệ sinh thái điện toán lượng tử của Microsoft"
 }
