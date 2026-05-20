@@ -482,5 +482,6 @@
   "Quantum": "Quantum",
   "Select type": "Select type",
   "Manage AI and Quantum computing channels": "Manage AI and Quantum computing channels",
-  "Add a new AI or Quantum computing provider channel": "Add a new AI or Quantum computing provider channel"
+  "Add a new AI or Quantum computing provider channel": "Add a new AI or Quantum computing provider channel",
+  "API Access": "API Access"
 }

@@ -12,12 +12,13 @@ import {
   CheckCircle,
   XCircle,
   Key,
+  Globe,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -36,6 +37,7 @@ import {
 } from '@/lib/api-extended'
 import { toast } from 'sonner'
 import dayjs from '@/lib/dayjs'
+
 
 export const Route = createFileRoute('/_authenticated/keys')({
   component: KeysPage,
@@ -195,6 +197,50 @@ function KeysPage() {
           </p>
         </div>
       </div>
+
+      {/* Connection Info Card — 显示 API Base URL 和使用示例 */}
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex items-start gap-3">
+            <div className="hidden sm:flex w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 items-center justify-center flex-shrink-0">
+              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            </div>
+            <div className="space-y-2 flex-1 min-w-0">
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">{t('API Access')}</p>
+              <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-400 space-y-1.5">
+                <p>
+                  <span className="font-medium">{t('Base URL')}:</span>{' '}
+                  <code className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono break-all">
+                    {window.location.origin}
+                  </code>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="inline-flex h-5 w-5 ml-1 align-middle"
+                    onClick={() => {
+                      navigator.clipboard.writeText(window.location.origin)
+                      toast.success(t('Copied to clipboard'))
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </p>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <code className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
+                    Authorization: Bearer {'{'}sk-...{'}'}
+                  </code>
+                  <code className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
+                    POST {window.location.origin}/v1/chat/completions
+                  </code>
+                  <code className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">
+                    POST {window.location.origin}/v1/quantum/run
+                  </code>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start">

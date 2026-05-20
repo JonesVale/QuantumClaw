@@ -327,5 +327,6 @@
   "Quantum": "Квантовый",
   "Select type": "Выберите тип",
   "Manage AI and Quantum computing channels": "Управление каналами ИИ и квантовыми вычислениями",
-  "Add a new AI or Quantum computing provider channel": "Добавить новый канал ИИ или квантовых вычислений"
+  "Add a new AI or Quantum computing provider channel": "Добавить новый канал ИИ или квантовых вычислений",
+  "API Access": "Доступ к API"
 }

@@ -342,5 +342,6 @@
   "Quantum": "量子",
   "Select type": "選擇類型",
   "Manage AI and Quantum computing channels": "管理 AI 大模型與量子算力渠道",
-  "Add a new AI or Quantum computing provider channel": "添加新的 AI 大模型或量子算力供應商渠道"
+  "Add a new AI or Quantum computing provider channel": "添加新的 AI 大模型或量子算力供應商渠道",
+  "API Access": "API 接入地址"
 }

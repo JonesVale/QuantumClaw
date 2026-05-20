@@ -327,5 +327,6 @@
   "Quantum": "Lượng tử",
   "Select type": "Chọn loại",
   "Manage AI and Quantum computing channels": "Quản lý kênh AI và điện toán lượng tử",
-  "Add a new AI or Quantum computing provider channel": "Thêm kênh nhà cung cấp AI hoặc điện toán lượng tử mới"
+  "Add a new AI or Quantum computing provider channel": "Thêm kênh nhà cung cấp AI hoặc điện toán lượng tử mới",
+  "API Access": "Truy cập API"
 }
