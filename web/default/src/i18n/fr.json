@@ -340,5 +340,8 @@
   "IBM Sherbrooke": "IBM Sherbrooke",
   "Rigetti Aspen": "Rigetti Aspen",
   "Quantum Platforms": "Plateformes quantiques",
-  "聚合调用 AI 大模型 + 量子算力资源": "Agréger les modèles IA + les ressources de calcul quantique"
+  "聚合调用 AI 大模型 + 量子算力资源": "Agréger les modèles IA + les ressources de calcul quantique",
+  "Quantum Computing Billing": "Facturation quantique",
+  "Set quantum billing formulas with these variables:": "Définissez les formules de facturation quantique avec ces variables :",
+  "Example: qubits * shots * 0.001": "Exemple : qubits * shots * 0.001"
 }

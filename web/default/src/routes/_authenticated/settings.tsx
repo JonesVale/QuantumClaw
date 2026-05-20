@@ -431,9 +431,31 @@ function SettingsPage() {
                   />
                   <p className="text-xs text-muted-foreground">
                     {t('Cost ratio for cache model usage (1.0 = 100%)')}
-                  </p>
-                </div>
+              </p>
+            </div>
+
+            {/* Quantum Computing Billing */}
+            <div className="space-y-3 rounded-lg border border-purple-200 dark:border-purple-800 bg-purple-50/50 dark:bg-purple-950/20 p-4 mt-4">
+              <h3 className="font-semibold flex items-center gap-2 text-purple-700 dark:text-purple-300">
+                <Server className="h-4 w-4" />
+                {t('Quantum Computing Billing')}
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                {t('Set quantum billing formulas with these variables:')}
+              </p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                <code className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">qubits</code>
+                <code className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">shots</code>
+                <code className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">gates</code>
               </div>
+              <div className="mt-2">
+                <p className="text-xs text-muted-foreground mb-1">{t('Example: qubits * shots * 0.001')}</p>
+                <code className="block px-3 py-2 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">
+                  qubits * shots * 0.001
+                </code>
+              </div>
+            </div>
+          </div>
 
               {/* Stripe */}
               <div className="space-y-3 rounded-lg border p-4">

@@ -340,5 +340,8 @@
   "IBM Sherbrooke": "IBM Sherbrooke",
   "Rigetti Aspen": "Rigetti Aspen",
   "Quantum Platforms": "量子プラットフォーム",
-  "聚合调用 AI 大模型 + 量子算力资源": "AIモデル + 量子コンピューティングリソースを集約"
+  "聚合调用 AI 大模型 + 量子算力资源": "AIモデル + 量子コンピューティングリソースを集約",
+  "Quantum Computing Billing": "量子コンピューティング課金",
+  "Set quantum billing formulas with these variables:": "以下の変数を使用して量子課金式を設定します：",
+  "Example: qubits * shots * 0.001": "例：qubits * shots * 0.001"
 }
