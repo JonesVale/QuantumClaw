@@ -65,7 +65,7 @@ func GetPrometheusMetrics(c *gin.Context) {
 
 	setting := performance_setting.GetPerformanceSetting()
 	if !setting.EnablePrometheusMetrics {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Prometheus metrics not enabled"})
+		c.JSON(http.StatusNotFound, gin.H{"success": false, "message": "Prometheus metrics not enabled"})
 		return
 	}
 
