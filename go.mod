@@ -30,6 +30,7 @@ require (
 	github.com/shopspring/decimal v1.4.0
 	github.com/smartystreets/goconvey v1.8.1
 	github.com/stretchr/testify v1.11.1
+	github.com/stripe/stripe-go/v81 v81.4.0
 	github.com/tidwall/gjson v1.19.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/image v0.18.0
@@ -116,7 +117,6 @@ require (
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/samber/go-singleflightx v0.3.2 // indirect
 	github.com/smarty/assertions v1.15.0 // indirect
-	github.com/stripe/stripe-go/v81 v81.4.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
