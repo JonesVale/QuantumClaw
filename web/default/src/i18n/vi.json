@@ -345,5 +345,9 @@
   "Set quantum billing formulas with these variables:": "Đặt công thức thanh toán lượng tử với các biến sau:",
   "Example: qubits * shots * 0.001": "Ví dụ: qubits * shots * 0.001",
   "Invite Code": "Mã mời",
-  "Invite code (optional)": "Mã mời (không bắt buộc)"
+  "Invite code (optional)": "Mã mời (không bắt buộc)",
+  "Invite Friends": "Mời bạn bè",
+  "Share your invite link and earn rewards": "Chia sẻ liên kết mời của bạn",
+  "Your Invite Code": "Mã mời của bạn",
+  "Invite Link": "Liên kết mời"
 }

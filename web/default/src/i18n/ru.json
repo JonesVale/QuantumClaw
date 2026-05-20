@@ -345,5 +345,9 @@
   "Set quantum billing formulas with these variables:": "Установите формулы квантовых вычислений с этими переменными:",
   "Example: qubits * shots * 0.001": "Пример: qubits * shots * 0.001",
   "Invite Code": "Код приглашения",
-  "Invite code (optional)": "Код приглашения (необязательно)"
+  "Invite code (optional)": "Код приглашения (необязательно)",
+  "Invite Friends": "Пригласить друзей",
+  "Share your invite link and earn rewards": "Поделитесь ссылкой-приглашением",
+  "Your Invite Code": "Ваш код приглашения",
+  "Invite Link": "Ссылка-приглашение"
 }

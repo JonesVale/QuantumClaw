@@ -345,5 +345,9 @@
   "Set quantum billing formulas with these variables:": "以下の変数を使用して量子課金式を設定します：",
   "Example: qubits * shots * 0.001": "例：qubits * shots * 0.001",
   "Invite Code": "招待コード",
-  "Invite code (optional)": "招待コード（任意）"
+  "Invite code (optional)": "招待コード（任意）",
+  "Invite Friends": "友達を招待",
+  "Share your invite link and earn rewards": "招待リンクを共有して報酬を獲得",
+  "Your Invite Code": "招待コード",
+  "Invite Link": "招待リンク"
 }

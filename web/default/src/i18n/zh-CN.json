@@ -463,5 +463,9 @@
   "Set quantum billing formulas with these variables:": "使用以下变量设置量子计费公式：",
   "Example: qubits * shots * 0.001": "示例：qubits * shots * 0.001",
   "Invite Code": "邀请码",
-  "Invite code (optional)": "邀请码（选填）"
+  "Invite code (optional)": "邀请码（选填）",
+  "Invite Friends": "邀请好友",
+  "Share your invite link and earn rewards": "分享您的邀请链接并获得奖励",
+  "Your Invite Code": "您的邀请码",
+  "Invite Link": "邀请链接"
 }

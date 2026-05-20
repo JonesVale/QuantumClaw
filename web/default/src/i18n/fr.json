@@ -345,5 +345,9 @@
   "Set quantum billing formulas with these variables:": "Définissez les formules de facturation quantique avec ces variables :",
   "Example: qubits * shots * 0.001": "Exemple : qubits * shots * 0.001",
   "Invite Code": "Code d'invitation",
-  "Invite code (optional)": "Code invitation (optionnel)"
+  "Invite code (optional)": "Code invitation (optionnel)",
+  "Invite Friends": "Inviter des amis",
+  "Share your invite link and earn rewards": "Partagez votre lien dinvitation",
+  "Your Invite Code": "Votre code dinvitation",
+  "Invite Link": "Lien d'invitation"
 }

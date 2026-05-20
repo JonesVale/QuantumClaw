@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign, Building, Landmark, Gift, Users } from 'lucide-react'
+import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign, Building, Landmark, Gift } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -10,12 +10,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
+import { useAuthStore } from '@/stores/auth-store'
+import apiClient, { type ApiResponse, getSelf } from '@/lib/api'
 
 export const Route = createFileRoute('/_authenticated/wallet')({
   component: WalletPage,
 })
 
 function WalletPage() {
+  const { auth } = useAuthStore();
+  const { data: selfData } = useQuery({
+    queryKey: ['self'],
+    queryFn: getSelf,
+    staleTime: 5 * 60 * 1000,
+  });
+  const affCode = selfData?.data?.aff_code || '';
+  const inviteLink = affCode ? window.location.origin + '/sign-in?aff=' + affCode : '';
   const { t } = useTranslation()
   const [redemptionCode, setRedemptionCode] = useState('')
   const [amounts, setAmounts] = useState<Record<string, string>>({})
@@ -163,6 +173,41 @@ function WalletPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Affiliate Code Card */}
+      {affCode && (
+        <Card className="w-full max-w-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Gift className="h-5 w-5 text-purple-600" />
+              {t('Invite Friends')}
+            </CardTitle>
+            <CardDescription>{t('Share your invite link and earn rewards')}</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label>{t('Your Invite Code')}</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2 rounded-lg bg-muted border text-sm font-mono">{affCode}</code>
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0"
+                  onClick={() => { navigator.clipboard.writeText(affCode); toast.success(t('Copied!')); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Invite Link')}</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2 rounded-lg bg-muted border text-xs font-mono break-all">{inviteLink}</code>
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0"
+                  onClick={() => { navigator.clipboard.writeText(inviteLink); toast.success(t('Copied!')); }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Redemption */}
       <Card className="w-full max-w-2xl">
