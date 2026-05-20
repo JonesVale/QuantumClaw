@@ -328,5 +328,9 @@
   "Select type": "タイプを選択",
   "Manage AI and Quantum computing channels": "AIモデルと量子コンピューティングチャネルを管理",
   "Add a new AI or Quantum computing provider channel": "新しいAIまたは量子コンピューティングプロバイダーチャンネルを追加",
-  "API Access": "API アクセス"
+  "API Access": "API アクセス",
+  "API Key Created": "APIキーを作成しました",
+  "Your API Key": "あなたのAPIキー",
+  "Quick Start": "クイックスタート",
+  "Done": "完了"
 }

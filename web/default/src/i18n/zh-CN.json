@@ -446,5 +446,9 @@
   "Select type": "选择类型",
   "Manage AI and Quantum computing channels": "管理 AI 大模型与量子算力渠道",
   "Add a new AI or Quantum computing provider channel": "添加新的 AI 大模型或量子算力供应商渠道",
-  "API Access": "API 接入地址"
+  "API Access": "API 接入地址",
+  "API Key Created": "API 密钥已创建",
+  "Your API Key": "您的 API 密钥",
+  "Quick Start": "快速开始",
+  "Done": "完成"
 }

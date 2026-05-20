@@ -55,6 +55,7 @@ function TokenFormDialog({
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const isEdit = !!token
+  const [newKey, setNewKey] = useState<string | null>(null)
   const [form, setForm] = useState<TokenFormData>({
     name: '',
     remain_quota: 500000,
@@ -73,8 +74,8 @@ function TokenFormDialog({
       toast.success(isEdit ? t('Token updated') : t('Token created'))
       queryClient.invalidateQueries({ queryKey: ['tokens'] })
       onOpenChange(false)
-      if (res?.data?.key) {
-        toast.info(t('Please save your API key, it will not be shown again'))
+      if (!isEdit && res?.data?.key) {
+        setNewKey(res.data.key)
       }
     },
     onError: () => toast.error(isEdit ? t('Failed to update token') : t('Failed to create token')),
@@ -90,61 +91,124 @@ function TokenFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? t('Edit Token') : t('Create Token')}</DialogTitle>
-          <DialogDescription>
-            {isEdit ? t('Update API key configuration') : t('Create a new API key')}
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label>{t('Token Name')}</Label>
-            <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder={t('e.g. Production API Key')}
-              required
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Switch
-              checked={form.unlimited_quota}
-              onCheckedChange={(v) => setForm({ ...form, unlimited_quota: v })}
-            />
-            <Label>{t('Unlimited Quota')}</Label>
-          </div>
-          {!form.unlimited_quota && (
+    <>
+      {/* 创建/编辑 Key 表单 Dialog */}
+      <Dialog open={open && !newKey} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{isEdit ? t('Edit Token') : t('Create Token')}</DialogTitle>
+            <DialogDescription>
+              {isEdit ? t('Update API key configuration') : t('Create a new API key')}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label>{t('Quota')}</Label>
+              <Label>{t('Token Name')}</Label>
               <Input
-                type="number"
-                value={form.remain_quota || ''}
-                onChange={(e) => setForm({ ...form, remain_quota: Number(e.target.value) })}
-                placeholder="500000"
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder={t('e.g. Production API Key')}
+                required
               />
             </div>
-          )}
-          <div className="space-y-2">
-            <Label>{t('Models')}</Label>
-            <Input
-              value={form.models}
-              onChange={(e) => setForm({ ...form, models: e.target.value })}
-              placeholder={t('Leave empty for all models')}
-            />
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={form.unlimited_quota}
+                onCheckedChange={(v) => setForm({ ...form, unlimited_quota: v })}
+              />
+              <Label>{t('Unlimited Quota')}</Label>
+            </div>
+            {!form.unlimited_quota && (
+              <div className="space-y-2">
+                <Label>{t('Quota')}</Label>
+                <Input
+                  type="number"
+                  value={form.remain_quota || ''}
+                  onChange={(e) => setForm({ ...form, remain_quota: Number(e.target.value) })}
+                  placeholder="500000"
+                />
+              </div>
+            )}
+            <div className="space-y-2">
+              <Label>{t('Models')}</Label>
+              <Input
+                value={form.models}
+                onChange={(e) => setForm({ ...form, models: e.target.value })}
+                placeholder={t('Leave empty for all models')}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {t('Cancel')}
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? t('Saving...') : isEdit ? t('Update') : t('Create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* 创建成功后展示 Key 的 Dialog — 开发者可直接复制 */}
+      <Dialog open={!!newKey} onOpenChange={(v) => { if (!v) setNewKey(null) }}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              {t('API Key Created')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('Please save your API key, it will not be shown again')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {/* Key 显示区 */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">{t('Your API Key')}</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2.5 rounded-lg bg-muted border text-sm font-mono break-all select-all">
+                  {newKey}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(newKey || '')
+                    toast.success(t('Copied to clipboard'))
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* 快速使用 — cURL 示例 */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">{t('Quick Start')}</Label>
+              <pre className="px-3 py-2.5 rounded-lg bg-muted border text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+{`# AI Chat
+curl ${window.location.origin}/v1/chat/completions \\
+  -H "Authorization: Bearer ${newKey?.slice(0, 12)}..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"hello"}]}'
+
+# Quantum Circuit
+curl -X POST ${window.location.origin}/v1/quantum/run \\
+  -H "Authorization: Bearer ${newKey?.slice(0, 12)}..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"backend":"ionq_harmony","shots":1000,"circuit":{"qubits":2,"gates":[{"name":"h","targets":[0]}]}}'`}
+              </pre>
+            </div>
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              {t('Cancel')}
-            </Button>
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? t('Saving...') : isEdit ? t('Update') : t('Create')}
+            <Button onClick={() => setNewKey(null)}>
+              {t('Done')}
             </Button>
           </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }
 

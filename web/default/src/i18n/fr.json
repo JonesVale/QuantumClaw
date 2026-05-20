@@ -328,5 +328,9 @@
   "Select type": "Sélectionner le type",
   "Manage AI and Quantum computing channels": "Gérer les canaux IA et de calcul quantique",
   "Add a new AI or Quantum computing provider channel": "Ajouter un nouveau canal IA ou de calcul quantique",
-  "API Access": "Accès API"
+  "API Access": "Accès API",
+  "API Key Created": "Clé API créée",
+  "Your API Key": "Votre clé API",
+  "Quick Start": "Démarrage rapide",
+  "Done": "Terminé"
 }
