@@ -17,8 +17,11 @@ import (
 // ── 免费模型提供商配置 ─────────────────────────────────────
 
 var (
-	freeChatGroqKey    = os.Getenv("GROQ_API_KEY")
-	freeChatDeepseekKey = os.Getenv("DEEPSEEK_API_KEY")
+	freeChatGroqKey        = os.Getenv("GROQ_API_KEY")
+	freeChatDeepseekKey    = os.Getenv("DEEPSEEK_API_KEY")
+	freeChatGeminiKey      = os.Getenv("GEMINI_API_KEY")
+	freeChatSiliconFlowKey = os.Getenv("SILICONFLOW_API_KEY")
+	freeChatMistralKey     = os.Getenv("MISTRAL_API_KEY")
 )
 
 type freeProvider struct {
@@ -50,6 +53,41 @@ var freeProviders = []freeProvider{
 		Models: []map[string]string{
 			{"id": "deepseek-chat", "name": "DeepSeek V3"},
 			{"id": "deepseek-reasoner", "name": "DeepSeek R1"},
+		},
+	},
+	{
+		Name:     "gemini",
+		Endpoint: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+		EnvKey:   "GEMINI_API_KEY",
+		APIKey:   freeChatGeminiKey,
+		Models: []map[string]string{
+			{"id": "gemini-2.5-flash-preview-04-17", "name": "Gemini 2.5 Flash"},
+			{"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
+			{"id": "gemini-2.0-flash-lite", "name": "Gemini 2.0 Flash Lite"},
+		},
+	},
+	{
+		Name:     "siliconflow",
+		Endpoint: "https://api.siliconflow.cn/v1/chat/completions",
+		EnvKey:   "SILICONFLOW_API_KEY",
+		APIKey:   freeChatSiliconFlowKey,
+		Models: []map[string]string{
+			{"id": "Qwen/Qwen2.5-72B-Instruct", "name": "Qwen 2.5 72B"},
+			{"id": "Qwen/Qwen2.5-32B-Instruct", "name": "Qwen 2.5 32B"},
+			{"id": "Qwen/Qwen2.5-7B-Instruct", "name": "Qwen 2.5 7B"},
+			{"id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek V3"},
+			{"id": "Pro/Qwen/Qwen2.5-7B-Instruct", "name": "Qwen 2.5 7B Pro"},
+		},
+	},
+	{
+		Name:     "mistral",
+		Endpoint: "https://api.mistral.ai/v1/chat/completions",
+		EnvKey:   "MISTRAL_API_KEY",
+		APIKey:   freeChatMistralKey,
+		Models: []map[string]string{
+			{"id": "mistral-small-latest", "name": "Mistral Small"},
+			{"id": "mistral-nemo-latest", "name": "Mistral Nemo"},
+			{"id": "open-mistral-nemo", "name": "Open Mistral Nemo"},
 		},
 	},
 }

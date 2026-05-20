@@ -33,6 +33,9 @@ services:
       # Free Chat (Groq)
       GROQ_API_KEY: "${GROQ_API_KEY:-}"
       DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      SILICONFLOW_API_KEY: "${SILICONFLOW_API_KEY:-}"
+      MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
       SESSION_SECRET: "${SESSION_SECRET:-6b198275ddf2427f8db24532723ec924d9497245c3374dbeb2fd3f799358f991}"
       THEME: "${THEME:-default}"
       # Initial root token
