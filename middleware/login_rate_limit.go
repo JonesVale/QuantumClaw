@@ -3,6 +3,7 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -12,6 +13,24 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 )
+
+// bodyCaptureWriter captures the response body for inspection in middleware
+type bodyCaptureWriter struct {
+	gin.ResponseWriter
+	body *bytes.Buffer
+}
+
+func (w *bodyCaptureWriter) Write(b []byte) (int, error) {
+	w.body.Write(b)
+	return w.ResponseWriter.Write(b)
+}
+
+func getResponseBody(c *gin.Context) []byte {
+	if bw, ok := c.Writer.(*bodyCaptureWriter); ok {
+		return bw.body.Bytes()
+	}
+	return nil
+}
 
 var (
 	loginAttempts sync.Map
@@ -29,6 +48,19 @@ func (p *accountMutexPool) Lock(key string) func() {
 }
 
 var accountMutexes accountMutexPool
+
+// ClearAllLoginLocks 清除所有登录锁定状态（由紧急重置触发时调用）
+func ClearAllLoginLocks() {
+	loginAttempts.Range(func(key, value interface{}) bool {
+		attempt := value.(*loginAttempt)
+		attempt.mu.Lock()
+		attempt.lockedUntil = time.Time{}
+		attempt.consecutiveFails = 0
+		attempt.count = 0
+		attempt.mu.Unlock()
+		return true
+	})
+}
 
 func loginLockKey(ip, username string) string {
 	return ip + ":" + strings.ToLower(username)
@@ -120,14 +152,31 @@ func LoginRateLimit() gin.HandlerFunc {
 		attempt.mu.Unlock()
 		unlock()
 
+		// Wrap response writer to capture body
+		blw := &bodyCaptureWriter{ResponseWriter: c.Writer, body: bytes.NewBuffer(nil)}
+		c.Writer = blw
+
 		c.Next()
 
 		// Post-response: track failures
 		unlock2 := accountMutexes.Lock(lockKey)
 		attempt.mu.Lock()
 
-		if c.Writer.Status() != http.StatusOK {
+		// Check response body for success field (login always returns 200 even on failure)
+		isFailure := true // default: treat as failure
+		respBody := getResponseBody(c)
+		if len(respBody) > 0 {
+			var resp struct {
+				Success bool `json:"success"`
+			}
+			if json.Unmarshal(respBody, &resp) == nil {
+				isFailure = !resp.Success
+			}
+		}
+
+		if isFailure {
 			attempt.consecutiveFails++
+			logger.Warn(c.Request.Context(), fmt.Sprintf("login failed (attempt %d): %s", attempt.consecutiveFails, lockKey))
 			if attempt.consecutiveFails >= 3 {
 				attempt.lockedUntil = now.Add(24 * time.Hour)
 				logger.Warn(c.Request.Context(), "login locked (3 consecutive failures, 24h): "+lockKey)
