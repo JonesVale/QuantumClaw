@@ -28,6 +28,11 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/azure"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/braket"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/ibmq"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/ionq"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/rigetti"
 	"github.com/quantumclaw/quantumclaw/relay/controller"
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
@@ -184,6 +189,20 @@ func TestChannel(c *gin.Context) {
 		})
 		return
 	}
+	// 量子渠道使用独立的测试逻辑
+	if channel.Type >= 100 {
+		tik := time.Now()
+		responseMessage, err := testQuantumChannel(ctx, channel)
+		tok := time.Now()
+		milliseconds := tok.Sub(tik).Milliseconds()
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error(), "time": float64(milliseconds) / 1000.0})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": responseMessage, "time": float64(milliseconds) / 1000.0})
+		return
+	}
+
 	modelName := c.Query("model")
 	testRequest := buildTestRequest(modelName)
 	tik := time.Now()
@@ -196,20 +215,10 @@ func TestChannel(c *gin.Context) {
 	go channel.UpdateResponseTime(milliseconds)
 	consumedTime := float64(milliseconds) / 1000.0
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success":   false,
-			"message":   err.Error(),
-			"time":      consumedTime,
-			"modelName": modelName,
-		})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error(), "time": consumedTime, "modelName": modelName})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"success":   true,
-		"message":   responseMessage,
-		"time":      consumedTime,
-		"modelName": modelName,
-	})
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": responseMessage, "time": consumedTime, "modelName": modelName})
 	return
 }
 
@@ -302,4 +311,58 @@ func AutomaticallyTestChannels(frequency int) {
 		_ = testChannels(ctx, false, "all")
 		logger.SysLog("channel test finished")
 	}
+}
+
+// testQuantumChannel 测试量子渠道连通性：列举可用量子后端
+func testQuantumChannel(ctx context.Context, channel *model.Channel) (string, error) {
+	qAdaptor, err := relay.GetQuantumAdaptor(channel.Type)
+	if err != nil {
+		return "", fmt.Errorf("quantum adaptor error: %w", err)
+	}
+
+	// 注入 API Key 和 BaseURL
+	switch a := qAdaptor.(type) {
+	case *ionq.Adaptor:
+		a.APIKey = channel.Key
+		baseURL := channel.GetBaseURL()
+		if baseURL == "" {
+			baseURL = "https://api.ionq.co"
+		}
+		a.BaseURL = baseURL
+	case *ibmq.Adaptor:
+		a.APIKey = channel.Key
+		baseURL := channel.GetBaseURL()
+		if baseURL == "" {
+			baseURL = "https://api.quantum.ibm.com"
+		}
+		a.BaseURL = baseURL
+	case *rigetti.Adaptor:
+		a.APIKey = channel.Key
+		baseURL := channel.GetBaseURL()
+		if baseURL == "" {
+			baseURL = "https://api.qcs.rigetti.com"
+		}
+		a.BaseURL = baseURL
+	case *braket.Adaptor:
+		a.APIKey = channel.Key
+		baseURL := channel.GetBaseURL()
+		if baseURL == "" {
+			baseURL = "https://braket.us-west-1.amazonaws.com"
+		}
+		a.BaseURL = baseURL
+	case *azure.Adaptor:
+		a.APIKey = channel.Key
+		baseURL := channel.GetBaseURL()
+		if baseURL == "" {
+			baseURL = "https://quantum.azure.com/api"
+		}
+		a.BaseURL = baseURL
+	}
+
+	// 列举后端以验证连通性
+	backends, err := qAdaptor.ListBackends(ctx)
+	if err != nil {
+		return "", fmt.Errorf("quantum test failed: %w", err)
+	}
+	return fmt.Sprintf("connected, backends: %s", strings.Join(backends, ", ")), nil
 }
