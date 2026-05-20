@@ -23,6 +23,25 @@ func GetAllChannels(c *gin.Context) {
 		})
 		return
 	}
+	// 支持 ?type_range=ai|quantum 过滤
+	typeRange := c.Query("type_range")
+	if typeRange == "quantum" {
+		filtered := make([]*model.Channel, 0, len(channels))
+		for _, ch := range channels {
+			if ch.Type >= 100 {
+				filtered = append(filtered, ch)
+			}
+		}
+		channels = filtered
+	} else if typeRange == "ai" {
+		filtered := make([]*model.Channel, 0, len(channels))
+		for _, ch := range channels {
+			if ch.Type < 100 {
+				filtered = append(filtered, ch)
+			}
+		}
+		channels = filtered
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

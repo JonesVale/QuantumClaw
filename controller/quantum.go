@@ -7,21 +7,25 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/quantumclaw/quantumclaw/common"
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/middleware"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay"
 	"github.com/quantumclaw/quantumclaw/relay/quantum"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/azure"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/braket"
 	"github.com/quantumclaw/quantumclaw/relay/quantum/ibmq"
 	"github.com/quantumclaw/quantumclaw/relay/quantum/ionq"
+	"github.com/quantumclaw/quantumclaw/relay/quantum/rigetti"
 	"github.com/quantumclaw/quantumclaw/relay/relaymode"
 	"github.com/quantumclaw/quantumclaw/service"
 )
 
-// QuantumRelay 统一量子控制器 — 提交/查询/取消/列举
+// QuantumRelay — 统一量子路由分发
 func QuantumRelay(c *gin.Context) {
 	relayMode := relaymode.GetByPath(c.Request.URL.Path)
-
 	switch relayMode {
 	case relaymode.QuantumRun:
 		quantumRunHandler(c)
@@ -36,35 +40,76 @@ func QuantumRelay(c *gin.Context) {
 	}
 }
 
+// quantumRunHandler — 提交量子任务，带自动重试
 func quantumRunHandler(c *gin.Context) {
 	channelType := c.GetInt(ctxkey.Channel)
+	channelID := c.GetInt(ctxkey.ChannelId)
 
+	result, apiErr := doQuantumRun(c, channelType, channelID)
+	if apiErr == nil {
+		if result.CostQuota > 0 {
+			recordQuantumConsumption(c, result)
+		}
+		c.JSON(http.StatusOK, result)
+		return
+	}
+
+	// 重试：按现有 AI relay 的模式
+	group := c.GetString(ctxkey.Group)
+	originalModel := c.GetString(ctxkey.OriginalModel)
+	retryTimes := config.RetryTimes
+	if retryTimes <= 0 {
+		retryTimes = 3
+	}
+
+	lastFailedChannelID := channelID
+	for i := retryTimes; i > 0; i-- {
+		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i != retryTimes)
+		if err != nil {
+			logger.Errorf(c.Request.Context(), "quantum retry: channel select failed: %v", err)
+			break
+		}
+		if channel.Id == lastFailedChannelID {
+			continue
+		}
+		middleware.SetupContextForSelectedChannel(c, channel, originalModel)
+
+		channelType = c.GetInt(ctxkey.Channel)
+		channelID = c.GetInt(ctxkey.ChannelId)
+		result, apiErr = doQuantumRun(c, channelType, channelID)
+		if apiErr == nil {
+			if result.CostQuota > 0 {
+				recordQuantumConsumption(c, result)
+			}
+			c.JSON(http.StatusOK, result)
+			return
+		}
+		lastFailedChannelID = channelID
+	}
+
+	c.JSON(http.StatusServiceUnavailable, gin.H{
+		"error": "all quantum channels failed, please try again later",
+	})
+}
+
+func doQuantumRun(c *gin.Context, channelType, channelID int) (*quantum.QuantumTaskResult, error) {
 	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
+		return nil, err
 	}
 
 	var req quantum.QuantumTaskRequest
 	if err := common.UnmarshalBodyReusable(c, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("invalid request: %v", err)})
-		return
+		return nil, fmt.Errorf("invalid request: %w", err)
 	}
 
 	setupAdaptorAuth(c, qAdaptor)
 
 	result, err := qAdaptor.RunTask(c.Request.Context(), &req)
 	if err != nil {
-		logger.Errorf(c.Request.Context(), "quantum run failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, err
 	}
-
-	if result.CostQuota > 0 {
-		recordQuantumConsumption(c, result)
-	}
-
-	c.JSON(http.StatusOK, result)
+	return result, nil
 }
 
 func quantumStatusHandler(c *gin.Context) {
@@ -124,20 +169,37 @@ func quantumBackendsHandler(c *gin.Context) {
 
 func setupAdaptorAuth(c *gin.Context, qa quantum.QuantumAdaptor) {
 	apiKey := extractAPIKey(c)
+	baseURL := c.GetString(ctxkey.BaseURL)
 
 	switch a := qa.(type) {
 	case *ionq.Adaptor:
 		a.APIKey = apiKey
-		baseURL := c.GetString(ctxkey.BaseURL)
 		if baseURL == "" {
 			baseURL = "https://api.ionq.co"
 		}
 		a.BaseURL = baseURL
 	case *ibmq.Adaptor:
 		a.APIKey = apiKey
-		baseURL := c.GetString(ctxkey.BaseURL)
 		if baseURL == "" {
 			baseURL = "https://api.quantum.ibm.com"
+		}
+		a.BaseURL = baseURL
+	case *rigetti.Adaptor:
+		a.APIKey = apiKey
+		if baseURL == "" {
+			baseURL = "https://api.qcs.rigetti.com"
+		}
+		a.BaseURL = baseURL
+	case *braket.Adaptor:
+		a.APIKey = apiKey
+		if baseURL == "" {
+			baseURL = "https://braket.us-west-1.amazonaws.com"
+		}
+		a.BaseURL = baseURL
+	case *azure.Adaptor:
+		a.APIKey = apiKey
+		if baseURL == "" {
+			baseURL = "https://quantum.azure.com/api"
 		}
 		a.BaseURL = baseURL
 	}
