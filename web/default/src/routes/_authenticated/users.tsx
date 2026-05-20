@@ -1,8 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
-import { Shield } from 'lucide-react';
-import { useAuthStore } from '@/stores/auth-store'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -13,8 +11,8 @@ import {
   Trash2,
   CheckCircle,
   XCircle,
-  Users,
   Shield,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -162,20 +160,6 @@ function UserFormDialog({
 }
 
 function UsersPage() {
-  const { auth } = useAuthStore();
-  const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
-  if (!isAdmin) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh] p-4">
-        <div className="text-center max-w-md">
-          <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You do not have permission to access this page.</p>
-        </div>
-      </div>
-    );
-  }
-
   const { auth } = useAuthStore();
   const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
   if (!isAdmin) {
