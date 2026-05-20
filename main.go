@@ -101,6 +101,9 @@ func main() {
 	// Initialize T_Languages translation tables (seed if empty)
 	model.InitLanguageTables()
 
+	// Initialize commission tables
+	model.InitCommissionTables()
+
 	var err error
 	err = model.CreateRootAccountIfNeed()
 	if err != nil {

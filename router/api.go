@@ -150,6 +150,23 @@ func SetApiRouter(router *gin.Engine) {
 			tokenRoute.POST("/", controller.AddToken)
 			tokenRoute.PUT("/", controller.UpdateToken)
 			tokenRoute.DELETE("/:id", controller.DeleteToken)
+
+		// Commission / Affiliate routes
+		commissionRoute := apiRouter.Group("/commission")
+		commissionRoute.Use(middleware.AdminAuth())
+		{
+			commissionRoute.GET("/setting", controller.GetCommissionSetting)
+			commissionRoute.PUT("/setting", controller.SaveCommissionSetting)
+			commissionRoute.GET("/withdrawals", controller.AdminGetWithdrawals)
+			commissionRoute.PUT("/withdrawals/:id/process", controller.AdminProcessWithdrawal)
+		}
+		selfCommRoute := apiRouter.Group("/commission")
+		selfCommRoute.Use(middleware.UserAuth())
+		{
+			selfCommRoute.GET("/self/records", controller.GetMyCommissionRecords)
+			selfCommRoute.GET("/self/withdrawals", controller.GetMyWithdrawals)
+			selfCommRoute.POST("/self/withdraw", controller.RequestWithdrawal)
+		}
 		}
 		redemptionRoute := apiRouter.Group("/redemption")
 		redemptionRoute.Use(middleware.AdminAuth())

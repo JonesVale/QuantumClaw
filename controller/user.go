@@ -16,6 +16,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"github.com/quantumclaw/quantumclaw/model"
+	"gorm.io/gorm"
 )
 
 type LoginRequest struct {
@@ -216,6 +217,24 @@ func Register(c *gin.Context) {
 			"message": err.Error(),
 		})
 		return
+	}
+
+	// 自动发放邀请注册奖励
+	if inviterId > 0 {
+		setting, _ := model.GetCommissionSetting()
+		if setting.Enabled && setting.RegisterReward > 0 {
+			model.CreateCommissionRecord(&model.CommissionRecord{
+				UserId:      inviterId,
+				FromUserId:  cleanUser.Id,
+				Type:        "register",
+				Amount:      setting.RegisterReward,
+				Status:      "settled",
+				Description: "好友注册奖励",
+			})
+			// 直接增加邀请人余额
+			model.DB.Model(&model.User{}).Where("id = ?", inviterId).
+				UpdateColumn("quota", gorm.Expr("quota + ?", setting.RegisterReward))
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

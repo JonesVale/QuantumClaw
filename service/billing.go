@@ -30,6 +30,11 @@ func UpdateUserUsedQuotaAndRequestCount(userId int, quota int64) {
 	if err != nil {
 		logger.SysError("failed to update user used quota: " + err.Error())
 	}
+
+	// Auto-reward inviter on consumption
+	if quota > 0 {
+		model.RewardInviterOnConsume(userId, quota)
+	}
 }
 
 func UpdateChannelUsedQuota(channelId int, quota int64) {
