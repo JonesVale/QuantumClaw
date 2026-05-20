@@ -22,5 +22,14 @@ const (
 	Replicate
 	Dify
 
-	Dummy // this one is only for count, do not add any channel after this
+	Dummy // this one is only for AI count, do not add AI channels after this
+
+	// ==================== 量子算力 API 类型 ====================
+	IONQ
+	IBMQ
+	RIGETTI
+	AWS_BRAKET
+	AZURE_QUANTUM
+	GOOGLE_QUANTUM
+	QUANTUM_DUMMY
 )

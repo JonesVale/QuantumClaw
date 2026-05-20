@@ -64,3 +64,14 @@ const (
 	ZhipuV4
 	Dummy
 )
+
+// ==================== 量子算力渠道 (type >= 100) ====================
+const (
+	IonQ         = 100
+	IBMQ         = 101
+	Rigetti      = 102
+	AWSBraket    = 103
+	AzureQuantum = 104
+	GoogleQuantum = 105
+	QuantumDummy = 106 // 用于 ChannelBaseURLs 长度检查
+)

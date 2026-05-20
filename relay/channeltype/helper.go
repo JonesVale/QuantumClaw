@@ -55,6 +55,20 @@ func ToAPIType(channelType int) int {
 
 	case Dify:
 		apiType = apitype.Dify
+
+	// ==================== 量子算力渠道映射 ====================
+	case IonQ:
+		apiType = apitype.IONQ
+	case IBMQ:
+		apiType = apitype.IBMQ
+	case Rigetti:
+		apiType = apitype.RIGETTI
+	case AWSBraket:
+		apiType = apitype.AWS_BRAKET
+	case AzureQuantum:
+		apiType = apitype.AZURE_QUANTUM
+	case GoogleQuantum:
+		apiType = apitype.GOOGLE_QUANTUM
 	}
 
 	return apiType

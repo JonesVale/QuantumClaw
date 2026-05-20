@@ -81,20 +81,42 @@ func TestToAPIType_OpenAICompatible(t *testing.T) {
 }
 
 func TestToAPIType_UnknownDefaultsToOpenAI(t *testing.T) {
-	// 未知 channelType 应默认返回 apitype.OpenAI（向后兼容）
+	// 未知 channelType（Dummy+1 到 IonQ-1 之间）应默认返回 apitype.OpenAI
 	// apitype.OpenAI = 0（iota 第一个值），所以返回值是 0 是正确的
-	dummy := Dummy
-	for i := 1; i <= 50; i++ { // 从 Dummy+1 开始，排除 Dummy（Dummy 是最后一个有效值）
-		channelType := dummy + i
-		got := ToAPIType(channelType)
+	for i := Dummy + 1; i < IonQ; i++ {
+		got := ToAPIType(i)
 		assert.Equal(t, apitype.OpenAI, got,
-			"ToAPIType(%d) 应返回 apitype.OpenAI(0)，实际得到 %d", channelType, got)
+			"ToAPIType(%d) 应返回 apitype.OpenAI(0)，实际得到 %d", i, got)
 	}
 }
 
 func TestToAPIType_DummyIsLastValid(t *testing.T) {
-	// Dummy 是最后一个有效 channelType，未在 switch 中显式处理
+	// Dummy 是最后一个 AI channelType sentinel，未在 switch 中显式处理
 	// 默认返回 apitype.OpenAI（向后兼容）
 	got := ToAPIType(Dummy)
 	assert.Equal(t, apitype.OpenAI, got, "Dummy 默认返回 OpenAI（向后兼容）")
+}
+
+func TestToAPIType_QuantumChannels(t *testing.T) {
+	tests := []struct {
+		name       string
+		channelType int
+		expected   int
+	}{
+		{"IonQ", IonQ, apitype.IONQ},
+		{"IBMQ", IBMQ, apitype.IBMQ},
+		{"Rigetti", Rigetti, apitype.RIGETTI},
+		{"AWSBraket", AWSBraket, apitype.AWS_BRAKET},
+		{"AzureQuantum", AzureQuantum, apitype.AZURE_QUANTUM},
+		{"GoogleQuantum", GoogleQuantum, apitype.GOOGLE_QUANTUM},
+		// QuantumDummy sentinel 不是有效渠道，回退到 OpenAI 默认值
+		{"QuantumDummy sentinel returns default", QuantumDummy, apitype.OpenAI},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := ToAPIType(tt.channelType)
+			assert.Equal(t, tt.expected, got, "ToAPIType(%d) = %d, want %d", tt.channelType, got, tt.expected)
+		})
+	}
 }
