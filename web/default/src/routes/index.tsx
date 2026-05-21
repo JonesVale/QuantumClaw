@@ -158,9 +158,9 @@ function HomePage() {
   const langName = LANGUAGES.find(l => l.code === currentLang)?.name || 'English'
 
   return (
-    <>
-      <nav className="bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800" style={{ height: 'clamp(44px, 7vh, 56px)' }}>
-        <div className="mx-auto flex items-center h-full justify-between" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+    <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
+      <nav className="shrink-0 border-b border-slate-200 dark:border-slate-800" style={{ height: 'clamp(44px, 7vh, 56px)' }}>
+        <div className="mx-auto flex items-center h-full justify-between w-full" style={{ maxWidth: '1800px', padding: '0 clamp(8px, 3vw, 32px)' }}>
           <Link to="/" className="flex items-center gap-x-1 shrink-0">
             <img src="/logo.webp" alt="" className="rounded-lg object-cover" style={{ width: 'clamp(24px, 3vw, 32px)', height: 'clamp(24px, 3vw, 32px)' }} />
             <span className="font-bold hidden sm:inline" style={{ fontSize: 'clamp(12px, 1.2vw, 14px)' }}>{t('QuantumClaw')}</span>
@@ -239,8 +239,8 @@ function HomePage() {
         )}
       </nav>
 
-      <main className="bg-white dark:bg-slate-950">
-        <div className="mx-auto" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+      <main className="flex-1">
+        <div className="mx-auto w-full" style={{ maxWidth: '1800px', padding: '0 clamp(8px, 3vw, 32px)' }}>
 
           {/* HERO */}
           <section style={{ paddingTop: 'clamp(24px, 5vw, 64px)', paddingBottom: 'clamp(24px, 5vw, 64px)' }}>
@@ -451,7 +451,7 @@ function HomePage() {
 
         {/* FOOTER */}
         <footer className="border-t border-slate-200 dark:border-slate-800">
-          <div className="mx-auto" style={{ maxWidth: 'min(96vw, 1800px)', padding: '0 clamp(8px, 3vw, 32px)' }}>
+          <div className="mx-auto w-full" style={{ maxWidth: '1800px', padding: '0 clamp(8px, 3vw, 32px)' }}>
             <div style={{ paddingTop: 'clamp(16px, 2vw, 32px)', paddingBottom: 'clamp(16px, 2vw, 32px)' }}>
               <div className="flex flex-col sm:flex-row items-center justify-between" style={{ gap: 'clamp(8px, 1.5vw, 16px)' }}>
                 <div className="flex items-center gap-2">
@@ -497,7 +497,7 @@ function HomePage() {
         </footer>
       <CustomerServiceFloating />
 			</main>
-    </>
+    </div>
   )
 }
 
