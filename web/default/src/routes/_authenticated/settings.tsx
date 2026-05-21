@@ -79,6 +79,10 @@ function SettingsPage() {
   const [binanceMerchantId, setBinanceMerchantId] = useState('')
   const [minTopUp, setMinTopUp] = useState('')
   const [cacheBillingRatio, setCacheBillingRatio] = useState('')
+const [commissionEnabled, setCommissionEnabled] = useState(false)
+const [commissionRate, setCommissionRate] = useState('')
+const [registerReward, setRegisterReward] = useState('')
+const [minWithdraw, setMinWithdraw] = useState('')
 
   // ── RateLimit ──
   const [globalApiRateLimit, setGlobalApiRateLimit] = useState('')
@@ -178,6 +182,10 @@ function SettingsPage() {
     setBinanceMerchantId(getOptionValue('BinanceMerchantId', ''))
     setMinTopUp(getOptionValue('MinTopUp', '1'))
     setCacheBillingRatio(getOptionValue('CacheBillingRatio', '1.0'))
+    setCommissionEnabled(getOptionValue('CommissionEnabled', 'false') === 'true')
+    setCommissionRate(getOptionValue('CommissionRate', '0.1'))
+    setRegisterReward(getOptionValue('RegisterReward', '0'))
+    setMinWithdraw(getOptionValue('MinWithdraw', '10000'))
 
     setGlobalApiRateLimit(getOptionValue('GlobalApiRateLimitNum', '480'))
     setGlobalWebRateLimit(getOptionValue('GlobalWebRateLimitNum', '240'))
@@ -468,6 +476,55 @@ function SettingsPage() {
                   qubits * shots * 0.001
                 </code>
               </div>
+            </div>
+
+            {/* Commission Settings */}
+            <div className="space-y-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-4 mt-4">
+              <h3 className="font-semibold flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                <DollarSign className="h-4 w-4" />
+                {t('Commission Settings')}
+              </h3>
+              <div className="flex flex-row items-center justify-between">
+                <div>
+                  <Label>{t('Enable Commission')}</Label>
+                  <p className="text-xs text-muted-foreground">{t('Enable referral commission rewards')}</p>
+                </div>
+                <Switch
+                  checked={commissionEnabled}
+                  onCheckedChange={setCommissionEnabled}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Consume Reward Rate')}</Label>
+                <Input
+                  value={commissionRate}
+                  onChange={(e) => setCommissionRate(e.target.value)}
+                  placeholder="0.1"
+                />
+                <p className="text-xs text-muted-foreground">{t('Percentage of consumption rewarded to inviter (0.1 = 10%)')}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Register Reward Quota')}</Label>
+                <Input
+                  value={registerReward}
+                  onChange={(e) => setRegisterReward(e.target.value)}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">{t('Fixed quota reward for new user registration')}</p>
+              </div>
+              <div className="space-y-2">
+                <Label>{t('Min Withdrawal Quota')}</Label>
+                <Input
+                  value={minWithdraw}
+                  onChange={(e) => setMinWithdraw(e.target.value)}
+                  placeholder="10000"
+                />
+                <p className="text-xs text-muted-foreground">{t('Minimum quota amount for withdrawal requests')}</p>
+              </div>
+              <Button size="sm" className="mt-2" onClick={() => handleSave({ CommissionEnabled: String(commissionEnabled), CommissionRate: commissionRate || '0.1', RegisterReward: registerReward || '0', MinWithdraw: minWithdraw || '10000' })} disabled={saveMutation.isPending}>
+                <Save className="h-4 w-4 mr-1" />
+                {saveMutation.isPending ? t('Saving...') : t('Save Commission')}
+              </Button>
             </div>
           </div>
 

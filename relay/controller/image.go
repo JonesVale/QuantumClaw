@@ -2,7 +2,6 @@
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,9 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/quantumclaw/quantumclaw/common"
-	"github.com/quantumclaw/quantumclaw/common/ctxkey"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
@@ -171,19 +168,16 @@ func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	modelRatio := billingratio.GetModelRatio(imageModel, meta.ChannelType)
 	groupRatio := billingratio.GetGroupRatio(meta.Group)
 	ratio := modelRatio * groupRatio
-	userQuota, err := model.CacheGetUserQuota(ctx, meta.UserId)
 
-	var quota int64
-	switch meta.ChannelType {
-	case channeltype.Replicate:
-		// replicate always return 1 image
-		quota = int64(ratio * imageCostRatio * 1000)
-	default:
-		quota = int64(ratio*imageCostRatio*1000) * int64(imageRequest.N)
+	// 现金计费：预检查余额
+	estimatedQuota := int64(ratio * imageCostRatio * 1000)
+	if meta.ChannelType != channeltype.Replicate {
+		estimatedQuota *= int64(imageRequest.N)
 	}
-
-	if userQuota-quota < 0 {
-		return openai.ErrorWrapper(errors.New("user quota is not enough"), "insufficient_user_quota", http.StatusForbidden)
+	if _, bizErr := preConsumeBalance(ctx, &relaymodel.GeneralOpenAIRequest{Model: imageModel},
+		int(estimatedQuota), ratio, meta); bizErr != nil {
+		logger.Warnf(ctx, "preConsumeBalance failed: %+v", *bizErr)
+		return bizErr
 	}
 
 	// do request
@@ -192,47 +186,20 @@ func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 		logger.Errorf(ctx, "DoRequest failed: %s", err.Error())
 		return openai.ErrorWrapper(err, "do_request_failed", http.StatusInternalServerError)
 	}
-
-	defer func(ctx context.Context) {
-		if resp != nil &&
-			resp.StatusCode != http.StatusCreated && // replicate returns 201
-			resp.StatusCode != http.StatusOK {
-			return
-		}
-
-		err := model.PostConsumeTokenQuota(meta.TokenId, quota)
-		if err != nil {
-			logger.SysError("error consuming token remain quota: " + err.Error())
-		}
-		err = model.CacheUpdateUserQuota(ctx, meta.UserId)
-		if err != nil {
-			logger.SysError("error update user quota cache: " + err.Error())
-		}
-		if quota != 0 {
-			tokenName := c.GetString(ctxkey.TokenName)
-			logContent := fmt.Sprintf("倍率：%.2f × %.2f", modelRatio, groupRatio)
-			model.RecordConsumeLog(ctx, &model.Log{
-				UserId:           meta.UserId,
-				ChannelId:        meta.ChannelId,
-				PromptTokens:     0,
-				CompletionTokens: 0,
-				ModelName:        imageRequest.Model,
-				TokenName:        tokenName,
-				Quota:            int(quota),
-				Content:          logContent,
-			})
-			model.UpdateUserUsedQuotaAndRequestCount(meta.UserId, quota)
-			channelId := c.GetInt(ctxkey.ChannelId)
-			model.UpdateChannelUsedQuota(channelId, quota)
-		}
-	}(c.Request.Context())
+	if isErrorHappened(meta, resp) {
+		return RelayErrorHandler(resp)
+	}
 
 	// do response
-	_, respErr := adaptor.DoResponse(c, resp, meta)
+	usage, respErr := adaptor.DoResponse(c, resp, meta)
 	if respErr != nil {
 		logger.Errorf(ctx, "respErr is not nil: %+v", respErr)
 		return respErr
 	}
 
+	// 成功后现金扣款 + 分账
+	postConsumeDeduct(c.Request.Context(), usage, meta,
+		&relaymodel.GeneralOpenAIRequest{Model: imageModel},
+		ratio, 0, modelRatio, groupRatio, false)
 	return nil
 }

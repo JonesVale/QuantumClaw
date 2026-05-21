@@ -118,13 +118,15 @@ var TurnstileSecretKey = ""
 var QuotaForNewUser int64 = 0
 var QuotaForInviter int64 = 0
 var QuotaForInvitee int64 = 0
+var NewUserTrialBalance int64 = 100 // 新用户注册赠送试用金（分），默认 ¥1
+var PlatformCommissionRate = 1.0   // 平台交易抽成（%），默认 1%
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false
 var QuotaRemindThreshold int64 = 1000
 var PreConsumedQuota int64 = 500
 var ApproximateTokenEnabled = false
-var RetryTimes = 0
+var RetryTimes = 2
 
 var RootUserEmail = ""
 
@@ -196,7 +198,7 @@ var (
 
 var RateLimitKeyExpirationDuration = 20 * time.Minute
 
-var EnableMetric = env.Bool("ENABLE_METRIC", false)
+var EnableMetric = env.Bool("ENABLE_METRIC", true)
 var MetricQueueSize = env.Int("METRIC_QUEUE_SIZE", 10)
 var MetricSuccessRateThreshold = env.Float64("METRIC_SUCCESS_RATE_THRESHOLD", 0.8)
 var MetricSuccessChanSize = env.Int("METRIC_SUCCESS_CHAN_SIZE", 1024)

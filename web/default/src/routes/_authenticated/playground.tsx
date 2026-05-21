@@ -30,7 +30,7 @@ function PlaygroundPage() {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
-  const [model, setModel] = useState('')
+  const [model, setModel] = useState('auto')
   const [streaming, setStreaming] = useState(false)
   const abortRef = useRef<AbortController | null>(null)
 
@@ -131,9 +131,11 @@ function PlaygroundPage() {
   const models: ModelInfo[] = modelsData?.data || []
   const modelNames = [...new Set(models.map((m) => m.name))]
 
+  const resolvedModel = model === 'auto' ? (modelNames[0] || 'gpt-3.5-turbo') : model
+
   useEffect(() => {
-    if (!model && modelNames.length > 0) {
-      setModel(modelNames[0])
+    if (model === 'auto' && modelNames.length > 0) {
+      // auto mode selected, first model will be used
     }
   }, [modelNames, model])
 
@@ -167,7 +169,7 @@ function PlaygroundPage() {
         method: 'POST',
         headers,
         body: JSON.stringify({
-          model: model || 'gpt-3.5-turbo',
+          model: resolvedModel,
           messages: [...messages, userMsg].map((m) => ({
             role: m.role,
             content: m.content,
@@ -258,6 +260,10 @@ function PlaygroundPage() {
             <SelectValue placeholder={t('Select model')} />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="auto" className="font-semibold text-blue-600 dark:text-blue-400">
+              🤖 {t('Auto')} - {modelNames.length > 0 ? modelNames[0] : t('No models')}
+            </SelectItem>
+            <div className="px-2 py-1 text-xs text-muted-foreground border-t border-b">{t('Available Models')}</div>
             {modelNames.map((name) => (
               <SelectItem key={name} value={name}>
                 {name}

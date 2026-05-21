@@ -60,7 +60,7 @@ func GetMyCommissionRecords(c *gin.Context) {
 // GetMyWithdrawals — 获取我的提现记录
 func GetMyWithdrawals(c *gin.Context) {
 	userId := c.GetInt(ctxkey.Id)
-	ws, err := model.GetWithdrawalsByUser(userId)
+	ws, err := model.GetWithdrawalByUser(userId, 50)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
@@ -107,12 +107,14 @@ func RequestWithdrawal(c *gin.Context) {
 // AdminGetWithdrawals — 管理员查看所有提现
 func AdminGetWithdrawals(c *gin.Context) {
 	status := c.Query("status")
-	ws, err := model.GetAllWithdrawals(status)
+	page, _ := strconv.Atoi(c.DefaultQuery("page", "0"))
+	pageSize, _ := strconv.Atoi(c.DefaultQuery("page_size", "20"))
+	ws, total, err := model.GetAllWithdrawals(status, page, pageSize)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": ws})
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": ws, "total": total, "page": page})
 }
 
 // AdminProcessWithdrawal — 管理员处理提现
@@ -124,14 +126,25 @@ func AdminProcessWithdrawal(c *gin.Context) {
 		return
 	}
 	var req struct {
-		Status string `json:"status"`
+		Action string `json:"action"`
 		Remark string `json:"remark"`
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid request"})
 		return
 	}
-	if err := model.ProcessWithdrawal(id, req.Status, req.Remark); err != nil {
+	switch req.Action {
+	case "approve":
+		err = model.ApproveWithdrawal(id, req.Remark)
+	case "reject":
+		err = model.RejectWithdrawal(id, req.Remark)
+	case "complete":
+		err = model.CompleteWithdrawal(id, req.Remark)
+	default:
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid action"})
+		return
+	}
+	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}

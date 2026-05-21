@@ -367,5 +367,11 @@
   "Superconducting qubit quantum processors": "Processeurs quantiques à qubits supraconducteurs",
   "Hybrid quantum-classical computing platform": "Plateforme de calcul hybride quantique-classique",
   "Cloud quantum computing service by AWS": "Service de calcul quantique cloud par AWS",
-  "Microsoft quantum computing ecosystem": "Écosystème de calcul quantique Microsoft"
+  "Microsoft quantum computing ecosystem": "Écosystème de calcul quantique Microsoft",
+  "Cash Balance": "Solde",
+  "Withdraw": "Retirer",
+  "Become a Provider": "Devenir fournisseur",
+  "Upgrade Now": "Mettre à niveau",
+  "Cost Per Unit": "Coût unitaire",
+  "Balance History": "Historique des soldes"
 }

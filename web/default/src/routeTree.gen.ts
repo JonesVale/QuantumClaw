@@ -17,6 +17,7 @@ import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedRedemptionRouteImport } from './routes/_authenticated/redemption'
+import { Route as AuthenticatedProfitRouteImport } from './routes/_authenticated/profit'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlaygroundRouteImport } from './routes/_authenticated/playground'
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
@@ -25,11 +26,13 @@ import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authentic
 import { Route as AuthenticatedModelsRouteImport } from './routes/_authenticated/models'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedKeysRouteImport } from './routes/_authenticated/keys'
+import { Route as AuthenticatedDistributorsRouteImport } from './routes/_authenticated/distributors'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedChannelsRouteImport } from './routes/_authenticated/channels'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
+import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin-tools'
 import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authSetupRouteImport } from './routes/(auth)/setup'
@@ -75,6 +78,11 @@ const AuthenticatedRedemptionRoute = AuthenticatedRedemptionRouteImport.update({
   path: '/redemption',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProfitRoute = AuthenticatedProfitRouteImport.update({
+  id: '/profit',
+  path: '/profit',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -115,6 +123,12 @@ const AuthenticatedKeysRoute = AuthenticatedKeysRouteImport.update({
   path: '/keys',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedDistributorsRoute =
+  AuthenticatedDistributorsRouteImport.update({
+    id: '/distributors',
+    path: '/distributors',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -138,6 +152,11 @@ const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
 const AuthenticatedApiDocsRoute = AuthenticatedApiDocsRouteImport.update({
   id: '/api-docs',
   path: '/api-docs',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminToolsRoute = AuthenticatedAdminToolsRouteImport.update({
+  id: '/admin-tools',
+  path: '/admin-tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
@@ -167,11 +186,13 @@ export interface FileRoutesByFullPath {
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
+  '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/channels': typeof AuthenticatedChannelsRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/distributors': typeof AuthenticatedDistributorsRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/models': typeof AuthenticatedModelsRoute
@@ -180,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/not-found': typeof AuthenticatedNotFoundRoute
   '/playground': typeof AuthenticatedPlaygroundRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/profit': typeof AuthenticatedProfitRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
@@ -193,11 +215,13 @@ export interface FileRoutesByTo {
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
+  '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
   '/channels': typeof AuthenticatedChannelsRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/distributors': typeof AuthenticatedDistributorsRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/models': typeof AuthenticatedModelsRoute
@@ -206,6 +230,7 @@ export interface FileRoutesByTo {
   '/not-found': typeof AuthenticatedNotFoundRoute
   '/playground': typeof AuthenticatedPlaygroundRoute
   '/profile': typeof AuthenticatedProfileRoute
+  '/profit': typeof AuthenticatedProfitRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
@@ -221,11 +246,13 @@ export interface FileRoutesById {
   '/(auth)/setup': typeof authSetupRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
   '/_authenticated/channels': typeof AuthenticatedChannelsRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/distributors': typeof AuthenticatedDistributorsRoute
   '/_authenticated/keys': typeof AuthenticatedKeysRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
   '/_authenticated/models': typeof AuthenticatedModelsRoute
@@ -234,6 +261,7 @@ export interface FileRoutesById {
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
   '/_authenticated/playground': typeof AuthenticatedPlaygroundRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
+  '/_authenticated/profit': typeof AuthenticatedProfitRoute
   '/_authenticated/redemption': typeof AuthenticatedRedemptionRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
@@ -249,11 +277,13 @@ export interface FileRouteTypes {
     | '/setup'
     | '/sign-in'
     | '/about'
+    | '/admin-tools'
     | '/api-docs'
     | '/billing'
     | '/channels'
     | '/checkin'
     | '/dashboard'
+    | '/distributors'
     | '/keys'
     | '/logs'
     | '/models'
@@ -262,6 +292,7 @@ export interface FileRouteTypes {
     | '/not-found'
     | '/playground'
     | '/profile'
+    | '/profit'
     | '/redemption'
     | '/settings'
     | '/subscription'
@@ -275,11 +306,13 @@ export interface FileRouteTypes {
     | '/setup'
     | '/sign-in'
     | '/about'
+    | '/admin-tools'
     | '/api-docs'
     | '/billing'
     | '/channels'
     | '/checkin'
     | '/dashboard'
+    | '/distributors'
     | '/keys'
     | '/logs'
     | '/models'
@@ -288,6 +321,7 @@ export interface FileRouteTypes {
     | '/not-found'
     | '/playground'
     | '/profile'
+    | '/profit'
     | '/redemption'
     | '/settings'
     | '/subscription'
@@ -302,11 +336,13 @@ export interface FileRouteTypes {
     | '/(auth)/setup'
     | '/(auth)/sign-in'
     | '/_authenticated/about'
+    | '/_authenticated/admin-tools'
     | '/_authenticated/api-docs'
     | '/_authenticated/billing'
     | '/_authenticated/channels'
     | '/_authenticated/checkin'
     | '/_authenticated/dashboard'
+    | '/_authenticated/distributors'
     | '/_authenticated/keys'
     | '/_authenticated/logs'
     | '/_authenticated/models'
@@ -315,6 +351,7 @@ export interface FileRouteTypes {
     | '/_authenticated/not-found'
     | '/_authenticated/playground'
     | '/_authenticated/profile'
+    | '/_authenticated/profit'
     | '/_authenticated/redemption'
     | '/_authenticated/settings'
     | '/_authenticated/subscription'
@@ -389,6 +426,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRedemptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/profit': {
+      id: '/_authenticated/profit'
+      path: '/profit'
+      fullPath: '/profit'
+      preLoaderRoute: typeof AuthenticatedProfitRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -445,6 +489,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedKeysRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/distributors': {
+      id: '/_authenticated/distributors'
+      path: '/distributors'
+      fullPath: '/distributors'
+      preLoaderRoute: typeof AuthenticatedDistributorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dashboard': {
       id: '/_authenticated/dashboard'
       path: '/dashboard'
@@ -480,6 +531,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApiDocsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-tools': {
+      id: '/_authenticated/admin-tools'
+      path: '/admin-tools'
+      fullPath: '/admin-tools'
+      preLoaderRoute: typeof AuthenticatedAdminToolsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/about': {
       id: '/_authenticated/about'
       path: '/about'
@@ -513,11 +571,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
   AuthenticatedChannelsRoute: typeof AuthenticatedChannelsRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedDistributorsRoute: typeof AuthenticatedDistributorsRoute
   AuthenticatedKeysRoute: typeof AuthenticatedKeysRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
   AuthenticatedModelsRoute: typeof AuthenticatedModelsRoute
@@ -526,6 +586,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
   AuthenticatedPlaygroundRoute: typeof AuthenticatedPlaygroundRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedProfitRoute: typeof AuthenticatedProfitRoute
   AuthenticatedRedemptionRoute: typeof AuthenticatedRedemptionRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
@@ -536,11 +597,13 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
   AuthenticatedChannelsRoute: AuthenticatedChannelsRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedDistributorsRoute: AuthenticatedDistributorsRoute,
   AuthenticatedKeysRoute: AuthenticatedKeysRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
   AuthenticatedModelsRoute: AuthenticatedModelsRoute,
@@ -549,6 +612,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
   AuthenticatedPlaygroundRoute: AuthenticatedPlaygroundRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedProfitRoute: AuthenticatedProfitRoute,
   AuthenticatedRedemptionRoute: AuthenticatedRedemptionRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,

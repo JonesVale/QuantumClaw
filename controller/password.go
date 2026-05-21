@@ -126,7 +126,7 @@ func EmergencyPasswordReset(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "failed to hash password"})
 		return
 	}
-	model.DB.Model(&adminUser).Update("password", hashed)
+	model.DB.Model(&model.User{}).Where("id = ?", adminUser.Id).Update("password", hashed)
 
 	// 清除所有登录锁定状态
 	middleware.ClearAllLoginLocks()

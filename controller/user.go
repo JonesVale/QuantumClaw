@@ -237,10 +237,19 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"message": "",
-	})
+	trialBalance := config.NewUserTrialBalance
+	if trialBalance > 0 {
+		c.JSON(http.StatusOK, gin.H{
+			"success":       true,
+			"message":       "",
+			"trial_balance": trialBalance,
+		})
+	} else {
+		c.JSON(http.StatusOK, gin.H{
+			"success": true,
+			"message": "",
+		})
+	}
 	return
 }
 
@@ -352,7 +361,8 @@ func GenerateAccessToken(c *gin.Context) {
 		})
 		return
 	}
-	user.AccessToken = random.GetUUID()
+	rawToken := random.GetUUID()
+	user.AccessToken = common.SHA256Hash(rawToken)
 
 	if model.DB.Where("access_token = ?", user.AccessToken).First(user).RowsAffected != 0 {
 		c.JSON(http.StatusOK, gin.H{
@@ -373,7 +383,7 @@ func GenerateAccessToken(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    user.AccessToken,
+		"data":    rawToken,
 	})
 	return
 }
@@ -873,4 +883,35 @@ func AdminTopUp(c *gin.Context) {
 		"message": "",
 	})
 	return
+}
+
+// UpgradeToProvider 升级为渠道商
+func UpgradeToProvider(c *gin.Context) {
+	userId := c.GetInt("id")
+
+	// 检查当前用户类型
+	user, err := model.GetUserById(userId, false)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户不存在"})
+		return
+	}
+	if user.UserType == model.UserTypeProvider {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "已是渠道商，无需重复升级"})
+		return
+	}
+
+	// 升级为渠道商
+	if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
+		Update("user_type", model.UserTypeProvider).Error; err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "升级失败"})
+		return
+	}
+
+	// 系统日志
+	model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "用户升级为渠道商")
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "升级成功，您现在可以添加 API 渠道了",
+	})
 }

@@ -109,6 +109,12 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/notifications/unread_count", controller.GetUnreadNotificationCount)
 				selfRoute.PUT("/notifications/:id/read", controller.MarkNotificationRead)
 				selfRoute.PUT("/notifications/read_all", controller.MarkAllNotificationsRead)
+				selfRoute.GET("/balance", controller.GetSelfBalance)
+				selfRoute.POST("/upgrade", controller.UpgradeToProvider)
+				selfRoute.POST("/withdraw", controller.SubmitWithdrawal)
+				selfRoute.GET("/withdraw/list", controller.GetMyWithdrawals)
+				selfRoute.GET("/withdraw/available", controller.GetMyWithdrawable)
+				selfRoute.GET("/withdraw/earnings", controller.GetMyEarningsByChannel)
 			}
 
 			adminRoute := userRoute.Group("/")
@@ -121,6 +127,12 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.POST("/manage", controller.ManageUser)
 				adminRoute.PUT("/", controller.UpdateUser)
 				adminRoute.DELETE("/:id", controller.DeleteUser)
+				adminRoute.POST("/add_balance", controller.AdminAddBalance)
+				adminRoute.GET("/balance/:id", controller.GetUserBalanceByAdmin)
+				adminRoute.GET("/withdrawals", controller.AdminGetWithdrawals)
+				adminRoute.POST("/withdrawals/:id/approve", controller.AdminApproveWithdrawal)
+				adminRoute.POST("/withdrawals/:id/reject", controller.AdminRejectWithdrawal)
+				adminRoute.POST("/withdrawals/:id/complete", controller.AdminCompleteWithdrawal)
 			}
 		}
 		optionRoute := apiRouter.Group("/option")
@@ -129,23 +141,31 @@ func SetApiRouter(router *gin.Engine) {
 			optionRoute.GET("/", controller.GetOptions)
 			optionRoute.PUT("/", controller.UpdateOption)
 		}
-		channelRoute := apiRouter.Group("/channel")
-		channelRoute.Use(middleware.AdminAuth())
+		// 供应商渠道管理（所有登录用户可管理自己的渠道）
+		channelUserRoute := apiRouter.Group("/channel")
+		channelUserRoute.Use(middleware.UserAuth())
 		{
-			channelRoute.GET("/", controller.GetAllChannels)
-			channelRoute.GET("/types", controller.GetChannelTypes)
-			channelRoute.GET("/search", controller.SearchChannels)
-			channelRoute.GET("/models", controller.ListAllModels)
-			channelRoute.GET("/:id", controller.GetChannel)
-			channelRoute.GET("/test", controller.TestChannels)
-			channelRoute.GET("/test/:id", controller.TestChannel)
-			channelRoute.GET("/update_balance", controller.UpdateAllChannelsBalance)
-			channelRoute.GET("/update_balance/:id", controller.UpdateChannelBalance)
-			channelRoute.GET("/profit", controller.GetChannelProfit)
-			channelRoute.POST("/", controller.AddChannel)
-			channelRoute.PUT("/", controller.UpdateChannel)
-			channelRoute.DELETE("/disabled", controller.DeleteDisabledChannel)
-			channelRoute.DELETE("/:id", controller.DeleteChannel)
+			channelUserRoute.GET("/", controller.GetAllChannels)
+			channelUserRoute.GET("/types", controller.GetChannelTypes)
+			channelUserRoute.GET("/search", controller.SearchChannels)
+			channelUserRoute.GET("/models", controller.ListAllModels)
+			channelUserRoute.GET("/:id", controller.GetChannel)
+			channelUserRoute.POST("/", controller.AddChannel)
+			channelUserRoute.PUT("/", controller.UpdateChannel)
+			channelUserRoute.DELETE("/:id", controller.DeleteChannel)
+		}
+		// 渠道管理维护（管理员）
+		channelAdminRoute := apiRouter.Group("/channel")
+		channelAdminRoute.Use(middleware.AdminAuth())
+		{
+			channelAdminRoute.GET("/test", controller.TestChannels)
+			channelAdminRoute.GET("/test/:id", controller.TestChannel)
+			channelAdminRoute.GET("/update_balance", controller.UpdateAllChannelsBalance)
+			channelAdminRoute.GET("/update_balance/:id", controller.UpdateChannelBalance)
+			channelAdminRoute.GET("/profit", controller.GetChannelProfit)
+			channelAdminRoute.POST("/pricing", controller.SetChannelPricing)
+			channelAdminRoute.POST("/category", controller.SetChannelCategory)
+			channelAdminRoute.DELETE("/disabled", controller.DeleteDisabledChannel)
 		}
 		tokenRoute := apiRouter.Group("/token")
 		{

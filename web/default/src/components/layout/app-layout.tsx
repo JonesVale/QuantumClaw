@@ -12,7 +12,7 @@
 
 
 
-import { Suspense, useCallback, useMemo } from 'react'
+import { Suspense, useCallback, useMemo, useState, useEffect } from 'react'
 
 import { Link, Outlet, useLocation, useRouter } from '@tanstack/react-router'
 
@@ -77,6 +77,9 @@ import {
   Newspaper,
   Activity,
   BookOpen,
+  TrendingUp,
+  Truck,
+  Wrench,
 
 } from 'lucide-react'
 
@@ -116,8 +119,6 @@ import { signOut } from '@/lib/api-extended'
 
 import { cn } from '@/lib/utils'
 import { CustomerServiceFloating } from '@/components/customer-service'
-
-import { useState } from 'react'
 
 import i18next from 'i18next'
 
@@ -160,9 +161,12 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs' },
 
   { path: '/redemption', icon: Ticket, labelKey: 'Redemption Codes', adminOnly: true },
+  { path: '/distributors', icon: Truck, labelKey: 'Distributors', adminOnly: true },
+  { path: '/admin-tools', icon: Wrench, labelKey: 'Admin Tools', adminOnly: true },
 
   { path: '/playground', icon: MessageSquare, labelKey: 'Playground' },
   { path: '/monitoring', icon: Activity, labelKey: 'Monitoring' },
+  { path: '/profit', icon: TrendingUp, labelKey: 'Channel Profit', adminOnly: true },
   { path: '/news', icon: Newspaper, labelKey: 'AI News' },
 
 ]
@@ -209,6 +213,8 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   const { auth } = useAuthStore()
 
   const isAdmin = auth.user?.role === 100
+
+
 
 
 
@@ -557,19 +563,12 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
         {/* Notifications */}
 
         <Tooltip delayDuration={0}>
-
           <TooltipTrigger asChild>
-
             <Button variant="ghost" size="icon">
-
               <Bell className="h-4 w-4" />
-
             </Button>
-
           </TooltipTrigger>
-
           <TooltipContent>{t('Notifications')}</TooltipContent>
-
         </Tooltip>
 
         {/* Language Toggle */}

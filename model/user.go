@@ -29,6 +29,11 @@ const (
 	UserStatusDeleted  = 3
 )
 
+const (
+	UserTypeConsumer = "consumer" // 普通消费用户
+	UserTypeProvider = "provider" // 渠道商
+)
+
 // User if you add sensitive fields, don't forget to clean them in setupLogin function.
 // Otherwise, the sensitive information will be saved on local storage in plain text!
 type User struct {
@@ -48,13 +53,15 @@ type User struct {
 	TelegramId       string `json:"telegram_id" gorm:"column:telegram_id;index"`
 	CustomOAuthId    string `json:"custom_oauth_id" gorm:"column:custom_oauth_id;index"` // 格式: providerName:externalId
 	VerificationCode string `json:"verification_code" gorm:"-:all"`                                    // this field is only for Email verification, don't save it to database!
-	AccessToken      string `json:"access_token" gorm:"type:char(32);column:access_token;uniqueIndex"` // this token is for system management
+	AccessToken      string `json:"access_token" gorm:"type:char(64);column:access_token;uniqueIndex"` // SHA-256 哈希，非明文
 	Quota            int64  `json:"quota" gorm:"bigint;default:0"`
 	UsedQuota        int64  `json:"used_quota" gorm:"bigint;default:0;column:used_quota"` // used quota
+	CashBalance      int64  `json:"cash_balance" gorm:"bigint;default:0;column:cash_balance"` // 现金余额，单位：分
 	RequestCount     int    `json:"request_count" gorm:"type:int;default:0;"`             // request number
 	Group            string `json:"group" gorm:"type:varchar(32);default:'default'"`
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
 	InviterId        int    `json:"inviter_id" gorm:"type:int;column:inviter_id;index"`
+	UserType         string `json:"user_type" gorm:"type:varchar(20);default:'consumer'"` // consumer=普通用户 provider=渠道商
 }
 
 func CountUsers() (int64, error) {
@@ -145,7 +152,8 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 		}
 	}
 	user.Quota = config.QuotaForNewUser
-	user.AccessToken = random.GetUUID()
+	rawToken := random.GetUUID()
+	user.AccessToken = common.SHA256Hash(rawToken)
 	user.AffCode = random.GetRandomString(4)
 	result := DB.Create(user)
 	if result.Error != nil {
@@ -164,7 +172,12 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 			RecordLog(ctx, inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", common.LogQuota(config.QuotaForInviter)))
 		}
 	}
-	// create default token
+	// 赠送新用户试用金
+	if config.NewUserTrialBalance > 0 {
+		user.CashBalance = config.NewUserTrialBalance
+		RecordLog(ctx, user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送试用金 %d 分", config.NewUserTrialBalance))
+	}
+	// create default token (有限额度，不再 Unlimited)
 	cleanToken := Token{
 		UserId:         user.Id,
 		Name:           "default",
@@ -172,8 +185,8 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 		CreatedTime:    helper.GetTimestamp(),
 		AccessedTime:   helper.GetTimestamp(),
 		ExpiredTime:    -1,
-		RemainQuota:    -1,
-		UnlimitedQuota: true,
+		RemainQuota:    0,
+		UnlimitedQuota: false,
 	}
 	result.Error = cleanToken.Insert()
 	if result.Error != nil {
@@ -394,8 +407,9 @@ func ValidateAccessToken(token string) (user *User) {
 		return nil
 	}
 	token = strings.Replace(token, "Bearer ", "", 1)
+	tokenHash := common.SHA256Hash(token)
 	user = &User{}
-	if DB.Where("access_token = ?", token).First(user).RowsAffected == 1 {
+	if DB.Where("access_token = ?", tokenHash).First(user).RowsAffected == 1 {
 		return user
 	}
 	return nil
@@ -505,4 +519,26 @@ func updateUserRequestCount(id int, count int) {
 func GetUsernameById(id int) (username string) {
 	DB.Model(&User{}).Where("id = ?", id).Select("username").Find(&username)
 	return username
+}
+
+// ==================== 现金余额操作 ====================
+
+func GetUserCashBalance(id int) (int64, error) {
+	var balance int64
+	err := DB.Model(&User{}).Where("id = ?", id).Select("cash_balance").Find(&balance).Error
+	return balance, err
+}
+
+func PlusUserCashBalance(id int, amount int64) error {
+	if amount < 0 {
+		return errors.New("amount 不能为负数")
+	}
+	return DB.Model(&User{}).Where("id = ?", id).Update("cash_balance", gorm.Expr("cash_balance + ?", amount)).Error
+}
+
+func MinusUserCashBalance(id int, amount int64) error {
+	if amount < 0 {
+		return errors.New("amount 不能为负数")
+	}
+	return DB.Model(&User{}).Where("id = ?", id).Update("cash_balance", gorm.Expr("cash_balance - ?", amount)).Error
 }

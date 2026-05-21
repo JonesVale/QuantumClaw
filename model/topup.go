@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common"
@@ -360,9 +361,17 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 			return err
 		}
 		
-		// 更新用户配额
+		// 更新用户配额 + 现金余额
 		if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).Update("quota", gorm.Expr("quota + ?", quota)).Error; err != nil {
 			return err
+		}
+		// 同步加现金余额（Money 转分）
+		cashAmount := int64(math.Ceil(topUp.Money * 100.0))
+		if cashAmount > 0 {
+			if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).
+				Update("cash_balance", gorm.Expr("cash_balance + ?", cashAmount)).Error; err != nil {
+				return err
+			}
 		}
 		
 		// 创建交易审计日志

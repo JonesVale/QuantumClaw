@@ -26,18 +26,16 @@ var (
 )
 
 func CacheGetTokenByKey(key string) (*Token, error) {
-	keyCol := "`key`"
-	if common.UsingPostgreSQL {
-		keyCol = `"key"`
-	}
+	// 用 KeyHash 替代 raw key 查询
+	keyHash := common.SHA256Hash(key)
 	var token Token
 	if !common.RedisEnabled {
-		err := DB.Where(keyCol+" = ?", key).First(&token).Error
+		err := DB.Where("key_hash = ?", keyHash).First(&token).Error
 		return &token, err
 	}
-	tokenObjectString, err := common.RedisGet(fmt.Sprintf("token:%s", key))
+	tokenObjectString, err := common.RedisGet(fmt.Sprintf("token:%s", keyHash))
 	if err != nil {
-		err := DB.Where(keyCol+" = ?", key).First(&token).Error
+		err := DB.Where("key_hash = ?", keyHash).First(&token).Error
 		if err != nil {
 			return nil, err
 		}

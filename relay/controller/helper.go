@@ -2,13 +2,10 @@
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"math"
 	"net/http"
 	"strings"
 
-	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/relay/constant/role"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +13,8 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/service"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
-	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 	"github.com/quantumclaw/quantumclaw/relay/controller/validator"
 	"github.com/quantumclaw/quantumclaw/relay/meta"
@@ -36,7 +32,6 @@ func getAndValidateTextRequest(c *gin.Context, relayMode int) (*relaymodel.Gener
 		textRequest.Model = "text-moderation-latest"
 	}
 	if relayMode == relaymode.Embeddings && textRequest.Model == "" {
-		textRequest.Model = c.Param("model")
 	}
 	err = validator.ValidateTextRequest(textRequest, relayMode)
 	if err != nil {
@@ -57,103 +52,29 @@ func getPromptTokens(textRequest *relaymodel.GeneralOpenAIRequest, relayMode int
 	return 0
 }
 
+// ==================== 现金计费 ====================
+
+// preConsumeBalance — 只检查余额，不预扣
+func preConsumeBalance(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, *relaymodel.ErrorWithStatusCode) {
+	estimatedPrice, err := service.PreConsumeBalance(ctx, meta, promptTokens, ratio)
+	if err != nil {
+		return estimatedPrice, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
+	}
+	return estimatedPrice, nil
+}
+
+func postConsumeDeduct(ctx context.Context, usage *relaymodel.Usage, meta *meta.Meta, textRequest *relaymodel.GeneralOpenAIRequest, ratio float64, preConsumedQuota int64, modelRatio float64, groupRatio float64, systemPromptReset bool) {
+	if err := service.PostConsumeDeduct(ctx, meta, usage, textRequest, ratio, modelRatio, groupRatio, preConsumedQuota, systemPromptReset); err != nil {
+		logger.Error(ctx, fmt.Sprintf("post consume deduct failed: %v", err))
+	}
+}
+
 func getPreConsumedQuota(textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64) int64 {
 	preConsumedTokens := config.PreConsumedQuota + int64(promptTokens)
 	if textRequest.MaxTokens != 0 {
 		preConsumedTokens += int64(textRequest.MaxTokens)
 	}
 	return int64(float64(preConsumedTokens) * ratio)
-}
-
-func preConsumeQuota(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, *relaymodel.ErrorWithStatusCode) {
-	preConsumedQuota := getPreConsumedQuota(textRequest, promptTokens, ratio)
-
-	userQuota, err := model.CacheGetUserQuota(ctx, meta.UserId)
-	if err != nil {
-		return preConsumedQuota, openai.ErrorWrapper(err, "get_user_quota_failed", http.StatusInternalServerError)
-	}
-	if userQuota-preConsumedQuota < 0 {
-		return preConsumedQuota, openai.ErrorWrapper(errors.New("user quota is not enough"), "insufficient_user_quota", http.StatusForbidden)
-	}
-	err = model.CacheDecreaseUserQuota(meta.UserId, preConsumedQuota)
-	if err != nil {
-		return preConsumedQuota, openai.ErrorWrapper(err, "decrease_user_quota_failed", http.StatusInternalServerError)
-	}
-	if userQuota > 100*preConsumedQuota {
-		// in this case, we do not pre-consume quota
-		// because the user has enough quota
-		preConsumedQuota = 0
-		logger.Info(ctx, fmt.Sprintf("user %d has enough quota %d, trusted and no need to pre-consume", meta.UserId, userQuota))
-	}
-	if preConsumedQuota > 0 {
-		err := model.PreConsumeTokenQuota(meta.TokenId, preConsumedQuota)
-		if err != nil {
-			return preConsumedQuota, openai.ErrorWrapper(err, "pre_consume_token_quota_failed", http.StatusForbidden)
-		}
-	}
-	return preConsumedQuota, nil
-}
-
-func postConsumeQuota(ctx context.Context, usage *relaymodel.Usage, meta *meta.Meta, textRequest *relaymodel.GeneralOpenAIRequest, ratio float64, preConsumedQuota int64, modelRatio float64, groupRatio float64, systemPromptReset bool) {
-	if usage == nil {
-		logger.Error(ctx, "usage is nil, which is unexpected")
-		return
-	}
-	var quota int64
-	completionRatio := billingratio.GetCompletionRatio(textRequest.Model, meta.ChannelType)
-	promptTokens := usage.PromptTokens
-	completionTokens := usage.CompletionTokens
-
-	// Apply prompt cache billing ratio if available
-	cacheBillingRatio := meta.Config.CacheBillingRatio
-	if cacheBillingRatio > 0 && usage.PromptTokensDetails != nil && usage.PromptTokensDetails.CachedTokens > 0 {
-		cachedTokens := usage.PromptTokensDetails.CachedTokens
-		if cachedTokens > promptTokens {
-			cachedTokens = promptTokens
-		}
-		nonCachedTokens := promptTokens - cachedTokens
-		// cached tokens are billed at reduced rate, non-cached at full rate
-		promptTokens = nonCachedTokens + int(math.Ceil(float64(cachedTokens)*cacheBillingRatio))
-		if promptTokens < 0 {
-			promptTokens = 0
-		}
-	}
-
-	quota = int64(math.Ceil((float64(promptTokens) + float64(completionTokens)*completionRatio) * ratio))
-	if ratio != 0 && quota <= 0 {
-		quota = 1
-	}
-	totalTokens := promptTokens + completionTokens
-	if totalTokens == 0 {
-		// in this case, must be some error happened
-		// we cannot just return, because we may have to return the pre-consumed quota
-		quota = 0
-	}
-	quotaDelta := quota - preConsumedQuota
-	err := model.PostConsumeTokenQuota(meta.TokenId, quotaDelta)
-	if err != nil {
-		logger.Error(ctx, "error consuming token remain quota: "+err.Error())
-	}
-	err = model.CacheUpdateUserQuota(ctx, meta.UserId)
-	if err != nil {
-		logger.Error(ctx, "error update user quota cache: "+err.Error())
-	}
-	logContent := fmt.Sprintf("倍率：%.2f × %.2f × %.2f", modelRatio, groupRatio, completionRatio)
-	model.RecordConsumeLog(ctx, &model.Log{
-		UserId:            meta.UserId,
-		ChannelId:         meta.ChannelId,
-		PromptTokens:      promptTokens,
-		CompletionTokens:  completionTokens,
-		ModelName:         textRequest.Model,
-		TokenName:         meta.TokenName,
-		Quota:             int(quota),
-		Content:           logContent,
-		IsStream:          meta.IsStream,
-		ElapsedTime:       helper.CalcElapsedTime(meta.StartTime),
-		SystemPromptReset: systemPromptReset,
-	})
-	model.UpdateUserUsedQuotaAndRequestCount(meta.UserId, quota)
-	model.UpdateChannelUsedQuota(meta.ChannelId, quota)
 }
 
 func getMappedModelName(modelName string, mapping map[string]string) (string, bool) {

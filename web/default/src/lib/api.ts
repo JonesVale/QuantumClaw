@@ -68,6 +68,7 @@ apiClient.interceptors.response.use(
       !response.data.success
     ) {
       toast.error(response.data.message || 'Request failed')
+      return Promise.reject(new Error(response.data.message || 'Request failed'))
     }
     return response
   },

@@ -8,8 +8,8 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 )
 
-func cacheGetTokenByKey(key string) (*Token, error) {
-	objStr, err := common.RedisGet(fmt.Sprintf("token:%s", key))
+func cacheGetTokenByKey(keyHash string) (*Token, error) {
+	objStr, err := common.RedisGet(fmt.Sprintf("token:%s", keyHash))
 	if err != nil {
 		return nil, err
 	}
@@ -23,19 +23,19 @@ func cacheSetToken(token Token) error {
 	if err != nil {
 		return err
 	}
-	return common.RedisSet(fmt.Sprintf("token:%s", token.Key), string(data), time.Duration(TokenCacheSeconds)*time.Second)
+	return common.RedisSet(fmt.Sprintf("token:%s", token.KeyHash), string(data), time.Duration(TokenCacheSeconds)*time.Second)
 }
 
-func cacheDeleteToken(key string) error {
-	return common.RedisDel(fmt.Sprintf("token:%s", key))
+func cacheDeleteToken(keyHash string) error {
+	return common.RedisDel(fmt.Sprintf("token:%s", keyHash))
 }
 
-func cacheIncrTokenQuota(key string, delta int64) error {
-	return common.RedisIncr(fmt.Sprintf("token_quota:%s", key), delta)
+func cacheIncrTokenQuota(keyHash string, delta int64) error {
+	return common.RedisIncr(fmt.Sprintf("token_quota:%s", keyHash), delta)
 }
 
-func cacheDecrTokenQuota(key string, delta int64) error {
-	return common.RedisIncr(fmt.Sprintf("token_quota:%s", key), -delta)
+func cacheDecrTokenQuota(keyHash string, delta int64) error {
+	return common.RedisIncr(fmt.Sprintf("token_quota:%s", keyHash), -delta)
 }
 
 func shouldUpdateRedis(fromDB bool, err error) bool {

@@ -107,6 +107,20 @@ func main() {
 	// Initialize distributor tables
 	model.InitDistributorTables()
 
+	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
+	go func() {
+		time.Sleep(30 * time.Second)
+		for {
+			now := time.Now()
+			if now.Day() == 1 && now.Hour() == 2 {
+				logger.SysLog("[CRON] auto settling monthly platform fees...")
+				model.AutoSettleMonthlyFees()
+				logger.SysLog("[CRON] monthly platform fee settlement completed")
+			}
+			time.Sleep(1 * time.Hour)
+		}
+	}()
+
 	// Env-based admin password reset (emergency)
 	if os.Getenv("RESET_ADMIN_PASSWORD") != "" {
 		newPwd := os.Getenv("RESET_ADMIN_PASSWORD")

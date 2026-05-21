@@ -89,6 +89,32 @@ function WalletPage() {
     staleTime: 30 * 1000,
   })
 
+  const { data: balanceData } = useQuery({
+    queryKey: ['balance'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self/balance')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 10 * 1000,
+  })
+
+  const { data: withdrawableData } = useQuery({
+    queryKey: ['withdrawable'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self/withdraw/available')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 10 * 1000,
+  })
+
+  const [withdrawAmount, setWithdrawAmount] = useState('')
+  const [withdrawAccount, setWithdrawAccount] = useState('')
+  const [withdrawing, setWithdrawing] = useState(false)
+
   const paymentMethods: string[] = topupInfo?.paymentMethods || []
   const historyItems: any[] = topupHistory?.data || []
 
@@ -168,34 +194,202 @@ function WalletPage() {
         </div>
       </div>
 
-      {/* Balance Card */}
-      <Card className="w-full max-w-2xl border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Wallet className="h-5 w-5" />
-            {t('Quota Balance')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <Skeleton className="h-12 w-48" />
-          ) : (
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
-              {remaining.toLocaleString()}
+      {/* Cash Balance Card — 主余额 */}
+      {balanceData?.success && (
+        <Card className="w-full max-w-2xl border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50/50 to-transparent">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-yellow-600" />
+              {t('Cash Balance')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl sm:text-3xl font-bold tracking-tight text-yellow-600">
+              ¥{Number(balanceData.data.balance_yuan || 0).toFixed(2)}
             </div>
-          )}
-          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div>
-              <p className="text-xs text-muted-foreground">{t('Total Quota')}</p>
-              <p className="text-lg font-semibold">{quota.toLocaleString()}</p>
+            <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">{t('Available for API consumption')}</p>
+                <p className="text-sm font-mono">{balanceData.data.balance} {t('cents')}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs text-muted-foreground">{t('Used Quota')}</p>
-              <p className="text-lg font-semibold">{usedQuota.toLocaleString()}</p>
-            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Legacy Quota — 小字显示，次要 */}
+      <details className="w-full max-w-2xl">
+        <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground select-none">
+          {t('Legacy Quota')} ({remaining.toLocaleString()} {t('remaining')})
+        </summary>
+        <div className="mt-2 p-3 rounded-lg border bg-card text-xs space-y-1">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t('Total Quota')}</span>
+            <span className="font-mono">{quota.toLocaleString()}</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t('Used Quota')}</span>
+            <span className="font-mono">{usedQuota.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground">{t('Usage Rate')}</span>
+            <span className="font-mono">{quota > 0 ? ((usedQuota / quota) * 100).toFixed(1) : 0}%</span>
+          </div>
+        </div>
+      </details>
+
+      {/* Balance Logs */}
+      {balanceData?.success && balanceData.data.logs?.length > 0 && (
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('Balance History')}</CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-48 overflow-y-auto">
+            <div className="space-y-1">
+              {balanceData.data.logs.slice(0, 15).map((log: any, i: number) => (
+                <div key={log.id || i} className="flex justify-between items-center text-xs border-b pb-1 last:border-0">
+                  <span className={log.amount > 0 ? 'text-green-600' : 'text-red-600'}>
+                    {log.amount > 0 ? '+' : ''}{log.amount}分
+                  </span>
+                  <span className="text-muted-foreground truncate ml-2 max-w-[200px]">
+                    {log.remark || log.type}
+                  </span>
+                  <span className="text-muted-foreground ml-2">
+                    {log.created_at ? new Date(log.created_at * 1000).toLocaleDateString() : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Upgrade to Provider */}
+      {user?.user_type !== 'provider' && (
+        <Card className="w-full max-w-2xl border-purple-200 dark:border-purple-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-4 w-4 text-purple-600" />
+              {t('Become a Provider')}
+            </CardTitle>
+            <CardDescription>
+              {t('Add your own API channels and earn revenue')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground mb-4">
+              {t('As a provider, you can add AI/Quantum channels, set your own pricing, and earn from API calls. Platform fee: 5% on revenue + 1% per transaction.')}
+            </p>
+            <Button onClick={async () => {
+              try {
+                const res = await fetch('/api/user/self/upgrade', { method: 'POST' })
+                const data = await res.json()
+                if (data.success) {
+                  toast.success(data.message || t('Upgraded successfully'))
+                  queryClient.invalidateQueries({ queryKey: ['self'] })
+                } else {
+                  toast.error(data.message || t('Upgrade failed'))
+                }
+              } catch {
+                toast.error(t('Upgrade failed'))
+              }
+            }}>
+              {t('Upgrade Now')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Withdraw Section — only for providers */}
+      {user?.user_type === 'provider' && withdrawableData?.success && withdrawableData.data.available > 0 && (
+        <Card className="w-full max-w-2xl border-blue-200 dark:border-blue-800">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              {t('Supplier Earnings')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+              <div>
+                <p className="text-xs text-muted-foreground">{t('Total Earned')}</p>
+                <p className="text-lg font-semibold text-green-600">
+                  ¥{Number(withdrawableData.data.total_earned_yuan || 0).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{t('Pending Fee')}</p>
+                <p className="text-lg font-semibold text-orange-600">
+                  ¥{Number(withdrawableData.data.pending_fee_yuan || 0).toFixed(2)}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">{t('Available')}</p>
+                <p className="text-lg font-semibold text-blue-600">
+                  ¥{Number(withdrawableData.data.available_yuan || 0).toFixed(2)}
+                </p>
+              </div>
+            </div>
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              if (!withdrawAmount || Number(withdrawAmount) <= 0) {
+                toast.error(t('Please enter a valid amount'))
+                return
+              }
+              if (!withdrawAccount.trim()) {
+                toast.error(t('Please enter your account info'))
+                return
+              }
+              setWithdrawing(true)
+              try {
+                const res = await fetch('/api/user/self/withdraw', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    amount: Math.round(Number(withdrawAmount) * 100),
+                    bank_info: withdrawAccount,
+                  }),
+                })
+                const data = await res.json()
+                if (data.success) {
+                  toast.success(t('Withdrawal request submitted'))
+                  setWithdrawAmount('')
+                  setWithdrawAccount('')
+                  queryClient.invalidateQueries({ queryKey: ['withdrawable'] })
+                  queryClient.invalidateQueries({ queryKey: ['withdrawals'] })
+                } else {
+                  toast.error(data.message || t('Withdrawal failed'))
+                }
+              } catch {
+                toast.error(t('Withdrawal failed'))
+              }
+              setWithdrawing(false)
+            }} className="flex flex-col sm:flex-row gap-2">
+              <div className="flex-1 space-y-2">
+                <Input
+                  type="number"
+                  min="1"
+                  step="0.01"
+                  placeholder={t('Amount (¥)')}
+                  value={withdrawAmount}
+                  onChange={(e) => setWithdrawAmount(e.target.value)}
+                />
+                <Input
+                  placeholder={t('Alipay / WeChat / Bank account')}
+                  value={withdrawAccount}
+                  onChange={(e) => setWithdrawAccount(e.target.value)}
+                />
+              </div>
+              <Button type="submit" disabled={withdrawing || !withdrawAmount || !withdrawAccount}>
+                {withdrawing ? t('Submitting...') : t('Withdraw')}
+              </Button>
+            </form>
+            <p className="text-xs text-muted-foreground mt-2">
+              {t('Minimum withdrawal: ¥1. Platform fee (5%) will be deducted automatically on settlement.')}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Redemption */}
       <Card className="w-full max-w-2xl">
@@ -338,28 +532,6 @@ function WalletPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Usage Summary */}
-      <Card className="w-full max-w-2xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            {t('Usage Summary')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-4">
-            <span className="text-muted-foreground">{t('Total Requests')}</span>
-            <span className="font-medium">{user?.request_count?.toLocaleString() || 0}</span>
-          </div>
-          <div className="flex flex-col sm:flex-row justify-between gap-1 sm:gap-4">
-            <span className="text-muted-foreground">{t('Usage Rate')}</span>
-            <span className="font-medium">
-              {quota > 0 ? ((usedQuota / quota) * 100).toFixed(1) : 0}%
-            </span>
-          </div>
         </CardContent>
       </Card>
 

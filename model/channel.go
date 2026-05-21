@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"gorm.io/gorm"
@@ -37,8 +38,11 @@ type Channel struct {
 	ModelMapping       *string `json:"model_mapping" gorm:"type:varchar(1024);default:''"`
 	Priority           *int64  `json:"priority" gorm:"bigint;default:0"`
 	CostPerUnit        float64 `json:"cost_per_unit" gorm:"type:decimal(10,4);default:0"`
+	SellPriceRate      float64 `json:"sell_price_rate" gorm:"type:decimal(10,4);default:1.0"`
 	Config             string  `json:"config"`
 	SystemPrompt       *string `json:"system_prompt" gorm:"type:text"`
+	Category           string  `json:"category" gorm:"default:''"`  // paid / free / custom
+	UserId             int     `json:"user_id" gorm:"type:int;default:0;index"` // 渠道归属：0=平台，>0=供应商
 }
 
 type ChannelConfig struct {
@@ -87,6 +91,15 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 	var err error = nil
 	if selectAll {
 		err = DB.First(&channel, "id = ?", id).Error
+		// 解密 API Key（selectAll 表示需要完整信息，如 relay 场景）
+		if err == nil && channel.Key != "" && config.CryptoSecret != "" {
+			decrypted, e := encrypt.Decrypt(channel.Key, encrypt.DeriveKey(config.CryptoSecret))
+			if e == nil {
+				channel.Key = string(decrypted)
+			} else {
+				logger.SysError("decrypt channel key: " + e.Error())
+			}
+		}
 	} else {
 		err = DB.Omit("key").First(&channel, "id = ?", id).Error
 	}
@@ -95,6 +108,17 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 
 func BatchInsertChannels(channels []Channel) error {
 	var err error
+	// 批量加密 API Key
+	for i := range channels {
+		if channels[i].Key != "" && config.CryptoSecret != "" {
+			encrypted, e := encrypt.Encrypt([]byte(channels[i].Key), encrypt.DeriveKey(config.CryptoSecret))
+			if e == nil {
+				channels[i].Key = encrypted
+			} else {
+				logger.SysError("batch encrypt channel key: " + e.Error())
+			}
+		}
+	}
 	err = DB.Create(&channels).Error
 	if err != nil {
 		return err
@@ -137,6 +161,15 @@ func (channel *Channel) GetModelMapping() map[string]string {
 
 func (channel *Channel) Insert() error {
 	var err error
+	// 加密 API Key
+	if channel.Key != "" && config.CryptoSecret != "" {
+		key, e := encrypt.Encrypt([]byte(channel.Key), encrypt.DeriveKey(config.CryptoSecret))
+		if e == nil {
+			channel.Key = key
+		} else {
+			logger.SysError("encrypt channel key: " + e.Error())
+		}
+	}
 	err = DB.Create(channel).Error
 	if err != nil {
 		return err
@@ -147,6 +180,20 @@ func (channel *Channel) Insert() error {
 
 func (channel *Channel) Update() error {
 	var err error
+	// 如果 Key 变了，加密后存储
+	if channel.Key != "" && config.CryptoSecret != "" {
+		// 检查是否是已加密的（已加密的 key 以 base64 字符构成，不包含换行符）
+		existing, _ := GetChannelById(channel.Id, true)
+		if existing != nil && channel.Key != existing.Key {
+			// Key 有变，加密新 key
+			encrypted, e := encrypt.Encrypt([]byte(channel.Key), encrypt.DeriveKey(config.CryptoSecret))
+			if e == nil {
+				channel.Key = encrypted
+			} else {
+				logger.SysError("encrypt channel key on update: " + e.Error())
+			}
+		}
+	}
 	err = DB.Model(channel).Updates(channel).Error
 	if err != nil {
 		return err

@@ -8,6 +8,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/message"
@@ -23,17 +24,18 @@ const (
 type Token struct {
 	Id             int     `json:"id"`
 	UserId         int     `json:"user_id"`
-	Key            string  `json:"key" gorm:"type:char(48);uniqueIndex"`
+	Key            string  `json:"key" gorm:"type:char(96);uniqueIndex"`  // AES-GCM 加密后的密钥
+	KeyHash        string  `json:"-" gorm:"type:char(64);uniqueIndex"`    // SHA-256 哈希（用于快速验证）
 	Status         int     `json:"status" gorm:"default:1"`
 	Name           string  `json:"name" gorm:"index" `
 	CreatedTime    int64   `json:"created_time" gorm:"bigint"`
 	AccessedTime   int64   `json:"accessed_time" gorm:"bigint"`
-	ExpiredTime    int64   `json:"expired_time" gorm:"bigint;default:-1"` // -1 means never expired
+	ExpiredTime    int64   `json:"expired_time" gorm:"bigint;default:-1"`
 	RemainQuota    int64   `json:"remain_quota" gorm:"bigint;default:0"`
 	UnlimitedQuota bool    `json:"unlimited_quota" gorm:"default:false"`
-	UsedQuota      int64   `json:"used_quota" gorm:"bigint;default:0"` // used quota
-	Models         *string `json:"models" gorm:"type:text"`            // allowed models
-	Subnet         *string `json:"subnet" gorm:"default:''"`           // allowed subnet
+	UsedQuota      int64   `json:"used_quota" gorm:"bigint;default:0"`
+	Models         *string `json:"models" gorm:"type:text"`
+	Subnet         *string `json:"subnet" gorm:"default:''"`
 }
 
 func GetAllUserTokens(userId int, startIdx int, num int, order string) ([]*Token, error) {
@@ -63,7 +65,9 @@ func ValidateUserToken(key string) (token *Token, err error) {
 	if key == "" {
 		return nil, errors.New("未提供令牌")
 	}
-	token, err = CacheGetTokenByKey(key)
+	// 计算 key 的哈希，用哈希查询
+	keyHash := common.SHA256Hash(key)
+	token, err = CacheGetTokenByKey(keyHash)
 	if err != nil {
 		logger.SysError("CacheGetTokenByKey failed: " + err.Error())
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -125,6 +129,16 @@ func GetTokenById(id int) (*Token, error) {
 
 func (t *Token) Insert() error {
 	var err error
+	// 加密 API Key
+	if t.Key != "" && config.CryptoSecret != "" {
+		t.KeyHash = common.SHA256Hash(t.Key)
+		encrypted, e := encrypt.Encrypt([]byte(t.Key), encrypt.DeriveKey(config.CryptoSecret))
+		if e == nil {
+			t.Key = encrypted
+		}
+	} else if t.Key != "" {
+		t.KeyHash = common.SHA256Hash(t.Key)
+	}
 	err = DB.Create(t).Error
 	return err
 }
@@ -161,15 +175,12 @@ func GetTokenByKey(key string, useCache bool) (*Token, error) {
 	if key == "" {
 		return nil, errors.New("key is empty")
 	}
+	keyHash := common.SHA256Hash(key)
 	if useCache {
-		return CacheGetTokenByKey(key)
-	}
-	keyCol := "`key`"
-	if common.UsingPostgreSQL {
-		keyCol = `"key"`
+		return CacheGetTokenByKey(keyHash)
 	}
 	var token Token
-	err := DB.Where(keyCol+" = ?", key).First(&token).Error
+	err := DB.Where("key_hash = ?", keyHash).First(&token).Error
 	if err != nil {
 		return nil, err
 	}

@@ -29,16 +29,26 @@ type CommissionRecord struct {
 	SettledAt   *time.Time `json:"settled_at,omitempty"`
 }
 
+const (
+	WithdrawStatusPending   = "pending"
+	WithdrawStatusApproved  = "approved"
+	WithdrawStatusRejected  = "rejected"
+	WithdrawStatusCompleted = "completed"
+	WithdrawMinAmount       = 100 // 最低提现金额（分）
+)
+
 // WithdrawalRequest — 提现申请
 type WithdrawalRequest struct {
-	Id          int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserId      int       `json:"user_id" gorm:"index;not null"`
-	Amount      int64     `json:"amount" gorm:"bigint;not null"`       // 提现额度
-	Status      string    `json:"status" gorm:"type:varchar(20);default:'pending'"` // pending | approved | rejected
-	AccountInfo string    `json:"account_info" gorm:"type:varchar(500)"` // 提现账户信息
-	Remark      string    `json:"remark" gorm:"type:text"`
-	CreatedAt   time.Time `json:"created_at"`
-	ProcessedAt *time.Time `json:"processed_at,omitempty"`
+	Id                int        `json:"id" gorm:"primaryKey;autoIncrement"`
+	UserId            int        `json:"user_id" gorm:"index;not null"`
+	Amount            int64      `json:"amount" gorm:"bigint;not null"`              // 提现金额（分）
+	PlatformFeeAmount int64      `json:"platform_fee_amount" gorm:"bigint;default:0"` // 扣除入驻费（分）
+	NetAmount         int64      `json:"net_amount" gorm:"bigint;default:0"`          // 实际到账（分）
+	Status            string     `json:"status" gorm:"type:varchar(20);default:'pending'"`
+	AccountInfo       string     `json:"account_info" gorm:"type:varchar(500)"`       // 收款账号
+	Remark            string     `json:"remark" gorm:"type:text"`
+	CreatedAt         time.Time  `json:"created_at"`
+	ProcessedAt       *time.Time `json:"processed_at,omitempty"`
 }
 
 func InitCommissionTables() {
@@ -86,7 +96,40 @@ func GetUserTotalCommission(userId int) (int64, error) {
 	return total, err
 }
 
-// CreateWithdrawal 创建提现申请
+func CreateWithdrawal(w *WithdrawalRequest) error {
+	return DB.Create(w).Error
+}
+
+func GetWithdrawalById(id int) (*WithdrawalRequest, error) {
+	var w WithdrawalRequest
+	err := DB.First(&w, "id = ?", id).Error
+	return &w, err
+}
+
+func GetPendingWithdrawals(limit int) ([]WithdrawalRequest, error) {
+	var list []WithdrawalRequest
+	err := DB.Where("status = ?", WithdrawStatusPending).Order("id asc").Limit(limit).Find(&list).Error
+	return list, err
+}
+
+func GetUserWithdrawableBalance(userId int) (int64, error) {
+	var totalEarned int64
+	DB.Model(&ProviderEarning{}).Where("user_id = ? AND status = ?", userId, EarningStatusSettled).
+		Select("COALESCE(SUM(net_amount), 0)").Scan(&totalEarned)
+	var withdrawn int64
+	DB.Model(&WithdrawalRequest{}).Where("user_id = ? AND status IN ?",
+		userId, []string{WithdrawStatusApproved, WithdrawStatusCompleted}).
+		Select("COALESCE(SUM(net_amount), 0)").Scan(&withdrawn)
+	var pendingFee int64
+	DB.Model(&PlatformFeeRecord{}).Where("user_id = ? AND status = ?",
+		userId, PlatformFeeStatusPending).
+		Select("COALESCE(SUM(fee_amount), 0)").Scan(&pendingFee)
+	available := totalEarned - withdrawn - pendingFee
+	if available < 0 {
+		available = 0
+	}
+	return available, nil
+}
 
 // RewardInviterOnConsume — 用户消费时自动返佣给邀请人
 func RewardInviterOnConsume(userId int, consumeAmount int64) {
@@ -117,33 +160,49 @@ func RewardInviterOnConsume(userId int, consumeAmount int64) {
 		UpdateColumn("quota", gorm.Expr("quota + ?", reward))
 }
 
-func CreateWithdrawal(w *WithdrawalRequest) error {
-	return DB.Create(w).Error
-}
-
-// GetWithdrawalsByUser 获取用户提现记录
-func GetWithdrawalsByUser(userId int) ([]WithdrawalRequest, error) {
+func GetWithdrawalByUser(userId int, limit int) ([]WithdrawalRequest, error) {
 	var ws []WithdrawalRequest
-	err := DB.Where("user_id = ?", userId).Order("id desc").Find(&ws).Error
+	err := DB.Where("user_id = ?", userId).Order("id desc").Limit(limit).Find(&ws).Error
 	return ws, err
 }
 
-// GetAllWithdrawals 管理员获取所有提现申请
-func GetAllWithdrawals(status string) ([]WithdrawalRequest, error) {
+func GetAllWithdrawals(status string, page, pageSize int) ([]WithdrawalRequest, int64, error) {
 	var ws []WithdrawalRequest
-	query := DB.Order("id desc")
+	var total int64
+	query := DB.Model(&WithdrawalRequest{})
 	if status != "" {
 		query = query.Where("status = ?", status)
 	}
-	err := query.Find(&ws).Error
-	return ws, err
+	query.Count(&total)
+	err := query.Order("id desc").Offset(page * pageSize).Limit(pageSize).Find(&ws).Error
+	return ws, total, err
 }
 
-// ProcessWithdrawal 处理提现
-func ProcessWithdrawal(id int, status, remark string) error {
+func ApproveWithdrawal(id int, remark string) error {
 	now := time.Now()
-	return DB.Model(&WithdrawalRequest{}).Where("id = ?", id).Updates(map[string]interface{}{
-		"status":       status,
+	return DB.Model(&WithdrawalRequest{}).Where("id = ? AND status = ?",
+		id, WithdrawStatusPending).Updates(map[string]interface{}{
+		"status":       WithdrawStatusApproved,
+		"remark":       remark,
+		"processed_at": now,
+	}).Error
+}
+
+func CompleteWithdrawal(id int, remark string) error {
+	now := time.Now()
+	return DB.Model(&WithdrawalRequest{}).Where("id = ? AND status = ?",
+		id, WithdrawStatusApproved).Updates(map[string]interface{}{
+		"status":       WithdrawStatusCompleted,
+		"remark":       remark,
+		"processed_at": now,
+	}).Error
+}
+
+func RejectWithdrawal(id int, remark string) error {
+	now := time.Now()
+	return DB.Model(&WithdrawalRequest{}).Where("id = ? AND status = ?",
+		id, WithdrawStatusPending).Updates(map[string]interface{}{
+		"status":       WithdrawStatusRejected,
 		"remark":       remark,
 		"processed_at": now,
 	}).Error

@@ -137,6 +137,26 @@ func CalculateTieredQuota(ctx *TieredBillingContext) (int64, error) {
 	if rule == nil || rule.BillingExpr == "" {
 		// 使用默认表达式
 		if setting.DefaultExpr == "" {
+			// 量子算力默认计费：每 qubit × shots 消耗 1 额度，最少 10
+			if ctx.Qubits > 0 || ctx.Shots > 0 {
+				qubits := ctx.Qubits
+				if qubits <= 0 {
+					qubits = 1
+				}
+				shots := ctx.Shots
+				if shots <= 0 {
+					shots = 1000
+				}
+				gates := ctx.Gates
+				base := qubits * shots / 100
+				if gates > 0 {
+					base += gates * 10
+				}
+				if base < 10 {
+					base = 10
+				}
+				return int64(base), nil
+			}
 			return 0, nil
 		}
 		return EvaluateBillingExpr(ctx, setting.DefaultExpr)

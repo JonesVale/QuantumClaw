@@ -106,7 +106,7 @@ func openSQLite() (*gorm.DB, error) {
 	common.UsingSQLite = true
 	dsn := fmt.Sprintf("%s?_busy_timeout=%d", common.SQLitePath, common.SQLiteBusyTimeout)
 	return gorm.Open(sqlite.Open(dsn), &gorm.Config{
-		PrepareStmt: true, // precompile SQL
+		PrepareStmt: true,
 	})
 }
 
@@ -135,10 +135,10 @@ func InitDB() {
 
 	logger.SysLog("database migration started")
 	if err = migrateDB(); err != nil {
-		logger.FatalLog("failed to migrate database: " + err.Error())
-		return
+		logger.SysWarn("database migration warning (non-fatal): " + err.Error())
+	} else {
+		logger.SysLog("database migrated")
 	}
-	logger.SysLog("database migrated")
 
 	// Initialize language types
 	InitLanguageTypes()
@@ -150,86 +150,53 @@ func InitDB() {
 }
 
 func migrateDB() error {
-	var err error
-	if err = DB.AutoMigrate(&Token{}); err != nil {
-		return err
+	var lastErr error
+	attempt := func(name string, fn func() error) {
+		if lastErr != nil {
+			return
+		}
+		if e := fn(); e != nil {
+			logger.SysWarn("migrate " + name + ": " + e.Error())
+			lastErr = e
+		}
 	}
-	if err = DB.AutoMigrate(&User{}); err != nil {
-		return err
+	attempt("Token", func() error { return DB.AutoMigrate(&Token{}) })
+	attempt("User", func() error { return DB.AutoMigrate(&User{}) })
+	attempt("Option", func() error { return DB.AutoMigrate(&Option{}) })
+	attempt("Redemption", func() error { return DB.AutoMigrate(&Redemption{}) })
+	attempt("Ability", func() error { return DB.AutoMigrate(&Ability{}) })
+	attempt("Log", func() error { return DB.AutoMigrate(&Log{}) })
+	attempt("Channel", func() error { return DB.AutoMigrate(&Channel{}) })
+	attempt("BalanceLog", func() error { return DB.AutoMigrate(&BalanceLog{}) })
+	attempt("ProviderEarning", func() error { return DB.AutoMigrate(&ProviderEarning{}) })
+	attempt("WithdrawalRequest", func() error { return DB.AutoMigrate(&WithdrawalRequest{}) })
+	attempt("PlatformFeeRecord", func() error { return DB.AutoMigrate(&PlatformFeeRecord{}) })
+	// 手动迁移：添加 category 列（SQLite 的 AutoMigrate 有时不添加新列）
+	if common.UsingSQLite {
+		if !DB.Migrator().HasColumn(&Channel{}, "category") {
+			if addErr := DB.Migrator().AddColumn(&Channel{}, "category"); addErr != nil {
+				logger.SysLog("add category column note: " + addErr.Error())
+			}
+		}
 	}
-	if err = DB.AutoMigrate(&Option{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&Redemption{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&Ability{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&Log{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&Channel{}); err != nil {
-		return err
-	}
-	// 订阅制计费系统
-	if err = DB.AutoMigrate(&SubscriptionPlan{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&SubscriptionOrder{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&UserSubscription{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&SubscriptionPreConsumeRecord{}); err != nil {
-		return err
-	}
-	// 签到系统
-	if err = DB.AutoMigrate(&Checkin{}); err != nil {
-		return err
-	}
-	// 自定义 OAuth 提供商
-	if err = DB.AutoMigrate(&CustomOAuthProvider{}); err != nil {
-		return err
-	}
-	// 异步任务系统（Midjourney/视频生成/Suno音乐）
-	if err = DB.AutoMigrate(&AsyncTask{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&MidjourneyTask{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&VideoTask{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&SunoTask{}); err != nil {
-		return err
-	}
-	// WebAuthn/Passkey 无密码登录
-	if err = DB.AutoMigrate(&WebAuthnCredential{}); err != nil {
-		return err
-	}
-	// 多语言系统
-	if err = DB.AutoMigrate(&LanguageType{}); err != nil {
-		return err
-	}
-	if err = DB.AutoMigrate(&LanguageResource{}); err != nil {
-		return err
-	}
-	// RSS 文章
-	if err = DB.AutoMigrate(&RssArticle{}); err != nil {
-		return err
-	}
-	// 交易审计日志
-	if err = DB.AutoMigrate(&TransactionLog{}); err != nil {
-		return err
-	}
-	// 用户通知
-	if err = DB.AutoMigrate(&Notification{}); err != nil {
-		return err
-	}
-	return nil
+
+	attempt("SubscriptionPlan", func() error { return DB.AutoMigrate(&SubscriptionPlan{}) })
+	attempt("SubscriptionOrder", func() error { return DB.AutoMigrate(&SubscriptionOrder{}) })
+	attempt("UserSubscription", func() error { return DB.AutoMigrate(&UserSubscription{}) })
+	attempt("SubscriptionPreConsume", func() error { return DB.AutoMigrate(&SubscriptionPreConsumeRecord{}) })
+	attempt("Checkin", func() error { return DB.AutoMigrate(&Checkin{}) })
+	attempt("CustomOAuth", func() error { return DB.AutoMigrate(&CustomOAuthProvider{}) })
+	attempt("AsyncTask", func() error { return DB.AutoMigrate(&AsyncTask{}) })
+	attempt("MidjourneyTask", func() error { return DB.AutoMigrate(&MidjourneyTask{}) })
+	attempt("VideoTask", func() error { return DB.AutoMigrate(&VideoTask{}) })
+	attempt("SunoTask", func() error { return DB.AutoMigrate(&SunoTask{}) })
+	attempt("WebAuthnCredential", func() error { return DB.AutoMigrate(&WebAuthnCredential{}) })
+	attempt("LanguageType", func() error { return DB.AutoMigrate(&LanguageType{}) })
+	attempt("LanguageResource", func() error { return DB.AutoMigrate(&LanguageResource{}) })
+	attempt("RssArticle", func() error { return DB.AutoMigrate(&RssArticle{}) })
+	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
+	attempt("Notification", func() error { return DB.AutoMigrate(&Notification{}) })
+	return lastErr
 }
 
 func InitLogDB() {

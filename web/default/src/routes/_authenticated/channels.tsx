@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus,
@@ -17,6 +17,8 @@ import {
   Server,
   Zap,
   Network,
+  ExternalLink,
+  Wallet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -114,7 +116,47 @@ function ChannelFormDialog({
     priority: 0,
     weight: 1,
     cache_billing_ratio: 0,
+    cost_per_unit: 0,
+    sell_price_rate: 1,
   })
+
+  // Populate form from channel data when editing
+  const prevChannel = useRef(channel)
+  useEffect(() => {
+    if (channel && channel !== prevChannel.current) {
+      setForm({
+        type: channel.type || 1,
+        key: '', // never populate key for security
+        name: channel.name || '',
+        base_url: channel.base_url || '',
+        models: channel.models || '',
+        group: channel.group || 'default',
+        model_mapping: '',
+        priority: 0,
+        weight: channel.weight || 1,
+        cache_billing_ratio: 0,
+        cost_per_unit: channel.cost_per_unit || 0,
+        sell_price_rate: channel.sell_price_rate || 1,
+      })
+    }
+    if (!channel) {
+      setForm({
+        type: 1,
+        key: '',
+        name: '',
+        base_url: '',
+        models: '',
+        group: 'default',
+        model_mapping: '',
+        priority: 0,
+        weight: 1,
+        cache_billing_ratio: 0,
+        cost_per_unit: 0,
+        sell_price_rate: 1,
+      })
+    }
+    prevChannel.current = channel
+  }, [channel])
 
   const createMutation = useMutation({
     mutationFn: createChannel,
@@ -218,6 +260,20 @@ function ChannelFormDialog({
                 </SelectContent>
               </Select>
             </div>
+            <div className="space-y-2">
+              <Label>{t('Category')}</Label>
+              <Select value={form.category || ''} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <SelectTrigger>
+                  <SelectValue placeholder={t('Uncategorized')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">{t('Uncategorized')}</SelectItem>
+                  <SelectItem value="free" className="text-green-600 font-medium">&#9679; {t('Free')}</SelectItem>
+                  <SelectItem value="paid" className="text-amber-600 font-medium">&#9679; {t('Paid')}</SelectItem>
+                  <SelectItem value="custom" className="text-purple-600 font-medium">&#9679; {t('Custom')}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -306,6 +362,47 @@ function ChannelFormDialog({
             <p className="text-xs text-muted-foreground">{t('thinking_to_content_hint')}</p>
           </div>
 
+          <div className="grid gap-2">
+            <Label htmlFor="cost_per_unit">{t('Cost Per Unit')}</Label>
+            <Input
+              id="cost_per_unit"
+              type="number"
+              min="0"
+              step="0.0001"
+              value={form.cost_per_unit ?? 0}
+              onChange={(e) => setForm({ ...form, cost_per_unit: parseFloat(e.target.value) || 0 })}
+              placeholder="0"
+            />
+            <p className="text-xs text-muted-foreground">{t('cost_per_unit_hint')}</p>
+            {/* 实时价格预览 */}
+            <div className="mt-1 rounded bg-muted p-2 text-xs space-y-1">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t('Cost per 1K tokens')}</span>
+                <span className="font-mono">${((form.cost_per_unit ?? 0) / 1000).toFixed(6)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">{t('Sell price per 1K tokens')}</span>
+                <span className="font-mono font-bold">
+                  ${((form.cost_per_unit ?? 0) * (form.sell_price_rate ?? 1) / 1000).toFixed(6)}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-2">
+            <Label htmlFor="sell_price_rate">{t('Sell Price Rate')}</Label>
+            <Input
+              id="sell_price_rate"
+              type="number"
+              min="0"
+              step="0.1"
+              value={form.sell_price_rate ?? 1}
+              onChange={(e) => setForm({ ...form, sell_price_rate: parseFloat(e.target.value) || 1 })}
+              placeholder="1.0"
+            />
+            <p className="text-xs text-muted-foreground">{t('sell_price_rate_hint')}</p>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               {t('Cancel')}
@@ -329,8 +426,22 @@ function ChannelsPage() {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<string>('all')
   const [typeCategory, setTypeCategory] = useState<string>('all')
+  const [channelCategory, setChannelCategory] = useState<string>('all')
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null)
   const queryClient = useQueryClient()
+
+  const { data: selfInfo } = useQuery({
+    queryKey: ['self'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 30 * 1000,
+  })
+
+  const isProvider = selfInfo?.data?.user_type === 'provider'
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['channels'],
@@ -377,11 +488,14 @@ function ChannelsPage() {
         (status === 'enabled' && ch.status === 1) ||
         (status === 'disabled' && ch.status === 2)
       const matchesCategory = typeCategory === 'all' ||
-        (typeCategory === 'ai' && Number(ch.type_) < 100) ||
-        (typeCategory === 'quantum' && Number(ch.type_) >= 100)
-      return matchesSearch && matchesStatus && matchesCategory
+        (typeCategory === 'ai' && Number(ch.type) < 100) ||
+        (typeCategory === 'quantum' && Number(ch.type) >= 100)
+      const matchesChannelCat = channelCategory === 'all' ||
+        (channelCategory === ch.category) ||
+        (channelCategory === 'configured' && ch.key && !ch.key.startsWith('PUT_YOUR'))
+      return matchesSearch && matchesStatus && matchesCategory && matchesChannelCat
     })
-  }, [channels, search, status, typeCategory])
+  }, [channels, search, status, typeCategory, channelCategory])
 
   const getStatusBadge = (status: number) => {
     if (status === 1) {
@@ -400,6 +514,48 @@ function ChannelsPage() {
     )
   }
 
+  // 各渠道充值链接映射
+  const getChannelTopupUrl = (type: number, baseUrl?: string): string | null => {
+    // OpenAI Compatible -> 使用自定义 base_url
+    if (type === 48 && baseUrl) return baseUrl.replace(/\/v1$/, '') + '/billing'
+    if (type === 48) return null
+    const urls: Record<number, string> = {
+      1: 'https://platform.openai.com/settings/organization/billing/overview',
+      3: 'https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/overview',
+      14: 'https://console.anthropic.com/settings/billing',
+      15: 'https://console.bce.baidu.com/ai/#/ai/wenxin/price/ticket',
+      16: 'https://open.bigmodel.cn/usercenter/my-wallet',
+      17: 'https://dashscope.aliyuncs.com/topup',
+      18: 'https://www.xfyun.cn/console/charge',
+      19: 'https://ai.360.cn/platform/account/balance',
+      23: 'https://console.cloud.tencent.com/hunyuan',
+      25: 'https://ai.google.dev/pricing',
+      26: 'https://platform.moonshot.cn/console/billing',
+      27: 'https://platform.baichuan-ai.com/console/balance',
+      28: 'https://platform.minimaxi.com/user/balance',
+      29: 'https://console.mistral.ai/billing/',
+      30: 'https://console.groq.com/settings/billing',
+      31: 'https://platform.lingyiwanwu.com/console/payment',
+      32: 'https://platform.stepfun.com/account/billing',
+      35: 'https://platform.deepseek.com/top_up',
+      36: 'https://dash.cloudflare.com/?to=/:account/ai',
+      37: 'https://www.deepl.com/pro-api',
+      38: 'https://api.together.xyz/settings/billing',
+      39: 'https://console.volcengine.com/finance/',
+      44: 'https://cloud.siliconflow.cn/account/billing',
+      45: 'https://console.x.ai/billing',
+      58: 'https://console.volcengine.com/ark/region:ark+cn-beijing/billing',
+      // 量子算力
+      100: 'https://cloud.ionq.co/account/billing',
+      101: 'https://quantum-computing.ibm.com/account',
+      102: 'https://dashboard.rigetti.com/billing',
+      103: 'https://us-west-1.console.aws.amazon.com/braket/home?region=us-west-1',
+      104: 'https://portal.azure.com/#view/Microsoft_Azure_Quantum/QuantumWorkspacesBlade',
+      105: 'https://console.cloud.google.com/quantum',
+    }
+    return urls[type] || null
+  }
+
   return (
     <div className="p-4 sm:p-6  w-full space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       {/* Header */}
@@ -412,10 +568,17 @@ function ChannelsPage() {
             {t('Manage AI and Quantum computing channels')}
           </p>
         </div>
-        <Button onClick={() => setEditingChannel({} as Channel)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          {t('Add Channel')}
-        </Button>
+        {isProvider ? (
+          <Button onClick={() => setEditingChannel({} as Channel)} className="gap-2">
+            <Plus className="h-4 w-4" />
+            {t('Add Channel')}
+          </Button>
+        ) : (
+          <Button variant="outline" onClick={() => window.location.href = '/wallet'} className="gap-2">
+            <Wallet className="h-4 w-4" />
+            {t('Become a Provider')}
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -439,6 +602,18 @@ function ChannelsPage() {
                 <SelectItem value="all">{t('All Types')}</SelectItem>
                 <SelectItem value="ai">{t('AI Models')}</SelectItem>
                 <SelectItem value="quantum">{t('Quantum')}</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={channelCategory} onValueChange={setChannelCategory}>
+              <SelectTrigger className="w-full sm:w-36">
+                <SelectValue placeholder={t('Category')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('All')}</SelectItem>
+                <SelectItem value="free" className="text-green-600 font-medium">&#9679; {t('Free')}</SelectItem>
+                <SelectItem value="paid" className="text-amber-600 font-medium">&#9679; {t('Paid')}</SelectItem>
+                <SelectItem value="custom" className="text-purple-600 font-medium">&#9679; {t('Custom')}</SelectItem>
+                <SelectItem value="configured" className="text-blue-600 font-medium">&#9679; {t('Has API Key')}</SelectItem>
               </SelectContent>
             </Select>
             <Select value={status} onValueChange={setStatus}>
@@ -477,7 +652,10 @@ function ChannelsPage() {
                     <TableHead className="w-12">{t('ID')}</TableHead>
                     <TableHead>{t('Name')}</TableHead>
                     <TableHead>{t('Type')}</TableHead>
+                    <TableHead>{t('Category')}</TableHead>
                     <TableHead>{t('Group')}</TableHead>
+                    <TableHead>{t('Cost')}</TableHead>
+                    <TableHead>{t('Price Rate')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
                     <TableHead>{t('Weight')}</TableHead>
                     <TableHead>{t('Created')}</TableHead>
@@ -510,16 +688,38 @@ function ChannelsPage() {
                             <span className="font-medium">{channel.name}</span>
                           </div>
                         </TableCell>
-                        <TableCell>{getTypeBadge(channel.type_)}</TableCell>
+                        <TableCell>{getTypeBadge(channel.type)}</TableCell>
+                        <TableCell>
+                          {channel.category ? (
+                            <Badge variant="outline" className={{
+                              'free': 'border-green-200 text-green-700 bg-green-50',
+                              'paid': 'border-amber-200 text-amber-700 bg-amber-50',
+                              'custom': 'border-purple-200 text-purple-700 bg-purple-50',
+                            }[channel.category] || ''}>
+                              {channel.category}
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
+                          {channel.key && !channel.key.startsWith('PUT_YOUR') && (
+                            <span className="ml-1 h-2 w-2 inline-block rounded-full bg-green-500" title={t('API Key configured')} />
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary">{channel.group}</Badge>
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {channel.cost_per_unit?.toFixed(4) || '0'}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {channel.sell_price_rate?.toFixed(2) || '1.00'}×
                         </TableCell>
                         <TableCell>{getStatusBadge(channel.status)}</TableCell>
                         <TableCell>
                           <Badge variant="outline">{channel.weight}</Badge>
                         </TableCell>
                         <TableCell className="text-muted-foreground">
-                          {dayjs(channel.created_at * 1000).format('YYYY-MM-DD')}
+                          {dayjs(channel.created_time * 1000).format('YYYY-MM-DD')}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -540,6 +740,16 @@ function ChannelsPage() {
                                 <Play className="mr-2 h-4 w-4" />
                                 {t('Test')}
                               </DropdownMenuItem>
+                              {(() => {
+                                const url = getChannelTopupUrl(channel.type, channel.base_url)
+                                if (!url) return null
+                                return (
+                                  <DropdownMenuItem onClick={() => window.open(url, '_blank')}>
+                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                    {t('Top Up')}
+                                  </DropdownMenuItem>
+                                )
+                              })()}
                               <DropdownMenuItem
                                 onClick={() => {
                                   if (confirm(t('Are you sure?'))) {

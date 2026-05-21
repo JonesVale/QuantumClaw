@@ -406,6 +406,20 @@ func UpdateChannelBalance(c *gin.Context) {
 	return
 }
 
+// 支持余额检测的渠道类型列表
+var balanceCheckableTypes = map[int]bool{
+	channeltype.OpenAI:       true,
+	channeltype.Custom:       true,
+	channeltype.CloseAI:      true,
+	channeltype.OpenAISB:     true,
+	channeltype.AIProxy:      true,
+	channeltype.API2GPT:      true,
+	channeltype.AIGC2D:       true,
+	channeltype.SiliconFlow:  true,
+	channeltype.DeepSeek:     true,
+	channeltype.OpenRouter:   true,
+}
+
 func updateAllChannelsBalance() error {
 	channels, err := model.GetAllChannels(0, 0, "all")
 	if err != nil {
@@ -415,15 +429,14 @@ func updateAllChannelsBalance() error {
 		if channel.Status != model.ChannelStatusEnabled {
 			continue
 		}
-		// Azure 等类型需额外 API 适配，暂跳过自动余额检测
-		if channel.Type != channeltype.OpenAI && channel.Type != channeltype.Custom {
+		// 只检测有余额 API 的渠道类型
+		if !balanceCheckableTypes[channel.Type] {
 			continue
 		}
 		balance, err := updateChannelBalance(channel)
 		if err != nil {
 			continue
 		} else {
-			// err is nil & balance <= 0 means quota is used up
 			if balance <= 0 {
 				monitor.DisableChannel(channel.Id, channel.Name, "余额不足")
 			}
@@ -434,14 +447,14 @@ func updateAllChannelsBalance() error {
 }
 
 func UpdateAllChannelsBalance(c *gin.Context) {
-	//err := updateAllChannelsBalance()
-	//if err != nil {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"success": false,
-	//		"message": err.Error(),
-	//	})
-	//	return
-	//}
+	err := updateAllChannelsBalance()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

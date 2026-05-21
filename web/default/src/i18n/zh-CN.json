@@ -485,5 +485,31 @@
   "Superconducting qubit quantum processors": "超导量子比特处理器，全球领先的量子硬件",
   "Hybrid quantum-classical computing platform": "混合量子-经典计算平台，可编程量子处理器",
   "Cloud quantum computing service by AWS": "AWS 云端量子计算服务，按需访问量子硬件",
-  "Microsoft quantum computing ecosystem": "微软量子计算生态系统，集成开发与模拟"
+  "Microsoft quantum computing ecosystem": "微软量子计算生态系统，集成开发与模拟",
+
+  "Cash Balance": "现金余额",
+  "Available for API consumption": "可用于 API 消费",
+  "cents": "分",
+  "Supplier Earnings": "供应商收益",
+  "Total Earned": "总收益",
+  "Pending Fee": "待扣入驻费",
+  "Available": "可提现",
+  "Amount (¥)": "金额（¥）",
+  "Alipay / WeChat / Bank account": "支付宝/微信/银行卡",
+  "Withdraw": "提现",
+  "Submitting...": "提交中...",
+  "Withdrawal request submitted": "提现申请已提交",
+  "Withdrawal failed": "提现失败",
+  "Minimum withdrawal: ¥1. Platform fee (5%) will be deducted automatically on settlement.": "最低提现 ¥1。入驻费（5%）将在结算时自动扣除。",
+  "Please enter your account info": "请输入收款信息",
+  "Cost Per Unit": "成本单价",
+  "cost_per_unit_hint": "填 (每 1K tokens 成本) × 1000。例如 $0.002/1K tokens → 填 2.0",
+  "sell_price_rate_hint": "成本倍率，如 2.0 表示以成本的 2 倍售卖。",
+
+  "Cost per 1K tokens": "每 1K tokens 成本",
+  "Sell price per 1K tokens": "每 1K tokens 售价",
+
+  "Cost": "成本",
+  "Price Rate": "价格倍率",
+  "Balance History": "余额流水"
 }

@@ -214,10 +214,15 @@ func extractAPIKey(c *gin.Context) string {
 
 func recordQuantumConsumption(c *gin.Context, result *quantum.QuantumTaskResult) {
 	userID := c.GetInt(ctxkey.Id)
-	tokenID := c.GetInt(ctxkey.TokenId)
 	tokenName := c.GetString(ctxkey.TokenName)
 	channelID := c.GetInt(ctxkey.ChannelId)
 
+	// 现金扣款
+	if err := service.PostConsumeQuantumDeduct(userID, channelID, result.CostQuota); err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("quantum deduct failed: %v", err))
+	}
+
+	// 保留日志 + 渠道用量统计
 	model.RecordConsumeLog(c, &model.Log{
 		UserId:    userID,
 		ChannelId: channelID,
@@ -228,9 +233,4 @@ func recordQuantumConsumption(c *gin.Context, result *quantum.QuantumTaskResult)
 	})
 	service.UpdateUserUsedQuotaAndRequestCount(userID, result.CostQuota)
 	service.UpdateChannelUsedQuota(channelID, result.CostQuota)
-
-	if tokenID > 0 {
-		_ = model.PostConsumeTokenQuota(tokenID, result.CostQuota)
-		_ = model.CacheUpdateUserQuota(c.Request.Context(), userID)
-	}
 }

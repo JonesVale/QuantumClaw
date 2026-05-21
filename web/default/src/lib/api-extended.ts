@@ -45,14 +45,17 @@ export interface Channel {
   id: number
   name: string
   group: string
-  type_: string
+  type: number
   key: string
   base_url: string
-  models: string[]
+  models: string
   status: number
   weight: number
-  created_at: number
-  updated_at: number
+  cost_per_unit: number
+  sell_price_rate: number
+  used_quota: number
+  created_time: number
+  category: string
 }
 
 export interface ChannelTestResult {
@@ -71,7 +74,9 @@ export async function getChannels(
     search?: string
   }
 ): Promise<ApiResponse<Channel[]>> {
-  const params = extractParams<typeof arg2>(arg1, arg2)
+  const params: Record<string, unknown> = extractParams<typeof arg2>(arg1, arg2) || {}
+  // Fetch all channels (no pagination)
+  params.scope = 'all'
   const res = await apiClient.get('/api/channel', { params })
   return res.data
 }
@@ -81,13 +86,32 @@ export async function getChannel(id: number): Promise<ApiResponse<Channel>> {
   return res.data
 }
 
-export async function createChannel(data: Partial<Channel>): Promise<ApiResponse> {
-  const res = await apiClient.post('/api/channel', data)
+export async function createChannel(data: ChannelFormData): Promise<ApiResponse> {
+  const payload: Record<string, unknown> = { ...data }
+  // Serialize config fields into config JSON
+  const configParts: Record<string, unknown> = {}
+  if (data.cache_billing_ratio !== undefined) configParts.cache_billing_ratio = data.cache_billing_ratio
+  if (data.thinking_to_content !== undefined) configParts.thinking_to_content = data.thinking_to_content
+  if (Object.keys(configParts).length > 0) {
+    payload.config = JSON.stringify(configParts)
+  }
+  delete payload.cache_billing_ratio
+  delete payload.thinking_to_content
+  const res = await apiClient.post('/api/channel', payload)
   return res.data
 }
 
-export async function updateChannel(data: Partial<Channel>): Promise<ApiResponse> {
-  const res = await apiClient.put('/api/channel', data)
+export async function updateChannel(data: ChannelFormData & { id: number }): Promise<ApiResponse> {
+  const payload: Record<string, unknown> = { ...data }
+  const configParts: Record<string, unknown> = {}
+  if (data.cache_billing_ratio !== undefined) configParts.cache_billing_ratio = data.cache_billing_ratio
+  if (data.thinking_to_content !== undefined) configParts.thinking_to_content = data.thinking_to_content
+  if (Object.keys(configParts).length > 0) {
+    payload.config = JSON.stringify(configParts)
+  }
+  delete payload.cache_billing_ratio
+  delete payload.thinking_to_content
+  const res = await apiClient.put('/api/channel', payload)
   return res.data
 }
 
@@ -403,6 +427,7 @@ export interface ChannelFormData {
   key?: string
   name?: string
   base_url?: string
+  topup_url?: string
   models?: string
   group?: string
   model_mapping?: string
@@ -410,6 +435,9 @@ export interface ChannelFormData {
   weight?: number
   cache_billing_ratio?: number
   thinking_to_content?: boolean
+  cost_per_unit?: number
+  sell_price_rate?: number
+  category?: string
 }
 
 export async function getUsers(

@@ -18,3 +18,8 @@ func GetTimeString() string {
 func CalcElapsedTime(start time.Time) int64 {
 	return time.Now().Sub(start).Milliseconds()
 }
+
+// GetCurrentMonth 返回当前月份 YYYY-MM
+func GetCurrentMonth() string {
+	return time.Now().Format("2006-01")
+}
