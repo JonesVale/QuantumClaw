@@ -56,6 +56,39 @@ function WalletPage() {
     staleTime: 10 * 1000,
   })
 
+  const { data: myAffCode } = useQuery({
+    queryKey: ['aff-code'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self/aff')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 60 * 1000,
+  })
+
+  const { data: myCommission } = useQuery({
+    queryKey: ['commission'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self/commission')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 30 * 1000,
+  })
+
+  const { data: myWithdrawals } = useQuery({
+    queryKey: ['withdrawals'],
+    queryFn: async () => {
+      const res = await fetch('/api/user/self/withdrawals')
+      if (!res.ok) return null
+      return res.json()
+    },
+    retry: false,
+    staleTime: 30 * 1000,
+  })
+
   const paymentMethods: string[] = topupInfo?.paymentMethods || []
   const historyItems: any[] = topupHistory?.data || []
 
@@ -329,73 +362,88 @@ function WalletPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Commission / Affiliate Section */}
+      <div className="grid gap-6 md:grid-cols-3 border-t pt-6">
+        <Card className="border-green-200 dark:border-green-800">
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <TrendingUp className="h-4 w-4 text-green-600" />
+              {t('Commission')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-green-600">
+              {Number(myCommission?.data?.total_commission || 0).toLocaleString()}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">{t('Earned from referrals')}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('Invite Link')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {myAffCode?.data?.aff_code ? (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 rounded bg-muted px-2 py-1 text-xs font-mono truncate">{myAffCode.data.aff_code}</code>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`${window.location.origin}/sign-in?aff=${myAffCode.data.aff_code}`)
+                      toast.success(t('Copied'))
+                    }}
+                  >
+                    <Copy className="h-3 w-3" />
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground break-all">
+                  {window.location.origin}/sign-in?aff={myAffCode.data.aff_code}
+                </p>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{t('Loading...')}</p>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('Recent Commissions')}</CardTitle>
+          </CardHeader>
+          <CardContent className="max-h-36 overflow-y-auto">
+            {(myCommission?.data?.records || []).length > 0 ? (
+              myCommission.data.records.slice(0, 8).map((r: any) => (
+                <div key={r.id} className="flex justify-between items-center text-xs border-b py-1">
+                  <span className={r.type === 'register' ? 'text-blue-500' : 'text-green-500'}>
+                    {r.type === 'register' ? t('Referral') : t('Usage')}
+                  </span>
+                  <span className="font-medium">+{Number(r.amount).toLocaleString()}</span>
+                </div>
+              ))
+            ) : (
+              <p className="text-xs text-muted-foreground">{t('No records')}</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {(myWithdrawals?.data || []).length > 0 && (
+        <Card className="w-full max-w-2xl">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">{t('Withdrawals')}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1">
+            {(myWithdrawals?.data || []).slice(0, 8).map((w: any, i: number) => (
+              <div key={i} className="flex justify-between items-center text-xs border-b pb-1">
+                <span className="font-medium">{Number(w.amount).toLocaleString()}</span>
+                <span>{new Date(w.created_at).toLocaleDateString()}</span>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
-  {/* Commission / Affiliate Section */}
-  <div className="grid gap-6 md:grid-cols-3 mt-6 border-t pt-6">
-    <Card className="border-green-200 dark:border-green-800">
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-sm">
-          <TrendingUp className="h-4 w-4 text-green-600" />
-          Commission
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-3xl font-bold text-green-600">{Intl.NumberFormat().format(myCommission?.data?.total_commission || 0)}</div>
-        <p className="text-xs text-muted-foreground mt-1">Earned from referrals</p>
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Invite Link</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {myAffCode?.data?.aff_code ? (
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <code className="flex-1 rounded bg-muted px-2 py-1 text-xs font-mono truncate">{myAffCode.data.aff_code}</code>
-              <Button variant="outline" size="sm" onClick={() => { navigator.clipboard.writeText(myAffCode.data.aff_code) }}>
-                <Copy className="h-3 w-3" />
-              </Button>
-            </div>
-            <p className="text-xs text-muted-foreground">{window.location.origin}/sign-in?aff={myAffCode.data.aff_code}</p>
-          </div>
-        ) : <p className="text-sm text-muted-foreground">-</p>}
-      </CardContent>
-    </Card>
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Recent</CardTitle>
-      </CardHeader>
-      <CardContent className="max-h-36 overflow-y-auto">
-        {(myCommission?.data?.records || []).length > 0
-          ? myCommission.data.records.slice(0, 8).map((r) => (
-              <div key={r.id} className="flex justify-between items-center text-xs border-b py-1">
-                <span className={r.type === 'register' ? 'text-blue-500' : 'text-green-500'}>
-                  {r.type === 'register' ? 'Referral' : 'Usage'}
-                </span>
-                <span className="font-medium">+{Intl.NumberFormat().format(r.amount)}</span>
-              </div>
-            ))
-          : <p className="text-xs text-muted-foreground">No records</p>}
-      </CardContent>
-    </Card>
-  </div>
-  {(myWithdrawals?.data || []).length > 0 && (
-    <Card className="mt-4">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Withdrawals</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-1">
-        {myWithdrawals.data.slice(0, 8).map((w, i) => (
-          <div key={i} className="flex justify-between items-center text-xs border-b pb-1">
-            <div className="flex items-center gap-2">
-              <span className="font-medium">{Intl.NumberFormat().format(w.amount)}</span>
-            </div>
-            <span>{new Date(w.created_at).toLocaleDateString()}</span>
-          </div>
-        ))}
-      </CardContent>
-    </Card>
-  )}
 }

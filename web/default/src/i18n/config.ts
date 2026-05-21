@@ -35,7 +35,9 @@ i18next
 
 // Sync with T_Languages API (non-blocking, fallback to JSON)
 i18next.on('initialized', () => {
-  import('@/lib/tlanguages').then(({ syncTranslations }) => syncTranslations())
+  import('@/lib/tlanguages').then(({ syncTranslations, autoSeedIfEmpty }) => {
+    syncTranslations().then(() => autoSeedIfEmpty())
+  })
 })
 
 export default i18next

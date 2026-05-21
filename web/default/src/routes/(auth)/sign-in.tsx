@@ -115,6 +115,7 @@ function SignInPage() {
         username,
         password,
         display_name: username,
+        aff_code: affCode || undefined,
       })
       if (res.success) {
         toast.success(t('Registration successful! Please sign in.'))
@@ -221,6 +222,15 @@ function SignInPage() {
                 {confirmPassword && password !== confirmPassword && (
                   <p className="text-xs text-red-500">{t('Passwords do not match')}</p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reg-aff-code">{t('Invite Code')}</Label>
+                <Input
+                  id="reg-aff-code"
+                  placeholder={t('Optional')}
+                  value={affCode}
+                  onChange={(e) => setAffCode(e.target.value)}
+                />
               </div>
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? t('Registering...') : t('Register')}
