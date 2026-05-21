@@ -20,6 +20,7 @@ temp
 electron/node_modules
 electron/out
 electron/dist
+deploy/node_modules
 # Release builds
 release/
 
