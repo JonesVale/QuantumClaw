@@ -25,7 +25,7 @@ var ChannelTypeNames = map[int]string{
 	Ali:                  "Ali (Qwen)",
 	Xunfei:               "Xunfei (Spark)",
 	AI360:                "360 AI",
-	OpenRouter:           "OpenRouter",
+	OpenRouter:           "API Relay",
 	AIProxyLibrary:       "AIProxy Library",
 	FastGPT:              "FastGPT",
 	Tencent:              "Tencent (Hunyuan)",
