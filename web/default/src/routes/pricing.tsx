@@ -143,7 +143,21 @@ function PricingPage() {
   }, [filtered])
 
   return (
-    <div className="w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+      <aside className="w-56 shrink-0 border-r bg-card/50 backdrop-blur-sm hidden lg:block">
+        <div className="p-4 border-b">
+          <span className="font-semibold text-sm">{t('Filters')}</span>
+        </div>
+        <div className="p-4 space-y-4">
+          <div>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('Provider')}</h4>
+            <div className="space-y-0.5">
+              <button className="w-full text-left px-2 py-1.5 text-xs rounded hover:bg-muted/50 text-muted-foreground transition-colors">{t('All')}</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
