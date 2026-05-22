@@ -1158,5 +1158,14 @@
   "providers": "providers",
   "available via configured channels": "available via configured channels",
   "Go to Channels": "Go to Channels",
-  "Pricing Range": "Pricing Range"
+  "Pricing Range": "Pricing Range",
+  "Model Catalog": "Model Catalog",
+  "Browse models by capability. Configure your API key to use any model.": "Browse models by capability. Configure your API key to use any model.",
+  "models in catalog": "models in catalog",
+  "configured": "configured",
+  "Use Case": "Use Case",
+  "Provider Series": "Provider Series",
+  "Ready": "Ready",
+  "Needs Key": "Needs Key",
+  "No pricing data": "No pricing data"
 }

@@ -1158,5 +1158,14 @@
   "providers": "个供应商",
   "available via configured channels": "已配置渠道可用的模型",
   "Go to Channels": "前往渠道管理",
-  "Pricing Range": "价格范围"
+  "Pricing Range": "价格范围",
+  "Model Catalog": "模型目录",
+  "Browse models by capability. Configure your API key to use any model.": "按能力浏览模型。配置 API Key 即可使用。",
+  "models in catalog": "个模型",
+  "configured": "已配置",
+  "Use Case": "用例",
+  "Provider Series": "供应商系列",
+  "Ready": "就绪",
+  "Needs Key": "需配置",
+  "No pricing data": "暂无定价"
 }
