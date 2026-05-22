@@ -153,7 +153,7 @@ interface NavItem {
 // Product pages shown in top navigation bar
 const PRODUCT_ITEMS: NavItem[] = [
   { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard' },
-  { path: '/playground', icon: MessageSquare, labelKey: 'Playground' },
+  { path: '/chat', icon: MessageSquare, labelKey: 'AI Chat' },
   { path: '/models', icon: Box, labelKey: 'Models' },
   { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
   { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
@@ -401,7 +401,7 @@ const breadcrumbMap: Record<string, string> = {
 
   '/redemption': 'Redemption Codes',
 
-  '/playground': 'Playground',
+  '/chat': 'AI Chat',
   '/monitoring': 'Monitoring',
   '/news': 'AI News',
 

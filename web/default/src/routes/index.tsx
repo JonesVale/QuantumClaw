@@ -84,7 +84,7 @@ function HomePage() {
     { to: '/models', label: t('Models') },
     { to: '/rankings', label: t('Rankings') },
     { to: '/pricing', label: t('Pricing') },
-    { to: '/playground', label: t('Playground') },
+    { to: '/chat', label: t('AI Chat') },
     { to: loggedIn ? '/dashboard' : '/sign-in', label: t('Console') },
   ]
 

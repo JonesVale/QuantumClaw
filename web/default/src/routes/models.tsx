@@ -309,7 +309,7 @@ function ModelsPage() {
                         <span className="text-xs text-muted-foreground">
                           From {m.input_price > 0 ? `$${m.input_price.toFixed(6)}/token` : 'Free tier'}
                         </span>
-                        <Link to={auth.user ? '/playground' : '/sign-in?redirect=/playground'}><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
+                        <Link to={auth.user ? '/chat' : '/sign-in?redirect=/chat'}><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
                       </div>
                   </div>
                 )

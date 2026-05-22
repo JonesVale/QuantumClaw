@@ -107,12 +107,12 @@ export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDial
               size="sm"
               className="w-full gap-2"
               onClick={() => {
-                // Navigate to Playground with model pre-selected
-                window.location.href = `/_authenticated/playground?model=${encodeURIComponent(model.name)}`
+                // Navigate to Chat with model pre-selected
+                window.location.href = `/chat?model=${encodeURIComponent(model.name)}`
               }}
             >
               <ExternalLink className="h-4 w-4" />
-              {t('Test in Playground')}
+              {t('Chat with Model')}
             </Button>
           </div>
         </div>
