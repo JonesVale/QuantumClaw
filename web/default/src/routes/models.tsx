@@ -235,19 +235,16 @@ function ModelsPage() {
               <p>{t('No models found')}</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               {filtered.map((m) => {
                 const isConfigured = m.status === 1
                 const uc = useCaseLabels[m.useCase]
                 return (
-                  <div key={m.name} className="rounded-xl border border-border/60 bg-card hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5 overflow-hidden">
-                    {/* Top strip */}
-                    <div className={cn('h-1', isConfigured ? 'bg-emerald-500' : 'bg-muted-foreground/20')} />
-                    <div className="p-5 space-y-4">
-                      {/* Title + Status */}
-                      <div className="flex items-start justify-between">
+                  <div key={m.name} className="rounded-xl border border-border/60 bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden p-6 space-y-4">
+                    {/* Title row */}
+                    <div className="flex items-center justify-between">
                         <div>
-                          <h3 className="font-semibold text-base">{m.name}</h3>
+                          <h3 className="font-semibold text-lg">{m.name}</h3>
                           <p className="text-xs text-muted-foreground">{m.series}</p>
                         </div>
                         <Badge variant={isConfigured ? 'default' : 'outline'} className={cn('shrink-0 text-[10px]', isConfigured ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' : 'text-muted-foreground border-dashed')}>
@@ -256,7 +253,7 @@ function ModelsPage() {
                       </div>
 
                       {/* Description */}
-                      <p className="text-sm text-muted-foreground leading-relaxed">{m.description}</p>
+                      <p className="text-base text-muted-foreground leading-relaxed">{m.description}</p>
 
                       {/* Tags */}
                       <div className="flex flex-wrap items-center gap-1.5">
@@ -278,7 +275,6 @@ function ModelsPage() {
                           <Link to="/channels"><Button variant="outline" size="sm" className="h-7 text-xs gap-1"><Key className="h-3 w-3" />{t('Configure')}</Button></Link>
                         )}
                       </div>
-                    </div>
                   </div>
                 )
               })}
