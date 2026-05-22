@@ -113,7 +113,7 @@ function ModelsPage() {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       {/* Sidebar */}
-      <aside className={cn('w-64 shrink-0 border-r bg-card/50 backdrop-blur-sm flex flex-col transition-all', sidebarOpen ? 'translate-x-0' : '-translate-x-full fixed z-10 h-full md:relative md:translate-x-0')}>
+      <aside className={cn('w-60 shrink-0 border-r bg-card/50 backdrop-blur-sm flex flex-col transition-all', sidebarOpen ? 'translate-x-0' : '-translate-x-full fixed z-10 h-full md:relative md:translate-x-0')}>
         <div className="p-4 border-b flex items-center justify-between">
           <span className="font-semibold text-sm">{t('Filters')}</span>
           <Button variant="ghost" size="icon" className="h-6 w-6 md:hidden" onClick={() => setSidebarOpen(false)}><X className="h-3.5 w-3.5" /></Button>
@@ -121,18 +121,18 @@ function ModelsPage() {
         <ScrollArea className="flex-1">
           {/* Categories */}
           <section className="border-b">
-            <button onClick={() => setCollapsed(c => ({...c, categories: !c.categories}))} className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/30 transition-colors">
+            <button onClick={() => setCollapsed(c => ({...c, categories: !c.categories}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
               <span>{t('Categories')}</span>
               {collapsed.categories ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.categories && <div className="px-4 pb-2 space-y-0.5">
-              <button onClick={() => setUseCaseFilter('all')} className={cn('w-full text-left px-2 py-1.5 text-xs rounded transition-colors', useCaseFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All Models')}</button>
-              <button onClick={() => setUseCaseFilter('quantum')} className={cn('w-full text-left px-2 py-1.5 text-xs rounded transition-colors flex items-center gap-2', useCaseFilter === 'quantum' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
+              <button onClick={() => setUseCaseFilter('all')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', useCaseFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All Models')}</button>
+              <button onClick={() => setUseCaseFilter('quantum')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center gap-2', useCaseFilter === 'quantum' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
                 <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0"><Atom className="h-2.5 w-2.5 text-white" /></div>
                 {t('Quantum Computing')}
               </button>
               {Object.entries(useCaseLabels).map(([k, v]) => (
-                <button key={k} onClick={() => setUseCaseFilter(k)} className={cn('w-full text-left px-2 py-1.5 text-xs rounded transition-colors flex items-center gap-2', useCaseFilter === k ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
+                <button key={k} onClick={() => setUseCaseFilter(k)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center gap-2', useCaseFilter === k ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
                   <div className={`w-4 h-4 rounded bg-gradient-to-br ${v.color} flex items-center justify-center shrink-0`}><v.icon className="h-2.5 w-2.5 text-white" /></div>
                   {t(v.label)}
                 </button>
@@ -142,40 +142,40 @@ function ModelsPage() {
 
           {/* Input Modalities */}
           <section className="border-b">
-            <button onClick={() => setCollapsed(c => ({...c, modalities: !c.modalities}))} className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/30 transition-colors">
+            <button onClick={() => setCollapsed(c => ({...c, modalities: !c.modalities}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
               <span>{t('Input Modalities')}</span>
               {collapsed.modalities ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.modalities && <div className="px-4 pb-2 space-y-0.5">
               {['Text','Image','File','Audio','Video'].map(mod => (
-                <button key={mod} className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 rounded transition-colors">{mod}</button>
+                <button key={mod} className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 rounded transition-colors">{mod}</button>
               ))}
             </div>}
           </section>
 
           {/* Context Length */}
           <section className="border-b">
-            <button onClick={() => setCollapsed(c => ({...c, context: !c.context}))} className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/30 transition-colors">
+            <button onClick={() => setCollapsed(c => ({...c, context: !c.context}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
               <span>{t('Context Length')}</span>
               {collapsed.context ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.context && <div className="px-4 pb-2 space-y-0.5">
               {[{v:'all',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K - 32K'},{v:'32769-131072',l:'32K - 128K'},{v:'131073-999999999',l:'> 128K'}].map(r => (
-                <button key={r.v} className="w-full text-left px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 rounded transition-colors">{r.l}</button>
+                <button key={r.v} className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 rounded transition-colors">{r.l}</button>
               ))}
             </div>}
           </section>
 
           {/* Series */}
           <section className="border-b">
-            <button onClick={() => setCollapsed(c => ({...c, series: !c.series}))} className="flex items-center justify-between w-full px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider hover:bg-muted/30 transition-colors">
+            <button onClick={() => setCollapsed(c => ({...c, series: !c.series}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
               <span>{t('Series')}</span>
               {collapsed.series ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.series && <div className="px-4 pb-2 space-y-0.5">
-              <button onClick={() => setSeriesFilter('all')} className={cn('w-full text-left px-2 py-1.5 text-xs rounded transition-colors', seriesFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All')}</button>
+              <button onClick={() => setSeriesFilter('all')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', seriesFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All')}</button>
               {seriesNames.map(s => (
-                <button key={s} onClick={() => setSeriesFilter(s)} className={cn('w-full text-left px-2 py-1.5 text-xs rounded transition-colors', seriesFilter === s ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{s}</button>
+                <button key={s} onClick={() => setSeriesFilter(s)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', seriesFilter === s ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{s}</button>
               ))}
             </div>}
           </section>
@@ -191,17 +191,17 @@ function ModelsPage() {
           </Button>
           <span className="text-xs text-muted-foreground font-medium">{catalog.length} {t('models')}</span>
           <div className="ml-auto flex items-center gap-2 overflow-x-auto">
-            <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">Text</Badge>
-            <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">Image</Badge>
-            <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">Audio</Badge>
-            <Badge variant="outline" className="text-[10px] cursor-pointer hover:bg-muted">Video</Badge>
+            <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">Text</Badge>
+            <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">Image</Badge>
+            <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">Audio</Badge>
+            <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">Video</Badge>
           </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               {t('Models')}
             </h1>
             <p className="text-muted-foreground mt-1 text-sm">
