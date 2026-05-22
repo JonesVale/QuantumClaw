@@ -83,6 +83,7 @@ import {
   Atom,
   GitCompare,
   Sparkles,
+  Building2,
 
 } from 'lucide-react'
 
@@ -159,6 +160,7 @@ const PRODUCT_ITEMS: NavItem[] = [
   { path: '/quantum', icon: Atom, labelKey: 'Quantum' },
   { path: '/fusion', icon: GitCompare, labelKey: 'Fusion' },
   { path: '/apps', icon: Sparkles, labelKey: 'Apps' },
+  { path: '/enterprise', icon: Building2, labelKey: 'Enterprise' },
 ]
 
 // Admin/management pages (sidebar)
