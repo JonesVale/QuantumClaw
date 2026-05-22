@@ -1077,5 +1077,18 @@
   "This Month": "This Month",
   "Projected": "Projected",
   "Budget Used": "Budget Used",
-  "days remaining in this billing period": "days remaining in this billing period"
+  "days remaining in this billing period": "days remaining in this billing period",
+  "Apps": "Apps",
+  "Applications and tools powered by QuantumClaw API": "Applications and tools powered by QuantumClaw API",
+  "integrations": "integrations",
+  "Featured": "Featured",
+  "Search apps...": "Search apps...",
+  "No apps found": "No apps found",
+  "Built something with QuantumClaw?": "Built something with QuantumClaw?",
+  "Let us know and get featured here": "Let us know and get featured here",
+  "Submit your app": "Submit your app",
+  "users": "users",
+  "Development": "Development",
+  "Platform": "Platform",
+  "Tools": "Tools"
 }

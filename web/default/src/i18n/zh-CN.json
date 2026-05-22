@@ -1077,5 +1077,18 @@
   "This Month": "本月已用",
   "Projected": "预计月度",
   "Budget Used": "预算使用",
-  "days remaining in this billing period": "天剩余(本计费周期)"
+  "days remaining in this billing period": "天剩余(本计费周期)",
+  "Apps": "应用",
+  "Applications and tools powered by QuantumClaw API": "基于 QuantumClaw API 的应用和工具",
+  "integrations": "集成",
+  "Featured": "精选",
+  "Search apps...": "搜索应用...",
+  "No apps found": "暂无应用",
+  "Built something with QuantumClaw?": "你用 QuantumClaw 做了什么？",
+  "Let us know and get featured here": "告诉我们，在这里展示",
+  "Submit your app": "提交你的应用",
+  "users": "用户",
+  "Development": "开发",
+  "Platform": "平台",
+  "Tools": "工具"
 }

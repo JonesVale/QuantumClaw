@@ -82,6 +82,7 @@ import {
   Wrench,
   Atom,
   GitCompare,
+  Sparkles,
 
 } from 'lucide-react'
 
@@ -157,6 +158,7 @@ const PRODUCT_ITEMS: NavItem[] = [
   { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
   { path: '/quantum', icon: Atom, labelKey: 'Quantum' },
   { path: '/fusion', icon: GitCompare, labelKey: 'Fusion' },
+  { path: '/apps', icon: Sparkles, labelKey: 'Apps' },
 ]
 
 // Admin/management pages (sidebar)
