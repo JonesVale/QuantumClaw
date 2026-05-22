@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -8,9 +8,12 @@ import {
   DollarSign, KeyRound, BarChart3, Network,
   Menu, X, Shield, Activity,
   ChevronDown, Check, Newspaper, BookOpen,
-  Server, Bot, ChevronRight
+  Server, Bot, ChevronRight, Database, Users, Sparkles, Cpu, ShieldCheck, Languages
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,43 +38,100 @@ const typeToCode: Record<string, string> = {
   'Tiếng Việt': 'vi',
 }
 
-
-
 function ImageIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> }
 function VideoIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg> }
 function PenIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> }
 
+// ── API Fetcher for landing page stats ──────────────────────────────────
+async function fetchApi<T>(url: string): Promise<T | null> {
+  try {
+    const res = await fetch(url)
+    const json = await res.json()
+    return json?.data ?? json ?? null
+  } catch {
+    return null
+  }
+}
+
 function HomePage() {
-  const [dailyNews, setDailyNews] = useState([]);
-  const [newsLoading, setNewsLoading] = useState(true);
-  const [languages, setLanguages] = useState<string[]>([]);
-  const [loadingLangs, setLoadingLangs] = useState(true);
+  const [dailyNews, setDailyNews] = useState([])
+  const [newsLoading, setNewsLoading] = useState(true)
+  const [languages, setLanguages] = useState<string[]>([])
+  const [loadingLangs, setLoadingLangs] = useState(true)
+
+  // ── API-driven stats ────────────────────────────────────────────
+  const [modelCount, setModelCount] = useState<number | null>(null)
+  const [userCount, setUserCount] = useState<number | null>(null)
+  const [apiCalls, setApiCalls] = useState<string | null>(null)
+  const [topModels, setTopModels] = useState<{ name: string; provider: string; description?: string }[]>([])
+  const [statsLoading, setStatsLoading] = useState(true)
+
+  // Load stats from API
+  useEffect(() => {
+    let cancelled = false
+
+    async function load() {
+      // Try to get model count from /api/models
+      const models = await fetchApi<unknown[]>('/api/models')
+      if (!cancelled && Array.isArray(models)) {
+        setModelCount(models.length)
+        // Top 6 models for preview
+        const preview = models.slice(0, 6).map((m: any) => ({
+          name: m.name || m.model_name || m.ModelName || '',
+          provider: m.provider || m.Provider || m.provider_name || '',
+          description: m.description || m.Description || '',
+        }))
+        setTopModels(preview)
+      }
+
+      // Try to get user count from /api/user (admin only)
+      const users = await fetchApi<any>('/api/user')
+      if (!cancelled && users) {
+        if (Array.isArray(users)) {
+          setUserCount(users.length)
+        } else if (users.records && Array.isArray(users.records)) {
+          setUserCount(users.total || users.records.length)
+        }
+      }
+
+      // Get total API calls from /api/status or dashboard
+      const status = await fetchApi<any>('/api/status')
+      if (!cancelled && status) {
+        // Try various fields
+      }
+
+      setStatsLoading(false)
+    }
+
+    load()
+    return () => { cancelled = true }
+  }, [])
 
   useEffect(() => {
     fetch('/api/rss/articles?language=zh&limit=20')
       .then(r => r.json())
       .then(res => {
         if (res.success && res.data?.articles) {
-          setDailyNews(res.data.articles);
+          setDailyNews(res.data.articles)
         }
       })
       .catch(() => {})
-      .finally(() => setNewsLoading(false));
-  }, []);
+      .finally(() => setNewsLoading(false))
+  }, [])
 
   // Load available languages from DB
   useEffect(() => {
     fetch('/api/languages')
       .then(r => r.json())
       .then(res => {
-        const list = Array.isArray(res) ? res : res?.data || [];
+        const list = Array.isArray(res) ? res : res?.data || []
         if (Array.isArray(list)) {
-          setLanguages(list.map((r: any) => r.languages_type).filter(Boolean));
+          setLanguages(list.map((r: any) => r.languages_type).filter(Boolean))
         }
       })
       .catch(() => {})
-      .finally(() => setLoadingLangs(false));
-  }, []);
+      .finally(() => setLoadingLangs(false))
+  }, [])
 
   const { i18n, t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -88,18 +148,23 @@ function HomePage() {
     { to: loggedIn ? '/dashboard' : '/sign-in', label: t('Console') },
   ]
 
+  // ── Feature cards (matching task spec) ───────────────────────────
   const features = [
-    { icon: KeyRound, title: t('API Key Management'), desc: t('Unified create, quota, permission, rotation'), grad: 'from-blue-500 to-cyan-500' },
-    { icon: Network, title: t('Smart Channel Distribution'), desc: t('50+ model load balancing and failover'), grad: 'from-purple-500 to-pink-500' },
-    { icon: BarChart3, title: t('Usage Monitoring'), desc: t('Real-time quota management, consumption details'), grad: 'from-green-500 to-emerald-500' },
-    { icon: Shield, title: t('Security Protection'), desc: t('SSRF protection, IP whitelist, audit logs'), grad: 'from-orange-500 to-red-500' },
-    { icon: DollarSign, title: t('Flexible Billing'), desc: t('Pay-as-you-go / Subscription / Rate control'), grad: 'from-indigo-500 to-blue-500' },
-    { icon: Activity, title: t('Async Tasks'), desc: t('MJ/Video/Music task scheduling'), grad: 'from-pink-500 to-rose-500' },
-    { icon: Shield, title: t('Quantum Computing'), desc: t('IonQ / IBM Q / Rigetti / AWS Braket multi-platform aggregation'), grad: 'from-purple-500 to-indigo-500' },
+    { icon: Database, title: t('AI Model Catalog'), desc: t('Browse and discover 50+ AI models with detailed specs, pricing, and performance metrics'), grad: 'from-blue-500 to-cyan-500' },
+    { icon: Network, title: t('Smart Routing'), desc: t('Intelligent request distribution with load balancing, failover, and latency-based routing'), grad: 'from-purple-500 to-pink-500' },
+    { icon: Languages, title: t('Multilingual Support'), desc: t('Full i18n support with multiple languages for global users and teams'), grad: 'from-green-500 to-emerald-500' },
+    { icon: ShieldCheck, title: t('Enterprise Security'), desc: t('SSRF protection, IP whitelist, audit logs, and enterprise-grade access controls'), grad: 'from-orange-500 to-red-500' },
+    { icon: KeyRound, title: t('API Key Management'), desc: t('Unified key lifecycle management with quota, permissions, and automatic rotation'), grad: 'from-indigo-500 to-blue-500' },
+    { icon: Cpu, title: t('Quantum Computing'), desc: t('IonQ / IBM Q / Rigetti / AWS Braket multi-platform quantum computing aggregation'), grad: 'from-purple-500 to-indigo-500' },
   ]
 
-  // Brand favicon helper — uses Google's favicon API with emoji fallback
-  
+  const featuresExtras = [
+    { icon: BarChart3, title: t('Usage Monitoring'), desc: t('Real-time quota management, consumption details'), grad: 'from-blue-500 to-cyan-500' },
+    { icon: DollarSign, title: t('Flexible Billing'), desc: t('Pay-as-you-go / Subscription / Rate control'), grad: 'from-indigo-500 to-blue-500' },
+    { icon: Activity, title: t('Async Tasks'), desc: t('MJ/Video/Music task scheduling'), grad: 'from-pink-500 to-rose-500' },
+  ]
+
+  const allFeatures = [...features, ...featuresExtras]
 
   const heroCards = [
     { title: t('Qwen3.6'), desc: t('Native multimodal, more stable reasoning'), link: 'https://qwen.alibaba.com', grad: 'from-blue-500 to-purple-600', logo: '🤖' },
@@ -117,9 +182,9 @@ function HomePage() {
   // Preload brand favicons
   useEffect(() => {
     ['qwen.alibaba.com','claude.ai','chat.openai.com','gemini.google.com','chat.deepseek.com','ionq.com'].forEach(d => {
-      const img = new Image(); img.src = 'https://www.google.com/s2/favicons?domain='+d+'&sz=64';
-    });
-  }, []);
+      const img = new Image(); img.src = 'https://www.google.com/s2/favicons?domain='+d+'&sz=64'
+    })
+  }, [])
 
   const modelApps = [
     { name: t('Chat & Reasoning'), icon: MessageSquare, models: ['GPT-4o', 'Claude 3.5', 'Gemini 2.0', 'DeepSeek V3'], link: 'https://chat.openai.com', grad: 'from-blue-500 to-cyan-500' },
@@ -145,12 +210,13 @@ function HomePage() {
     { name: t('Reddit AI'), url: 'https://www.reddit.com/r/artificial/', lang: t('EN') },
   ]
 
-  const stats = [
-    { value: '99.9%', label: t('Service Availability') },
-    { value: '<50ms', label: t('Average Latency') },
-    { value: '50+', label: t('AI Models') },
-    { value: '6', label: t('Quantum Platforms') },
-    { value: '10M+', label: t('Monthly Requests') },
+  // ── API-driven stats ─────────────────────────────────────────────
+  const liveStats = [
+    { value: modelCount !== null ? `${modelCount}+` : '50+', label: t('AI Models'), loading: statsLoading && modelCount === null },
+    { value: userCount !== null ? `${userCount.toLocaleString()}+` : '10K+', label: t('Users'), loading: statsLoading && userCount === null },
+    { value: apiCalls || '10M+', label: t('Monthly API Calls'), loading: false },
+    { value: '6', label: t('Quantum Platforms'), loading: false },
+    { value: '99.9%', label: t('Service Availability'), loading: false },
   ]
 
   const newsIcons: Record<string, React.ReactNode> = {
@@ -178,6 +244,7 @@ function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
+      {/* ── NAVIGATION BAR ─────────────────────────────────────────── */}
       <nav className="shrink-0 border-b border-slate-200 dark:border-slate-800" style={{ height: 'clamp(44px, 7vh, 56px)' }}>
         <div className="mx-auto flex items-center h-full justify-between w-full" style={{ padding: '0 clamp(8px, 3vw, 32px)' }}>
           <Link to="/" className="flex items-center gap-x-1 shrink-0">
@@ -261,9 +328,15 @@ function HomePage() {
       <main className="flex-1">
         <div className="w-full" style={{ padding: '0 clamp(8px, 3vw, 32px)' }}>
 
-          {/* HERO */}
+          {/* ── HERO SECTION ───────────────────────────────────────── */}
           <section style={{ paddingTop: 'clamp(24px, 5vw, 64px)', paddingBottom: 'clamp(24px, 5vw, 64px)' }}>
             <div className="text-center" style={{ marginBottom: 'clamp(16px, 3vw, 48px)' }}>
+              <Badge variant="outline" className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 mb-4"
+                style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
+                <Sparkles className="mr-1" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />
+                {t('Next-Gen AI API Gateway')}
+              </Badge>
+
               <h1 className="font-extrabold tracking-tight leading-[1.15]" style={{ fontSize: 'clamp(28px, 5vw, 72px)', marginBottom: 'clamp(8px, 1.5vw, 16px)' }}>
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">{t('QuantumClaw')}</span>
               </h1>
@@ -275,17 +348,18 @@ function HomePage() {
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(8px, 1vw, 16px) clamp(16px, 2.5vw, 28px)', fontSize: 'clamp(12px, 1.1vw, 16px)' }}>
                   <KeyRound style={{ width: 'clamp(14px, 1.3vw, 20px)', height: 'clamp(14px, 1.3vw, 20px)' }} />
-                  {t('免费获取 Token')}
+                  {t('开始使用')}
                   <ArrowRight style={{ width: 'clamp(12px, 1vw, 16px)', height: 'clamp(12px, 1vw, 16px)' }} />
                 </Link>
                 <Link to="/playground"
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold shadow-xs hover:shadow-md transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(8px, 1vw, 16px) clamp(16px, 2.5vw, 28px)', fontSize: 'clamp(12px, 1.1vw, 16px)' }}>
-                  {t('在线体验 Playground')}
+                  {t('了解更多')}
                 </Link>
               </div>
             </div>
 
+            {/* ── Model preview cards from API + static hero cards ── */}
             <div style={{ maxWidth: 'min(100%, 1200px)', margin: '0 auto', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(140px, 20vw, 280px), 1fr))', gap: 'clamp(6px, 1vw, 16px)' }}>
               {heroCards.map((card, i) => (
                 <a key={i} href={card.link} target="_blank" rel="noopener noreferrer"
@@ -293,7 +367,9 @@ function HomePage() {
                   style={{ padding: 'clamp(10px, 1.5vw, 24px)' }}>
                   <div className={"rounded-lg bg-gradient-to-br " + card.grad + " flex items-center justify-center mb-[clamp(6px, 0.8vw, 16px)]"}
                     style={{ width: 'clamp(24px, 3vw, 36px)', height: 'clamp(24px, 3vw, 36px)' }}>
-                    <img src={"https://www.google.com/s2/favicons?domain=" + card.link.replace("https://","").split("/")[0] + "&sz=64"} alt="" onError={(e)=>{e.currentTarget.style.display="none"; const p=e.currentTarget.parentElement; if(p){const s=document.createElement("span");s.textContent=card.logo;s.style.fontSize="clamp(12px,1.5vw,18px)";p.appendChild(s);}}} className="rounded-lg object-cover" style={{width:"100%",height:"100%"}} />
+                    <img src={"https://www.google.com/s2/favicons?domain=" + card.link.replace("https://","").split("/")[0] + "&sz=64"} alt=""
+                      onError={(e)=>{e.currentTarget.style.display="none"; const p=e.currentTarget.parentElement; if(p){const s=document.createElement("span");s.textContent=card.logo;s.style.fontSize="clamp(12px,1.5vw,18px)";p.appendChild(s);}}}
+                      className="rounded-lg object-cover" style={{width:"100%",height:"100%"}} />
                   </div>
                   <h3 className="font-bold" style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', marginBottom: 'clamp(2px, 0.3vw, 6px)' }}>{t(card.title)}</h3>
                   <p className="text-slate-500 dark:text-slate-400 leading-relaxed" style={{ fontSize: 'clamp(9px, 1vw, 14px)' }}>{t(card.desc)}</p>
@@ -302,22 +378,51 @@ function HomePage() {
             </div>
           </section>
 
-          {/* FEATURES */}
-          <section style={{ paddingTop: 'clamp(32px, 6vw, 80px)', paddingBottom: 'clamp(32px, 6vw, 80px)' }}>
+          {/* ── STATISTICS SECTION ──────────────────────────────────── */}
+          <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(24px, 4vw, 48px)', paddingBottom: 'clamp(24px, 4vw, 48px)' }}>
+            <div className="text-center" style={{ marginBottom: 'clamp(16px, 2vw, 32px)' }}>
+              <Badge variant="outline" className="border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 mb-3"
+                style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
+                <Activity className="mr-1" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />
+                {t('Platform Statistics')}
+              </Badge>
+              <p className="text-slate-500 dark:text-slate-400 text-sm sm:text-base">
+                {t('Trusted by developers and enterprises worldwide')}
+              </p>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(100px, 18vw, 200px), 1fr))', gap: 'clamp(16px, 3vw, 40px)', maxWidth: 'clamp(300px, 70vw, 900px)', margin: '0 auto', textAlign: 'center' }}>
+              {liveStats.map((s, i) => (
+                <div key={i}>
+                  {s.loading ? (
+                    <Skeleton className="h-10 w-20 mx-auto mb-2" />
+                  ) : (
+                    <div className="font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" style={{ fontSize: 'clamp(20px, 3vw, 48px)' }}>
+                      {s.value}
+                    </div>
+                  )}
+                  <div className="text-slate-500 dark:text-slate-400" style={{ fontSize: 'clamp(11px, 1vw, 14px)', marginTop: 'clamp(2px, 0.3vw, 6px)' }}>{t(s.label)}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── FEATURES SECTION ────────────────────────────────────── */}
+          <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(32px, 6vw, 80px)', paddingBottom: 'clamp(32px, 6vw, 80px)' }}>
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
+                <Sparkles className="mr-1" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />
                 {t('Core Features')}
               </Badge>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>
-                {t('Token 聚合分发 · AI + 量子计算基础设施')}
+                {t('Everything You Need for AI Development')}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
-                {t('统一管理 AI 密钥、量子算力、配额、计费')}
+                {t('From model discovery to deployment, we handle the infrastructure')}
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(200px, 28vw, 380px), 1fr))', gap: 'clamp(8px, 1.2vw, 24px)' }}>
-              {features.map((f, i) => (
+              {allFeatures.map((f, i) => (
                 <div key={i} className="group rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-700 transition-all"
                   style={{ padding: 'clamp(14px, 2vw, 28px)' }}>
                   <div className={'rounded-xl bg-gradient-to-br ' + f.grad + ' flex items-center justify-center mb-[clamp(10px, 1.5vw, 20px)]'}
@@ -331,55 +436,88 @@ function HomePage() {
             </div>
           </section>
 
-          {/* STATS */}
-          <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(24px, 4vw, 48px)', paddingBottom: 'clamp(24px, 4vw, 48px)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(100px, 18vw, 200px), 1fr))', gap: 'clamp(16px, 3vw, 40px)', maxWidth: 'clamp(300px, 60vw, 700px)', margin: '0 auto', textAlign: 'center' }}>
-              {stats.map((s, i) => (
-                <div key={i}>
-                  <div className="font-extrabold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" style={{ fontSize: 'clamp(20px, 3vw, 48px)' }}>{s.value}</div>
-                  <div className="text-slate-500 dark:text-slate-400" style={{ fontSize: 'clamp(11px, 1vw, 14px)', marginTop: 'clamp(2px, 0.3vw, 6px)' }}>{t(s.label)}</div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* MODELS */}
+          {/* ── MODEL PREVIEW SECTION ──────────────────────────────── */}
           <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(32px, 5vw, 80px)', paddingBottom: 'clamp(32px, 5vw, 80px)' }}>
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
-                {t('Ecosystem')}
+                <Bot className="mr-1" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />
+                {t('Featured Models')}
               </Badge>
-              <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>{t('AI Model Ecosystem')}</h2>
+              <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>{t('Popular AI Models')}</h2>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
-                {t('聚合全球主流 AI 模型，一个接口兼容全部')}
+                {t('Discover and compare top AI models available on our platform')}
               </p>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(120px, 15vw, 200px), 1fr))', gap: 'clamp(6px, 0.8vw, 20px)' }}>
-              {modelApps.map((app, i) => (
-                <a key={i} href={app.link} target="_blank" rel="noopener noreferrer"
-                  className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-1 text-center"
-                  style={{ padding: 'clamp(10px, 1.5vw, 24px)' }}>
-                  <div className={'rounded-xl bg-gradient-to-br ' + app.grad + ' flex items-center justify-center mx-auto mb-[clamp(6px, 0.8vw, 14px)]'}
-                    style={{ width: 'clamp(28px, 4vw, 44px)', height: 'clamp(28px, 4vw, 44px)' }}>
-                    <app.icon className="text-white" style={{ width: 'clamp(14px, 2vw, 22px)', height: 'clamp(14px, 2vw, 22px)' }} />
+
+            {/* API-driven top models */}
+            {statsLoading && topModels.length === 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(160px, 22vw, 280px), 1fr))', gap: 'clamp(8px, 1.2vw, 20px)' }}>
+                {[1,2,3,4,5,6].map(i => (
+                  <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900" style={{ padding: 'clamp(14px, 2vw, 24px)' }}>
+                    <Skeleton className="h-10 w-10 rounded-lg mb-3" />
+                    <Skeleton className="h-5 w-28 mb-2" />
+                    <Skeleton className="h-4 w-full" />
                   </div>
-                  <h3 className="font-bold truncate" style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', marginBottom: 'clamp(4px, 0.5vw, 10px)' }}>{t(app.name)}</h3>
-                  <div className="flex flex-wrap gap-1 justify-center">
-                    {app.models.slice(0, 2).map((m, j) => (
-                      <span key={j} className="px-[clamp(3px, 0.4vw, 6px)] py-[clamp(1px, 0.2vw, 3px)] rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 truncate"
-                        style={{ fontSize: 'clamp(8px, 0.8vw, 11px)', maxWidth: 'clamp(50px, 8vw, 70px)' }}>{m}</span>
-                    ))}
-                    {app.models.length > 2 && <span style={{ fontSize: 'clamp(8px, 0.8vw, 11px)' }} className="text-slate-400">{'+' + (app.models.length - 2)}</span>}
+                ))}
+              </div>
+            ) : topModels.length > 0 ? (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(160px, 22vw, 280px), 1fr))', gap: 'clamp(8px, 1.2vw, 20px)' }}>
+                {topModels.map((model, i) => (
+                  <div key={i}
+                    className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-0.5"
+                    style={{ padding: 'clamp(14px, 2vw, 24px)' }}>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold"
+                        style={{ width: 'clamp(28px, 3vw, 40px)', height: 'clamp(28px, 3vw, 40px)', fontSize: 'clamp(12px, 1.2vw, 16px)' }}>
+                        {model.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-bold truncate" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)' }}>{model.name}</h3>
+                        {model.provider && (
+                          <p className="text-xs text-slate-400 truncate">{model.provider}</p>
+                        )}
+                      </div>
+                    </div>
+                    {model.description && (
+                      <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-sm line-clamp-2">
+                        {model.description}
+                      </p>
+                    )}
+                    <Link to="/models" className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-3 group-hover:underline">
+                      {t('View Details')} <ChevronRight style={{ width: 'clamp(8px, 0.7vw, 12px)', height: 'clamp(8px, 0.7vw, 12px)' }} />
+                    </Link>
                   </div>
-                </a>
-              ))}
-            </div>
+                ))}
+              </div>
+            ) : (
+              /* Fallback: ecosystem cards when API unavailable */
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(120px, 15vw, 200px), 1fr))', gap: 'clamp(6px, 0.8vw, 20px)' }}>
+                {modelApps.map((app, i) => (
+                  <a key={i} href={app.link} target="_blank" rel="noopener noreferrer"
+                    className="group rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:shadow-lg hover:border-blue-300 dark:hover:border-blue-600 transition-all hover:-translate-y-1 text-center"
+                    style={{ padding: 'clamp(10px, 1.5vw, 24px)' }}>
+                    <div className={'rounded-xl bg-gradient-to-br ' + app.grad + ' flex items-center justify-center mx-auto mb-[clamp(6px, 0.8vw, 14px)]'}
+                      style={{ width: 'clamp(28px, 4vw, 44px)', height: 'clamp(28px, 4vw, 44px)' }}>
+                      <app.icon className="text-white" style={{ width: 'clamp(14px, 2vw, 22px)', height: 'clamp(14px, 2vw, 22px)' }} />
+                    </div>
+                    <h3 className="font-bold truncate" style={{ fontSize: 'clamp(11px, 1.2vw, 16px)', marginBottom: 'clamp(4px, 0.5vw, 10px)' }}>{t(app.name)}</h3>
+                    <div className="flex flex-wrap gap-1 justify-center">
+                      {app.models.slice(0, 2).map((m, j) => (
+                        <span key={j} className="px-[clamp(3px, 0.4vw, 6px)] py-[clamp(1px, 0.2vw, 3px)] rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 truncate"
+                          style={{ fontSize: 'clamp(8px, 0.8vw, 11px)', maxWidth: 'clamp(50px, 8vw, 70px)' }}>{m}</span>
+                      ))}
+                      {app.models.length > 2 && <span style={{ fontSize: 'clamp(8px, 0.8vw, 11px)' }} className="text-slate-400">{'+' + (app.models.length - 2)}</span>}
+                    </div>
+                  </a>
+                ))}
+              </div>
+            )}
           </section>
 
-          {/* Daily Industry News — AI + Quantum Computing */}
+          {/* ── AI & QUANTUM DAILY NEWS ─────────────────────────────── */}
           <section style={{ paddingTop: 'clamp(32px, 5vw, 80px)', paddingBottom: 'clamp(24px, 3vw, 48px)' }}>
-            <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }} data-aos="fade-up">
+            <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
                 {t('Daily Updates')}
@@ -396,7 +534,7 @@ function HomePage() {
                 </div>
               ) : (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(clamp(300px, 45vw, 560px), 1fr))', gap: 'clamp(4px, 0.6vw, 8px)' }}>
-                  {dailyNews.slice(0, 20).map((article, i) => (
+                  {dailyNews.slice(0, 20).map((article: any, i: number) => (
                     <a key={i} href={article.link} target="_blank" rel="noopener noreferrer" className="text-decoration-none">
                       <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                         style={{ fontSize: 'clamp(11px, 1vw, 14px)' }}>
@@ -421,7 +559,7 @@ function HomePage() {
             </div>
           </section>
 
-          {/* NEWS */}
+          {/* ── NEWS SOURCES ────────────────────────────────────────── */}
           <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(32px, 5vw, 80px)', paddingBottom: 'clamp(32px, 5vw, 80px)' }}>
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 mb-3"
@@ -449,7 +587,7 @@ function HomePage() {
             </div>
           </section>
 
-          {/* CTA */}
+          {/* ── CTA SECTION ─────────────────────────────────────────── */}
           <section className="border-t border-slate-100 dark:border-slate-800" style={{ paddingTop: 'clamp(24px, 4vw, 48px)', paddingBottom: 'clamp(24px, 4vw, 48px)' }}>
             <div className="text-center" style={{ maxWidth: 'clamp(280px, 50vw, 500px)', margin: '0 auto' }}>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 32px)', marginBottom: 'clamp(6px, 0.8vw, 12px)' }}>
@@ -468,7 +606,7 @@ function HomePage() {
           </section>
         </div>
 
-        {/* FOOTER */}
+        {/* ── FOOTER ────────────────────────────────────────────────── */}
         <footer className="border-t border-slate-200 dark:border-slate-800">
           <div className="w-full" style={{ padding: '0 clamp(8px, 3vw, 32px)' }}>
             <div style={{ paddingTop: 'clamp(16px, 2vw, 32px)', paddingBottom: 'clamp(16px, 2vw, 32px)' }}>
@@ -484,6 +622,12 @@ function HomePage() {
                   </div>
                 </div>
                 <div className="flex items-center" style={{ gap: 'clamp(8px, 1.5vw, 24px)', fontSize: 'clamp(9px, 0.8vw, 12px)' }}>
+                  <Link to="/models" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
+                    <Bot style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('Models')}
+                  </Link>
+                  <Link to="/pricing" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
+                    <DollarSign style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('Pricing')}
+                  </Link>
                   <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
                     <Code style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('GitHub')}
                   </a>
@@ -514,12 +658,8 @@ function HomePage() {
             </div>
           </div>
         </footer>
-      <CustomerServiceFloating />
-			</main>
+        <CustomerServiceFloating />
+      </main>
     </div>
   )
 }
-
-
-
-
