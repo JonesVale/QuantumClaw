@@ -118,8 +118,10 @@ export async function syncTranslations(): Promise<void> {
 
       const apiTrans = await loadApiTranslations(langType)
       if (apiTrans && Object.keys(apiTrans).length > 0) {
-        // DB has data — replace i18next resources (DB is authoritative)
-        i18next.addResourceBundle(code, 'translation', apiTrans, true, true)
+        // DB authoritative but JSON fills gaps: merge DB into existing bundle
+        const currentBundle = i18next.getResourceBundle(code, 'translation') || {}
+        const merged = { ...currentBundle, ...apiTrans }
+        i18next.addResourceBundle(code, 'translation', merged, true, true)
       }
       // If DB empty for this language — bundled JSON fallback stays
     }
