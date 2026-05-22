@@ -317,6 +317,7 @@ function PricingPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }

@@ -279,6 +279,7 @@ function RankingsPage() {
           })}
         </div>
       )}
+      </div>
     </div>
   )
 }
