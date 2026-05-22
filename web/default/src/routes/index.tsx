@@ -25,15 +25,15 @@ export const Route = createFileRoute('/')({
   component: HomePage,
 })
 
-const LANGUAGES = [
-  { code: 'zh-CN', name: '简体中文' },
-  { code: 'zh-TW', name: '繁體中文' },
-  { code: 'en', name: 'English' },
-  { code: 'fr', name: 'Français' },
-  { code: 'ja', name: '日本語' },
-  { code: 'ru', name: 'Русский' },
-  { code: 'vi', name: 'Tiếng Việt' },
-]
+const typeToCode: Record<string, string> = {
+  '中文简体': 'zh-CN',
+  '中文繁体': 'zh-TW',
+  'English': 'en',
+  'Français': 'fr',
+  '日本語': 'ja',
+  'Русский': 'ru',
+  'Tiếng Việt': 'vi',
+}
 
 
 
@@ -44,6 +44,8 @@ function PenIcon(p: any) { return <svg xmlns="http://www.w3.org/2000/svg" viewBo
 function HomePage() {
   const [dailyNews, setDailyNews] = useState([]);
   const [newsLoading, setNewsLoading] = useState(true);
+  const [languages, setLanguages] = useState<string[]>([]);
+  const [loadingLangs, setLoadingLangs] = useState(true);
 
   useEffect(() => {
     fetch('/api/rss/articles?language=zh&limit=20')
@@ -56,6 +58,21 @@ function HomePage() {
       .catch(() => {})
       .finally(() => setNewsLoading(false));
   }, []);
+
+  // Load available languages from DB
+  useEffect(() => {
+    fetch('/api/languages')
+      .then(r => r.json())
+      .then(res => {
+        const list = Array.isArray(res) ? res : res?.data || [];
+        if (Array.isArray(list)) {
+          setLanguages(list.map((r: any) => r.languages_type).filter(Boolean));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoadingLangs(false));
+  }, []);
+
   const { i18n, t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
@@ -155,7 +172,7 @@ function HomePage() {
     localStorage.setItem('i18nextLng', code)
     setCurrentLang(code)
   }
-  const langName = LANGUAGES.find(l => l.code === currentLang)?.name || 'English'
+  const langName = (Object.entries(typeToCode).find(([_, code]) => code === currentLang)?.[0]) || currentLang || 'English'
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
@@ -187,13 +204,13 @@ function HomePage() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" style={{ minWidth: '140px' }}>
-                {LANGUAGES.map((lang) => (
-                  <DropdownMenuItem key={lang.code} onClick={() => changeLang(lang.code)}
-                    className={currentLang === lang.code ? 'font-semibold bg-slate-50 dark:bg-slate-800' : ''}
+                {languages.filter(Boolean).map((langType) => (
+                  <DropdownMenuItem key={typeToCode[langType] || langType} onClick={() => changeLang(typeToCode[langType] || langType)}
+                    className={currentLang === (typeToCode[langType] || langType) ? 'font-semibold bg-slate-50 dark:bg-slate-800' : ''}
                     style={{ fontSize: 'clamp(11px, 0.9vw, 13px)' }}>
                     <Globe className="mr-2 shrink-0" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />
-                    {lang.name}
-                    {currentLang === lang.code && <Check className="ml-auto" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />}
+                    {langType}
+                    {currentLang === (typeToCode[langType] || langType) && <Check className="ml-auto" style={{ width: 'clamp(10px, 0.8vw, 14px)', height: 'clamp(10px, 0.8vw, 14px)' }} />}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -223,10 +240,10 @@ function HomePage() {
               ))}
               <div className="border-t border-slate-100 dark:border-slate-800 pt-2 mt-2">
                 <p className="px-3 pb-1 text-[10px] text-slate-400 uppercase tracking-wider">{t('Language')}</p>
-                {LANGUAGES.map((lang) => (
-                  <button key={lang.code} onClick={() => { changeLang(lang.code); setMenuOpen(false) }}
-                    className={'w-full text-left px-3 py-1.5 rounded-md text-sm ' + (currentLang === lang.code ? 'font-semibold bg-slate-100 dark:bg-slate-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800')}>
-                    {lang.name}
+                {languages.filter(Boolean).map((langType) => (
+                  <button key={typeToCode[langType] || langType} onClick={() => { changeLang(typeToCode[langType] || langType); setMenuOpen(false) }}
+                    className={'w-full text-left px-3 py-1.5 rounded-md text-sm ' + (currentLang === (typeToCode[langType] || langType) ? 'font-semibold bg-slate-100 dark:bg-slate-800' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800')}>
+                    {langType}
                   </button>
                 ))}
               </div>
@@ -288,7 +305,7 @@ function HomePage() {
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
-                Core Features
+                {t('Core Features')}
               </Badge>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>
                 {t('Token 聚合分发 · AI + 量子计算基础设施')}
@@ -329,7 +346,7 @@ function HomePage() {
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
-                Ecosystem
+                {t('Ecosystem')}
               </Badge>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>{t('AI Model Ecosystem')}</h2>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
@@ -386,7 +403,7 @@ function HomePage() {
                           {article.source}
                         </span>
                         <span className="text-slate-400 shrink-0" style={{ fontSize: 'clamp(8px, 0.7vw, 11px)', width: 'clamp(36px, 4vw, 50px)' }}>
-                          {new Date(article.published_at).toLocaleDateString('zh-CN', { month: '2-digit', day: '2-digit' })}
+                          {new Date(article.published_at).toLocaleDateString(i18n.language || 'zh-CN', { month: '2-digit', day: '2-digit' })}
                         </span>
                         <span className="truncate flex-grow min-w-0" style={{ color: '#1e293b', fontSize: 'clamp(11px, 0.9vw, 14px)' }}>
                           {article.title}
@@ -407,7 +424,7 @@ function HomePage() {
             <div className="text-center" style={{ marginBottom: 'clamp(20px, 3vw, 48px)' }}>
               <Badge variant="outline" className="border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 mb-3"
                 style={{ padding: 'clamp(3px, 0.4vw, 6px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(10px, 0.9vw, 13px)' }}>
-                AI News
+                {t('AI News')}
               </Badge>
               <h2 className="font-bold" style={{ fontSize: 'clamp(18px, 2.5vw, 36px)', marginBottom: 'clamp(6px, 1vw, 12px)' }}>{t('AI News Navigation')}</h2>
               <p className="text-slate-500 dark:text-slate-400 mx-auto" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', maxWidth: 'clamp(280px, 50vw, 500px)' }}>
@@ -466,14 +483,14 @@ function HomePage() {
                 </div>
                 <div className="flex items-center" style={{ gap: 'clamp(8px, 1.5vw, 24px)', fontSize: 'clamp(9px, 0.8vw, 12px)' }}>
                   <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
-                    <Code style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />GitHub
+                    <Code style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('GitHub')}
                   </a>
                   <a href="mailto:contact@quantumclaw.ai" className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)]">
                     <Mail style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('联系我们')}
                   </a>
                   <a onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ群号已复制: 587600277'); }}
                      className="text-slate-400 hover:text-blue-600 transition-colors flex items-center gap-[clamp(2px, 0.3vw, 6px)] cursor-pointer">
-                    <MessageSquare style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />QQ 群: 587600277
+                    <MessageSquare style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />{t('QQ 群: 587600277')}
                   </a>
                 </div>
               </div>
@@ -487,7 +504,7 @@ function HomePage() {
                   <p style={{ marginTop: 'clamp(2px, 0.3vw, 6px)' }}>
                     <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer"
                       className="text-slate-400 hover:text-blue-600 transition-colors">
-                      粤ICP备21033000号
+                      {t('粤ICP备21033000号')}
                     </a>
                   </p>
                 )}
