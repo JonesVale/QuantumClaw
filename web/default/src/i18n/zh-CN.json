@@ -1168,5 +1168,12 @@
   "Ready": "就绪",
   "Needs Key": "需配置",
   "No pricing data": "暂无定价",
-  "Browse and compare models from all major providers": "浏览并对比所有主要供应商的模型"
+  "Browse and compare models from all major providers": "浏览并对比所有主要供应商的模型",
+  "Compare Models": "对比模型",
+  "Start Chat": "开始对话",
+  "Context": "上下文",
+  "Modalities": "模态",
+  "Details": "详情",
+  "selected": "已选",
+  "tokens": "tokens"
 }

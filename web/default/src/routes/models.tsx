@@ -6,7 +6,7 @@ import {
   Search, SlidersHorizontal, X, ArrowUpDown, RefreshCw,
   ChevronRight, ChevronDown, MessageSquare, Code, Brain,
   Image, Cpu, Atom, CheckCircle, Key, Play, ExternalLink,
-  Zap
+  Zap, CheckSquare, SquareIcon, BarChart3
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -18,44 +18,12 @@ import { cn } from '@/lib/utils'
 import { codeToType } from '@/lib/tlanguages'
 import { useAuthStore } from '@/stores/auth-store'
 import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
+import { ModelDetailDialog, type CatalogItem } from '@/components/model-detail-dialog'
+import { ModelComparisonDialog } from '@/components/model-comparison-dialog'
 
 export const Route = createFileRoute('/models')({
   component: ModelsPage,
 })
-
-interface CatalogItem {
-  name: string
-  display_name: string
-  description: string
-  use_case: string
-  context_window: number
-  input_modalities: string[]
-  series: string
-  provider: string
-  channel_id: number
-  channel_name: string
-  input_price: number
-  output_price: number
-  status: number
-  group: string
-}
-
-interface CatalogItem {
-  name: string
-  display_name: string
-  description: string
-  use_case: string
-  context_window: number
-  input_modalities: string[]
-  series: string
-  provider: string
-  channel_id: number
-  channel_name: string
-  input_price: number
-  output_price: number
-  status: number
-  group: string
-}
 
 const useCaseLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
   'chat': { label: 'Chat & Assistant', icon: MessageSquare, color: 'from-blue-500 to-blue-600' },
@@ -78,10 +46,18 @@ function ModelsPage() {
   const [sortBy, setSortBy] = useState<SortOption>('name')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
-    provider: false, categories: false, modalities: false, context: false
+    provider: false, categories: false, modalities: false, context: false, series: false
   })
 
-    const lang = codeToType[i18n.language] || 'English'
+  // Detail dialog state
+  const [detailModel, setDetailModel] = useState<CatalogItem | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
+  // Comparison state
+  const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set())
+  const [comparisonOpen, setComparisonOpen] = useState(false)
+
+  const lang = codeToType[i18n.language] || 'English'
   const { data } = useQuery({
     queryKey: ['model-catalog', lang],
     queryFn: async () => {
@@ -93,6 +69,7 @@ function ModelsPage() {
   })
   const catalog: CatalogItem[] = data?.data || []
 
+  // Derived data
   const providers = useMemo(() => {
     const map = new Map<string, number>()
     for (const m of catalog) {
@@ -102,11 +79,20 @@ function ModelsPage() {
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1])
   }, [catalog])
 
+  const seriesNames = useMemo(() => {
+    const set = new Set<string>()
+    for (const m of catalog) {
+      if (m.series) set.add(m.series)
+    }
+    return Array.from(set).sort()
+  }, [catalog])
+
   const filtered = useMemo(() => {
     let result = catalog
     if (search) { const q = search.toLowerCase(); result = result.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)) }
     if (useCaseFilter !== 'all') result = result.filter(m => m.use_case === useCaseFilter)
     if (providerFilter) result = result.filter(m => (m.provider || '') === providerFilter)
+    if (seriesFilter !== 'all') result = result.filter(m => m.series === seriesFilter)
     if (modalityFilter) result = result.filter(m => m.input_modalities.some((mod: string) => mod.toLowerCase() === modalityFilter.toLowerCase()))
     if (contextFilter) {
       const ctx = (m: any) => m.context_window || 0
@@ -119,7 +105,29 @@ function ModelsPage() {
     }
     switch (sortBy) { case 'price-asc': result.sort((a, b) => (a.input_price ?? 999) - (b.input_price ?? 999)); break; case 'price-desc': result.sort((a, b) => (b.input_price ?? 0) - (a.input_price ?? 0)); break; default: result.sort((a, b) => a.name.localeCompare(b.name)) }
     return result
-  }, [catalog, search, useCaseFilter, providerFilter, modalityFilter, contextFilter, sortBy])
+  }, [catalog, search, useCaseFilter, providerFilter, seriesFilter, modalityFilter, contextFilter, sortBy])
+
+  const toggleSelect = (name: string) => {
+    setSelectedModels(prev => {
+      const next = new Set(prev)
+      if (next.has(name)) {
+        next.delete(name)
+      } else {
+        if (next.size >= 4) return prev // Max 4
+        next.add(name)
+      }
+      return next
+    })
+  }
+
+  const openDetail = (m: CatalogItem) => {
+    setDetailModel(m)
+    setDetailOpen(true)
+  }
+
+  const selectedModelsList = useMemo(() => {
+    return catalog.filter(m => selectedModels.has(m.name))
+  }, [catalog, selectedModels])
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -234,6 +242,33 @@ function ModelsPage() {
           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => setSidebarOpen(!sidebarOpen)}>
             <SlidersHorizontal className="h-4 w-4" />
           </Button>
+          
+          {/* Comparison Button Bar */}
+          {selectedModels.size >= 2 && (
+            <div className="flex items-center gap-2 bg-primary/10 rounded-lg px-3 py-1.5 border border-primary/20 ml-1">
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="text-xs font-medium text-primary">
+                {selectedModels.size} {t('selected')}
+              </span>
+              <Button
+                size="sm"
+                variant="default"
+                className="h-7 text-xs gap-1"
+                onClick={() => setComparisonOpen(true)}
+              >
+                {t('Compare')} ({selectedModels.size})
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0"
+                onClick={() => setSelectedModels(new Set())}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
+
           <span className="text-xs text-muted-foreground font-medium">{catalog.length} {t('models')}</span>
           <div className="ml-auto flex items-center gap-2 overflow-x-auto">
             <Badge variant="outline" className="text-xs cursor-pointer hover:bg-muted">Text</Badge>
@@ -282,35 +317,74 @@ function ModelsPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {filtered.map((m) => {
+                const isSelected = selectedModels.has(m.name)
                 return (
-                  <div key={m.name} className="rounded-xl border border-border/60 bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden p-6 space-y-4">
-                    {/* Title row */}
-                    <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-lg">{m.name}</h3>
-                          <p className="text-xs text-muted-foreground">{m.series}</p>
+                  <div key={m.name} className={cn(
+                    'rounded-xl border bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden p-6 space-y-4',
+                    isSelected && 'ring-2 ring-primary/50 border-primary'
+                  )}>
+                    {/* Checkbox + Title row */}
+                    <div className="flex items-start gap-3">
+                      {/* Checkbox */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleSelect(m.name) }}
+                        className={cn(
+                          'shrink-0 mt-0.5 w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                          isSelected
+                            ? 'bg-primary border-primary text-primary-foreground'
+                            : 'border-muted-foreground/30 hover:border-muted-foreground/60'
+                        )}
+                      >
+                        {isSelected && <CheckSquare className="h-3.5 w-3.5" />}
+                      </button>
+
+                      {/* Title area (clickable for detail) */}
+                      <div
+                        className="flex-1 min-w-0 cursor-pointer"
+                        onClick={() => openDetail(m)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-lg">{m.name}</h3>
+                            <p className="text-xs text-muted-foreground">{m.series}</p>
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Description */}
-                      <p className="text-base text-muted-foreground leading-relaxed">{m.description}</p>
+                    {/* Description */}
+                    <p className="text-base text-muted-foreground leading-relaxed">{m.description}</p>
 
-                      {/* Tags */}
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {(() => { const uc = useCaseLabels[m.use_case]; if (!uc) return null; const Icon = uc.icon; return <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}><Icon className="h-3 w-3" />{t(uc.label)}</span> })()}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground"><Cpu className="h-3 w-3" />{(m.context_window / 1000).toFixed(0)}K ctx</span>
-                        {m.input_modalities.slice(0, 3).map(mod => (
-                          <span key={mod} className="px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground">{mod}</span>
-                        ))}
+                    {/* Tags */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {(() => { const uc = useCaseLabels[m.use_case]; if (!uc) return null; const Icon = uc.icon; return <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}><Icon className="h-3 w-3" />{t(uc.label)}</span> })()}
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground"><Cpu className="h-3 w-3" />{(m.context_window / 1000).toFixed(0)}K ctx</span>
+                      {m.input_modalities.slice(0, 3).map(mod => (
+                        <span key={mod} className="px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground">{mod}</span>
+                      ))}
+                    </div>
+
+                    {/* Pricing + Action */}
+                    <div className="flex items-center justify-between pt-2 border-t border-border/40">
+                      <span className="text-xs text-muted-foreground">
+                        From {m.input_price > 0 ? `$${m.input_price.toFixed(6)}/token` : 'Free tier'}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs gap-1"
+                          onClick={() => openDetail(m)}
+                        >
+                          <BarChart3 className="h-3 w-3" />{t('Details')}
+                        </Button>
+                        <Link to={auth.user ? '/chat' : '/sign-in?redirect=/chat'}>
+                          <Button size="sm" className="h-7 text-xs gap-1">
+                            <Play className="h-3 w-3" />{t('Call')}
+                          </Button>
+                        </Link>
                       </div>
-
-                      {/* Pricing + Action */}
-                      <div className="flex items-center justify-between pt-2 border-t border-border/40">
-                        <span className="text-xs text-muted-foreground">
-                          From {m.input_price > 0 ? `$${m.input_price.toFixed(6)}/token` : 'Free tier'}
-                        </span>
-                        <Link to={auth.user ? '/chat' : '/sign-in?redirect=/chat'}><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
-                      </div>
+                    </div>
                   </div>
                 )
               })}
@@ -318,6 +392,20 @@ function ModelsPage() {
           )}
         </div>
       </div>
+
+      {/* Detail Dialog */}
+      <ModelDetailDialog
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        model={detailModel}
+      />
+
+      {/* Comparison Dialog */}
+      <ModelComparisonDialog
+        open={comparisonOpen}
+        onOpenChange={setComparisonOpen}
+        models={selectedModelsList}
+      />
     </div>
   )
 }

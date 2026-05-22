@@ -228,6 +228,7 @@
   "Company Name": "Company  Name",
   "Company Payment Info": "Company  Payment  Info",
   "Compare": "Compare",
+  "Compare Models": "Compare Models",
   "Compare models side by side": "Compare models side by side",
   "Compare models side by side. Send one prompt to multiple models and choose the best result.": "Compare models side by side. Send one prompt to multiple models and choose the best result.",
   "Completion": "Completion",
@@ -255,6 +256,7 @@
   "Contact Us": "Contact Us",
   "Contact us to set up a custom subscription plan for your needs": "Contact us to set up a custom subscription plan for your needs",
   "Content not modified!": "Content not modified!",
+  "Context": "Context",
   "Context Length": "Context Length",
   "Conversations": "Conversations",
   "Copied": "Copied",
@@ -420,6 +422,7 @@
   "Flexible Billing": "Flexible Billing",
   "Footer HTML": "Footer HTML",
   "Free": "Free",
+  "Free tier": "Free tier",
   "Frequency Penalty": "Frequency Penalty",
   "From model access to quantum computing, all in one platform": "From model access to quantum computing, all in one platform",
   "Fusion": "Fusion",
@@ -1168,5 +1171,10 @@
   "Ready": "Ready",
   "Needs Key": "Needs Key",
   "No pricing data": "No pricing data",
-  "Browse and compare models from all major providers": "Browse and compare models from all major providers"
+  "Browse and compare models from all major providers": "Browse and compare models from all major providers",
+  "Start Chat": "Start Chat",
+  "Details": "Details",
+  "Modalities": "Modalities",
+  "selected": "selected",
+  "tokens": "tokens"
 }
