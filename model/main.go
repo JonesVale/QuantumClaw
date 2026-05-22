@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"database/sql"
@@ -147,7 +147,8 @@ func InitDB() {
 	// Initialize language types
 	InitLanguageTypes()
 		// 预设默认渠道(检测为空时自动插入)
-	SeedDefaultChannels()
+	SeedModelMetadata()
+		SeedDefaultChannels()
 
 logger.SysLog("language types initialized")
 
@@ -202,6 +203,7 @@ func migrateDB() error {
 	attempt("LanguageResource", func() error { return DB.AutoMigrate(&LanguageResource{}) })
 	attempt("RssArticle", func() error { return DB.AutoMigrate(&RssArticle{}) })
 	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
+	attempt("ModelMetadata", func() error { return DB.AutoMigrate(&ModelMetadata{}) })
 	attempt("Notification", func() error { return DB.AutoMigrate(&Notification{}) })
 	return lastErr
 }
