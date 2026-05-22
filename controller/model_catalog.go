@@ -1,11 +1,14 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -124,6 +127,13 @@ func GetModelDetail(c *gin.Context) {
 // SyncModelMetadata detects new models from channels and inserts metadata rows.
 // POST /api/models/sync
 func SyncModelMetadata(c *gin.Context) {
+	// 0. Fetch official model data from OpenRouter
+	orModels := fetchOpenRouterModels()
+	orMap := make(map[string]*orModel)
+	for _, m := range orModels {
+		orMap[strings.ToLower(m.ID)] = &m
+	}
+
 	// 1. Collect all model names from all enabled channels
 	var channels []model.Channel
 	model.DB.Where("status = ?", model.ChannelStatusEnabled).Find(&channels)
@@ -160,20 +170,32 @@ func SyncModelMetadata(c *gin.Context) {
 			}
 		}
 		if !hasAny {
-			// Parse model name to generate description
-			parts := strings.SplitN(name, "/", 2)
-			provider := "Unknown"
-			shortName := name
-			if len(parts) == 2 {
-				provider = strings.Title(parts[0])
-				shortName = parts[1]
-			}
-			shortName = strings.ReplaceAll(shortName, "-", " ")
-			shortName = strings.ReplaceAll(shortName, "_", " ")
-			shortName = strings.Title(shortName)
+			// Check OpenRouter API data first
+			key := strings.ToLower(name)
+			orInfo, hasOR := orMap[key]
 
-			enDesc := shortName + " is a model from " + provider + "."
-			cnDesc := provider + " 的 " + shortName + " 模型。"
+			var enDesc, cnDesc string
+			contextWin := 128000
+
+			if hasOR && orInfo.Description != "" {
+				enDesc = orInfo.Description
+				cnDesc = orInfo.Description
+				contextWin = orInfo.ContextLength
+			} else {
+				// Auto-generate from model name
+				parts := strings.SplitN(name, "/", 2)
+				provider := "Unknown"
+				shortName := name
+				if len(parts) == 2 {
+					provider = strings.Title(parts[0])
+					shortName = parts[1]
+				}
+				shortName = strings.ReplaceAll(shortName, "-", " ")
+				shortName = strings.ReplaceAll(shortName, "_", " ")
+				shortName = strings.Title(shortName)
+				enDesc = shortName + " is a model from " + provider + "."
+				cnDesc = provider + " 的 " + shortName + " 模型。"
+			}
 
 			for _, lang := range languages {
 				desc := enDesc
@@ -184,13 +206,13 @@ func SyncModelMetadata(c *gin.Context) {
 				m := &model.ModelMetadata{
 					ModelName:       name,
 					LanguagesType:   lang,
-					DisplayName:     shortName,
+					DisplayName:     name,
 					Description:     desc,
 					UseCase:         "chat",
-					ContextWindow:   128000,
+					ContextWindow:   contextWin,
 					InputModalities: `["Text"]`,
-					Series:          provider,
-					Provider:        provider,
+					Series:          "Other",
+					Provider:        "Unknown",
 					CreatedTime:     now,
 					UpdatedTime:     now,
 				}
@@ -206,6 +228,34 @@ func SyncModelMetadata(c *gin.Context) {
 		"message":  "sync complete",
 		"inserted": count,
 	})
+}
+
+type orModel struct {
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	Description    string  `json:"description"`
+	ContextLength  int     `json:"context_length"`
+}
+
+func fetchOpenRouterModels() []orModel {
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Get("https://openrouter.ai/api/v1/models")
+	if err != nil {
+		logger.SysError("sync: failed to fetch OpenRouter models: " + err.Error())
+		return nil
+	}
+	defer resp.Body.Close()
+
+	var result struct {
+		Data []orModel `json:"data"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		logger.SysError("sync: failed to decode OpenRouter response: " + err.Error())
+		return nil
+	}
+
+	logger.SysLog("sync: fetched " + strconv.Itoa(len(result.Data)) + " models from OpenRouter")
+	return result.Data
 }
 
 func now() int64 {
