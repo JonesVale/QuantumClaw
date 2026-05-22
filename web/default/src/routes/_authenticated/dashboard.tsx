@@ -28,6 +28,10 @@ import {
   ResponsiveContainer,
   BarChart,
   Bar,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from 'recharts'
 
 export const Route = createFileRoute('/_authenticated/dashboard')({
@@ -116,8 +120,8 @@ function StatCard({ title, value, description, icon: Icon, trend, loading, color
   )
 }
 
-// 模拟图表数据
-const chartData = [
+// Fallback mock chart data when API is not yet ready
+const fallbackChartData = [
   { name: 'Mon', requests: 2400, cost: 12.5 },
   { name: 'Tue', requests: 1398, cost: 8.2 },
   { name: 'Wed', requests: 3800, cost: 18.9 },
@@ -127,12 +131,15 @@ const chartData = [
   { name: 'Sun', requests: 4300, cost: 21.5 },
 ]
 
-const modelChartData = [
+const fallbackModelChartData = [
   { model: 'GPT-4', requests: 1234, percentage: 35 },
   { model: 'Claude-3', requests: 987, percentage: 28 },
   { model: 'Gemini', requests: 654, percentage: 19 },
   { model: 'Others', requests: 543, percentage: 18 },
 ]
+
+// Pie chart colors for provider distribution
+const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16']
 
 function DashboardPage() {
   const { t } = useTranslation()
@@ -160,28 +167,28 @@ function DashboardPage() {
       value: stats?.total_requests?.toLocaleString() ?? '0',
       description: t('All time'),
       icon: Activity,
-      color: 'blue',
+      color: 'blue' as const,
     },
     {
       title: t('Active Today'),
       value: stats?.today_requests?.toLocaleString() ?? '0',
       description: t('Today'),
       icon: Zap,
-      color: 'orange',
+      color: 'orange' as const,
     },
     {
       title: t('Total Cost'),
       value: stats?.total_cost ? `$${parseFloat(stats.total_cost).toFixed(2)}` : '$0',
       description: t('All time'),
       icon: DollarSign,
-      color: 'green',
+      color: 'green' as const,
     },
     {
       title: t('Models Used'),
       value: stats?.model_count ?? '0',
       description: t('Unique models'),
       icon: Network,
-      color: 'purple',
+      color: 'purple' as const,
     },
   ]
 
@@ -192,19 +199,42 @@ function DashboardPage() {
         value: stats?.user_count?.toLocaleString() ?? '0',
         description: t('Registered'),
         icon: Users,
-        color: 'cyan',
+        color: 'cyan' as const,
       },
       {
         title: t('Total Tokens'),
         value: stats?.total_tokens?.toLocaleString() ?? '0',
         description: t('All time'),
         icon: Key,
-        color: 'pink',
+        color: 'pink' as const,
       }
     )
   }
 
   const modelUsage = stats?.model_usage ?? []
+
+  // Transform API daily_requests to chart data format
+  const apiDailyRequests = stats?.daily_requests ?? []
+  const chartData = apiDailyRequests.length > 0
+    ? apiDailyRequests.map((d: { date: string; count: number; cost: number }) => ({
+        name: d.date.slice(5), // "MM-DD"
+        requests: d.count,
+        cost: d.cost,
+      }))
+    : fallbackChartData
+
+  // Transform API model_breakdown to chart data format
+  const apiModelBreakdown = stats?.model_breakdown ?? []
+  const modelChartData = apiModelBreakdown.length > 0
+    ? apiModelBreakdown.map((m: { model: string; percentage: number; requests: number }) => ({
+        model: m.model,
+        requests: m.requests,
+        percentage: m.percentage,
+      }))
+    : fallbackModelChartData
+
+  // Provider breakdown data
+  const providerBreakdown = stats?.provider_breakdown ?? []
 
   return (
     <div className="p-4 sm:p-6 space-y-6 min-h-screen  w-full bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -238,7 +268,7 @@ function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-blue-600" />
-              {t('Request Trend')}
+              {t('Daily Requests')}
             </CardTitle>
             <CardDescription>{t('Daily requests over the past week')}</CardDescription>
           </CardHeader>
@@ -322,51 +352,103 @@ function DashboardPage() {
         </Card>
       </div>
 
-      {/* Model Usage Table */}
-      {modelUsage.length > 0 && (
+      {/* Provider Distribution & Model Usage Row */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
+        {/* Provider Distribution Pie Chart */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Server className="h-5 w-5 text-green-600" />
-              {t('Model Usage Details')}
+              <Server className="h-5 w-5 text-cyan-600" />
+              {t('Provider Distribution')}
             </CardTitle>
-            <CardDescription>{t('Top models by usage')}</CardDescription>
+            <CardDescription>{t('Usage by provider')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {modelUsage.slice(0, 5).map((model: { model_name: string; request_count: number; total_tokens?: number }, index: number) => (
-                <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors gap-2">
-                  <div className="flex items-center gap-4">
-                    <div className={cn(
-                      'flex items-center justify-center w-10 h-10 rounded-xl font-bold text-white',
-                      index === 0 && 'bg-gradient-to-br from-blue-500 to-blue-600',
-                      index === 1 && 'bg-gradient-to-br from-purple-500 to-purple-600',
-                      index === 2 && 'bg-gradient-to-br from-green-500 to-green-600',
-                      index === 3 && 'bg-gradient-to-br from-orange-500 to-orange-600',
-                      index === 4 && 'bg-gradient-to-br from-pink-500 to-pink-600',
-                    )}>
-                      {index + 1}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-lg">{model.model_name}</div>
-                      {model.total_tokens && (
-                        <div className="text-sm text-muted-foreground">
-                          {model.total_tokens.toLocaleString()} tokens
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <Badge variant="secondary" className="text-sm px-3 py-1">
-                      {model.request_count.toLocaleString()} {t('requests')}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {providerBreakdown.length > 0 ? (
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={providerBreakdown}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={3}
+                      dataKey="requests"
+                      nameKey="provider"
+                      label={({ provider, percentage }) => `${provider} ${percentage.toFixed(1)}%`}
+                    >
+                      {providerBreakdown.map((_: unknown, index: number) => (
+                        <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'var(--background)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                      }}
+                      formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+                    />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                {t('No data available')}
+              </div>
+            )}
           </CardContent>
         </Card>
-      )}
+
+        {/* Model Usage Details */}
+        {modelUsage.length > 0 && (
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5 text-green-600" />
+                {t('Model Usage Details')}
+              </CardTitle>
+              <CardDescription>{t('Top models by usage')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {modelUsage.slice(0, 5).map((model: { model_name: string; request_count: number; total_tokens?: number }, index: number) => (
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 sm:p-4 rounded-lg bg-muted/50 hover:bg-muted/70 transition-colors gap-2">
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        'flex items-center justify-center w-10 h-10 rounded-xl font-bold text-white',
+                        index === 0 && 'bg-gradient-to-br from-blue-500 to-blue-600',
+                        index === 1 && 'bg-gradient-to-br from-purple-500 to-purple-600',
+                        index === 2 && 'bg-gradient-to-br from-green-500 to-green-600',
+                        index === 3 && 'bg-gradient-to-br from-orange-500 to-orange-600',
+                        index === 4 && 'bg-gradient-to-br from-pink-500 to-pink-600',
+                      )}>
+                        {index + 1}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-lg">{model.model_name}</div>
+                        {model.total_tokens && (
+                          <div className="text-sm text-muted-foreground">
+                            {model.total_tokens.toLocaleString()} tokens
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="secondary" className="text-sm px-3 py-1">
+                        {model.request_count.toLocaleString()} {t('requests')}
+                      </Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }

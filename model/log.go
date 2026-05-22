@@ -208,9 +208,65 @@ func SumUsedToken(logType int, startTimestamp int64, endTimestamp int64, modelNa
 	return token
 }
 
+// ModelRankingItem — 模型排行榜原始统计数据
+// 用于后续合并渠道定价和趋势计算
+func GetModelRankings(startTs, endTs int64) ([]LogStatistic, error) {
+	groupSelect := "DATE_FORMAT(FROM_UNIXTIME(created_at), '%Y-%m-%d') as day"
+	if common.UsingPostgreSQL {
+		groupSelect = "TO_CHAR(date_trunc('day', to_timestamp(created_at)), 'YYYY-MM-DD') as day"
+	}
+	if common.UsingSQLite {
+		groupSelect = "strftime('%Y-%m-%d', datetime(created_at, 'unixepoch')) as day"
+	}
+
+	var stats []LogStatistic
+	// 按 model_name+channel_id 汇总（不保留 day 维度，但复用 LogStatistic 结构体）
+	err := LOG_DB.Raw(`
+		SELECT model_name,
+		count(1) as request_count,
+		sum(quota) as quota,
+		sum(prompt_tokens) as prompt_tokens,
+		sum(completion_tokens) as completion_tokens,
+		`+groupSelect+` as day
+		FROM logs
+		WHERE type=2
+		AND created_at BETWEEN ? AND ?
+		GROUP BY model_name
+		ORDER BY request_count DESC
+	`, startTs, endTs).Scan(&stats).Error
+	return stats, err
+}
+
+// ModelChannelStat — 每个 model+channel 组合的统计
+// 用于排行榜和仪表盘
+func GetModelChannelStats(startTs, endTs int64) ([]*ModelChannelStat, error) {
+	var results []*ModelChannelStat
+	err := LOG_DB.Raw(`
+		SELECT model_name,
+		channel_id,
+		count(1) as request_count,
+		coalesce(sum(prompt_tokens + completion_tokens),0) as total_tokens,
+		coalesce(avg(elapsed_time),0) as avg_speed_ms
+		FROM logs
+		WHERE type=2
+		AND created_at BETWEEN ? AND ?
+		GROUP BY model_name, channel_id
+		ORDER BY request_count DESC
+	`, startTs, endTs).Scan(&results).Error
+	return results, err
+}
+
 func DeleteOldLog(targetTimestamp int64) (int64, error) {
 	result := LOG_DB.Where("created_at < ?", targetTimestamp).Delete(&Log{})
 	return result.RowsAffected, result.Error
+}
+
+type ModelChannelStat struct {
+	ModelName    string  `gorm:"column:model_name"`
+	ChannelId    int     `gorm:"column:channel_id"`
+	RequestCount int64   `gorm:"column:request_count"`
+	TotalTokens  int64   `gorm:"column:total_tokens"`
+	AvgSpeedMs   float64 `gorm:"column:avg_speed_ms"`
 }
 
 type LogStatistic struct {

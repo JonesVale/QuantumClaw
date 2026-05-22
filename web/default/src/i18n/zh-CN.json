@@ -566,5 +566,18 @@
   "Video Generation": "视频生成",
   "No models": "暂无模型",
   "Update": "更新",
-  "Save the channel first": "请先保存渠道"
+  "Save the channel first": "请先保存渠道",
+  "Rankings": "排行榜",
+  "Model Rankings": "模型排行榜",
+  "Pricing": "定价",
+  "Model Pricing": "模型定价",
+  "Token Consumption": "Token 消耗",
+  "Response Speed": "响应速度",
+  "Trend": "趋势",
+  "Avg Speed": "平均速度",
+  "Input Price": "输入价格",
+  "Output Price": "输出价格",
+  "No models found": "暂无模型",
+  "Daily Requests": "每日请求量",
+  "Provider Distribution": "供应商分布"
 }

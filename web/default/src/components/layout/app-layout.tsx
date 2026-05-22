@@ -155,6 +155,8 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/keys', icon: Key, labelKey: 'API Keys' },
 
   { path: '/models', icon: Box, labelKey: 'Models' },
+  { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
+  { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
 
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
 
@@ -385,6 +387,8 @@ const breadcrumbMap: Record<string, string> = {
   '/keys': 'API Keys',
 
   '/models': 'Models',
+  '/rankings': 'Rankings',
+  '/pricing': 'Pricing',
 
   '/users': 'Users',
 

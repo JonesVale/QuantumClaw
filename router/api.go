@@ -20,6 +20,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.POST("/setup/complete", middleware.CriticalRateLimit(), controller.CompleteSetup)
 		apiRouter.GET("/rss/articles", controller.GetRssArticles)
 		apiRouter.GET("/models", middleware.UserAuth(), controller.DashboardListModels)
+		apiRouter.GET("/models/rankings", middleware.UserAuth(), controller.ListModelRankings)
 		apiRouter.GET("/notice", controller.GetNotice)
 		apiRouter.GET("/about", controller.GetAbout)
 		apiRouter.GET("/home_page_content", controller.GetHomePageContent)

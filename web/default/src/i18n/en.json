@@ -607,5 +607,18 @@
   "Your browser does not support the video element.": "Your browser does not support the video element.",
   "Video Generation": "Video Generation",
   "No models": "No models",
-  "Save the channel first": "Save the channel first"
+  "Save the channel first": "Save the channel first",
+  "Rankings": "Rankings",
+  "Model Rankings": "Model Rankings",
+  "Pricing": "Pricing",
+  "Model Pricing": "Model Pricing",
+  "Token Consumption": "Token Consumption",
+  "Response Speed": "Response Speed",
+  "Trend": "Trend",
+  "Avg Speed": "Avg Speed",
+  "Input Price": "Input Price",
+  "Output Price": "Output Price",
+  "No models found": "No models found",
+  "Daily Requests": "Daily Requests",
+  "Provider Distribution": "Provider Distribution"
 }

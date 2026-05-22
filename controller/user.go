@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/sessions"
@@ -16,6 +17,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 	"gorm.io/gorm"
 )
 
@@ -328,6 +330,30 @@ func GetUser(c *gin.Context) {
 	return
 }
 
+// DailyStat — 每日请求统计
+type DailyStat struct {
+	Date         string `json:"date"`
+	RequestCount int    `json:"request_count"`
+	TokenCount   int    `json:"token_count"`
+	QuotaUsed    int    `json:"quota_used"`
+}
+
+// ModelStat — 模型维度统计
+type ModelStat struct {
+	ModelName    string `json:"model_name"`
+	RequestCount int    `json:"request_count"`
+	TokenCount   int    `json:"token_count"`
+	QuotaUsed    int    `json:"quota_used"`
+}
+
+// ProviderStat — 提供商维度统计
+type ProviderStat struct {
+	Provider     string `json:"provider"`
+	RequestCount int    `json:"request_count"`
+	TokenCount   int    `json:"token_count"`
+	QuotaUsed    int    `json:"quota_used"`
+}
+
 func GetUserDashboard(c *gin.Context) {
 	id := c.GetInt(ctxkey.Id)
 	now := time.Now()
@@ -343,12 +369,133 @@ func GetUserDashboard(c *gin.Context) {
 		})
 		return
 	}
+
+	// 1. 按日聚合 — DailyRequests
+	dayMap := make(map[string]*DailyStat)
+	// 2. 按 model 聚合 — ModelBreakdown
+	modelMap := make(map[string]*ModelStat)
+	// 3. 按提供商聚合 — ProviderBreakdown（需要 model→provider 映射）
+	// 通过已配置渠道构建 model→provider 映射
+	modelProvider := buildModelProviderMap()
+	providerMap := make(map[string]*ProviderStat)
+
+	for _, d := range dashboards {
+		tokens := d.PromptTokens + d.CompletionTokens
+
+		// 每日统计
+		if _, ok := dayMap[d.Day]; !ok {
+			dayMap[d.Day] = &DailyStat{Date: d.Day}
+		}
+		dayMap[d.Day].RequestCount += d.RequestCount
+		dayMap[d.Day].TokenCount += tokens
+		dayMap[d.Day].QuotaUsed += d.Quota
+
+		// 模型统计
+		if _, ok := modelMap[d.ModelName]; !ok {
+			modelMap[d.ModelName] = &ModelStat{ModelName: d.ModelName}
+		}
+		modelMap[d.ModelName].RequestCount += d.RequestCount
+		modelMap[d.ModelName].TokenCount += tokens
+		modelMap[d.ModelName].QuotaUsed += d.Quota
+
+		// 提供商统计
+		provider := modelProvider[d.ModelName]
+		if provider == "" {
+			provider = "其他"
+		}
+		if _, ok := providerMap[provider]; !ok {
+			providerMap[provider] = &ProviderStat{Provider: provider}
+		}
+		providerMap[provider].RequestCount += d.RequestCount
+		providerMap[provider].TokenCount += tokens
+		providerMap[provider].QuotaUsed += d.Quota
+	}
+
+	// 转换为有序切片
+	var dailyRequests []DailyStat
+	for _, v := range dayMap {
+		dailyRequests = append(dailyRequests, *v)
+	}
+	// 按日期排序
+	for i := 0; i < len(dailyRequests); i++ {
+		for j := i + 1; j < len(dailyRequests); j++ {
+			if dailyRequests[i].Date > dailyRequests[j].Date {
+				dailyRequests[i], dailyRequests[j] = dailyRequests[j], dailyRequests[i]
+			}
+		}
+	}
+
+	var modelBreakdown []ModelStat
+	for _, v := range modelMap {
+		modelBreakdown = append(modelBreakdown, *v)
+	}
+
+	var providerBreakdown []ProviderStat
+	for _, v := range providerMap {
+		providerBreakdown = append(providerBreakdown, *v)
+	}
+
+	if dailyRequests == nil {
+		dailyRequests = []DailyStat{}
+	}
+	if modelBreakdown == nil {
+		modelBreakdown = []ModelStat{}
+	}
+	if providerBreakdown == nil {
+		providerBreakdown = []ProviderStat{}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    dashboards,
+		"data": gin.H{
+			"logs":               dashboards,
+			"daily_requests":     dailyRequests,
+			"model_breakdown":    modelBreakdown,
+			"provider_breakdown": providerBreakdown,
+		},
 	})
 	return
+}
+
+// buildModelProviderMap — 从已配置渠道构建 model_name → provider 名称的映射
+func buildModelProviderMap() map[string]string {
+	result := make(map[string]string)
+	allCh, _ := model.GetAllChannels(0, 0, "all")
+	channelTypeNames := channeltype.ChannelTypeNames
+
+	for _, ch := range allCh {
+		if ch.Key == "" || strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			continue
+		}
+		provider := ""
+		if name, ok := channelTypeNames[ch.Type]; ok {
+			provider = name
+		}
+		if provider == "" {
+			continue
+		}
+
+		var modelNames []string
+		if ch.Models == "" {
+			if modelList, ok := channelId2Models[ch.Type]; ok {
+				modelNames = modelList
+			}
+		} else {
+			for _, m := range strings.Split(ch.Models, ",") {
+				m = strings.TrimSpace(m)
+				if m != "" {
+					modelNames = append(modelNames, m)
+				}
+			}
+		}
+		for _, m := range modelNames {
+			if _, exists := result[m]; !exists {
+				result[m] = provider
+			}
+		}
+	}
+	return result
 }
 
 func GenerateAccessToken(c *gin.Context) {

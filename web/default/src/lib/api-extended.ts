@@ -336,6 +336,33 @@ export interface Model {
 
 export type ModelInfo = Model
 
+// Enhanced model with full pricing and provider info (new /api/models endpoint)
+export interface EnhancedModel {
+  name: string
+  channel_id: number
+  channel_name: string
+  provider: string
+  provider_type: number
+  cost_per_unit: number
+  sell_price_rate: number
+  input_price: number
+  output_price: number
+  status: number
+  group: string
+}
+
+// Model usage ranking (GET /api/models/rankings)
+export interface ModelRanking {
+  model: string
+  provider: string
+  channel_name: string
+  tokens_7d: number
+  trend_percent: number
+  avg_speed_ms: number
+  price_per_1k: number
+  request_count_7d: number
+}
+
 export async function getModels(
   arg1?: unknown,
   arg2?: {
@@ -391,6 +418,18 @@ export async function getModels(
   }
   // Fallback
   return raw as any
+}
+
+// Fetch enhanced models with full pricing info
+export async function getEnhancedModels(): Promise<ApiResponse<EnhancedModel[]>> {
+  const res = await apiClient.get('/api/models')
+  return res.data
+}
+
+// Fetch model usage rankings
+export async function getModelRankings(): Promise<ApiResponse<ModelRanking[]>> {
+  const res = await apiClient.get('/api/models/rankings')
+  return res.data
 }
 
 // ---------------------------------------------------------------------------
@@ -605,6 +644,46 @@ export interface DashboardStats {
 }
 
 export async function getDashboardStats(): Promise<ApiResponse<DashboardStats>> {
+  const res = await apiClient.get('/api/user/self/dashboard')
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// Enhanced Dashboard API (with charts)
+// ---------------------------------------------------------------------------
+
+export interface DailyRequest {
+  date: string
+  count: number
+  cost: number
+}
+
+export interface ModelBreakdown {
+  model: string
+  percentage: number
+  requests: number
+}
+
+export interface ProviderBreakdown {
+  provider: string
+  requests: number
+  percentage: number
+}
+
+export interface EnhancedDashboard {
+  total_requests: number
+  today_requests: number
+  total_cost: number
+  model_count: number
+  user_count?: number
+  total_tokens?: number
+  model_usage: { model_name: string; request_count: number; total_tokens?: number }[]
+  daily_requests: DailyRequest[]
+  model_breakdown: ModelBreakdown[]
+  provider_breakdown: ProviderBreakdown[]
+}
+
+export async function getEnhancedDashboard(): Promise<ApiResponse<EnhancedDashboard>> {
   const res = await apiClient.get('/api/user/self/dashboard')
   return res.data
 }

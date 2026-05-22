@@ -13,7 +13,9 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
 	"net/http"
+	"sort"
 	"strings"
+	"time"
 )
 
 // https://platform.openai.com/docs/api-reference/models/list
@@ -136,47 +138,81 @@ func init() {
 	}
 }
 
+// ModelInfo — 模型完整信息（含渠道定价和提供商）
+type ModelInfo struct {
+	Name          string  `json:"name"`
+	ChannelID     int     `json:"channel_id"`
+	ChannelName   string  `json:"channel_name"`
+	Provider      string  `json:"provider"`
+	ProviderType  int     `json:"provider_type"`
+	CostPerUnit   float64 `json:"cost_per_unit"`
+	SellPriceRate float64 `json:"sell_price_rate"`
+	InputPrice    float64 `json:"input_price"`
+	OutputPrice   float64 `json:"output_price"`
+	Status        int     `json:"status"`
+	Group         string  `json:"group"`
+}
+
 func DashboardListModels(c *gin.Context) {
-	// 只返回已配置渠道的模型
 	configuredChannels, _ := model.GetAllChannels(0, 0, "all")
-	configuredModelSet := make(map[string]bool)
+	var result []ModelInfo
+	channelTypeNames := channeltype.ChannelTypeNames
+
 	for _, ch := range configuredChannels {
 		if ch.Key == "" || strings.HasPrefix(ch.Key, "PUT_YOUR") {
 			continue
 		}
+
+		var modelNames []string
 		if ch.Models == "" {
 			if modelList, ok := channelId2Models[ch.Type]; ok {
-				for _, m := range modelList {
-					configuredModelSet[m] = true
-				}
+				modelNames = modelList
 			}
 		} else {
-			for _, modelName := range strings.Split(ch.Models, ",") {
-				modelName = strings.TrimSpace(modelName)
-				if modelName != "" {
-					configuredModelSet[modelName] = true
+			for _, m := range strings.Split(ch.Models, ",") {
+				m = strings.TrimSpace(m)
+				if m != "" {
+					modelNames = append(modelNames, m)
 				}
 			}
+		}
+
+		provider := ""
+		if name, ok := channelTypeNames[ch.Type]; ok {
+			provider = name
+		}
+
+		// 计算每 token 价格
+		// CostPerUnit 是以 1K tokens 为单位的成本，转换为每 token 价格
+		perTokenCost := ch.CostPerUnit / 1000.0
+		inputPrice := perTokenCost
+		outputPrice := perTokenCost * ch.SellPriceRate
+
+		for _, modelName := range modelNames {
+			result = append(result, ModelInfo{
+				Name:          modelName,
+				ChannelID:     ch.Id,
+				ChannelName:   ch.Name,
+				Provider:      provider,
+				ProviderType:  ch.Type,
+				CostPerUnit:   ch.CostPerUnit,
+				SellPriceRate: ch.SellPriceRate,
+				InputPrice:    inputPrice,
+				OutputPrice:   outputPrice,
+				Status:        ch.Status,
+				Group:         ch.Group,
+			})
 		}
 	}
 
-	filtered := make(map[int][]string)
-	for ct, modelList := range channelId2Models {
-		var filteredList []string
-		for _, m := range modelList {
-			if configuredModelSet[m] {
-				filteredList = append(filteredList, m)
-			}
-		}
-		if len(filteredList) > 0 {
-			filtered[ct] = filteredList
-		}
+	if result == nil {
+		result = []ModelInfo{}
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    filtered,
+		"data":    result,
 	})
 }
 
@@ -304,4 +340,137 @@ func GetUserAvailableModels(c *gin.Context) {
 		"data":    models,
 	})
 	return
+}
+
+// ListModelRankings — 模型排行榜（近7天请求量 + 趋势）
+func ListModelRankings(c *gin.Context) {
+	now := time.Now()
+	endOfToday := now.Truncate(24*time.Hour).Add(24*time.Hour - time.Second).Unix()
+	currentWeekStart := endOfToday - 7*24*3600
+	previousWeekStart := currentWeekStart - 7*24*3600
+
+	type RankingItem struct {
+		Model           string  `json:"model"`
+		Provider        string  `json:"provider"`
+		ChannelName     string  `json:"channel_name"`
+		Tokens7d        int64   `json:"tokens_7d"`
+		TrendPercent    float64 `json:"trend_percent"`
+		AvgSpeedMs      int     `json:"avg_speed_ms"`
+		PricePer1k      float64 `json:"price_per_1k"`
+		RequestCount7d  int64   `json:"request_count_7d"`
+	}
+
+	// 获取近7天各 model 在各 channel 上的统计数据
+	stats, err := model.GetModelChannelStats(currentWeekStart, endOfToday)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "无法获取统计数据",
+			"data":    nil,
+		})
+		return
+	}
+
+	// 获取上7天的统计数据用于趋势计算
+	prevStats, _ := model.GetModelChannelStats(previousWeekStart, currentWeekStart)
+	prevTokensByModel := make(map[string]int64)
+	for _, ps := range prevStats {
+		prevTokensByModel[ps.ModelName] += ps.TotalTokens
+	}
+
+	// 按 model 聚合（可能有多个 channel 服务于同一个 model）
+	type aggregated struct {
+		totalTokens   int64
+		requestCount  int64
+		avgSpeedSum   float64
+		avgSpeedCount int
+		pricePer1k    float64
+		channelName   string
+		provider      string
+	}
+	aggMap := make(map[string]*aggregated)
+	// 按 model 获取首个 channel 信息
+	channelTypeNames := channeltype.ChannelTypeNames
+	channelCache := make(map[int]*model.Channel) // id → channel
+
+	for _, ch := range getValidChannels() {
+		channelCache[ch.Id] = ch
+	}
+
+	for _, s := range stats {
+		key := s.ModelName
+		if a, ok := aggMap[key]; ok {
+			a.totalTokens += s.TotalTokens
+			a.requestCount += s.RequestCount
+			a.avgSpeedSum += s.AvgSpeedMs * float64(s.RequestCount)
+			a.avgSpeedCount += int(s.RequestCount)
+		} else {
+			aggMap[key] = &aggregated{
+				totalTokens:   s.TotalTokens,
+				requestCount:  s.RequestCount,
+				avgSpeedSum:   s.AvgSpeedMs * float64(s.RequestCount),
+				avgSpeedCount: int(s.RequestCount),
+			}
+			// 填充渠道信息
+			if ch, ok := channelCache[s.ChannelId]; ok {
+				aggMap[key].pricePer1k = ch.CostPerUnit * ch.SellPriceRate
+				aggMap[key].channelName = ch.Name
+				if p, ok := channelTypeNames[ch.Type]; ok {
+					aggMap[key].provider = p
+				}
+			}
+		}
+	}
+
+	// 构建结果
+	var result []RankingItem
+	for modelName, a := range aggMap {
+		avgSpeed := 0
+		if a.avgSpeedCount > 0 {
+			avgSpeed = int(a.avgSpeedSum / float64(a.avgSpeedCount))
+		}
+
+		trend := 0.0
+		if prev, ok := prevTokensByModel[modelName]; ok && prev > 0 {
+			trend = float64(a.totalTokens-prev) / float64(prev) * 100
+		}
+
+		result = append(result, RankingItem{
+			Model:           modelName,
+			Provider:        a.provider,
+			ChannelName:     a.channelName,
+			Tokens7d:        a.totalTokens,
+			TrendPercent:    trend,
+			AvgSpeedMs:      avgSpeed,
+			PricePer1k:      a.pricePer1k,
+			RequestCount7d:  a.requestCount,
+		})
+	}
+
+	// 按请求量降序排列
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].RequestCount7d > result[j].RequestCount7d
+	})
+
+	if result == nil {
+		result = []RankingItem{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    result,
+	})
+}
+
+// getValidChannels — 获取有真实 API Key 的渠道列表（懒加载，每次调用从 DB 读取）
+func getValidChannels() []*model.Channel {
+	allCh, _ := model.GetAllChannels(0, 0, "all")
+	var valid []*model.Channel
+	for _, ch := range allCh {
+		if ch.Key != "" && !strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			valid = append(valid, ch)
+		}
+	}
+	return valid
 }
