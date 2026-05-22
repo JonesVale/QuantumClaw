@@ -72,10 +72,13 @@ function ModelsPage() {
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')
   const [seriesFilter, setSeriesFilter] = useState('all')
+  const [modalityFilter, setModalityFilter] = useState('')
+  const [contextFilter, setContextFilter] = useState('')
+  const [providerFilter, setProviderFilter] = useState('')
   const [sortBy, setSortBy] = useState<SortOption>('name')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
-    categories: false, modalities: false, context: false, series: false
+    provider: false, categories: false, modalities: false, context: false
   })
 
     const lang = codeToType[i18n.language] || 'English'
@@ -90,16 +93,33 @@ function ModelsPage() {
   })
   const catalog: CatalogItem[] = data?.data || []
 
-  const seriesNames = [...new Set(catalog.map(m => m.series.split(' ')[0]))].sort()
+  const providers = useMemo(() => {
+    const map = new Map<string, number>()
+    for (const m of catalog) {
+      const p = m.provider || 'Unknown'
+      map.set(p, (map.get(p) || 0) + 1)
+    }
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1])
+  }, [catalog])
 
   const filtered = useMemo(() => {
     let result = catalog
     if (search) { const q = search.toLowerCase(); result = result.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)) }
     if (useCaseFilter !== 'all') result = result.filter(m => m.use_case === useCaseFilter)
-    if (seriesFilter !== 'all') result = result.filter(m => m.series.startsWith(seriesFilter))
+    if (providerFilter) result = result.filter(m => (m.provider || '') === providerFilter)
+    if (modalityFilter) result = result.filter(m => m.input_modalities.some((mod: string) => mod.toLowerCase() === modalityFilter.toLowerCase()))
+    if (contextFilter) {
+      const ctx = (m: any) => m.context_window || 0
+      switch (contextFilter) {
+        case '0-8192': result = result.filter(m => ctx(m) <= 8192); break
+        case '8193-32768': result = result.filter(m => ctx(m) > 8192 && ctx(m) <= 32768); break
+        case '32769-131072': result = result.filter(m => ctx(m) > 32768 && ctx(m) <= 131072); break
+        case '131073-999999999': result = result.filter(m => ctx(m) > 131072); break
+      }
+    }
     switch (sortBy) { case 'price-asc': result.sort((a, b) => (a.input_price ?? 999) - (b.input_price ?? 999)); break; case 'price-desc': result.sort((a, b) => (b.input_price ?? 0) - (a.input_price ?? 0)); break; default: result.sort((a, b) => a.name.localeCompare(b.name)) }
     return result
-  }, [catalog, search, useCaseFilter, seriesFilter, sortBy])
+  }, [catalog, search, useCaseFilter, providerFilter, modalityFilter, contextFilter, sortBy])
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -110,6 +130,40 @@ function ModelsPage() {
           <Button variant="ghost" size="icon" className="h-6 w-6 md:hidden" onClick={() => setSidebarOpen(false)}><X className="h-3.5 w-3.5" /></Button>
         </div>
         <ScrollArea className="flex-1">
+          {/* Provider */}
+          <section className="border-b">
+            <button onClick={() => setCollapsed(c => ({...c, provider: !c.provider}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
+              <span>{t('Provider')}</span>
+              {collapsed.provider ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+            </button>
+            {!collapsed.provider && <div className="px-4 pb-2 space-y-0.5">
+              <button onClick={() => setProviderFilter('')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', !providerFilter ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
+                {t('All Providers')} <span className="text-xs text-muted-foreground">({catalog.length})</span>
+              </button>
+              {providers.slice(0, 15).map(([p, cnt]) => (
+                <button key={p} onClick={() => setProviderFilter(p)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center justify-between', providerFilter === p ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
+                  <span>{p}</span>
+                  <span className="text-xs text-muted-foreground">{cnt}</span>
+                </button>
+              ))}
+              {providers.length > 15 && (
+                <details className="group">
+                  <summary className="w-full text-left px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted/50 rounded cursor-pointer list-none">
+                    <span className="group-open:hidden">{t('Show more...')} ({providers.length - 15})</span>
+                    <span className="hidden group-open:inline">{t('Show less')}</span>
+                  </summary>
+                  <div className="space-y-0.5">
+                    {providers.slice(15).map(([p, cnt]) => (
+                      <button key={p} onClick={() => setProviderFilter(p)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors flex items-center justify-between', providerFilter === p ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>
+                        <span>{p}</span>
+                        <span className="text-xs text-muted-foreground">{cnt}</span>
+                      </button>
+                    ))}
+                  </div>
+                </details>
+              )}
+            </div>}
+          </section>
           {/* Categories */}
           <section className="border-b">
             <button onClick={() => setCollapsed(c => ({...c, categories: !c.categories}))} className="flex items-center justify-between w-full px-4 py-2.5 text-sm font-semibold text-muted-foreground hover:bg-muted/30 transition-colors">
@@ -138,8 +192,8 @@ function ModelsPage() {
               {collapsed.modalities ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.modalities && <div className="px-4 pb-2 space-y-0.5">
-              {['Text','Image','File','Audio','Video'].map(mod => (
-                <button key={mod} className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 rounded transition-colors">{mod}</button>
+              {[{k:'',l:'All'},{k:'Text',l:'Text'},{k:'Image',l:'Image'},{k:'File',l:'File'},{k:'Audio',l:'Audio'},{k:'Video',l:'Video'}].map(mod => (
+                <button key={mod.k} onClick={() => setModalityFilter(mod.k)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', modalityFilter === mod.k ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{mod.l}</button>
               ))}
             </div>}
           </section>
@@ -151,8 +205,8 @@ function ModelsPage() {
               {collapsed.context ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.context && <div className="px-4 pb-2 space-y-0.5">
-              {[{v:'all',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K - 32K'},{v:'32769-131072',l:'32K - 128K'},{v:'131073-999999999',l:'> 128K'}].map(r => (
-                <button key={r.v} className="w-full text-left px-3 py-2 text-sm text-muted-foreground hover:bg-muted/50 rounded transition-colors">{r.l}</button>
+              {[{v:'',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K - 32K'},{v:'32769-131072',l:'32K - 128K'},{v:'131073-999999999',l:'> 128K'}].map(r => (
+                <button key={r.v} onClick={() => setContextFilter(r.v)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', contextFilter === r.v ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{r.l}</button>
               ))}
             </div>}
           </section>
