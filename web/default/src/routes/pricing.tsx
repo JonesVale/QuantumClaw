@@ -25,51 +25,6 @@ interface ModelPricing {
 }
 
 // ── Fallback mock data ────────────────────────────────────────────
-const fallbackModels: ModelPricing[] = [
-  { name: 'gpt-4', provider: 'OpenAI', input_price: 0.03, output_price: 0.06, status: 1 },
-  { name: 'gpt-4-turbo', provider: 'OpenAI', input_price: 0.01, output_price: 0.03, status: 1 },
-  { name: 'gpt-3.5-turbo', provider: 'OpenAI', input_price: 0.0015, output_price: 0.002, status: 1 },
-  { name: 'gpt-4o', provider: 'OpenAI', input_price: 0.005, output_price: 0.015, status: 1 },
-  { name: 'gpt-4o-mini', provider: 'OpenAI', input_price: 0.00015, output_price: 0.0006, status: 1 },
-  { name: 'claude-opus-4', provider: 'Anthropic', input_price: 0.015, output_price: 0.075, status: 1 },
-  { name: 'claude-3.5-sonnet', provider: 'Anthropic', input_price: 0.003, output_price: 0.015, status: 1 },
-  { name: 'claude-3-haiku', provider: 'Anthropic', input_price: 0.00025, output_price: 0.00125, status: 1 },
-  { name: 'gemini-pro', provider: 'Google', input_price: 0.001, output_price: 0.002, status: 1 },
-  { name: 'gemini-1.5-pro', provider: 'Google', input_price: 0.0035, output_price: 0.0105, status: 1 },
-  { name: 'gemini-1.5-flash', provider: 'Google', input_price: 0.000075, output_price: 0.0003, status: 1 },
-  { name: 'deepseek-chat', provider: 'DeepSeek', input_price: 0.0005, output_price: 0.002, status: 1 },
-  { name: 'deepseek-reasoner', provider: 'DeepSeek', input_price: 0.0005, output_price: 0.002, status: 1 },
-  { name: 'qwen-max', provider: 'Alibaba', input_price: 0.002, output_price: 0.006, status: 1 },
-  { name: 'qwen-plus', provider: 'Alibaba', input_price: 0.0008, output_price: 0.002, status: 1 },
-  { name: 'qwen-turbo', provider: 'Alibaba', input_price: 0.0003, output_price: 0.0006, status: 1 },
-  { name: 'mistral-large', provider: 'Mistral', input_price: 0.004, output_price: 0.012, status: 1 },
-  { name: 'mistral-medium', provider: 'Mistral', input_price: 0.002, output_price: 0.006, status: 1 },
-  { name: 'llama-3.1-70b', provider: 'Meta', input_price: 0.00059, output_price: 0.00079, status: 1 },
-  { name: 'llama-3.1-405b', provider: 'Meta', input_price: 0.002, output_price: 0.002, status: 1 },
-]
-
-// ── Provider icons / colors ───────────────────────────────────────
-const PROVIDER_META: Record<string, { color: string; gradient: string }> = {
-  OpenAI: { color: '#10a37f', gradient: 'from-emerald-500 to-teal-600' },
-  Anthropic: { color: '#d97706', gradient: 'from-amber-500 to-orange-600' },
-  Google: { color: '#4285f4', gradient: 'from-blue-500 to-indigo-600' },
-  DeepSeek: { color: '#4f46e5', gradient: 'from-indigo-500 to-purple-600' },
-  Alibaba: { color: '#ea580c', gradient: 'from-orange-500 to-red-600' },
-  Mistral: { color: '#7c3aed', gradient: 'from-violet-500 to-purple-600' },
-  Meta: { color: '#0ea5e9', gradient: 'from-sky-500 to-cyan-600' },
-}
-
-function getProviderMeta(provider: string): { color: string; gradient: string } {
-  return PROVIDER_META[provider] || { color: '#6b7280', gradient: 'from-gray-500 to-gray-600' }
-}
-
-function formatPrice(price: number): string {
-  if (price === 0) return 'Free'
-  if (price < 0.001) return `$${price.toFixed(6)}`
-  if (price < 0.01) return `$${price.toFixed(4)}`
-  return `$${price.toFixed(3)}`
-}
-
 function PricingPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
@@ -107,7 +62,7 @@ function PricingPage() {
         )
       }
     }
-    return fallbackModels
+    return []
   }, [data])
 
   // Filter

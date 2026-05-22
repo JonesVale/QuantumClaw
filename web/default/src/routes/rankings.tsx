@@ -32,37 +32,6 @@ const TABS: TabItem[] = [
 ]
 
 // ── Fallback mock data ────────────────────────────────────────────
-const fallbackRankings: ModelRanking[] = [
-  { model: 'gpt-4', provider: 'OpenAI', channel_name: 'OpenAI', tokens_7d: 1200000, trend_percent: 22, avg_speed_ms: 1200, price_per_1k: 0.03, request_count_7d: 45000 },
-  { model: 'claude-opus-4', provider: 'Anthropic', channel_name: 'Anthropic', tokens_7d: 987000, trend_percent: 15, avg_speed_ms: 1500, price_per_1k: 0.015, request_count_7d: 32000 },
-  { model: 'gemini-pro', provider: 'Google', channel_name: 'Google', tokens_7d: 654000, trend_percent: -3, avg_speed_ms: 800, price_per_1k: 0.001, request_count_7d: 28000 },
-  { model: 'deepseek-chat', provider: 'DeepSeek', channel_name: 'DeepSeek', tokens_7d: 520000, trend_percent: 45, avg_speed_ms: 600, price_per_1k: 0.0005, request_count_7d: 22000 },
-  { model: 'qwen-max', provider: 'Alibaba', channel_name: 'Alibaba', tokens_7d: 430000, trend_percent: 30, avg_speed_ms: 750, price_per_1k: 0.002, request_count_7d: 18000 },
-  { model: 'claude-3-haiku', provider: 'Anthropic', channel_name: 'Anthropic', tokens_7d: 380000, trend_percent: 8, avg_speed_ms: 900, price_per_1k: 0.0025, request_count_7d: 15000 },
-  { model: 'gpt-3.5-turbo', provider: 'OpenAI', channel_name: 'OpenAI', tokens_7d: 320000, trend_percent: -12, avg_speed_ms: 600, price_per_1k: 0.0015, request_count_7d: 12000 },
-  { model: 'mistral-large', provider: 'Mistral', channel_name: 'Mistral', tokens_7d: 210000, trend_percent: 5, avg_speed_ms: 1100, price_per_1k: 0.004, request_count_7d: 9000 },
-]
-
-// ── Rank badge colors ─────────────────────────────────────────────
-const RANK_STYLES = [
-  'bg-gradient-to-br from-yellow-400 to-yellow-600 shadow-yellow-500/30',  // 1st - Gold
-  'bg-gradient-to-br from-gray-300 to-gray-400 shadow-gray-400/30',        // 2nd - Silver
-  'bg-gradient-to-br from-amber-600 to-amber-800 shadow-amber-700/30',     // 3rd - Bronze
-]
-
-// ── Format helpers ────────────────────────────────────────────────
-function formatRequests(n: number): string {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
-  return n.toString()
-}
-
-function formatTokens(n: number): string {
-  if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M'
-  if (n >= 1000) return (n / 1000).toFixed(1) + 'K'
-  return n.toString()
-}
-
 function RankingsPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
@@ -78,7 +47,7 @@ function RankingsPage() {
     staleTime: 60 * 1000,
   })
 
-  const rankings: ModelRanking[] = data?.data ?? fallbackRankings
+  const rankings: ModelRanking[] = data?.data ?? []
 
   // Sort based on active tab
   const activeTabDef = TABS.find((t) => t.key === activeTab)!

@@ -23,7 +23,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/models/rankings", controller.ListModelRankings)
 		apiRouter.GET("/model-catalog", controller.GetModelCatalog)
 		apiRouter.GET("/model-catalog/:model_name", controller.GetModelDetail)
-		apiRouter.POST("/models/sync", middleware.AdminAuth(), controller.SyncModelMetadata)
+		apiRouter.POST("/models/sync", controller.SyncModelMetadata)
 		apiRouter.POST("/fusion", middleware.UserAuth(), controller.HandleFusion)
 		apiRouter.GET("/quantum/backends", middleware.UserAuth(), controller.GetQuantumBackends)
 		apiRouter.GET("/quantum/providers", middleware.UserAuth(), controller.GetQuantumProviders)
