@@ -1155,5 +1155,8 @@
   "雷锋网": "Leiphone",
   "音频 & 视频": "Audio & Video",
   "首页": "Home",
-  "providers": "providers"
+  "providers": "providers",
+  "available via configured channels": "available via configured channels",
+  "Go to Channels": "Go to Channels",
+  "Pricing Range": "Pricing Range"
 }

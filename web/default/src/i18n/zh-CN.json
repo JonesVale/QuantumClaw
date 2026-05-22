@@ -1155,5 +1155,8 @@
   "雷锋网": "雷锋网",
   "音频 & 视频": "音频 & 视频",
   "首页": "首页",
-  "providers": "个供应商"
+  "providers": "个供应商",
+  "available via configured channels": "已配置渠道可用的模型",
+  "Go to Channels": "前往渠道管理",
+  "Pricing Range": "价格范围"
 }
