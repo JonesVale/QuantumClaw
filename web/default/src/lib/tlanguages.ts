@@ -5,7 +5,7 @@
 import i18next from 'i18next'
 
 // Map T_Languages types to i18next language codes (initial frontend mapping)
-const typeToCode: Record<string, string> = {
+export const typeToCode: Record<string, string> = {
   '中文简体': 'zh-CN',
   '中文繁体': 'zh-TW',
   'English': 'en',
@@ -15,7 +15,7 @@ const typeToCode: Record<string, string> = {
   'Tiếng Việt': 'vi',
 }
 
-const codeToType: Record<string, string> = {
+export const codeToType: Record<string, string> = {
   'zh-CN': '中文简体',
   'zh-TW': '中文繁体',
   'en': 'English',

@@ -15,51 +15,45 @@ import { Card, CardContent } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { codeToType } from '@/lib/tlanguages'
 import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
 
 export const Route = createFileRoute('/models')({
   component: ModelsPage,
 })
 
-// ── Model catalog metadata ──
-interface ModelCapability {
-  inputModalities: string[]
-  contextWindow: number
-  useCase: string
-  series: string
+interface CatalogItem {
+  name: string
+  display_name: string
   description: string
+  use_case: string
+  context_window: number
+  input_modalities: string[]
+  series: string
+  provider: string
+  channel_id: number
+  channel_name: string
+  input_price: number
+  output_price: number
+  status: number
+  group: string
 }
 
-const modelCatalog: Record<string, ModelCapability> = {
-  'gpt-4o': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'chat', series: 'GPT-4', description: 'OpenAI flagship multimodal model with vision, high intelligence and fast responses.' },
-  'gpt-4o-mini': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'chat', series: 'GPT-4', description: 'Fast, affordable small model for lightweight tasks with strong performance.' },
-  'gpt-4': { inputModalities: ['Text'], contextWindow: 8192, useCase: 'chat', series: 'GPT-4', description: 'OpenAI GPT-4 base model with strong reasoning capabilities.' },
-  'gpt-4-turbo': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'chat', series: 'GPT-4', description: 'GPT-4 with vision support and extended context window.' },
-  'gpt-3.5-turbo': { inputModalities: ['Text'], contextWindow: 16385, useCase: 'chat', series: 'GPT-3.5', description: 'Fast and cost-effective for simple conversational tasks.' },
-  'gpt-4.5': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'chat', series: 'GPT-4', description: 'Improved GPT-4 with better instruction following and reliability.' },
-  'gpt-5.5': { inputModalities: ['Text', 'Image'], contextWindow: 256000, useCase: 'chat', series: 'GPT-5', description: 'Next-gen OpenAI model with 2x context window and lower verbosity.' },
-  'o1': { inputModalities: ['Text', 'Image'], contextWindow: 200000, useCase: 'reasoning', series: 'o1', description: 'OpenAI reasoning model designed for complex problem solving and analysis.' },
-  'o1-mini': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'reasoning', series: 'o1', description: 'Lightweight reasoning model optimized for math and coding tasks.' },
-  'o3': { inputModalities: ['Text', 'Image'], contextWindow: 200000, useCase: 'reasoning', series: 'o3', description: 'Advanced reasoning model with extended thinking capabilities.' },
-  'claude-3.5-sonnet': { inputModalities: ['Text', 'Image', 'File'], contextWindow: 200000, useCase: 'chat', series: 'Claude 3.5', description: 'Best balance of speed and intelligence from Anthropic.' },
-  'claude-3.5-haiku': { inputModalities: ['Text', 'Image', 'File'], contextWindow: 200000, useCase: 'chat', series: 'Claude 3.5', description: 'Fast and affordable Claude model for everyday tasks.' },
-  'claude-opus-4': { inputModalities: ['Text', 'Image', 'File'], contextWindow: 200000, useCase: 'chat', series: 'Claude', description: 'Anthropic most powerful model for complex enterprise workloads.' },
-  'gemini-2.0-flash': { inputModalities: ['Text', 'Image', 'Audio', 'Video', 'File'], contextWindow: 1000000, useCase: 'chat', series: 'Gemini 2.0', description: 'Google fast multimodal model with 1M context, supports audio/video.' },
-  'gemini-2.0-pro': { inputModalities: ['Text', 'Image', 'Audio', 'Video', 'File'], contextWindow: 1000000, useCase: 'chat', series: 'Gemini 2.0', description: 'Google high-quality model with full multimodal input support.' },
-  'gemini-3.0-pro': { inputModalities: ['Text', 'Image', 'Audio', 'Video', 'File'], contextWindow: 1000000, useCase: 'reasoning', series: 'Gemini 3.0', description: 'Google latest reasoning model with enhanced analytical capabilities.' },
-  'deepseek-chat': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'chat', series: 'DeepSeek', description: 'DeepSeek general chat model offering excellent value for its price.' },
-  'deepseek-reasoner': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'reasoning', series: 'DeepSeek', description: 'DeepSeek reasoning model with transparent step-by-step thinking.' },
-  'deepseek-r1': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'reasoning', series: 'DeepSeek', description: 'Open-source reasoning model with top-tier performance benchmarks.' },
-  'deepseek-v3': { inputModalities: ['Text'], contextWindow: 64000, useCase: 'coding', series: 'DeepSeek', description: 'DeepSeek latest model optimized for code generation tasks.' },
-  'qwen-max': { inputModalities: ['Text'], contextWindow: 32000, useCase: 'chat', series: 'Qwen', description: 'Alibaba strongest general-purpose language model.' },
-  'qwen-plus': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'chat', series: 'Qwen', description: 'Alibaba upgraded model with extended context understanding.' },
-  'qwen2.5-vl': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'vision', series: 'Qwen 2.5', description: 'Alibaba multimodal vision-language model for image understanding.' },
-  'mistral-large': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'chat', series: 'Mistral', description: 'Mistral AI flagship model for complex reasoning tasks.' },
-  'mixtral-8x7b': { inputModalities: ['Text'], contextWindow: 32000, useCase: 'chat', series: 'Mistral', description: 'Mistral MoE architecture offering good quality-to-cost ratio.' },
-  'codestral': { inputModalities: ['Text'], contextWindow: 32000, useCase: 'coding', series: 'Mistral', description: 'Mistral dedicated code generation model for developers.' },
-  'llama-3.1-70b': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'chat', series: 'Llama 3.1', description: 'Meta open-source model with strong general performance.' },
-  'llama-3.1-405b': { inputModalities: ['Text'], contextWindow: 128000, useCase: 'chat', series: 'Llama 3.1', description: 'Meta largest open-source model approaching GPT-4 level quality.' },
-  'llama-3.2-vision': { inputModalities: ['Text', 'Image'], contextWindow: 128000, useCase: 'vision', series: 'Llama 3.2', description: 'Meta multimodal open-source model for vision-language tasks.' },
+interface CatalogItem {
+  name: string
+  display_name: string
+  description: string
+  use_case: string
+  context_window: number
+  input_modalities: string[]
+  series: string
+  provider: string
+  channel_id: number
+  channel_name: string
+  input_price: number
+  output_price: number
+  status: number
+  group: string
 }
 
 const useCaseLabels: Record<string, { label: string; icon: React.ElementType; color: string }> = {
@@ -72,7 +66,7 @@ const useCaseLabels: Record<string, { label: string; icon: React.ElementType; co
 type SortOption = 'name' | 'price-asc' | 'price-desc'
 
 function ModelsPage() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')
   const [seriesFilter, setSeriesFilter] = useState('all')
@@ -82,29 +76,24 @@ function ModelsPage() {
     categories: false, modalities: false, context: false, series: false
   })
 
+    const lang = codeToType[i18n.language] || 'English'
   const { data } = useQuery({
-    queryKey: ['enhanced-models'],
-    queryFn: getEnhancedModels,
+    queryKey: ['model-catalog', lang],
+    queryFn: async () => {
+      const r = await fetch(`/api/model-catalog?lang=${encodeURIComponent(lang)}`)
+      if (!r.ok) throw new Error('Failed to fetch')
+      return r.json()
+    },
     staleTime: 60 * 1000,
   })
-  const configuredModels: EnhancedModel[] = data?.data || []
-  const configuredNames = new Set(configuredModels.map(m => m.name.toLowerCase()))
-
-  const catalog = useMemo(() => {
-    return Object.entries(modelCatalog).map(([name, cap]) => {
-      const configured = configuredModels.find(m => m.name.toLowerCase() === name.toLowerCase())
-      return { name, ...cap, provider: configured?.provider || cap.series.split(' ')[0],
-        input_price: configured?.input_price ?? null, output_price: configured?.output_price ?? null,
-        status: configured ? 1 : 0, channel_id: configured?.channel_id ?? null }
-    })
-  }, [configuredModels])
+  const catalog: CatalogItem[] = data?.data || []
 
   const seriesNames = [...new Set(catalog.map(m => m.series.split(' ')[0]))].sort()
 
   const filtered = useMemo(() => {
     let result = catalog
     if (search) { const q = search.toLowerCase(); result = result.filter(m => m.name.toLowerCase().includes(q) || m.description.toLowerCase().includes(q)) }
-    if (useCaseFilter !== 'all') result = result.filter(m => m.useCase === useCaseFilter)
+    if (useCaseFilter !== 'all') result = result.filter(m => m.use_case === useCaseFilter)
     if (seriesFilter !== 'all') result = result.filter(m => m.series.startsWith(seriesFilter))
     switch (sortBy) { case 'price-asc': result.sort((a, b) => (a.input_price ?? 999) - (b.input_price ?? 999)); break; case 'price-desc': result.sort((a, b) => (b.input_price ?? 0) - (a.input_price ?? 0)); break; default: result.sort((a, b) => a.name.localeCompare(b.name)) }
     return result
@@ -258,8 +247,8 @@ function ModelsPage() {
                       {/* Tags */}
                       <div className="flex flex-wrap items-center gap-1.5">
                         {uc && <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}><uc.icon className="h-3 w-3" />{t(uc.label)}</span>}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground"><Cpu className="h-3 w-3" />{(m.contextWindow / 1000).toFixed(0)}K ctx</span>
-                        {m.inputModalities.slice(0, 3).map(mod => (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground"><Cpu className="h-3 w-3" />{(m.context_window / 1000).toFixed(0)}K ctx</span>
+                        {m.input_modalities.slice(0, 3).map(mod => (
                           <span key={mod} className="px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground">{mod}</span>
                         ))}
                       </div>
