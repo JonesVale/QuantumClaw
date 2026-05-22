@@ -1055,5 +1055,20 @@
   "Run Comparison": "运行对比",
   "Enter your prompt to compare across selected models...": "输入提示词，在选中的模型间进行对比...",
   "Best Result": "最佳结果",
-  "Running...": "运行中..."
+  "Running...": "运行中...",
+  "Model Fusion": "模型融合",
+  "beta": "测试版",
+  "Run multiple models side-by-side, run an analysis, and fuse into the best result.": "并排运行多个模型，进行分析，融合出最佳结果。",
+  "Quality": "质量优先",
+  "Budget": "成本优先",
+  "New Fusion": "新建融合",
+  "No runs yet": "暂无运行记录",
+  "Clear history": "清除历史",
+  "Auto (first source)": "自动（最先返回）",
+  "Fastest": "最快",
+  "Ask anything...": "输入你的问题...",
+  "Add attachment": "添加附件",
+  "Enable Web Search": "启用网络搜索",
+  "Run Fusion": "运行融合",
+  "Compare models side by side": "并排对比多个模型"
 }

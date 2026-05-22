@@ -1055,5 +1055,20 @@
   "Run Comparison": "Run Comparison",
   "Enter your prompt to compare across selected models...": "Enter your prompt to compare across selected models...",
   "Best Result": "Best Result",
-  "Running...": "Running..."
+  "Running...": "Running...",
+  "Model Fusion": "Model Fusion",
+  "beta": "beta",
+  "Run multiple models side-by-side, run an analysis, and fuse into the best result.": "Run multiple models side-by-side, run an analysis, and fuse into the best result.",
+  "Quality": "Quality",
+  "Budget": "Budget",
+  "New Fusion": "New Fusion",
+  "No runs yet": "No runs yet",
+  "Clear history": "Clear history",
+  "Auto (first source)": "Auto (first source)",
+  "Fastest": "Fastest",
+  "Ask anything...": "Ask anything...",
+  "Add attachment": "Add attachment",
+  "Enable Web Search": "Enable Web Search",
+  "Run Fusion": "Run Fusion",
+  "Compare models side by side": "Compare models side by side"
 }
