@@ -94,7 +94,7 @@ function TokenFormDialog({
     <>
       {/* 创建/编辑 Key 表单 Dialog */}
       <Dialog open={open && !newKey} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{isEdit ? t('Edit Token') : t('Create Token')}</DialogTitle>
             <DialogDescription>
@@ -151,7 +151,7 @@ function TokenFormDialog({
 
       {/* 创建成功后展示 Key 的 Dialog — 开发者可直接复制 */}
       <Dialog open={!!newKey} onOpenChange={(v) => { if (!v) setNewKey(null) }}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
               <CheckCircle className="h-5 w-5" />

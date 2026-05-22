@@ -261,14 +261,21 @@ function PlaygroundPage() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="auto" className="font-semibold text-blue-600 dark:text-blue-400">
-              🤖 {t('Auto')} - {modelNames.length > 0 ? modelNames[0] : t('No models')}
+              🤖 {t('Auto')}
             </SelectItem>
             <div className="px-2 py-1 text-xs text-muted-foreground border-t border-b">{t('Available Models')}</div>
-            {modelNames.map((name) => (
+            {modelNames.length > 0 ? (
+            modelNames.map((name) => (
               <SelectItem key={name} value={name}>
                 {name}
               </SelectItem>
-            ))}
+            ))
+          ) : (
+            <div className="px-3 py-6 text-center text-xs text-muted-foreground">
+              <p>{t('No available models')}</p>
+              <a href="/channels" className="text-blue-500 hover:underline mt-1 inline-block">{t('Configure channels')}</a>
+            </div>
+          )}
           </SelectContent>
         </Select>
         <div className="ml-auto flex gap-2">

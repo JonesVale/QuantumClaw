@@ -409,7 +409,12 @@ func ValidateAccessToken(token string) (user *User) {
 	token = strings.Replace(token, "Bearer ", "", 1)
 	tokenHash := common.SHA256Hash(token)
 	user = &User{}
+	// 先查 SHA256 哈希值（新格式）
 	if DB.Where("access_token = ?", tokenHash).First(user).RowsAffected == 1 {
+		return user
+	}
+	// 再查原始值（兼容旧格式 root 用户）
+	if DB.Where("access_token = ?", token).First(user).RowsAffected == 1 {
 		return user
 	}
 	return nil

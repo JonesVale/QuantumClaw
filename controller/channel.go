@@ -1,4 +1,4 @@
-﻿package controller
+package controller
 
 import (
 	"github.com/gin-gonic/gin"
@@ -355,5 +355,41 @@ func UpdateChannel(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
+
+	// 如果配置了真实的 API Key，自动拉取供应商的最新模型列表
+	if channel.Key != "" && !strings.HasPrefix(channel.Key, "PUT_YOUR") {
+		go func(ch model.Channel) {
+			_ = ch.UpdateModelsFromProvider()
+		}(channel)
+	}
+
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": channel})
+}
+
+// FetchChannelModels 获取渠道的供应商模型列表（不保存，仅查询）
+// GET /api/channel/:id/fetch-models
+func FetchChannelModels(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	
+	channel, err := model.GetChannelById(id, true)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	
+	models, err := channel.FetchModelsFromProvider()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    models,
+	})
 }

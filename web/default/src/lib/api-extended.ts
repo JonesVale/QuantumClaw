@@ -56,6 +56,7 @@ export interface Channel {
   used_quota: number
   created_time: number
   category: string
+  config?: string
 }
 
 export interface ChannelTestResult {

@@ -57,17 +57,12 @@ func InitLanguageTables() {
 
 	langs := []LanguageType{
 		{LanguagesType: "中文简体", AddTime: "2026-05-20"},
-		{LanguagesType: "中文繁体", AddTime: "2026-05-20"},
 		{LanguagesType: "English", AddTime: "2026-05-20"},
-		{LanguagesType: "Français", AddTime: "2026-05-20"},
-		{LanguagesType: "日本語", AddTime: "2026-05-20"},
-		{LanguagesType: "Русский", AddTime: "2026-05-20"},
-		{LanguagesType: "Tiếng Việt", AddTime: "2026-05-20"},
 	}
 	for _, l := range langs {
 		DB.Create(&l)
 	}
-	logger.SysLog("language types seeded: 7 languages")
+	logger.SysLog("language types seeded: 中文简体 + English")
 }
 
 // GetLanguageTypes 获取所有可用语言列表

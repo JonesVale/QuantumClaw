@@ -172,6 +172,17 @@ func InitChannelCache() {
 	newChannelId2channel := make(map[int]*Channel)
 	var channels []*Channel
 	DB.Where("status = ?", ChannelStatusEnabled).Find(&channels)
+
+	// 过滤掉未配置 API Key 的渠道（占位符或空 key）
+	var activeChannels []*Channel
+	for _, ch := range channels {
+		if ch.Key == "" || strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			continue
+		}
+		activeChannels = append(activeChannels, ch)
+	}
+	channels = activeChannels
+
 	for _, channel := range channels {
 		newChannelId2channel[channel.Id] = channel
 	}
@@ -186,8 +197,12 @@ func InitChannelCache() {
 		newGroup2model2channels[group] = make(map[string][]*Channel)
 	}
 	for _, channel := range channels {
-		groups := strings.Split(channel.Group, ",")
-		for _, group := range groups {
+		channelGroups := strings.Split(channel.Group, ",")
+		for _, group := range channelGroups {
+			// 确保外层 map 存在（从 abilities 取 groups 可能不完整）
+			if _, ok := newGroup2model2channels[group]; !ok {
+				newGroup2model2channels[group] = make(map[string][]*Channel)
+			}
 			models := strings.Split(channel.Models, ",")
 			for _, model := range models {
 				if _, ok := newGroup2model2channels[group][model]; !ok {

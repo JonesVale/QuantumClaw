@@ -25,7 +25,10 @@ func CreateRootAccountIfNeed() error {
 	// Ensure at least one admin/root user exists (role >= 10)
 	var rootUser User
 	adminExists := DB.Where("role >= ?", RoleAdminUser).First(&rootUser).Error == nil
-	
+
+	// 确保管理员用户有 cash_balance（兼容旧数据库）
+	DB.Model(&User{}).Where("role >= ? AND cash_balance = 0", RoleAdminUser).Update("cash_balance", 500000000000000)
+
 	if !adminExists {
 		logger.SysLog("no root user exists, creating a root user for you: username is root, password is 123456")
 		hashedPassword, err := common.Password2Hash("123456")
@@ -42,8 +45,9 @@ func CreateRootAccountIfNeed() error {
 			Role:        RoleRootUser,
 			Status:      UserStatusEnabled,
 			DisplayName: "Root User",
-			AccessToken: accessToken,
+			AccessToken: common.SHA256Hash(accessToken),
 			Quota:       500000000000000,
+			CashBalance: 500000000000000,
 		}
 		DB.Create(&rootUser)
 		if config.InitialRootToken != "" {
@@ -142,7 +146,10 @@ func InitDB() {
 
 	// Initialize language types
 	InitLanguageTypes()
-	logger.SysLog("language types initialized")
+		// 预设默认渠道(检测为空时自动插入)
+	SeedDefaultChannels()
+
+logger.SysLog("language types initialized")
 
 	// Initialize Chinese language resources
 	InitChineseLanguageResources()
@@ -171,7 +178,7 @@ func migrateDB() error {
 	attempt("ProviderEarning", func() error { return DB.AutoMigrate(&ProviderEarning{}) })
 	attempt("WithdrawalRequest", func() error { return DB.AutoMigrate(&WithdrawalRequest{}) })
 	attempt("PlatformFeeRecord", func() error { return DB.AutoMigrate(&PlatformFeeRecord{}) })
-	// 手动迁移：添加 category 列（SQLite 的 AutoMigrate 有时不添加新列）
+	// 手动迁移:添加 category 列(SQLite 的 AutoMigrate 有时不添加新列)
 	if common.UsingSQLite {
 		if !DB.Migrator().HasColumn(&Channel{}, "category") {
 			if addErr := DB.Migrator().AddColumn(&Channel{}, "category"); addErr != nil {

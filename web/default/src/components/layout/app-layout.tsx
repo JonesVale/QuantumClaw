@@ -476,17 +476,35 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
 
 
-  const toggleLanguage = useCallback(() => {
+  // Fetch available languages from DB for language selector
+  const [dbLanguages, setDbLanguages] = useState<string[]>([])
+  useEffect(() => {
+    fetch('/api/languages')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && Array.isArray(data.data)) {
+          setDbLanguages(data.data.map((l: { languages_type: string }) => l.languages_type))
+        }
+      })
+      .catch(() => {})
+  }, [])
 
-    const next = i18n.language === 'zh-CN' ? 'en' : 'zh-CN'
+  // Map T_Languages type to i18next code
+  const typeToCode: Record<string, string> = {
+    '中文简体': 'zh-CN',
+    '中文繁体': 'zh-TW',
+    'English': 'en',
+    'Français': 'fr',
+    '日本語': 'ja',
+    'Русский': 'ru',
+    'Tiếng Việt': 'vi',
+  }
 
-    i18n.changeLanguage(next)
-
-    localStorage.setItem('i18nextLng', next)
-
+  const switchLanguage = useCallback((langType: string) => {
+    const code = typeToCode[langType] || langType
+    i18n.changeLanguage(code)
+    localStorage.setItem('i18nextLng', code)
   }, [i18n])
-
-
 
   const cycleTheme = useCallback(() => {
 
@@ -571,27 +589,54 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
           <TooltipContent>{t('Notifications')}</TooltipContent>
         </Tooltip>
 
-        {/* Language Toggle */}
+        {/* Language Selector (DB-driven) */}
 
-        <Tooltip delayDuration={0}>
+        <DropdownMenu>
 
-          <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
 
-            <Button variant="ghost" size="icon" onClick={toggleLanguage}>
+            <Button variant="ghost" size="icon">
 
               <Globe className="h-4 w-4" />
 
             </Button>
 
-          </TooltipTrigger>
+          </DropdownMenuTrigger>
 
-          <TooltipContent>
+          <DropdownMenuContent align="end" className="min-w-[140px]">
 
-            {i18n.language === 'zh-CN' ? 'Switch to English' : '切换到中文'}
+            <DropdownMenuLabel>{t('Language')}</DropdownMenuLabel>
 
-          </TooltipContent>
+            <DropdownMenuSeparator />
 
-        </Tooltip>
+            {dbLanguages.length > 0 ? dbLanguages.map(lang => (
+              <DropdownMenuItem
+
+                key={lang}
+
+                onClick={() => switchLanguage(lang)}
+
+                className={i18n.language === (typeToCode[lang] || lang) ? 'bg-muted font-medium' : ''}
+
+              >
+
+                {lang}
+
+              </DropdownMenuItem>
+
+            )) : (
+              <>
+                <DropdownMenuItem onClick={() => switchLanguage('中文简体')}>
+                  中文简体
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => switchLanguage('English')}>
+                  English
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+
+        </DropdownMenu>
 
 
 

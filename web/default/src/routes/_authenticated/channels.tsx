@@ -73,10 +73,12 @@ function ChannelFormDialog({
   open,
   onOpenChange,
   channel,
+  creatingNew,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   channel?: Channel | null
+  creatingNew?: boolean
 }) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -118,12 +120,28 @@ function ChannelFormDialog({
     cache_billing_ratio: 0,
     cost_per_unit: 0,
     sell_price_rate: 1,
+    thinking_to_content: false,
   })
+
+  // 从 channel.config JSON 中解析 cache_billing_ratio、thinking_to_content 等字段
+  function parseConfig(config?: string): { cache_billing_ratio?: number; thinking_to_content?: boolean } {
+    if (!config) return {}
+    try {
+      const parsed = JSON.parse(config)
+      return {
+        cache_billing_ratio: typeof parsed.cache_billing_ratio === 'number' ? parsed.cache_billing_ratio : undefined,
+        thinking_to_content: typeof parsed.thinking_to_content === 'boolean' ? parsed.thinking_to_content : undefined,
+      }
+    } catch {
+      return {}
+    }
+  }
 
   // Populate form from channel data when editing
   const prevChannel = useRef(channel)
   useEffect(() => {
     if (channel && channel !== prevChannel.current) {
+      const cfg = parseConfig(channel.config)
       setForm({
         type: channel.type || 1,
         key: '', // never populate key for security
@@ -134,9 +152,10 @@ function ChannelFormDialog({
         model_mapping: '',
         priority: 0,
         weight: channel.weight || 1,
-        cache_billing_ratio: 0,
+        cache_billing_ratio: cfg.cache_billing_ratio ?? 0,
         cost_per_unit: channel.cost_per_unit || 0,
         sell_price_rate: channel.sell_price_rate || 1,
+        thinking_to_content: cfg.thinking_to_content ?? false,
       })
     }
     if (!channel) {
@@ -153,6 +172,7 @@ function ChannelFormDialog({
         cache_billing_ratio: 0,
         cost_per_unit: 0,
         sell_price_rate: 1,
+        thinking_to_content: false,
       })
     }
     prevChannel.current = channel
@@ -181,7 +201,20 @@ function ChannelFormDialog({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (isEdit && channel) {
-      updateMutation.mutate({ id: channel.id, ...form })
+      const payload: Record<string, unknown> = { id: channel.id }
+      if (form.name) payload.name = form.name
+      if (form.type) payload.type = form.type
+      if (form.key) payload.key = form.key
+      if (form.base_url !== undefined) payload.base_url = form.base_url
+      if (form.models) payload.models = form.models
+      if (form.group) payload.group = form.group
+      payload.category = form.category || ''
+      if (form.weight) payload.weight = form.weight
+      if (form.cost_per_unit !== undefined) payload.cost_per_unit = form.cost_per_unit
+      if (form.sell_price_rate !== undefined) payload.sell_price_rate = form.sell_price_rate
+      if (form.cache_billing_ratio !== undefined) payload.cache_billing_ratio = form.cache_billing_ratio
+      if (form.thinking_to_content !== undefined) payload.thinking_to_content = form.thinking_to_content
+      updateMutation.mutate(payload as ChannelFormData & { id: number })
     } else {
       createMutation.mutate(form)
     }
@@ -189,7 +222,7 @@ function ChannelFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-4xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEdit ? (
@@ -210,9 +243,9 @@ function ChannelFormDialog({
               : t('Add a new AI or Quantum computing provider channel')}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>{t('Channel Name')}</Label>
               <Input
                 value={form.name}
@@ -221,7 +254,7 @@ function ChannelFormDialog({
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>{t('Channel Type')}</Label>
               <Select
                 value={String(form.type)}
@@ -260,14 +293,14 @@ function ChannelFormDialog({
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>{t('Category')}</Label>
-              <Select value={form.category || ''} onValueChange={(v) => setForm({ ...form, category: v })}>
+              <Select value={form.category || '_none'} onValueChange={(v) => setForm({ ...form, category: v === '_none' ? '' : v })}>
                 <SelectTrigger>
                   <SelectValue placeholder={t('Uncategorized')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">{t('Uncategorized')}</SelectItem>
+                  <SelectItem value="_none">{t('Uncategorized')}</SelectItem>
                   <SelectItem value="free" className="text-green-600 font-medium">&#9679; {t('Free')}</SelectItem>
                   <SelectItem value="paid" className="text-amber-600 font-medium">&#9679; {t('Paid')}</SelectItem>
                   <SelectItem value="custom" className="text-purple-600 font-medium">&#9679; {t('Custom')}</SelectItem>
@@ -276,7 +309,7 @@ function ChannelFormDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{t('API Key')}</Label>
             <Input
               type="password"
@@ -287,7 +320,7 @@ function ChannelFormDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{t('Base URL')}</Label>
             <Input
               value={form.base_url}
@@ -296,8 +329,29 @@ function ChannelFormDialog({
             />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{t('Models')}</Label>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={async () => {
+                try {
+                  const id = isEdit && channel ? channel.id : 0;
+                  if (!id) { toast.error(t('Save the channel first')); return; }
+                  const res = await fetch('/api/channel/' + id + '/fetch-models');
+                  const data = await res.json();
+                  if (data.success && Array.isArray(data.data)) {
+                    setForm({ ...form, models: data.data.join(', ') });
+                  } else {
+                    toast.error(data.message || t('Failed to fetch models'));
+                  }
+                } catch { toast.error(t('Failed to fetch models')); }
+              }}
+              className="ml-auto"
+            >
+              🔄 {t('Fetch Models')}
+            </Button>
             <Input
               value={form.models}
               onChange={(e) => setForm({ ...form, models: e.target.value })}
@@ -306,7 +360,7 @@ function ChannelFormDialog({
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>{t('Group')}</Label>
               <Input
                 value={form.group}
@@ -314,7 +368,7 @@ function ChannelFormDialog({
                 placeholder="default"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label>{t('Priority')}</Label>
               <Input
                 type="number"
@@ -325,7 +379,7 @@ function ChannelFormDialog({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Label>{t('Weight')}</Label>
             <Input
               type="number"
@@ -428,6 +482,7 @@ function ChannelsPage() {
   const [typeCategory, setTypeCategory] = useState<string>('all')
   const [channelCategory, setChannelCategory] = useState<string>('all')
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null)
+  const [creatingNew, setCreatingNew] = useState(false)
   const queryClient = useQueryClient()
 
   const { data: selfInfo } = useQuery({
@@ -441,7 +496,7 @@ function ChannelsPage() {
     staleTime: 30 * 1000,
   })
 
-  const isProvider = selfInfo?.data?.user_type === 'provider'
+  const isProvider = selfInfo?.data?.user_type === 'provider' || (selfInfo?.data?.role ?? 0) >= 10
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['channels'],
@@ -569,7 +624,7 @@ function ChannelsPage() {
           </p>
         </div>
         {isProvider ? (
-          <Button onClick={() => setEditingChannel({} as Channel)} className="gap-2">
+          <Button onClick={() => { setEditingChannel(null); setCreatingNew(true); }} className="gap-2">
             <Plus className="h-4 w-4" />
             {t('Add Channel')}
           </Button>
@@ -640,7 +695,7 @@ function ChannelsPage() {
           icon={Network}
           title={t('No channels found')}
           description={t('Add your first channel to get started')}
-          action={{ label: t('Add Channel'), onClick: () => setEditingChannel({} as Channel) }}
+          action={{ label: t('Add Channel'), onClick: () => { setEditingChannel(null); setCreatingNew(true); } }}
         />
       ) : (
         <Card>
@@ -775,9 +830,10 @@ function ChannelsPage() {
       )}
 
       <ChannelFormDialog
-        open={!!editingChannel}
-        onOpenChange={(open) => !open && setEditingChannel(null)}
+        open={creatingNew || !!editingChannel}
+        onOpenChange={(open) => { if (!open) { setEditingChannel(null); setCreatingNew(false); } }}
         channel={editingChannel}
+        creatingNew={creatingNew}
       />
     </div>
   )

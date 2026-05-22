@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"github.com/quantumclaw/quantumclaw/controller"
@@ -28,6 +28,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/languages", controller.GetLanguages)
 		apiRouter.GET("/translations", controller.GetTranslations)
 		apiRouter.POST("/languages/seed", middleware.AdminAuth(), controller.SeedTranslations)
+		apiRouter.POST("/languages/seed-public", controller.SeedTranslationsIfEmpty)
 		controller.RegisterFreeChatRoutes(apiRouter)
 
 		apiRouter.Any("/webhook/epay", middleware.WebhookIPWhitelist(), controller.EpayNotify)

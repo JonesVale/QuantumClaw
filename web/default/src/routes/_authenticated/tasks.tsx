@@ -31,6 +31,7 @@ export const Route = createFileRoute('/_authenticated/tasks')({
 })
 
 function TaskLogsPage() {
+  const { t } = useTranslation()
   const { auth } = useAuthStore();
   const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
   if (!isAdmin) {
@@ -38,13 +39,12 @@ function TaskLogsPage() {
       <div className="flex items-center justify-center min-h-[60vh] p-4">
         <div className="text-center max-w-md">
           <Shield className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You do not have permission to access this page.</p>
+          <h2 className="text-2xl font-bold mb-2">{t('Access Denied')}</h2>
+          <p className="text-muted-foreground">{t('You do not have permission to access this page.')}</p>
         </div>
       </div>
     );
   }
-  const { t } = useTranslation()
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['task-logs'],

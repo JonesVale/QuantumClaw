@@ -33,7 +33,7 @@ func GetTranslations(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": translations})
 }
 
-// SeedTranslations — 从前端 JSON 导入翻译到 T_Languages
+// SeedTranslations — 从前端 JSON 导入翻译到 T_Languages (需管理员权限)
 // POST /api/languages/seed  body: {"languages_type": "English", "entries": [{"lcode":"key","display":"val","fromname":"seed"}]}
 func SeedTranslations(c *gin.Context) {
 	var req struct {
@@ -52,6 +52,45 @@ func SeedTranslations(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "languages_type and entries required"})
 		return
 	}
+	for _, e := range req.Entries {
+		if e.LCode == "" {
+			continue
+		}
+		model.DB.Create(&model.LanguageEntry{
+			LanguagesType: req.LanguagesType,
+			LCode:         e.LCode,
+			Display:       e.Display,
+		})
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "seeded", "count": len(req.Entries)})
+}
+
+// SeedTranslationsIfEmpty — 仅在指定语言尚无翻译时种子（无需认证，供前端首次启动自动种子）
+// POST /api/languages/seed-public  body: {"languages_type": "English", "entries": [{"lcode":"key","display":"val"}]}
+func SeedTranslationsIfEmpty(c *gin.Context) {
+	var req struct {
+		LanguagesType string `json:"languages_type"`
+		Entries       []struct {
+			LCode   string `json:"lcode"`
+			Display string `json:"display"`
+		} `json:"entries"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "invalid request"})
+		return
+	}
+	if req.LanguagesType == "" || len(req.Entries) == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "languages_type and entries required"})
+		return
+	}
+	// 检查该语言是否已有翻译
+	var count int64
+	model.DB.Model(&model.LanguageEntry{}).Where("languages_type = ?", req.LanguagesType).Count(&count)
+	if count > 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "translations already exist for this language"})
+		return
+	}
+	// 该语言尚无翻译，写入翻译
 	for _, e := range req.Entries {
 		if e.LCode == "" {
 			continue

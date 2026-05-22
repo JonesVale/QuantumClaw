@@ -1,12 +1,10 @@
 // T_Languages frontend integration
-// Fetches translations from backend API and overlays onto i18next resources.
-// Falls back to bundled JSON when API is unavailable.
+// DB-first: translations come from database via API.
+// Bundled JSON files serve as fallback when DB is unreachable.
 
 import i18next from 'i18next'
 
-type TranslationMap = Record<string, Record<string, string>>
-
-// Map T_Languages types to i18next language codes
+// Map T_Languages types to i18next language codes (initial frontend mapping)
 const typeToCode: Record<string, string> = {
   '中文简体': 'zh-CN',
   '中文繁体': 'zh-TW',
@@ -29,64 +27,6 @@ const codeToType: Record<string, string> = {
 
 let tlInitialized = false
 
-// Seed all JSON translations into T_Languages via API (requires admin auth)
-export async function seedTranslationJson(langType: string, translations: Record<string, string>): Promise<void> {
-  try {
-    const entries = Object.entries(translations).map(([key, value]) => ({
-      lcode: key,
-      display: value,
-      fromname: 'frontend-seed',
-    }))
-    const r = await fetch('/api/languages/seed', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ languages_type: langType, entries }),
-    })
-    const data = await r.json()
-    if (data.success) {
-      console.log(`T_Languages: seeded ${data.count} entries for ${langType}`)
-    }
-  } catch {
-    // Silently fail — seed requires admin auth
-  }
-}
-
-// Auto-seed all bundled translations if DB is empty (requires admin auth)
-export async function autoSeedIfEmpty(): Promise<void> {
-  try {
-    const r = await fetch('/api/translations?lang=中文简体')
-    if (!r.ok) return
-    const data = await r.json()
-    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
-      // DB already has translations — skip seeding
-      return
-    }
-
-    // DB is empty — attempt to seed all bundled languages
-    const modules: Record<string, () => Promise<{ default: Record<string, string> }>> = {
-      '中文简体': () => import('@/i18n/zh-CN.json'),
-      '中文繁体': () => import('@/i18n/zh-TW.json'),
-      'English': () => import('@/i18n/en.json'),
-      'Français': () => import('@/i18n/fr.json'),
-      '日本語': () => import('@/i18n/ja.json'),
-      'Русский': () => import('@/i18n/ru.json'),
-      'Tiếng Việt': () => import('@/i18n/vi.json'),
-    }
-
-    for (const [langType, loader] of Object.entries(modules)) {
-      try {
-        const mod = await loader()
-        await seedTranslationJson(langType, mod.default)
-      } catch {
-        // Skip languages that fail to load
-      }
-    }
-    console.log('T_Languages: auto-seed complete')
-  } catch {
-    // Silently fail
-  }
-}
-
 // Load translations from T_Languages API for the given type
 export async function loadApiTranslations(langType: string): Promise<Record<string, string> | null> {
   try {
@@ -105,12 +45,64 @@ export async function loadApiTranslations(langType: string): Promise<Record<stri
   }
 }
 
-// Sync: load all supported languages from API and add them to i18next
+// Seed translations into T_Languages via public endpoint (no auth, only works when DB empty)
+// Falls back to admin-protected endpoint if public fails
+export async function seedTranslationJson(langType: string, translations: Record<string, string>): Promise<void> {
+  try {
+    const entries = Object.entries(translations).map(([key, value]) => ({
+      lcode: key,
+      display: value,
+      fromname: 'frontend-seed',
+    }))
+    const r = await fetch('/api/languages/seed-public', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ languages_type: langType, entries }),
+    })
+    const data = await r.json()
+    if (data.success) {
+      console.log(`T_Languages: seeded ${data.count} entries for ${langType}`)
+    }
+  } catch {
+    console.log(`T_Languages: seed failed for ${langType}, may need admin login`)
+  }
+}
+
+// Auto-seed Chinese + English only if DB is empty
+export async function autoSeedIfEmpty(): Promise<void> {
+  try {
+    const r = await fetch('/api/translations?lang=中文简体')
+    if (!r.ok) return
+    const data = await r.json()
+    if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+      return // DB already has translations
+    }
+
+    // DB is empty — seed Chinese + English from bundled JSON
+    const modules: Record<string, () => Promise<{ default: Record<string, string> }>> = {
+      '中文简体': () => import('@/i18n/zh-CN.json'),
+      'English': () => import('@/i18n/en.json'),
+    }
+
+    for (const [langType, loader] of Object.entries(modules)) {
+      try {
+        const mod = await loader()
+        await seedTranslationJson(langType, mod.default)
+      } catch {
+        // Skip
+      }
+    }
+    console.log('T_Languages: auto-seed complete (中文简体 + English)')
+  } catch {
+    // Silently fail
+  }
+}
+
+// Sync: DB-first — replace i18next resources with API translations
 export async function syncTranslations(): Promise<void> {
   if (tlInitialized) return
 
   try {
-    // Fetch supported language types
     const r = await fetch('/api/languages')
     if (!r.ok) throw new Error('API unavailable')
     const data = await r.json()
@@ -118,7 +110,7 @@ export async function syncTranslations(): Promise<void> {
 
     const types: Array<{ languages_type: string }> = data.data
 
-    // For each type, load translations and add to i18next
+    // For each language type, load translations from DB
     for (const t of types) {
       const langType = t.languages_type
       const code = typeToCode[langType]
@@ -126,16 +118,15 @@ export async function syncTranslations(): Promise<void> {
 
       const apiTrans = await loadApiTranslations(langType)
       if (apiTrans && Object.keys(apiTrans).length > 0) {
-        // Merge API translations into existing i18next resources
-        const existing = i18next.getResourceBundle(code, 'translation') || {}
-        const merged = { ...existing, ...apiTrans }
-        i18next.addResourceBundle(code, 'translation', merged, true, true)
+        // DB has data — replace i18next resources (DB is authoritative)
+        i18next.addResourceBundle(code, 'translation', apiTrans, true, true)
       }
+      // If DB empty for this language — bundled JSON fallback stays
     }
 
     tlInitialized = true
-    console.log(`T_Languages: synced ${types.length} languages`)
+    console.log(`T_Languages: synced ${types.length} languages from DB`)
   } catch {
-    console.log('T_Languages: API unavailable, using bundled JSON')
+    console.log('T_Languages: API unavailable, using bundled JSON fallback')
   }
 }

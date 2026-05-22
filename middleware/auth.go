@@ -139,6 +139,22 @@ func RootAuth() func(c *gin.Context) {
 func TokenAuth() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
+
+		// 优先尝试 session 认证（admin 面板登录后可直接调 /v1）
+		session := sessions.Default(c)
+		if sid := session.Get("id"); sid != nil {
+			if id, ok := sid.(int); ok && id > 0 {
+				c.Set(ctxkey.Id, id)
+				// 从 session 获取 request model（如果有）
+				requestModel, err := getRequestModel(c)
+				if err == nil {
+					c.Set(ctxkey.RequestModel, requestModel)
+				}
+				c.Next()
+				return
+			}
+		}
+
 		key := c.Request.Header.Get("Authorization")
 		key = strings.TrimPrefix(key, "Bearer ")
 		key = strings.TrimPrefix(key, "sk-")

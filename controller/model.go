@@ -137,17 +137,89 @@ func init() {
 }
 
 func DashboardListModels(c *gin.Context) {
+	// 只返回已配置渠道的模型
+	configuredChannels, _ := model.GetAllChannels(0, 0, "all")
+	configuredModelSet := make(map[string]bool)
+	for _, ch := range configuredChannels {
+		if ch.Key == "" || strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			continue
+		}
+		if ch.Models == "" {
+			if modelList, ok := channelId2Models[ch.Type]; ok {
+				for _, m := range modelList {
+					configuredModelSet[m] = true
+				}
+			}
+		} else {
+			for _, modelName := range strings.Split(ch.Models, ",") {
+				modelName = strings.TrimSpace(modelName)
+				if modelName != "" {
+					configuredModelSet[modelName] = true
+				}
+			}
+		}
+	}
+
+	filtered := make(map[int][]string)
+	for ct, modelList := range channelId2Models {
+		var filteredList []string
+		for _, m := range modelList {
+			if configuredModelSet[m] {
+				filteredList = append(filteredList, m)
+			}
+		}
+		if len(filteredList) > 0 {
+			filtered[ct] = filteredList
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",
-		"data":    channelId2Models,
+		"data":    filtered,
 	})
 }
 
 func ListAllModels(c *gin.Context) {
+	// 只返回已配置渠道的模型（有真实 API Key 的渠道）
+	configuredChannels, _ := model.GetAllChannels(0, 0, "all")
+	configuredModelSet := make(map[string]bool)
+	for _, ch := range configuredChannels {
+		if ch.Key == "" || strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			continue
+		}
+		// 用该渠道的 Models 字段直接判断
+		if ch.Models == "" {
+			// 型号为空时，用该渠道 type 对应的默认模型列表
+			if modelList, ok := channelId2Models[ch.Type]; ok {
+				for _, m := range modelList {
+					configuredModelSet[m] = true
+				}
+			}
+		} else {
+			for _, modelName := range strings.Split(ch.Models, ",") {
+				modelName = strings.TrimSpace(modelName)
+				if modelName != "" {
+					configuredModelSet[modelName] = true
+				}
+			}
+		}
+	}
+
+	var filteredModels []OpenAIModels
+	for _, m := range models {
+		if configuredModelSet[m.Id] {
+			filteredModels = append(filteredModels, m)
+		}
+	}
+
+	if filteredModels == nil {
+		filteredModels = []OpenAIModels{}
+	}
+
 	c.JSON(200, gin.H{
 		"object": "list",
-		"data":   models,
+		"data":   filteredModels,
 	})
 }
 
