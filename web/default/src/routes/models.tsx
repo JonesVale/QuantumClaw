@@ -226,8 +226,6 @@ function ModelsPage() {
           ) : (
             <div className="grid grid-cols-1 gap-4">
               {filtered.map((m) => {
-                const isConfigured = m.status === 1
-                const uc = useCaseLabels[m.useCase]
                 return (
                   <div key={m.name} className="rounded-xl border border-border/60 bg-card hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden p-6 space-y-4">
                     {/* Title row */}
@@ -236,9 +234,6 @@ function ModelsPage() {
                           <h3 className="font-semibold text-lg">{m.name}</h3>
                           <p className="text-xs text-muted-foreground">{m.series}</p>
                         </div>
-                        <Badge variant={isConfigured ? 'default' : 'outline'} className={cn('shrink-0 text-[10px]', isConfigured ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30' : 'text-muted-foreground border-dashed')}>
-                          {isConfigured ? t('Ready') : t('Needs Key')}
-                        </Badge>
                       </div>
 
                       {/* Description */}
@@ -246,7 +241,7 @@ function ModelsPage() {
 
                       {/* Tags */}
                       <div className="flex flex-wrap items-center gap-1.5">
-                        {uc && <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}><uc.icon className="h-3 w-3" />{t(uc.label)}</span>}
+                        {(() => { const uc = useCaseLabels[m.use_case]; if (!uc) return null; const Icon = uc.icon; return <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}><Icon className="h-3 w-3" />{t(uc.label)}</span> })()}
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] bg-muted text-muted-foreground"><Cpu className="h-3 w-3" />{(m.context_window / 1000).toFixed(0)}K ctx</span>
                         {m.input_modalities.slice(0, 3).map(mod => (
                           <span key={mod} className="px-1.5 py-0.5 rounded text-[10px] bg-muted/50 text-muted-foreground">{mod}</span>
@@ -256,13 +251,9 @@ function ModelsPage() {
                       {/* Pricing + Action */}
                       <div className="flex items-center justify-between pt-2 border-t border-border/40">
                         <span className="text-xs text-muted-foreground">
-                          {m.input_price !== null ? `From $${m.input_price.toFixed(6)}/token` : t('No pricing data')}
+                          From {m.input_price > 0 ? `$${m.input_price.toFixed(6)}/token` : 'Free tier'}
                         </span>
-                        {isConfigured ? (
-                          <Link to="/playground"><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Test')}</Button></Link>
-                        ) : (
-                          <Link to="/channels"><Button variant="outline" size="sm" className="h-7 text-xs gap-1"><Key className="h-3 w-3" />{t('Configure')}</Button></Link>
-                        )}
+                        <Link to="/playground"><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
                       </div>
                   </div>
                 )
