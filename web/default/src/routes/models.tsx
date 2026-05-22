@@ -77,6 +77,8 @@ function ModelsPage() {
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')
   const [seriesFilter, setSeriesFilter] = useState('all')
+  const [ctxRange, setCtxRange] = useState('all')
+  const [modFilter, setModFilter] = useState('all')
   const [sortBy, setSortBy] = useState<SortOption>('name')
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [selectedModel, setSelectedModel] = useState<string | null>(null)
@@ -120,17 +122,29 @@ function ModelsPage() {
     let result = catalog
     if (search) {
       const q = search.toLowerCase()
-      result = result.filter(m => m.name.toLowerCase().includes(q) || m.series.toLowerCase().includes(q))
+      result = result.filter(m => m.name.toLowerCase().includes(q) || m.series.toLowerCase().includes(q) || m.description.toLowerCase().includes(q))
     }
     if (useCaseFilter !== 'all') result = result.filter(m => m.useCase === useCaseFilter)
     if (seriesFilter !== 'all') result = result.filter(m => m.series.startsWith(seriesFilter))
+    // Context length
+    if (ctxRange !== 'all') {
+      const [min, max] = ctxRange.split('-').map(Number)
+      result = result.filter(m => {
+        if (max) return m.contextWindow >= min && m.contextWindow <= max
+        return m.contextWindow >= min
+      })
+    }
+    // Input modality
+    if (modFilter !== 'all') {
+      result = result.filter(m => m.inputModalities.some(mod => mod.toLowerCase() === modFilter.toLowerCase()))
+    }
     switch (sortBy) {
       case 'price-asc': result.sort((a, b) => (a.input_price ?? 999) - (b.input_price ?? 999)); break
       case 'price-desc': result.sort((a, b) => (b.input_price ?? 0) - (a.input_price ?? 0)); break
       default: result.sort((a, b) => a.name.localeCompare(b.name)); break
     }
     return result
-  }, [catalog, search, useCaseFilter, seriesFilter, sortBy])
+  }, [catalog, search, useCaseFilter, seriesFilter, sortBy, ctxRange, modFilter])
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -151,9 +165,19 @@ function ModelsPage() {
         <ScrollArea className="flex-1 p-4 space-y-5">
           {/* Use Case */}
           <div>
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('Use Case')}</h4>
+            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">{t('Categories')}</h4>
             <div className="space-y-1">
-              <label className="flex items-center gap-2 py-1 cursor-pointer text-xs"><input type="radio" name="uc" checked={useCaseFilter === 'all'} onChange={() => setUseCaseFilter('all')} className="accent-primary" /> {t('All')}</label>
+              <label className="flex items-center gap-2 py-1 cursor-pointer text-xs"><input type="radio" name="uc" checked={useCaseFilter === 'all'} onChange={() => setUseCaseFilter('all')} className="accent-primary" /> {t('All Models')}</label>
+              {/* Quantum */}
+              <label className="flex items-center gap-2 py-1 cursor-pointer text-xs hover:text-foreground transition-colors">
+                <input type="radio" name="uc" checked={useCaseFilter === 'quantum'} onChange={() => setUseCaseFilter('quantum')} className="accent-primary" />
+                <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0">
+                  <Atom className="h-2.5 w-2.5 text-white" />
+                </div>
+                <span className={useCaseFilter === 'quantum' ? 'font-medium text-foreground' : 'text-muted-foreground'}>{t('Quantum Computing')}</span>
+              </label>
+              <div className="border-t pt-1 mt-1">
+              </div>
               {Object.entries(useCaseLabels).map(([k, v]) => (
                 <label key={k} className="flex items-center gap-2 py-1 cursor-pointer text-xs">
                   <input type="radio" name="uc" checked={useCaseFilter === k} onChange={() => setUseCaseFilter(k)} className="accent-primary" />
