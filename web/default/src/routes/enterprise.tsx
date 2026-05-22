@@ -91,7 +91,7 @@ function EnterprisePage() {
         <h2 className="text-2xl font-bold text-center mb-8">{t('Enterprise Features')}</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {features.map((f, i) => (
-            <Card key={i} className="group hover:shadow-lg transition-all">
+            <Card key={i} className="group hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 rounded-xl">
               <CardContent className="p-5">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-3 shadow">
                   <f.icon className="h-5 w-5 text-white" />
@@ -120,7 +120,7 @@ function EnterprisePage() {
         <h2 className="text-2xl font-bold text-center mb-8">{t('Plans')}</h2>
         <div className="grid sm:grid-cols-3 gap-4">
           {plans.map((plan, i) => (
-            <Card key={i} className={cn('relative', plan.highlighted && 'ring-2 ring-primary shadow-xl scale-105')}>
+            <Card key={i} className={cn('relative rounded-xl', plan.highlighted && 'ring-2 ring-primary shadow-xl scale-105')}>
               {plan.highlighted && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <Badge className="bg-gradient-to-r from-blue-600 to-purple-600">{t('Most Popular')}</Badge>

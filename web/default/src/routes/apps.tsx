@@ -83,7 +83,7 @@ function AppsPage() {
           <div className="grid sm:grid-cols-3 gap-4">
             {featured.map((app) => (
               <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="block group">
-                <Card className="h-full hover:shadow-lg transition-all hover:border-primary/30 relative overflow-hidden">
+                <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 relative overflow-hidden rounded-xl">
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                   </div>
@@ -137,7 +137,7 @@ function AppsPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((app) => (
           <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="block group">
-            <Card className="h-full hover:shadow-md transition-all hover:border-primary/20">
+            <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 rounded-xl">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shrink-0 shadow">

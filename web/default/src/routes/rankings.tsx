@@ -134,7 +134,7 @@ function RankingsPage() {
         <div className="space-y-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card key={i}>
-              <CardContent className="p-4">
+              <CardContent className="p-5">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-10 w-10 rounded-xl" />
                   <div className="flex-1 space-y-2">

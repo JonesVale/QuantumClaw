@@ -264,8 +264,8 @@ function PricingPage() {
                           <tr
                             key={m.name}
                             className={cn(
-                              'border-b border-muted/50 transition-colors hover:bg-muted/20',
-                              idx % 2 === 0 && 'bg-muted/10'
+                              'border-b border-muted/50 transition-all duration-200 hover:bg-muted/30 hover:shadow-sm',
+                              idx % 2 === 0 && 'bg-muted/5'
                             )}
                           >
                             <td className="px-4 py-3">

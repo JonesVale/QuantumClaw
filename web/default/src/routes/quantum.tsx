@@ -168,7 +168,7 @@ function QuantumPage() {
             quantumChannels.some((c: { type: number }) => c.type === p.id) ? 'opacity-100' : 'opacity-60'
           )}>
             <div className={cn('absolute inset-0 bg-gradient-to-br opacity-5', p.color)} />
-            <CardContent className="p-3 text-center">
+            <CardContent className="p-4 text-center">
               <div className="text-2xl mb-1">{p.icon}</div>
               <p className="text-xs font-semibold truncate">{p.displayName}</p>
               <p className="text-[10px] text-muted-foreground">
