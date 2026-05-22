@@ -19,6 +19,7 @@ import (
 const (
 	RoleGuestUser  = 0
 	RoleCommonUser = 1
+	RoleSupplier   = 2
 	RoleAdminUser  = 10
 	RoleRootUser   = 100
 )

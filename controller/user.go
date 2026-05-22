@@ -211,6 +211,11 @@ func Register(c *gin.Context) {
 		Password:    user.Password,
 		DisplayName: user.Username,
 		InviterId:   inviterId,
+		Role:        user.Role,
+	}
+	// Enforce role: only valid user types
+	if cleanUser.Role != model.RoleCommonUser && cleanUser.Role != model.RoleSupplier {
+		cleanUser.Role = model.RoleCommonUser
 	}
 	if config.EmailVerificationEnabled {
 		cleanUser.Email = user.Email

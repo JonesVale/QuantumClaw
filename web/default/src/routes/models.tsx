@@ -16,6 +16,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { codeToType } from '@/lib/tlanguages'
+import { useAuthStore } from '@/stores/auth-store'
 import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
 
 export const Route = createFileRoute('/models')({
@@ -67,6 +68,7 @@ type SortOption = 'name' | 'price-asc' | 'price-desc'
 
 function ModelsPage() {
   const { t, i18n } = useTranslation()
+  const { auth } = useAuthStore()
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')
   const [seriesFilter, setSeriesFilter] = useState('all')
@@ -253,7 +255,7 @@ function ModelsPage() {
                         <span className="text-xs text-muted-foreground">
                           From {m.input_price > 0 ? `$${m.input_price.toFixed(6)}/token` : 'Free tier'}
                         </span>
-                        <Link to="/playground"><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
+                        <Link to={auth.user ? '/playground' : '/sign-in?redirect=/playground'}><Button size="sm" className="h-7 text-xs gap-1"><Play className="h-3 w-3" />{t('Call')}</Button></Link>
                       </div>
                   </div>
                 )

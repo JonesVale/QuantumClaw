@@ -148,7 +148,7 @@ func SyncModelMetadata(c *gin.Context) {
 		existingMap[strings.ToLower(e.ModelName)+":"+e.LanguagesType] = true
 	}
 
-	// 3. Insert new models that don't have metadata yet
+	// 3. Generate descriptions and insert new models
 	now := now()
 	count := 0
 	for name := range seen {
@@ -160,17 +160,37 @@ func SyncModelMetadata(c *gin.Context) {
 			}
 		}
 		if !hasAny {
+			// Parse model name to generate description
+			parts := strings.SplitN(name, "/", 2)
+			provider := "Unknown"
+			shortName := name
+			if len(parts) == 2 {
+				provider = strings.Title(parts[0])
+				shortName = parts[1]
+			}
+			shortName = strings.ReplaceAll(shortName, "-", " ")
+			shortName = strings.ReplaceAll(shortName, "_", " ")
+			shortName = strings.Title(shortName)
+
+			enDesc := shortName + " is a model from " + provider + "."
+			cnDesc := provider + " 的 " + shortName + " 模型。"
+
 			for _, lang := range languages {
+				desc := enDesc
+				switch lang {
+				case "中文简体", "中文繁体":
+					desc = cnDesc
+				}
 				m := &model.ModelMetadata{
 					ModelName:       name,
 					LanguagesType:   lang,
-					DisplayName:     name,
-					Description:     "New model — description pending.",
+					DisplayName:     shortName,
+					Description:     desc,
 					UseCase:         "chat",
 					ContextWindow:   128000,
 					InputModalities: `["Text"]`,
-					Series:          "Other",
-					Provider:        "Unknown",
+					Series:          provider,
+					Provider:        provider,
 					CreatedTime:     now,
 					UpdatedTime:     now,
 				}
