@@ -18,7 +18,7 @@ import { ParameterPanel, defaultParams, type ChatParams } from '@/components/par
 import { useConversations } from '@/lib/use-conversations'
 import type { Message } from '@/components/message-types'
 
-export const Route = createFileRoute('/_authenticated/playground')({
+export const Route = createFileRoute('/playground')({
   component: PlaygroundPage,
 })
 

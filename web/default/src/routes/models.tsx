@@ -19,7 +19,7 @@ import { ModelCard } from '@/components/model-card'
 import { ModelDetailDialog } from '@/components/model-detail-dialog'
 import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
 
-export const Route = createFileRoute('/_authenticated/models')({
+export const Route = createFileRoute('/models')({
   component: ModelsPage,
 })
 

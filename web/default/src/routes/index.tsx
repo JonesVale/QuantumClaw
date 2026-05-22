@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -8,7 +8,7 @@ import {
   DollarSign, KeyRound, BarChart3, Network,
   Menu, X, Shield, Activity,
   ChevronDown, Check, Newspaper, BookOpen,
-  Server
+  Server, Bot, ChevronRight
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -81,9 +81,11 @@ function HomePage() {
 
   const getNavItems = (loggedIn: boolean) => [
     { to: '/', label: t('Home') },
-    { to: loggedIn ? '/models' : '/sign-in', label: t('Models') },
-    { to: loggedIn ? '/playground' : '/sign-in', label: t('Playground') },
-    { to: '/sign-in', label: t('Console') },
+    { to: '/models', label: t('Models') },
+    { to: '/rankings', label: t('Rankings') },
+    { to: '/pricing', label: t('Pricing') },
+    { to: '/playground', label: t('Playground') },
+    { to: loggedIn ? '/dashboard' : '/sign-in', label: t('Console') },
   ]
 
   const features = [
@@ -517,6 +519,7 @@ function HomePage() {
     </div>
   )
 }
+
 
 
 

@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_authenticated/pricing')({
+export const Route = createFileRoute('/pricing')({
   component: PricingPage,
 })
 

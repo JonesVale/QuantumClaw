@@ -10,7 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import type { ModelRanking } from '@/lib/api-extended'
 
-export const Route = createFileRoute('/_authenticated/rankings')({
+export const Route = createFileRoute('/rankings')({
   component: RankingsPage,
 })
 
