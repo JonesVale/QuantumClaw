@@ -236,6 +236,17 @@ function DashboardPage() {
   // Provider breakdown data
   const providerBreakdown = stats?.provider_breakdown ?? []
 
+  // Budget forecast: estimate monthly cost from 7-day trend
+  const totalCost7d = chartData.reduce((sum, d) => sum + (d.cost || 0), 0)
+  const dailyAvgCost = totalCost7d / 7
+  const now = new Date()
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()
+  const daysElapsed = now.getDate()
+  const daysRemaining = daysInMonth - daysElapsed
+  const projectedMonthly = (dailyAvgCost * daysInMonth).toFixed(2)
+  const currentMonthCost = (dailyAvgCost * daysElapsed).toFixed(2)
+  const budgetPercent = Math.min(100, Math.round((Number(currentMonthCost) / Number(projectedMonthly)) * 100))
+
   return (
     <div className="p-4 sm:p-6 space-y-6 min-h-screen  w-full bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
       {/* Header */}
@@ -260,6 +271,51 @@ function DashboardPage() {
           <StatCard key={index} {...card} loading={statsLoading} />
         ))}
       </div>
+
+      {/* Budget Forecast */}
+      <Card className="hover:shadow-lg transition-shadow">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <DollarSign className="h-5 w-5 text-emerald-500" />
+            {t('Budget Forecast')}
+          </CardTitle>
+          <CardDescription>{t('Estimated monthly cost based on 7-day average')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-xs text-muted-foreground">{t('Daily Avg')}</p>
+              <p className="text-xl font-bold">{new Intl.NumberFormat('en-US', {style:'currency',currency:'USD'}).format(dailyAvgCost)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('This Month')}</p>
+              <p className="text-xl font-bold">{currentMonthCost}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('Projected')}</p>
+              <p className="text-xl font-bold">{projectedMonthly}</p>
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">{t('Budget Used')}</p>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className={cn(
+                      'h-full rounded-full transition-all',
+                      budgetPercent > 80 ? 'bg-red-500' : budgetPercent > 50 ? 'bg-amber-500' : 'bg-emerald-500'
+                    )}
+                    style={{ width: budgetPercent + '%' }}
+                  />
+                </div>
+                <span className="text-sm font-bold">{budgetPercent}%</span>
+              </div>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            {daysRemaining} {t('days remaining in this billing period')}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Charts Row */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">

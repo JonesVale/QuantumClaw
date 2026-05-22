@@ -1070,5 +1070,12 @@
   "Add attachment": "添加附件",
   "Enable Web Search": "启用网络搜索",
   "Run Fusion": "运行融合",
-  "Compare models side by side": "并排对比多个模型"
+  "Compare models side by side": "并排对比多个模型",
+  "Budget Forecast": "预算预测",
+  "Estimated monthly cost based on 7-day average": "基于7天平均值的月度成本估算",
+  "Daily Avg": "日均成本",
+  "This Month": "本月已用",
+  "Projected": "预计月度",
+  "Budget Used": "预算使用",
+  "days remaining in this billing period": "天剩余(本计费周期)"
 }

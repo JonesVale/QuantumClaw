@@ -1070,5 +1070,12 @@
   "Add attachment": "Add attachment",
   "Enable Web Search": "Enable Web Search",
   "Run Fusion": "Run Fusion",
-  "Compare models side by side": "Compare models side by side"
+  "Compare models side by side": "Compare models side by side",
+  "Budget Forecast": "Budget Forecast",
+  "Estimated monthly cost based on 7-day average": "Estimated monthly cost based on 7-day average",
+  "Daily Avg": "Daily Avg",
+  "This Month": "This Month",
+  "Projected": "Projected",
+  "Budget Used": "Budget Used",
+  "days remaining in this billing period": "days remaining in this billing period"
 }
