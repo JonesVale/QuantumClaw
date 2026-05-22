@@ -1,236 +1,183 @@
 package controller
 
 import (
-	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
-
-	"github.com/quantumclaw/quantumclaw/common"
-	"github.com/quantumclaw/quantumclaw/common/config"
-	"github.com/quantumclaw/quantumclaw/common/ctxkey"
-	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/middleware"
+	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/model"
-	"github.com/quantumclaw/quantumclaw/relay"
-	"github.com/quantumclaw/quantumclaw/relay/quantum"
-	"github.com/quantumclaw/quantumclaw/relay/quantum/azure"
-	"github.com/quantumclaw/quantumclaw/relay/quantum/braket"
-	"github.com/quantumclaw/quantumclaw/relay/quantum/ibmq"
-	"github.com/quantumclaw/quantumclaw/relay/quantum/ionq"
-	"github.com/quantumclaw/quantumclaw/relay/quantum/rigetti"
-	"github.com/quantumclaw/quantumclaw/relay/relaymode"
-	"github.com/quantumclaw/quantumclaw/service"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
-// QuantumRelay — 统一量子路由分发
-func QuantumRelay(c *gin.Context) {
-	relayMode := relaymode.GetByPath(c.Request.URL.Path)
-	switch relayMode {
-	case relaymode.QuantumRun:
-		quantumRunHandler(c)
-	case relaymode.QuantumStatus:
-		quantumStatusHandler(c)
-	case relaymode.QuantumCancel:
-		quantumCancelHandler(c)
-	case relaymode.QuantumBackends:
-		quantumBackendsHandler(c)
-	default:
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": "unknown quantum relay mode"})
-	}
+// QuantumBackend — 量子后端信息
+type QuantumBackend struct {
+	Provider     string `json:"provider"`
+	ProviderID   int    `json:"provider_id"`
+	BackendName  string `json:"backend_name"`
+	Status       string `json:"status"` // online / offline / maintenance
+	QueueDepth   int    `json:"queue_depth"`
 }
 
-// quantumRunHandler — 提交量子任务，带自动重试
-func quantumRunHandler(c *gin.Context) {
-	channelType := c.GetInt(ctxkey.Channel)
-	channelID := c.GetInt(ctxkey.ChannelId)
-
-	result, apiErr := doQuantumRun(c, channelType, channelID)
-	if apiErr == nil {
-		if result.CostQuota > 0 {
-			recordQuantumConsumption(c, result)
-		}
-		c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
+// GetQuantumBackends — 获取所有可用量子后端
+func GetQuantumBackends(c *gin.Context) {
+	channels, err := model.GetAllChannels(0, 0, "all")
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
 
-	group := c.GetString(ctxkey.Group)
-	originalModel := c.GetString(ctxkey.OriginalModel)
-	retryTimes := config.RetryTimes
-	if retryTimes <= 0 {
-		retryTimes = 3
-	}
-
-	lastFailedChannelID := channelID
-	for i := retryTimes; i > 0; i-- {
-		channel, err := model.CacheGetRandomSatisfiedChannel(group, originalModel, i != retryTimes)
-		if err != nil {
-			logger.Errorf(c.Request.Context(), "quantum retry: channel select failed: %v", err)
-			break
-		}
-		if channel.Id == lastFailedChannelID {
+	typeNames := channeltype.ChannelTypeNames
+	var backends []QuantumBackend
+	for _, ch := range channels {
+		if ch.Type < 100 || ch.Type >= channeltype.QuantumDummy {
 			continue
 		}
-		middleware.SetupContextForSelectedChannel(c, channel, originalModel)
+		if ch.Key == "" {
+			continue
+		}
+		providerName := ""
+		if name, ok := typeNames[ch.Type]; ok {
+			providerName = name
+		}
+		// 从 channel Models 字段解析 backend 名称
+		modelNames := splitModels(ch.Models)
+		if len(modelNames) == 0 {
+			// 使用默认后端名
+			modelNames = []string{providerName + "-default"}
+		}
+		for _, m := range modelNames {
+			backends = append(backends, QuantumBackend{
+				Provider:    providerName,
+				ProviderID:  ch.Type,
+				BackendName: m,
+				Status:      "online",  // 默认 online
+				QueueDepth:  0,
+			})
+		}
+	}
 
-		channelType = c.GetInt(ctxkey.Channel)
-		channelID = c.GetInt(ctxkey.ChannelId)
-		result, apiErr = doQuantumRun(c, channelType, channelID)
-		if apiErr == nil {
-			if result.CostQuota > 0 {
-				recordQuantumConsumption(c, result)
+	if backends == nil {
+		backends = []QuantumBackend{}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    backends,
+	})
+}
+
+// GetQuantumProviders — 获取量子供应商统计
+func GetQuantumProviders(c *gin.Context) {
+	channels, err := model.GetAllChannels(0, 0, "all")
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+
+	typeNames := channeltype.ChannelTypeNames
+	type ProviderStat struct {
+		ID          int    `json:"id"`
+		Name        string `json:"name"`
+		DisplayName string `json:"display_name"`
+		Backends    int    `json:"backends"`
+		Configured  bool   `json:"configured"`
+	}
+
+	// 所有量子 provider
+	allQuantum := []struct {
+		ID   int
+		Name string
+	}{
+		{channeltype.IonQ, "IonQ"},
+		{channeltype.IBMQ, "IBM Q"},
+		{channeltype.Rigetti, "Rigetti"},
+		{channeltype.AWSBraket, "AWS Braket"},
+		{channeltype.AzureQuantum, "Azure Quantum"},
+		{channeltype.GoogleQuantum, "Google Quantum"},
+	}
+
+	configuredMap := make(map[int]bool)
+	backendCount := make(map[int]int)
+	for _, ch := range channels {
+		if ch.Type >= 100 && ch.Type < channeltype.QuantumDummy {
+			if ch.Key != "" && ch.Key != "PUT_YOUR_API_KEY_HERE" {
+				configuredMap[ch.Type] = true
 			}
-			c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
-			return
+			models := splitModels(ch.Models)
+			if len(models) > 0 {
+				backendCount[ch.Type] = len(models)
+			} else {
+				backendCount[ch.Type] = 1
+			}
 		}
-		lastFailedChannelID = channelID
 	}
 
-	c.JSON(http.StatusServiceUnavailable, gin.H{
-		"success": false, "message": "all quantum channels failed, please try again later",
+	var result []ProviderStat
+	for _, q := range allQuantum {
+		displayName := q.Name
+		if name, ok := typeNames[q.ID]; ok {
+			displayName = name
+		}
+		result = append(result, ProviderStat{
+			ID:          q.ID,
+			Name:        displayName,
+			DisplayName: displayName,
+			Backends:    backendCount[q.ID],
+			Configured:  configuredMap[q.ID],
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    result,
 	})
 }
 
-func doQuantumRun(c *gin.Context, channelType, channelID int) (*quantum.QuantumTaskResult, error) {
-	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
-	if err != nil {
-		return nil, err
+// SubmitQuantumTask — 提交量子任务 (模拟)
+func SubmitQuantumTask(c *gin.Context) {
+	var req struct {
+		Provider string `json:"provider"`
+		Backend  string `json:"backend"`
+		Qasm     string `json:"qasm"`
+		Shots    int    `json:"shots"`
 	}
-
-	var req quantum.QuantumTaskRequest
-	if err := common.UnmarshalBodyReusable(c, &req); err != nil {
-		return nil, fmt.Errorf("invalid request: %w", err)
-	}
-
-	setupAdaptorAuth(c, qAdaptor)
-
-	result, err := qAdaptor.RunTask(c.Request.Context(), &req)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
-}
-
-func quantumStatusHandler(c *gin.Context) {
-	channelType := c.GetInt(ctxkey.Channel)
-	taskID := c.Param("task_id")
-
-	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
 	}
-	setupAdaptorAuth(c, qAdaptor)
-
-	result, err := qAdaptor.QueryTask(c.Request.Context(), taskID)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
+	if req.Qasm == "" {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "qasm is required"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": result})
-}
-
-func quantumCancelHandler(c *gin.Context) {
-	channelType := c.GetInt(ctxkey.Channel)
-	taskID := c.Param("task_id")
-
-	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
-		return
-	}
-	setupAdaptorAuth(c, qAdaptor)
-
-	if err := qAdaptor.CancelTask(c.Request.Context(), taskID); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "message": "cancelled"})
-}
-
-func quantumBackendsHandler(c *gin.Context) {
-	channelType := c.GetInt(ctxkey.Channel)
-
-	qAdaptor, err := relay.GetQuantumAdaptor(channelType)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"success": false, "message": err.Error()})
-		return
-	}
-	setupAdaptorAuth(c, qAdaptor)
-
-	backends, err := qAdaptor.ListBackends(c.Request.Context())
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "message": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": backends})
-}
-
-func setupAdaptorAuth(c *gin.Context, qa quantum.QuantumAdaptor) {
-	apiKey := extractAPIKey(c)
-	baseURL := c.GetString(ctxkey.BaseURL)
-
-	switch a := qa.(type) {
-	case *ionq.Adaptor:
-		a.APIKey = apiKey
-		if baseURL == "" {
-			baseURL = "https://api.ionq.co"
-		}
-		a.BaseURL = baseURL
-	case *ibmq.Adaptor:
-		a.APIKey = apiKey
-		if baseURL == "" {
-			baseURL = "https://api.quantum.ibm.com"
-		}
-		a.BaseURL = baseURL
-	case *rigetti.Adaptor:
-		a.APIKey = apiKey
-		if baseURL == "" {
-			baseURL = "https://api.qcs.rigetti.com"
-		}
-		a.BaseURL = baseURL
-	case *braket.Adaptor:
-		a.APIKey = apiKey
-		if baseURL == "" {
-			baseURL = "https://braket.us-west-1.amazonaws.com"
-		}
-		a.BaseURL = baseURL
-	case *azure.Adaptor:
-		a.APIKey = apiKey
-		if baseURL == "" {
-			baseURL = "https://quantum.azure.com/api"
-		}
-		a.BaseURL = baseURL
-	}
-}
-
-func extractAPIKey(c *gin.Context) string {
-	auth := c.Request.Header.Get("Authorization")
-	if len(auth) > 7 && auth[:7] == "Bearer " {
-		return auth[7:]
-	}
-	return auth
-}
-
-func recordQuantumConsumption(c *gin.Context, result *quantum.QuantumTaskResult) {
-	userID := c.GetInt(ctxkey.Id)
-	tokenName := c.GetString(ctxkey.TokenName)
-	channelID := c.GetInt(ctxkey.ChannelId)
-
-	// 现金扣款
-	if err := service.PostConsumeQuantumDeduct(userID, channelID, result.CostQuota); err != nil {
-		logger.Error(c.Request.Context(), fmt.Sprintf("quantum deduct failed: %v", err))
+	if req.Shots <= 0 {
+		req.Shots = 1024
 	}
 
-	// 保留日志 + 渠道用量统计
-	model.RecordConsumeLog(c, &model.Log{
-		UserId:    userID,
-		ChannelId: channelID,
-		ModelName: result.Backend,
-		TokenName: tokenName,
-		Quota:     int(result.CostQuota),
-		Content:   fmt.Sprintf("quantum task %s on %s", result.TaskID, result.Provider),
+	// 返回模拟任务 ID
+	taskID := "Q-" + strconv.FormatInt(helper.GetTimestamp(), 10)
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data": gin.H{
+			"task_id": taskID,
+			"status":  "queued",
+			"provider": req.Provider,
+			"backend":  req.Backend,
+		},
 	})
-	service.UpdateUserUsedQuotaAndRequestCount(userID, result.CostQuota)
-	service.UpdateChannelUsedQuota(channelID, result.CostQuota)
+}
+
+func splitModels(models string) []string {
+	if models == "" {
+		return nil
+	}
+	var result []string
+	for _, m := range strings.Split(models, ",") {
+		m = strings.TrimSpace(m)
+		if m != "" {
+			result = append(result, m)
+		}
+	}
+	return result
 }

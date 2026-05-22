@@ -16,9 +16,8 @@ func SetQuantumRouter(router *gin.Engine) {
 		middleware.Distribute(),
 	)
 	{
-		quantumRouter.POST("/run", controller.QuantumRelay)
-		quantumRouter.GET("/status/:task_id", controller.QuantumRelay)
-		quantumRouter.POST("/cancel/:task_id", controller.QuantumRelay)
-		quantumRouter.GET("/backends", controller.QuantumRelay)
+		quantumRouter.POST("/tasks", controller.SubmitQuantumTask)
+		quantumRouter.GET("/backends", controller.GetQuantumBackends)
+		quantumRouter.GET("/providers", controller.GetQuantumProviders)
 	}
 }
