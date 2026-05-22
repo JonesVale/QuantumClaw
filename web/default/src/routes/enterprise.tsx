@@ -10,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
-export const Route = createFileRoute('/_authenticated/enterprise')({
+export const Route = createFileRoute('/enterprise')({
   component: EnterprisePage,
 })
 

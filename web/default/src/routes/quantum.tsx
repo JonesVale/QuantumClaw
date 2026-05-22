@@ -15,7 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import dayjs from '@/lib/dayjs'
 
-export const Route = createFileRoute('/_authenticated/quantum')({
+export const Route = createFileRoute('/quantum')({
   component: QuantumPage,
 })
 

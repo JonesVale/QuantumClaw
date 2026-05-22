@@ -19,7 +19,7 @@ import { cn } from '@/lib/utils'
 import { getModels, type ModelInfo } from '@/lib/api-extended'
 import { getCommonHeaders } from '@/lib/api'
 
-export const Route = createFileRoute('/_authenticated/fusion')({
+export const Route = createFileRoute('/fusion')({
   component: FusionPage,
 })
 
