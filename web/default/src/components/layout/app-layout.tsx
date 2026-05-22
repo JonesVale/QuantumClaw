@@ -80,6 +80,7 @@ import {
   TrendingUp,
   Truck,
   Wrench,
+  Atom,
 
 } from 'lucide-react'
 
@@ -153,6 +154,7 @@ const PRODUCT_ITEMS: NavItem[] = [
   { path: '/models', icon: Box, labelKey: 'Models' },
   { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
   { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
+  { path: '/quantum', icon: Atom, labelKey: 'Quantum' },
 ]
 
 // Admin/management pages (sidebar)

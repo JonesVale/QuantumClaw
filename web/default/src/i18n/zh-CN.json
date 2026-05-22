@@ -635,5 +635,22 @@
   "Model": "模型",
   "Provider": "供应商",
   "Channel": "渠道",
-  "Submitting": "提交中"
+  "Submitting": "提交中",
+  "providers configured": "个已配置供应商",
+  "backends": "后端",
+  "Submit Circuit": "提交电路",
+  "Job History": "任务历史",
+  "Submit Quantum Circuit": "提交量子电路",
+  "QASM Circuit": "QASM 电路",
+  "Backend": "后端",
+  "Shots": "采样次数",
+  "Select backend": "选择后端",
+  "Run Circuit": "运行电路",
+  "Circuit execution cost depends on provider pricing and number of shots": "电路执行费用取决于供应商定价和采样次数",
+  "Recent Jobs": "最近任务",
+  "No quantum jobs yet": "暂无量子任务",
+  "Not Configured": "未配置",
+  "qubits": "量子比特",
+  "queued": "排队中",
+  "Access multiple quantum hardware providers through a unified interface": "通过统一接口访问多个量子硬件供应商"
 }

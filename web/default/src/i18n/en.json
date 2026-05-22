@@ -672,5 +672,22 @@
   "All": "All",
   "Model": "Model",
   "Provider": "Provider",
-  "Channel": "Channel"
+  "Channel": "Channel",
+  "providers configured": "providers configured",
+  "backends": "backends",
+  "Submit Circuit": "Submit Circuit",
+  "Job History": "Job History",
+  "Submit Quantum Circuit": "Submit Quantum Circuit",
+  "QASM Circuit": "QASM Circuit",
+  "Backend": "Backend",
+  "Shots": "Shots",
+  "Select backend": "Select backend",
+  "Run Circuit": "Run Circuit",
+  "Circuit execution cost depends on provider pricing and number of shots": "Circuit execution cost depends on provider pricing and number of shots",
+  "Recent Jobs": "Recent Jobs",
+  "No quantum jobs yet": "No quantum jobs yet",
+  "Not Configured": "Not Configured",
+  "qubits": "qubits",
+  "queued": "queued",
+  "Access multiple quantum hardware providers through a unified interface": "Access multiple quantum hardware providers through a unified interface"
 }
