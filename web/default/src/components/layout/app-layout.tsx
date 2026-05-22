@@ -146,31 +146,27 @@ interface NavItem {
 
 
 
-const NAV_ITEMS: NavItem[] = [
-
+// Product pages shown in top navigation bar
+const PRODUCT_ITEMS: NavItem[] = [
   { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard' },
-
-  { path: '/channels', icon: Network, labelKey: 'Channels' },
-
-  { path: '/keys', icon: Key, labelKey: 'API Keys' },
-
+  { path: '/playground', icon: MessageSquare, labelKey: 'Playground' },
   { path: '/models', icon: Box, labelKey: 'Models' },
   { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
   { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
+]
 
+// Admin/management pages (sidebar)
+const NAV_ITEMS: NavItem[] = [
+  { path: '/channels', icon: Network, labelKey: 'Channels' },
+  { path: '/keys', icon: Key, labelKey: 'API Keys' },
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
-
   { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs' },
-
   { path: '/redemption', icon: Ticket, labelKey: 'Redemption Codes', adminOnly: true },
   { path: '/distributors', icon: Truck, labelKey: 'Distributors', adminOnly: true },
   { path: '/admin-tools', icon: Wrench, labelKey: 'Admin Tools', adminOnly: true },
-
-  { path: '/playground', icon: MessageSquare, labelKey: 'Playground' },
   { path: '/monitoring', icon: Activity, labelKey: 'Monitoring' },
   { path: '/profit', icon: TrendingUp, labelKey: 'Channel Profit', adminOnly: true },
   { path: '/news', icon: Newspaper, labelKey: 'AI News' },
-
 ]
 
 
@@ -558,8 +554,28 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
 
 
-      {/* Right Actions */}
+      {/* Product Top Nav */}
+      <div className="hidden md:flex items-center gap-0.5 mx-auto">
+        {PRODUCT_ITEMS.map((item) => {
+          const active = location.pathname === item.path || location.pathname.startsWith(item.path + '/')
+          return (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                active
+                  ? 'bg-accent text-accent-foreground'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
+              )}
+            >
+              {t(item.labelKey)}
+            </Link>
+          )
+        })}
+      </div>
 
+      {/* Right Actions */}
       <div className="ml-auto flex items-center gap-0.5 sm:gap-1">
 
         {/* Search */}
@@ -774,7 +790,7 @@ function AppLayout() {
 
   const { t } = useTranslation()
 
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(true)
 
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -792,7 +808,7 @@ function AppLayout() {
 
           'hidden shrink-0 transition-all duration-200 md:block',
 
-          collapsed ? 'w-16' : 'w-56 lg:w-60 xl:w-64 2xl:w-72'
+          collapsed ? 'w-0 border-0' : 'w-56 lg:w-60 xl:w-64 2xl:w-72'
 
         )}
 
