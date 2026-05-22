@@ -1139,5 +1139,22 @@
   "Go Back": "Go Back",
   "Uptime SLA": "Uptime SLA",
   "Browse models from all major providers": "Browse models from all major providers",
-  "View all 400+ models": "View all 400+ models"
+  "View all 400+ models": "View all 400+ models",
+  "Filters": "Filters",
+  "Input Modalities": "Input Modalities",
+  "Use Cases": "Use Cases",
+  "Context Length": "Context Length",
+  "Series": "Series",
+  "Compare": "Compare",
+  "active models across": "active models across",
+  "providers": "providers",
+  "token": "token",
+  "Chat & Assistant": "Chat & Assistant",
+  "Code Generation": "Code Generation",
+  "Reasoning": "Reasoning",
+  "Embeddings": "Embeddings",
+  "Vision": "Vision",
+  "Text": "Text",
+  "File": "File",
+  "Rerank": "Rerank"
 }

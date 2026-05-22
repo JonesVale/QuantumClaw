@@ -1139,5 +1139,22 @@
   "Go Back": "返回上级",
   "Uptime SLA": "可用性 SLA",
   "Browse models from all major providers": "浏览所有主要供应商的模型",
-  "View all 400+ models": "查看全部 400+ 模型"
+  "View all 400+ models": "查看全部 400+ 模型",
+  "Filters": "筛选",
+  "Input Modalities": "输入模态",
+  "Use Cases": "用例",
+  "Context Length": "上下文长度",
+  "Series": "系列",
+  "Compare": "对比",
+  "active models across": "个活跃模型，覆盖",
+  "providers": "个供应商",
+  "token": "token",
+  "Chat & Assistant": "聊天助手",
+  "Code Generation": "代码生成",
+  "Reasoning": "推理",
+  "Embeddings": "嵌入",
+  "Vision": "视觉",
+  "Text": "文本",
+  "File": "文件",
+  "Rerank": "重排序"
 }
