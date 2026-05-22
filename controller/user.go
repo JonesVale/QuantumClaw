@@ -14,7 +14,9 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
+	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/i18n"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
@@ -219,6 +221,23 @@ func Register(c *gin.Context) {
 			"message": err.Error(),
 		})
 		return
+	}
+
+	// 自动创建默认 API Key
+	now := helper.GetTimestamp()
+	apiKey := random.GenerateKey()
+	defaultToken := model.Token{
+		UserId:         cleanUser.Id,
+		Name:           "Default Key",
+		Key:            apiKey,
+		CreatedTime:    now,
+		AccessedTime:   now,
+		ExpiredTime:    -1,
+		RemainQuota:    0,
+		UnlimitedQuota: true,
+	}
+	if err := defaultToken.Insert(); err != nil {
+		logger.SysError("failed to create default token for user " + strconv.Itoa(cleanUser.Id) + ": " + err.Error())
 	}
 
 	// 自动发放邀请注册奖励

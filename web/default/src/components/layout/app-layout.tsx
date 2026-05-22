@@ -165,7 +165,8 @@ const PRODUCT_ITEMS: NavItem[] = [
 
 // Admin/management pages (sidebar)
 const NAV_ITEMS: NavItem[] = [
-  { path: '/channels', icon: Network, labelKey: 'Channels' },
+  // 隐藏 /channels 对普通用户可见（仅供应商后台可见）
+  // { path: '/channels', icon: Network, labelKey: 'Channels' },
   { path: '/keys', icon: Key, labelKey: 'API Keys' },
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
   { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs' },
