@@ -21,7 +21,7 @@ const (
 	Ali
 	Xunfei
 	AI360
-	OpenRouter
+	QuantumClaw
 	AIProxyLibrary
 	FastGPT
 	Tencent

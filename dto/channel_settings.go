@@ -30,7 +30,7 @@ const (
 type ChannelOtherSettings struct {
 	AzureResponsesVersion                 string        `json:"azure_responses_version,omitempty"`
 	VertexKeyType                         VertexKeyType `json:"vertex_key_type,omitempty"`
-	OpenRouterEnterprise                  *bool         `json:"openrouter_enterprise,omitempty"`
+	QuantumClawEnterprise                  *bool         `json:"quantumclaw_enterprise,omitempty"`
 	ClaudeBetaQuery                       bool          `json:"claude_beta_query,omitempty"`
 	AllowServiceTier                      bool          `json:"allow_service_tier,omitempty"`
 	AllowInferenceGeo                     bool          `json:"allow_inference_geo,omitempty"`
@@ -47,9 +47,9 @@ type ChannelOtherSettings struct {
 	UpstreamModelUpdateIgnoredModels      []string      `json:"upstream_model_update_ignored_models,omitempty"`
 }
 
-func (s *ChannelOtherSettings) IsOpenRouterEnterprise() bool {
-	if s == nil || s.OpenRouterEnterprise == nil {
+func (s *ChannelOtherSettings) IsQuantumClawEnterprise() bool {
+	if s == nil || s.QuantumClawEnterprise == nil {
 		return false
 	}
-	return *s.OpenRouterEnterprise
+	return *s.QuantumClawEnterprise
 }

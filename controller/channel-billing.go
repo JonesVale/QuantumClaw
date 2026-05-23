@@ -112,7 +112,7 @@ type DeepSeekUsageResponse struct {
 	} `json:"balance_infos"`
 }
 
-type OpenRouterResponse struct {
+type QuantumClawResponse struct {
 	Data struct {
 		TotalCredits float64 `json:"total_credits"`
 		TotalUsage   float64 `json:"total_usage"`
@@ -292,13 +292,13 @@ func updateChannelDeepSeekBalance(channel *model.Channel) (float64, error) {
 	return balance, nil
 }
 
-func updateChannelOpenRouterBalance(channel *model.Channel) (float64, error) {
-	url := "https://openrouter.ai/api/v1/credits"
+func updateChannelQuantumClawBalance(channel *model.Channel) (float64, error) {
+	url := "https://quantumclaw.ai/api/v1/credits"
 	body, err := GetResponseBody("GET", url, channel, GetAuthHeader(channel.Key))
 	if err != nil {
 		return 0, err
 	}
-	response := OpenRouterResponse{}
+	response := QuantumClawResponse{}
 	err = json.Unmarshal(body, &response)
 	if err != nil {
 		return 0, err
@@ -336,8 +336,8 @@ func updateChannelBalance(channel *model.Channel) (float64, error) {
 		return updateChannelSiliconFlowBalance(channel)
 	case channeltype.DeepSeek:
 		return updateChannelDeepSeekBalance(channel)
-	case channeltype.OpenRouter:
-		return updateChannelOpenRouterBalance(channel)
+	case channeltype.QuantumClaw:
+		return updateChannelQuantumClawBalance(channel)
 	default:
 		return 0, errors.New("尚未实现")
 	}
@@ -417,7 +417,7 @@ var balanceCheckableTypes = map[int]bool{
 	channeltype.AIGC2D:       true,
 	channeltype.SiliconFlow:  true,
 	channeltype.DeepSeek:     true,
-	channeltype.OpenRouter:   true,
+	channeltype.QuantumClaw:   true,
 }
 
 func updateAllChannelsBalance() error {

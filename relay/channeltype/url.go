@@ -23,7 +23,7 @@ var ChannelBaseURLs = []string{
 	"https://dashscope.aliyuncs.com",            // 17 Ali
 	"",                                          // 18 Xunfei
 	"https://ai.360.cn",                         // 19 AI360
-	"https://openrouter.ai/api",                 // 20 OpenRouter
+	"https://quantumclaw.ai/api",                 // 20 QuantumClaw
 	"https://api.aiproxy.io",                    // 21 AIProxyLibrary
 	"https://fastgpt.run/api/openapi",           // 22 FastGPT
 	"https://hunyuan.tencentcloudapi.com",       // 23 Tencent

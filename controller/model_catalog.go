@@ -127,8 +127,8 @@ func GetModelDetail(c *gin.Context) {
 // SyncModelMetadata detects new models from channels and inserts metadata rows.
 // POST /api/models/sync
 func SyncModelMetadata(c *gin.Context) {
-	// 0. Fetch official model data from OpenRouter
-	orModels := fetchOpenRouterModels()
+	// 0. Fetch official model data from QuantumClaw
+	orModels := fetchQuantumClawModels()
 	orMap := make(map[string]*orModel)
 	for _, m := range orModels {
 		orMap[strings.ToLower(m.ID)] = &m
@@ -170,7 +170,7 @@ func SyncModelMetadata(c *gin.Context) {
 			}
 		}
 		if !hasAny {
-			// Check OpenRouter API data first
+			// Check QuantumClaw API data first
 			key := strings.ToLower(name)
 			orInfo, hasOR := orMap[key]
 
@@ -237,11 +237,11 @@ type orModel struct {
 	ContextLength  int     `json:"context_length"`
 }
 
-func fetchOpenRouterModels() []orModel {
+func fetchQuantumClawModels() []orModel {
 	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get("https://openrouter.ai/api/v1/models")
+	resp, err := client.Get("https://quantumclaw.ai/api/v1/models")
 	if err != nil {
-		logger.SysError("sync: failed to fetch OpenRouter models: " + err.Error())
+		logger.SysError("sync: failed to fetch QuantumClaw models: " + err.Error())
 		return nil
 	}
 	defer resp.Body.Close()
@@ -250,11 +250,11 @@ func fetchOpenRouterModels() []orModel {
 		Data []orModel `json:"data"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		logger.SysError("sync: failed to decode OpenRouter response: " + err.Error())
+		logger.SysError("sync: failed to decode QuantumClaw response: " + err.Error())
 		return nil
 	}
 
-	logger.SysLog("sync: fetched " + strconv.Itoa(len(result.Data)) + " models from OpenRouter")
+	logger.SysLog("sync: fetched " + strconv.Itoa(len(result.Data)) + " models from QuantumClaw")
 	return result.Data
 }
 

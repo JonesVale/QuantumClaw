@@ -1,6 +1,6 @@
-package openrouter
+package quantumclaw
 
-// https://openrouter.ai/docs#models
+// https://quantumclaw.ai/docs#models
 
 var ModelList = []string{
 	"openai/gpt-4o",

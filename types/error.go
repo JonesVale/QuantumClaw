@@ -242,7 +242,7 @@ func WithOpenAIError(openAIError OpenAIError, statusCode int, ops ...QuantumClaw
 		Err:        errors.New(openAIError.Message),
 		errorCode:  ErrorCode(code),
 	}
-	// OpenRouter metadata
+	// QuantumClaw metadata
 	if len(openAIError.Metadata) > 0 {
 		openAIError.Message = fmt.Sprintf("%s (%s)", openAIError.Message, openAIError.Metadata)
 		e.Metadata = openAIError.Metadata

@@ -47,7 +47,7 @@ func ToAPIType(channelType int) int {
 		Baichuan, Moonshot, LingYiWanWu, StepFun,
 		TogetherAI, SiliconFlow, XAI,
 		BaiduV2, XunfeiV2, AliBailian,
-		OpenRouter, GeminiOpenAICompatible, OpenAICompatible,
+		QuantumClaw, GeminiOpenAICompatible, OpenAICompatible,
 		// ==================== Phase 2: 新增缺失 Provider ====================
 		Codex, Jimeng, Jina, MokaAI,
 		Submodel, VolcEngine, Xinference, ZhipuV4:

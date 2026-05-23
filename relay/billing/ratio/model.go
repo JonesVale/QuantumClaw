@@ -387,7 +387,7 @@ var ModelRatio = map[string]float64{
 	"mistralai/mistral-7b-instruct-v0.2":        0.050 * USD,
 	"mistralai/mistral-7b-v0.1":                 0.050 * USD,
 	"mistralai/mixtral-8x7b-instruct-v0.1":      0.300 * USD,
-	//https://openrouter.ai/models
+	//https://quantumclaw.ai/models
 	"01-ai/yi-large":                                  1.5,
 	"aetherwiing/mn-starcannon-12b":                   0.6,
 	"ai21/jamba-1-5-large":                            4.0,
@@ -575,7 +575,7 @@ var ModelRatio = map[string]float64{
 	"openai/o3-mini-high":                             2.2,
 	"openchat/openchat-7b":                            0.0275,
 	"openchat/openchat-7b:free":                       0.0,
-	"openrouter/auto":                                 -500000.0,
+	"quantumclaw/auto":                                 -500000.0,
 	"perplexity/llama-3.1-sonar-huge-128k-online":     2.5,
 	"perplexity/llama-3.1-sonar-large-128k-chat":      0.5,
 	"perplexity/llama-3.1-sonar-large-128k-online":    0.5,

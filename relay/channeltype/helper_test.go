@@ -65,7 +65,7 @@ func TestToAPIType_OpenAICompatible(t *testing.T) {
 		{"BaiduV2", BaiduV2},
 		{"XunfeiV2", XunfeiV2},
 		{"AliBailian", AliBailian},
-		{"OpenRouter", OpenRouter},
+		{"QuantumClaw", QuantumClaw},
 		{"GeminiOpenAICompatible", GeminiOpenAICompatible},
 		{"OpenAICompatible", OpenAICompatible},
 	}

@@ -74,7 +74,7 @@ func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *me
 		return nil
 	}
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
-	if meta.ChannelType == channeltype.OpenRouter {
+	if meta.ChannelType == channeltype.QuantumClaw {
 		req.Header.Set("HTTP-Referer", "https://github.com/quantumclaw/quantumclaw")
 		req.Header.Set("X-Title", "QuantumClaw")
 	}

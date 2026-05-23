@@ -14,7 +14,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/mistral"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/moonshot"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/novita"
-	"github.com/quantumclaw/quantumclaw/relay/adaptor/openrouter"
+	"github.com/quantumclaw/quantumclaw/relay/adaptor/quantumclaw"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/siliconflow"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/stepfun"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/togetherai"
@@ -27,7 +27,7 @@ import (
 var OpenAICompatibleChannels = []int{
 	channeltype.OpenAICompatible,
 	channeltype.GeminiOpenAICompatible,
-	channeltype.OpenRouter,
+	channeltype.QuantumClaw,
 	channeltype.AliBailian,
 	channeltype.BaiduV2,
 }
@@ -88,8 +88,8 @@ func GetCompatibleChannelMeta(channelType int) (string, []string) {
 		return "baiduv2", baiduv2.ModelList
 	case channeltype.XunfeiV2:
 		return "xunfeiv2", xunfeiv2.ModelList
-	case channeltype.OpenRouter:
-		return "openrouter", openrouter.ModelList
+	case channeltype.QuantumClaw:
+		return "quantumclaw", quantumclaw.ModelList
 	case channeltype.AliBailian:
 		return "alibailian", alibailian.ModelList
 	case channeltype.GeminiOpenAICompatible:
