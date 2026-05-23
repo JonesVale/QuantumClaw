@@ -657,7 +657,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
                 onClick={() => switchLanguage(lang)}
 
-                className={language === (typeToCode[lang] || lang) ? 'bg-muted font-medium' : ''}
+                className={language === lang ? 'bg-muted font-medium' : ''}
 
               >
 

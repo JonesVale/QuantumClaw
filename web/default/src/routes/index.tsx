@@ -134,9 +134,9 @@ function HomePage() {
       .finally(() => setLoadingLangs(false))
   }, [])
 
-  const { t } = useT()
+  const { t, language, changeLanguage } = useT()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [currentLang, setCurrentLang] = useState(language || 'en')
+  const [currentLang, setCurrentLang] = useState(language || 'English')
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
   const { config: sysConfig } = useSystemConfigStore()
@@ -242,7 +242,7 @@ function HomePage() {
     
     setCurrentLang(code)
   }
-  const langName = (Object.entries(typeToCode).find(([_, code]) => code === currentLang)?.[0]) || currentLang || 'English'
+  const langName = currentLang || 'English'
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950">
@@ -570,7 +570,7 @@ function HomePage() {
                           {article.source}
                         </span>
                         <span className="text-slate-400 shrink-0" style={{ fontSize: 'clamp(8px, 0.7vw, 11px)', width: 'clamp(36px, 4vw, 50px)' }}>
-                          {new Date(article.published_at).toLocaleDateString(language || 'zh-CN', { month: '2-digit', day: '2-digit' })}
+                          {new Date(article.published_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit' })}
                         </span>
                         <span className="truncate flex-grow min-w-0" style={{ color: '#1e293b', fontSize: 'clamp(11px, 0.9vw, 14px)' }}>
                           {article.title}
