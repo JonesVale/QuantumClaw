@@ -1,15 +1,13 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
 // GetModelCatalog returns all model metadata for the given language,
@@ -127,29 +125,23 @@ func GetModelDetail(c *gin.Context) {
 // SyncModelMetadata detects new models from channels and inserts metadata rows.
 // POST /api/models/sync
 func SyncModelMetadata(c *gin.Context) {
-	// 0. Fetch official model data from QuantumClaw
-	orModels := fetchQuantumClawModels()
-	orMap := make(map[string]*orModel)
-	for _, m := range orModels {
-		orMap[strings.ToLower(m.ID)] = &m
-	}
-
-	// 1. Collect all model names from all enabled channels
+	// Collect all model names from all enabled channels
 	var channels []model.Channel
 	model.DB.Where("status = ?", model.ChannelStatusEnabled).Find(&channels)
 
-	seen := make(map[string]bool)
+	typeNames := channeltype.ChannelTypeNames
+
+	seen := make(map[string]int) // model_name → channelType
 	for _, ch := range channels {
 		models := strings.Split(ch.Models, ",")
 		for _, m := range models {
 			m = strings.TrimSpace(m)
 			if m != "" {
-				seen[strings.ToLower(m)] = true
+				seen[strings.ToLower(m)] = ch.Type
 			}
 		}
 	}
 
-	// 2. Check which model names already have metadata
 	languages := []string{"中文简体", "中文繁体", "English", "Français", "日本語", "Русский", "Tiếng Việt"}
 	var existing []model.ModelMetadata
 	model.DB.Find(&existing)
@@ -158,10 +150,30 @@ func SyncModelMetadata(c *gin.Context) {
 		existingMap[strings.ToLower(e.ModelName)+":"+e.LanguagesType] = true
 	}
 
-	// 3. Generate descriptions and insert new models
 	now := now()
 	count := 0
-	for name := range seen {
+	type channelInfo struct {
+		provider string
+		chType   int
+	}
+	modelToChannel := make(map[string]channelInfo)
+	for _, ch := range channels {
+		provider := ""
+		if p, ok := typeNames[ch.Type]; ok {
+			provider = p
+		}
+		for _, m := range strings.Split(ch.Models, ",") {
+			m = strings.TrimSpace(m)
+			if m != "" {
+				key := strings.ToLower(m)
+				if _, exists := modelToChannel[key]; !exists {
+					modelToChannel[key] = channelInfo{provider: provider, chType: ch.Type}
+				}
+			}
+		}
+	}
+
+	for name, chType := range seen {
 		hasAny := false
 		for _, lang := range languages {
 			if existingMap[name+":"+lang] {
@@ -169,56 +181,97 @@ func SyncModelMetadata(c *gin.Context) {
 				break
 			}
 		}
-		if !hasAny {
-			// Check QuantumClaw API data first
-			key := strings.ToLower(name)
-			orInfo, hasOR := orMap[key]
+		if hasAny {
+			continue
+		}
 
-			var enDesc, cnDesc string
-			contextWin := 128000
+		// 判断是否为量子模型
+		isQuantum := chType >= 100 && chType < channeltype.QuantumDummy
+		useCase := "chat"
+		if isQuantum {
+			useCase = "quantum"
+		}
 
-			if hasOR && orInfo.Description != "" {
-				enDesc = orInfo.Description
-				cnDesc = orInfo.Description
-				contextWin = orInfo.ContextLength
-			} else {
-				// Auto-generate from model name
-				parts := strings.SplitN(name, "/", 2)
-				provider := "Unknown"
-				shortName := name
-				if len(parts) == 2 {
-					provider = strings.Title(parts[0])
-					shortName = parts[1]
-				}
-				shortName = strings.ReplaceAll(shortName, "-", " ")
-				shortName = strings.ReplaceAll(shortName, "_", " ")
-				shortName = strings.Title(shortName)
-				enDesc = shortName + " is a model from " + provider + "."
-				cnDesc = provider + " 的 " + shortName + " 模型。"
+		info, _ := modelToChannel[strings.ToLower(name)]
+
+		// Auto-generate description
+		parts := strings.SplitN(name, "/", 2)
+		shortName := name
+		provider := info.provider
+		if provider == "" {
+			provider = "Unknown"
+		}
+		if len(parts) == 2 {
+			shortName = parts[1]
+			if provider == "Unknown" {
+				provider = strings.Title(parts[0])
 			}
+		}
+		shortName = strings.ReplaceAll(shortName, "-", " ")
+		shortName = strings.ReplaceAll(shortName, "_", " ")
+		shortName = strings.Title(shortName)
 
-			for _, lang := range languages {
-				desc := enDesc
-				switch lang {
-				case "中文简体", "中文繁体":
-					desc = cnDesc
-				}
-				m := &model.ModelMetadata{
-					ModelName:       name,
-					LanguagesType:   lang,
-					DisplayName:     name,
-					Description:     desc,
-					UseCase:         "chat",
-					ContextWindow:   contextWin,
-					InputModalities: `["Text"]`,
-					Series:          "Other",
-					Provider:        "Unknown",
-					CreatedTime:     now,
-					UpdatedTime:     now,
-				}
-				if err := model.DB.Create(m).Error; err == nil {
-					count++
-				}
+		var enDesc, cnDesc string
+		if isQuantum {
+			enDesc = shortName + " is a quantum computing model from " + provider + ", supporting quantum circuit execution and hybrid quantum-classical computation."
+			cnDesc = shortName + " 是 " + provider + " 的量子计算模型，支持量子线路执行和混合量子-经典计算。"
+		} else {
+			enDesc = shortName + " is a model from " + provider + "."
+			cnDesc = provider + " 的 " + shortName + " 模型。"
+		}
+
+		contextWin := 128000
+		if isQuantum {
+			contextWin = 1000000 // Quantum models have million-scale context
+		}
+
+		series := provider
+		if isQuantum {
+			series = "Quantum"
+		}
+
+		for _, lang := range languages {
+			desc := enDesc
+			switch lang {
+			case "中文简体", "中文繁体":
+				desc = cnDesc
+			}
+			m := &model.ModelMetadata{
+				ModelName:       name,
+				LanguagesType:   lang,
+				DisplayName:     name,
+				Description:     desc,
+				UseCase:         useCase,
+				ContextWindow:   contextWin,
+				InputModalities: `["Text"]`,
+				Series:          series,
+				Provider:        provider,
+				CreatedTime:     now,
+				UpdatedTime:     now,
+			}
+			if err := model.DB.Create(m).Error; err == nil {
+				count++
+			}
+		}
+	}
+
+	// 4. 更新已有模型：量子渠道的标记 use_case="quantum"
+	updateCount := 0
+	for _, ch := range channels {
+		isQuantum := ch.Type >= 100 && ch.Type < channeltype.QuantumDummy
+		if !isQuantum {
+			continue
+		}
+		for _, m := range strings.Split(ch.Models, ",") {
+			m = strings.TrimSpace(m)
+			if m == "" {
+				continue
+			}
+			result := model.DB.Model(&model.ModelMetadata{}).
+				Where("model_name = ? AND use_case != 'quantum'", m).
+				Update("use_case", "quantum")
+			if result.Error == nil {
+				updateCount += int(result.RowsAffected)
 			}
 		}
 	}
@@ -227,35 +280,8 @@ func SyncModelMetadata(c *gin.Context) {
 		"success":  true,
 		"message":  "sync complete",
 		"inserted": count,
+		"updated":  updateCount,
 	})
-}
-
-type orModel struct {
-	ID             string  `json:"id"`
-	Name           string  `json:"name"`
-	Description    string  `json:"description"`
-	ContextLength  int     `json:"context_length"`
-}
-
-func fetchQuantumClawModels() []orModel {
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Get("https://quantumclaw.ai/api/v1/models")
-	if err != nil {
-		logger.SysError("sync: failed to fetch QuantumClaw models: " + err.Error())
-		return nil
-	}
-	defer resp.Body.Close()
-
-	var result struct {
-		Data []orModel `json:"data"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		logger.SysError("sync: failed to decode QuantumClaw response: " + err.Error())
-		return nil
-	}
-
-	logger.SysLog("sync: fetched " + strconv.Itoa(len(result.Data)) + " models from QuantumClaw")
-	return result.Data
 }
 
 func now() int64 {
