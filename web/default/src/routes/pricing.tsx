@@ -106,11 +106,12 @@ function PricingPage() {
     return list
   }, [models, search, providerFilter, showActiveOnly])
 
-  // Unique providers
+  // Unique providers (根据 showActiveOnly 过滤)
   const providers = useMemo(() => {
-    const set = new Set(models.map((m) => m.provider))
+    const pool = showActiveOnly ? models.filter(m => m.status === 1) : models
+    const set = new Set(pool.map((m) => m.provider))
     return Array.from(set).sort()
-  }, [models])
+  }, [models, showActiveOnly])
 
   // Group by provider
   const grouped = useMemo(() => {

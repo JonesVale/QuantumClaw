@@ -321,7 +321,14 @@ function ModelsPage() {
           {filtered.length === 0 ? (
             <div className="text-center py-16 text-muted-foreground">
               <Search className="h-8 w-8 mx-auto mb-3 opacity-30" />
-              <p>{t('No models found')}</p>
+              <p className="text-lg mb-2">{t('No models found')}</p>
+              <p className="text-sm mb-4">{t('try_adjust_filters')}</p>
+              <Button variant="outline" onClick={() => {
+                setSearch(''); setUseCaseFilter('all'); setSeriesFilter('all');
+                setModalityFilter(''); setContextFilter(''); setProviderFilter('');
+              }}>
+                {t('reset_filters')}
+              </Button>
             </div>
           ) : (
             <>

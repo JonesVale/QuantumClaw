@@ -55,6 +55,7 @@ const TABS: TabItem[] = [
 function RankingsPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
+  const [seriesFilter, setSeriesFilter] = useState('All')
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['model-rankings'],
@@ -71,11 +72,13 @@ function RankingsPage() {
 
   // Sort based on active tab
   const activeTabDef = TABS.find((t) => t.key === activeTab)!
-  const sorted = [...rankings].sort((a, b) => {
-    const aVal = a[activeTab]
-    const bVal = b[activeTab]
-    return activeTabDef.sortDir === 'desc' ? bVal - aVal : aVal - bVal
-  })
+  const sorted = [...rankings]
+    .filter(m => seriesFilter === 'All' || m.model.toLowerCase().includes(seriesFilter.toLowerCase()))
+    .sort((a, b) => {
+      const aVal = a[activeTab]
+      const bVal = b[activeTab]
+      return activeTabDef.sortDir === 'desc' ? bVal - aVal : aVal - bVal
+    })
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -88,7 +91,8 @@ function RankingsPage() {
             <h4 className="text-sm font-semibold text-muted-foreground mb-2">{t('Series')}</h4>
             <div className="space-y-0.5">
               {['All','GPT-4','Claude 3','Gemini','DeepSeek','Mistral','Llama'].map(s => (
-                <button key={s} className="w-full text-left px-3 py-2 text-sm rounded hover:bg-muted/50 text-muted-foreground transition-colors">{s}</button>
+                <button key={s} onClick={() => setSeriesFilter(s)}
+                  className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', seriesFilter === s ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{s}</button>
               ))}
             </div>
           </div>

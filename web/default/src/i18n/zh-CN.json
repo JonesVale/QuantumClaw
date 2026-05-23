@@ -1255,5 +1255,7 @@
   "username": "用户名",
   "created": "创建时间",
   "Load More": "加载更多",
-  "no_description": "暂无描述信息"
+  "no_description": "暂无描述信息",
+  "try_adjust_filters": "试试调整或清除筛选条件",
+  "reset_filters": "清除筛选"
 }

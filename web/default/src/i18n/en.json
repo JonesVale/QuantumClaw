@@ -1256,5 +1256,7 @@
   "username": "Username",
   "created": "Created",
   "Load More": "Load More",
-  "no_description": "No description available"
+  "no_description": "No description available",
+  "try_adjust_filters": "Try adjusting or clearing your filters",
+  "reset_filters": "Reset Filters"
 }
