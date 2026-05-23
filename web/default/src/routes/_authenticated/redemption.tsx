@@ -176,7 +176,7 @@ function RedemptionPage() {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{t('Create Redemption Codes')}</DialogTitle>
             <DialogDescription>{t('Generate quota codes for users to redeem')}</DialogDescription>

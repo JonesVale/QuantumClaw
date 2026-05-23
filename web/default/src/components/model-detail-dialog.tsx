@@ -58,7 +58,7 @@ export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-start gap-3">
             <ProviderIcon name={model.provider} size="md" />
