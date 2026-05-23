@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth-store'
 import { getSelf } from '@/lib/api'
 import AppLayout from '@/components/layout/app-layout'
@@ -6,15 +6,10 @@ import AppLayout from '@/components/layout/app-layout'
 let sessionVerified = false
 
 export const Route = createFileRoute('/_authenticated')({
-  beforeLoad: async ({ location }) => {
+  beforeLoad: async () => {
     const { auth } = useAuthStore.getState()
-    if (!auth.user) {
-      throw redirect({
-        to: '/sign-in',
-        search: { redirect: location.href },
-      })
-    }
-    if (!sessionVerified) {
+    // 已登录用户验证 session 有效性
+    if (auth.user && !sessionVerified) {
       try {
         const res = await getSelf()
         if (res?.success && res.data) {
@@ -22,19 +17,12 @@ export const Route = createFileRoute('/_authenticated')({
           sessionVerified = true
         } else {
           auth.reset()
-          throw redirect({
-            to: '/sign-in',
-            search: { redirect: location.href },
-          })
         }
       } catch {
         auth.reset()
-        throw redirect({
-          to: '/sign-in',
-          search: { redirect: location.href },
-        })
       }
     }
+    // 未登录用户可以正常浏览页面，不跳转
   },
   component: () => <AppLayout />,
 })

@@ -126,6 +126,7 @@ import { signOut } from '@/lib/api-extended'
 
 import { cn } from '@/lib/utils'
 import { CustomerServiceFloating } from '@/components/customer-service'
+import { ErrorBoundary } from '@/components/error-boundary'
 
 import i18next from 'i18next'
 
@@ -898,7 +899,9 @@ function AppLayout() {
 
           >
 
-            <Outlet />
+            <ErrorBoundary>
+              <Outlet />
+            </ErrorBoundary>
 
           </Suspense>
 

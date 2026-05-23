@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   Search, SlidersHorizontal, X, ArrowUpDown,
   ChevronRight, ChevronDown, MessageSquare, Code, Brain,
@@ -73,23 +73,25 @@ function ModelsPage() {
   })
   const catalog: CatalogItem[] = data?.data || []
 
-  // Derived data
+  // Derived data - 依赖 catalog.length 避免每次 re-render 重算
   const providers = useMemo(() => {
+    if (catalog.length === 0) return []
     const map = new Map<string, number>()
     for (const m of catalog) {
       const p = m.provider || 'Unknown'
       map.set(p, (map.get(p) || 0) + 1)
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1])
-  }, [catalog])
-
+  }, [catalog.length]) // eslint-disable-line
+  
   const seriesNames = useMemo(() => {
+    if (catalog.length === 0) return []
     const set = new Set<string>()
     for (const m of catalog) {
       if (m.series) set.add(m.series)
     }
     return Array.from(set).sort()
-  }, [catalog])
+  }, [catalog.length]) // eslint-disable-line
 
   const filtered = useMemo(() => {
     let result = catalog

@@ -1,59 +1,60 @@
-import { Component, type ReactNode, type ErrorInfo } from 'react'
+import { Component, type ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react'
 
 interface Props {
   children: ReactNode
-  fallback?: ReactNode
 }
 
 interface State {
   hasError: boolean
-  error: Error | null
+  error?: Error
 }
 
 export class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = { hasError: false, error: null }
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): State {
     return { hasError: true, error }
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught:', error, errorInfo)
-  }
-
-  handleReset = () => {
-    this.setState({ hasError: false, error: null })
+  componentDidCatch(error: Error, info: any) {
+    console.error('ErrorBoundary caught:', error, info)
   }
 
   render() {
     if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback
-      }
-
       return (
-        <div className="flex min-h-[400px] items-center justify-center p-8">
-          <div className="text-center max-w-md">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-destructive/10">
-              <AlertTriangle className="h-8 w-8 text-destructive" />
-            </div>
-            <h2 className="mb-2 text-xl font-bold">Something went wrong</h2>
-            <p className="mb-6 text-sm text-muted-foreground">
-              {this.state.error?.message || 'An unexpected error occurred'}
+        <div className="p-8 max-w-2xl mx-auto mt-8">
+          <div className="rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 dark:border-red-800 p-6">
+            <h2 className="text-lg font-bold text-red-700 dark:text-red-400 mb-2">
+              ⚠️ Page Error
+            </h2>
+            <p className="text-sm text-red-600 dark:text-red-300 mb-4 font-mono break-all">
+              {this.state.error?.message || 'Unknown error'}
             </p>
-            <div className="flex items-center justify-center gap-3">
-              <Button variant="outline" onClick={() => window.location.href = '/'}>
-                <Home className="mr-2 h-4 w-4" />
-                Go Home
+            <p className="text-xs text-red-500 dark:text-red-400 mb-4 font-mono break-all">
+              {this.state.error?.stack?.split('\n').slice(0, 5).join('\n')}
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  this.setState({ hasError: false, error: undefined })
+                  window.location.reload()
+                }}
+              >
+                Reload Page
               </Button>
-              <Button onClick={this.handleReset}>
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Try Again
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => window.history.back()}
+              >
+                Go Back
               </Button>
             </div>
           </div>

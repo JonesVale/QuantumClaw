@@ -177,15 +177,4 @@ th, td {
   padding-top: 1.5rem !important;
 }
 
-/* Spacious dialog content */
-[role="dialog"] {
-  max-height: 90vh !important;
-}
 
-[role="dialog"] p {
-  line-height: 1.8 !important;
-}
-
-[role="dialog"] h2 {
-  font-size: 1.25rem !important;
-}

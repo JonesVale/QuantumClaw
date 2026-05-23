@@ -56,6 +56,8 @@ function RankingsPage() {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
   const [seriesFilter, setSeriesFilter] = useState('All')
+  const [visibleCount, setVisibleCount] = useState(30)
+  const PAGE_STEP = 30
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['model-rankings'],
@@ -70,15 +72,17 @@ function RankingsPage() {
 
   const rankings: ModelRanking[] = data?.data ?? []
 
-  // Sort based on active tab
+  // Sort based on active tab - useRef to keep stable reference
   const activeTabDef = TABS.find((t) => t.key === activeTab)!
-  const sorted = [...rankings]
+  const filteredRankings = useMemo(() => [...rankings]
     .filter(m => seriesFilter === 'All' || m.model.toLowerCase().includes(seriesFilter.toLowerCase()))
     .sort((a, b) => {
       const aVal = a[activeTab]
       const bVal = b[activeTab]
       return activeTabDef.sortDir === 'desc' ? bVal - aVal : aVal - bVal
-    })
+    }), [rankings, seriesFilter, activeTab, activeTabDef.sortDir])
+
+  const displayed = useMemo(() => filteredRankings.slice(0, visibleCount), [filteredRankings, visibleCount])
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -156,7 +160,7 @@ function RankingsPage() {
             </Card>
           ))}
         </div>
-      ) : sorted.length === 0 ? (
+      ) : filteredRankings.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Trophy className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -164,8 +168,9 @@ function RankingsPage() {
           </CardContent>
         </Card>
       ) : (
+        <>
         <div className="space-y-2">
-          {sorted.map((item, index) => {
+          {displayed.map((item, index) => {
             const rank = index + 1
             const isTop3 = rank <= 3
 
@@ -271,6 +276,19 @@ function RankingsPage() {
             )
           })}
         </div>
+        {visibleCount < filteredRankings.length && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2 px-8"
+              onClick={() => setVisibleCount(c => c + PAGE_STEP)}
+            >
+              {t('Load More')} ({filteredRankings.length - visibleCount} {t('remaining')})
+            </Button>
+          </div>
+        )}
+        </>
       )}
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, DollarSign, RefreshCw, Filter } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -55,6 +55,8 @@ function PricingPage() {
   const [search, setSearch] = useState('')
   const [providerFilter, setProviderFilter] = useState('all')
   const [showActiveOnly, setShowActiveOnly] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(20)
+  const PAGE_STEP = 20
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['model-pricing', 'models'],
@@ -106,12 +108,20 @@ function PricingPage() {
     return list
   }, [models, search, providerFilter, showActiveOnly])
 
-  // Unique providers (根据 showActiveOnly 过滤)
-  const providers = useMemo(() => {
+  // Reset pagination when filters change
+  useEffect(() => setVisibleCount(PAGE_STEP), [search, providerFilter, showActiveOnly])
+
+  // Unique providers - 用 useRef 缓存，减少重复遍历
+  const cachedProviders = useRef<string[]>([])
+  const cachedKey = useRef('')
+  const currentKey = `${(models||[]).length}-${showActiveOnly}`
+  if (cachedKey.current !== currentKey) {
     const pool = showActiveOnly ? models.filter(m => m.status === 1) : models
     const set = new Set(pool.map((m) => m.provider))
-    return Array.from(set).sort()
-  }, [models, showActiveOnly])
+    cachedProviders.current = Array.from(set).sort()
+    cachedKey.current = currentKey
+  }
+  const providers = cachedProviders.current
 
   // Group by provider
   const grouped = useMemo(() => {
@@ -219,8 +229,9 @@ function PricingPage() {
           </CardContent>
         </Card>
       ) : (
+        <>
         <div className="space-y-4">
-          {Array.from(grouped.entries()).map(([provider, providerModels]) => {
+          {Array.from(grouped.entries()).slice(0, visibleCount).map(([provider, providerModels]) => {
             const meta = getProviderMeta(provider)
             return (
               <Card key={provider} className="overflow-hidden">
@@ -300,6 +311,19 @@ function PricingPage() {
             )
           })}
         </div>
+        {visibleCount < grouped.size && (
+          <div className="flex justify-center pt-4 pb-2">
+            <Button
+              variant="outline"
+              size="lg"
+              className="gap-2 px-8"
+              onClick={() => setVisibleCount(c => c + PAGE_STEP)}
+            >
+              {t('Load More')} ({filtered.length - visibleCount} {t('remaining')})
+            </Button>
+          </div>
+        )}
+        </>
       )}
       </div>
     </div>
