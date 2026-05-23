@@ -18,7 +18,6 @@ import { getStatus } from '@/lib/api'
 import { ThemeProvider } from '@/context/theme-provider'
 import '@/lib/dayjs'
 import { applyFaviconToDom } from '@/lib/dom-utils'
-import './i18n/config'
 import { routeTree } from './routeTree.gen'
 import './styles/index.css'
 

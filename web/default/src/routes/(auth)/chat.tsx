@@ -188,7 +188,7 @@ function ChatPage() {
   } = useConversations()
 
   // ── Load model catalog ────────────────────────────────
-  const lang = codeToType[i18n.language] || 'English'
+  const lang = language || 'English'
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['model-catalog', lang],
     queryFn: async () => {

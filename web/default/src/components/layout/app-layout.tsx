@@ -523,9 +523,9 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
   const switchLanguage = useCallback((langType: string) => {
     const code = typeToCode[langType] || langType
-    i18n.changeLanguage(code)
+    changeLanguage(code)
     
-  }, [i18n])
+  }, [language])
 
   const cycleTheme = useCallback(() => {
 
@@ -657,7 +657,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
                 onClick={() => switchLanguage(lang)}
 
-                className={i18n.language === (typeToCode[lang] || lang) ? 'bg-muted font-medium' : ''}
+                className={language === (typeToCode[lang] || lang) ? 'bg-muted font-medium' : ''}
 
               >
 

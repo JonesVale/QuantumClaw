@@ -61,7 +61,7 @@ function ModelsPage() {
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set())
   const [comparisonOpen, setComparisonOpen] = useState(false)
 
-  const lang = codeToType[i18n.language] || 'English'
+  const lang = language || 'English'
   const { data } = useQuery({
     queryKey: ['model-catalog', lang],
     queryFn: async () => {

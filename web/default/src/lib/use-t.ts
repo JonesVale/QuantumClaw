@@ -66,5 +66,5 @@ export function useT() {
     setTick(t => t + 1)
   }, [])
 
-  return { t, currentLang, langs, setLanguage }
+  return { t, language: currentLang, langs, changeLanguage: setLanguage }
 }

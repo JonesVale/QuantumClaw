@@ -136,7 +136,7 @@ function HomePage() {
 
   const { t } = useT()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
+  const [currentLang, setCurrentLang] = useState(language || 'en')
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
   const { config: sysConfig } = useSystemConfigStore()
@@ -235,10 +235,10 @@ function HomePage() {
     'Reddit AI': <Globe style={{ width: 'clamp(10px, 0.9vw, 14px)', height: 'clamp(10px, 0.9vw, 14px)' }} />,
   }
 
-  useEffect(() => { setCurrentLang(i18n.language) }, [i18n.language])
+  useEffect(() => { setCurrentLang(language) }, [language])
 
   const changeLang = (code: string) => {
-    i18n.changeLanguage(code)
+    changeLanguage(code)
     
     setCurrentLang(code)
   }
@@ -570,7 +570,7 @@ function HomePage() {
                           {article.source}
                         </span>
                         <span className="text-slate-400 shrink-0" style={{ fontSize: 'clamp(8px, 0.7vw, 11px)', width: 'clamp(36px, 4vw, 50px)' }}>
-                          {new Date(article.published_at).toLocaleDateString(i18n.language || 'zh-CN', { month: '2-digit', day: '2-digit' })}
+                          {new Date(article.published_at).toLocaleDateString(language || 'zh-CN', { month: '2-digit', day: '2-digit' })}
                         </span>
                         <span className="truncate flex-grow min-w-0" style={{ color: '#1e293b', fontSize: 'clamp(11px, 0.9vw, 14px)' }}>
                           {article.title}
