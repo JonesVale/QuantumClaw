@@ -261,7 +261,7 @@ function PlaygroundPage() {
   const handleSubmitVideo = () => { if (!videoPrompt.trim()) return; submitTask('video', { prompt: videoPrompt }, setVideoTask) }
 
   return (
-    <div className="w-full h-full flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="w-full h-full flex flex-col overflow-hidden ">
       {/* Top toolbar */}
       <div className="flex items-center justify-between gap-2 px-3 py-2 border-b bg-card/50 backdrop-blur-sm shrink-0">
         <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ function PlaygroundPage() {
 
             {/* === Midjourney Mode === */}
             <TabsContent value="midjourney" className="flex-1 mt-0 overflow-y-auto p-4">
-              <Card className="max-w-2xl mx-auto p-6 space-y-4">
+              <Card className="border-0 shadow-none max-w-2xl mx-auto p-6 space-y-4">
                 <h2 className="text-lg font-semibold">{t('Midjourney')}</h2>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('Prompt')}</label>
@@ -448,7 +448,7 @@ function PlaygroundPage() {
 
             {/* === Suno Mode === */}
             <TabsContent value="suno" className="flex-1 mt-0 overflow-y-auto p-4">
-              <Card className="max-w-2xl mx-auto p-6 space-y-4">
+              <Card className="border-0 shadow-none max-w-2xl mx-auto p-6 space-y-4">
                 <h2 className="text-lg font-semibold">{t('Suno')}</h2>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('Prompt')}</label>
@@ -480,7 +480,7 @@ function PlaygroundPage() {
 
             {/* === Video Mode === */}
             <TabsContent value="video" className="flex-1 mt-0 overflow-y-auto p-4">
-              <Card className="max-w-2xl mx-auto p-6 space-y-4">
+              <Card className="border-0 shadow-none max-w-2xl mx-auto p-6 space-y-4">
                 <h2 className="text-lg font-semibold">{t('Video Generation')}</h2>
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('Prompt')}</label>

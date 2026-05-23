@@ -55,7 +55,7 @@ function AppsPage() {
   const featured = apps.filter(a => a.featured)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 w-full min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="p-4 sm:p-6 space-y-6 w-full min-h-screen ">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
@@ -83,7 +83,7 @@ function AppsPage() {
           <div className="grid sm:grid-cols-3 gap-4">
             {featured.map((app) => (
               <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="block group">
-                <Card className="h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 relative overflow-hidden rounded-xl">
+                <Card className="border-0 shadow-none h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/30 relative overflow-hidden rounded-xl">
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                     <ExternalLink className="h-4 w-4 text-muted-foreground" />
                   </div>
@@ -137,7 +137,7 @@ function AppsPage() {
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map((app) => (
           <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer" className="block group">
-            <Card className="h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 rounded-xl">
+            <Card className="border-0 shadow-none h-full hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 rounded-xl">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center shrink-0 shadow">
@@ -171,7 +171,7 @@ function AppsPage() {
       )}
 
       {/* CTA */}
-      <Card className="bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-500/20">
+      <Card className="border-0 shadow-none bg-gradient-to-r from-orange-500/10 via-red-500/10 to-pink-500/10 border-orange-500/20">
         <CardContent className="p-6 text-center">
           <h3 className="text-lg font-semibold mb-2">{t('Built something with QuantumClaw?')}</h3>
           <p className="text-sm text-muted-foreground mb-4">{t('Let us know and get featured here')}</p>

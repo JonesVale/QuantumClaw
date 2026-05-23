@@ -186,10 +186,10 @@ function FusionPage() {
   ).slice(0, 3)
 
   return (
-    <div className="flex h-full overflow-hidden bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="flex h-full overflow-hidden ">
       {/* ── History Sidebar ── */}
       <div className={cn(
-        'w-64 shrink-0 border-r bg-card/50 backdrop-blur-sm flex flex-col transition-all',
+        'w-64 shrink-0  flex flex-col transition-all',
         showHistory ? 'translate-x-0' : '-translate-x-full fixed z-10 h-full md:relative md:translate-x-0'
       )}>
         <div className="p-3 border-b">
@@ -355,7 +355,7 @@ function FusionPage() {
             <div className="space-y-2" ref={scrollRef as any}>
               {/* Best Result Banner */}
               {bestResult && (
-                <Card className="border-emerald-500/30 bg-emerald-500/5">
+                <Card className="border-0 shadow-none border-emerald-500/30 bg-emerald-500/5">
                   <CardContent className="p-3 flex items-center gap-3">
                     <Sparkles className="h-4 w-4 text-emerald-500 shrink-0" />
                     <div className="flex-1 min-w-0">

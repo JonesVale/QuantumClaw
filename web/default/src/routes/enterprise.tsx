@@ -54,7 +54,7 @@ function EnterprisePage() {
   ]
 
   return (
-    <div className="p-4 sm:p-6 space-y-8 w-full min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="p-4 sm:p-6 space-y-8 w-full min-h-screen ">
       {/* Hero */}
       <div className="text-center max-w-3xl mx-auto py-8 sm:py-12">
         <Badge variant="outline" className="mb-4 px-4 py-1.5 gap-2 text-sm">
@@ -105,7 +105,7 @@ function EnterprisePage() {
       </div>
 
       {/* Unique Advantage */}
-      <Card className="max-w-4xl mx-auto bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 border-purple-500/20">
+      <Card className="border-0 shadow-none max-w-4xl mx-auto bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-cyan-500/10 border-purple-500/20">
         <CardContent className="p-6 flex items-center gap-4">
           <Cpu className="h-10 w-10 text-purple-500 shrink-0" />
           <div>
