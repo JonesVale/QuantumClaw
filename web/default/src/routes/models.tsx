@@ -36,7 +36,7 @@ const useCaseLabels: Record<string, { label: string; icon: React.ElementType; co
 type SortOption = 'name' | 'price-asc' | 'price-desc'
 
 function ModelsPage() {
-  const { t } = useT()
+  const { t, language } = useT()
   const { auth } = useAuthStore()
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')
