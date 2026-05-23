@@ -29,6 +29,11 @@ type Log struct {
 	ElapsedTime       int64  `json:"elapsed_time" gorm:"default:0"` // unit is ms
 	IsStream          bool   `json:"is_stream" gorm:"default:false"`
 	SystemPromptReset bool   `json:"system_prompt_reset" gorm:"default:false"`
+
+	// Settlement system fields
+	PromoterId     int  `json:"promoter_id" gorm:"default:0;index"`
+	ChannelOwnerId int  `json:"channel_owner_id" gorm:"default:0"`
+	IsFallback     bool `json:"is_fallback" gorm:"default:false"`
 }
 
 const (
@@ -85,6 +90,60 @@ func RecordConsumeLog(ctx context.Context, log *Log) {
 	log.CreatedAt = helper.GetTimestamp()
 	log.Type = LogTypeConsume
 	recordLogHelper(ctx, log)
+
+	// 创建结算系统交易流水（含精确 token 数）
+	createTransactionFromLog(log)
+}
+
+func createTransactionFromLog(log *Log) {
+	if log.PromptTokens == 0 && log.CompletionTokens == 0 {
+		return // 无实际 token 消耗，跳过
+	}
+
+	totalTokens := log.PromptTokens + log.CompletionTokens
+	tokenK := float64(totalTokens) / 1000.0
+
+	// 获取结算配置
+	cfg, _ := GetSettlementConfig(log.ModelName)
+
+	// 获取 channel 信息以计算单价
+	var ch Channel
+	if err := DB.First(&ch, "id = ?", log.ChannelId).Error; err != nil {
+		// channel 不存在或已删除，用默认价格
+		ch.CostPerUnit = 0.001
+		ch.SellPriceRate = 1.0
+	}
+
+	unitPrice := ch.CostPerUnit * ch.SellPriceRate * 1000 // /1K tokens
+
+	tx := &TokenTransaction{
+		LogId:            log.Id,
+		UserId:           log.UserId,
+		ModelName:        log.ModelName,
+		PromptTokens:     log.PromptTokens,
+		CompletionTokens: log.CompletionTokens,
+		ChannelId:        log.ChannelId,
+		ChannelOwnerId:   log.ChannelOwnerId,
+		PromoterId:       log.PromoterId,
+		IsFallback:       0,
+		UnitPrice:        unitPrice,
+		TotalAmount:      unitPrice * tokenK,
+		UnifiedCost:      cfg.UnifiedCost * tokenK,
+		CommissionAmount: (unitPrice * tokenK) * cfg.CommissionRate,
+		PlatformFee:      (unitPrice * tokenK) * cfg.PlatformFeeRate,
+	}
+	if log.IsFallback {
+		tx.IsFallback = 1
+	}
+
+	// 查询 channel 的 cost_price
+	if ch.CostPrice > 0 {
+		tx.KeyProviderCost = ch.CostPrice * tokenK
+	}
+
+	if err := CreateTransaction(tx); err != nil {
+		logger.SysError(fmt.Sprintf("failed to create token_transaction from log %d: %v", log.Id, err))
+	}
 }
 
 func RecordTestLog(ctx context.Context, log *Log) {
@@ -270,12 +329,12 @@ type ModelChannelStat struct {
 }
 
 type LogStatistic struct {
-	Day              string `gorm:"column:day"`
-	ModelName        string `gorm:"column:model_name"`
-	RequestCount     int    `gorm:"column:request_count"`
-	Quota            int    `gorm:"column:quota"`
-	PromptTokens     int    `gorm:"column:prompt_tokens"`
-	CompletionTokens int    `gorm:"column:completion_tokens"`
+	Day              string `gorm:"column:day" json:"day"`
+	ModelName        string `gorm:"column:model_name" json:"model_name"`
+	RequestCount     int    `gorm:"column:request_count" json:"request_count"`
+	Quota            int    `gorm:"column:quota" json:"quota"`
+	PromptTokens     int    `gorm:"column:prompt_tokens" json:"prompt_tokens"`
+	CompletionTokens int    `gorm:"column:completion_tokens" json:"completion_tokens"`
 }
 
 func SearchLogsByDayAndModel(userId, start, end int) (LogStatistics []*LogStatistic, err error) {

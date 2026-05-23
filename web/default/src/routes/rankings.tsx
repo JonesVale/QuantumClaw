@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { RefreshCw, Trophy, TrendingUp, TrendingDown, Zap, Clock, DollarSign, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
@@ -16,6 +16,26 @@ export const Route = createFileRoute('/rankings')({
 
 // ── Tab definitions ───────────────────────────────────────────────
 type SortKey = 'request_count_7d' | 'tokens_7d' | 'avg_speed_ms' | 'price_per_1k'
+
+// ── Helper constants & functions ────────────────────────────────────
+const RANK_STYLES = [
+  'bg-gradient-to-br from-yellow-500 to-yellow-600',
+  'bg-gradient-to-br from-slate-400 to-slate-500',
+  'bg-gradient-to-br from-amber-700 to-amber-800',
+]
+
+function formatRequests(n: number): string {
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
+  return n.toLocaleString()
+}
+
+function formatTokens(n: number): string {
+  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
+  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
+  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
+  return n.toLocaleString()
+}
 
 interface TabItem {
   key: SortKey

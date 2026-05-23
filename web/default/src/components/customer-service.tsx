@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MessageCircle, X, MessageSquare, Phone, ExternalLink, ChevronDown, Bot, User } from 'lucide-react'
+import { MessageCircle, X, MessageSquare, ChevronDown, Bot, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
@@ -15,7 +15,8 @@ export function CustomerServiceFloating() {
   const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
   const { t } = useTranslation()
-  const { loggedIn } = useAuthStore()
+  const { auth } = useAuthStore()
+  const loggedIn = !!auth.user
 
   const faqItems = [
     {

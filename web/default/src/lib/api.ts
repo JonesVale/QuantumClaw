@@ -59,7 +59,7 @@ apiClient.interceptors.request.use((config) => {
 
 apiClient.interceptors.response.use(
   (response) => {
-    const skipBusiness = (response.config as Record<string, unknown>)
+    const skipBusiness = (response.config as unknown as Record<string, unknown>)
       ?.skipBusinessError as boolean
     if (
       !skipBusiness &&
@@ -73,7 +73,7 @@ apiClient.interceptors.response.use(
     return response
   },
   (error) => {
-    if (!(error?.config as Record<string, unknown>)?.skipErrorHandler) {
+    if (!(error?.config as unknown as Record<string, unknown>)?.skipErrorHandler) {
       const status = error?.response?.status
       if (status === 401) {
         toast.error(i18next.t('Session expired!'))
@@ -102,12 +102,12 @@ const inFlightGet = new Map<string, Promise<unknown>>()
 const originalGet = apiClient.get.bind(apiClient)
 
 apiClient.get = ((url: string, config = {}) => {
-  const disableDuplicate = (config as Record<string, unknown>)
+  const disableDuplicate = (config as unknown as Record<string, unknown>)
     ?.disableDuplicate as boolean
   if (disableDuplicate) return originalGet(url, config)
 
-  const params = (config as Record<string, unknown>)?.params
-    ? JSON.stringify((config as Record<string, unknown>).params)
+  const params = (config as unknown as Record<string, unknown>)?.params
+    ? JSON.stringify((config as unknown as Record<string, unknown>).params)
     : '{}'
   const key = `${url}?${params}`
 
@@ -140,7 +140,7 @@ export function getCommonHeaders(): Record<string, string> {
 export async function getSelf(): Promise<ApiResponse> {
   const res = await apiClient.get('/api/user/self', {
     skipErrorHandler: true,
-  } as Record<string, unknown>)
+  } as unknown as Record<string, unknown>)
   return res.data
 }
 

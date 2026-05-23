@@ -81,7 +81,7 @@ function UserFormDialog({
     if (isEdit && user) {
       mutation.mutate({ id: user.id, ...form })
     } else {
-      mutation.mutate(form)
+      mutation.mutate({ id: 0, ...form })
     }
   }
 
@@ -194,7 +194,7 @@ function UsersPage() {
   })
 
   const manageMutation = useMutation({
-    mutationFn: ({ id, action }: { id: number; action: string }) => manageUser(id, action),
+    mutationFn: ({ id, action }: { id: number; action: 'disable' | 'enable' | 'reset_quota' | 'reset_used_quota' }) => manageUser({ id, action }),
     onSuccess: () => {
       toast.success(t('User status updated'))
       queryClient.invalidateQueries({ queryKey: ['users'] })
@@ -293,7 +293,7 @@ function UsersPage() {
                       </TableCell>
                       <TableCell>{u.request_count?.toLocaleString() || 0}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">
-                        {dayjs(u.created_time * 1000).format('YYYY-MM-DD')}
+                        {dayjs((u.created_time || 0) * 1000).format('YYYY-MM-DD')}
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>

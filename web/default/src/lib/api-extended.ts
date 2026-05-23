@@ -1,4 +1,5 @@
-import apiClient, { ApiResponse, getCommonHeaders } from './api'
+import apiClient, { ApiResponse } from './api'
+export type { ApiResponse }
 
 // Helper to extract parameters safely (handles TanStack Query context object)
 function extractParams<T>(arg1: unknown, arg2?: unknown): T | undefined {
@@ -316,7 +317,7 @@ export async function deleteHistoryLogs(before_date: string): Promise<ApiRespons
   const res = await apiClient.delete('/api/log', {
     data: { before_date },
     skipBusinessError: true,
-  } as Record<string, unknown>)
+  } as unknown as Record<string, unknown>)
   return res.data
 }
 
@@ -710,6 +711,85 @@ export function generateApiKey(): string {
     result += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   return result
+}
+
+// ---------------------------------------------------------------------------
+// Settlement Config API
+// ---------------------------------------------------------------------------
+
+export interface SettlementConfigItem {
+  id: number
+  model_name: string
+  unified_cost: number
+  commission_rate: number
+  platform_fee_rate: number
+  enabled: number
+  created_time: number
+  updated_time: number
+}
+
+export async function getSettlementConfigs(): Promise<ApiResponse<SettlementConfigItem[]>> {
+  const res = await apiClient.get('/api/settlement/config')
+  return res.data
+}
+
+export async function createSettlementConfig(data: {
+  model_name: string
+  unified_cost?: number
+  commission_rate?: number
+  platform_fee_rate?: number
+}): Promise<ApiResponse<SettlementConfigItem>> {
+  const res = await apiClient.post('/api/settlement/config', data)
+  return res.data
+}
+
+export async function updateSettlementConfig(id: number, data: Partial<SettlementConfigItem>): Promise<ApiResponse> {
+  const res = await apiClient.put(`/api/settlement/config/${id}`, data)
+  return res.data
+}
+
+export async function deleteSettlementConfig(id: number): Promise<ApiResponse> {
+  const res = await apiClient.delete(`/api/settlement/config/${id}`)
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// Transaction API
+// ---------------------------------------------------------------------------
+
+export interface TransactionItem {
+  id: number
+  user_id: number
+  model_name: string
+  channel_id: number
+  channel_owner_id: number
+  promoter_id: number
+  is_fallback: number
+  unit_price: number
+  total_amount: number
+  unified_cost: number
+  commission_amount: number
+  platform_fee: number
+  created_time: number
+}
+
+export interface TransactionsResponse {
+  transactions: TransactionItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+export async function getTransactions(params?: {
+  user_id?: number
+  promoter_id?: number
+  channel_owner_id?: number
+  model?: string
+  page?: number
+  page_size?: number
+}): Promise<ApiResponse<TransactionsResponse>> {
+  const res = await apiClient.get('/api/transactions', { params })
+  return res.data
 }
 
 export interface TelegramWidgetInfo {

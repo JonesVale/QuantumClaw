@@ -21,4 +21,8 @@ const (
 	AvailableModels   = "available_models"
 	KeyRequestBody    = "key_request_body"
 	SystemPrompt      = "system_prompt"
+	PromoterId        = "promoter_id"
+	ChannelOwner      = "channel_owner"
+	IsFallback        = "is_fallback"
+	FallbackFrom      = "fallback_from"
 )

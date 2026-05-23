@@ -96,14 +96,14 @@ function TokenFormDialog({
 
   const mutation = useMutation({
     mutationFn: isEdit
-      ? (data: TokenFormData & { id: number }) => updateToken(data)
-      : createToken,
+      ? (data: TokenFormData & { id: number }) => updateToken(data as unknown as Partial<Token>)
+      : ((data: TokenFormData & { id: number }) => createToken(data as unknown as Partial<Token>)) as unknown as (data: TokenFormData & { id: number }) => Promise<any>,
     onSuccess: (res) => {
       toast.success(isEdit ? t('Token updated') : t('Token created'))
       queryClient.invalidateQueries({ queryKey: ['tokens'] })
       onOpenChange(false)
-      if (!isEdit && res?.data?.key) {
-        setNewKey(res.data.key)
+      if (!isEdit && (res as unknown as { data?: { key?: string } })?.data?.key) {
+        setNewKey((res as unknown as { data: { key: string } }).data.key)
       }
     },
     onError: () => toast.error(isEdit ? t('Failed to update token') : t('Failed to create token')),
@@ -114,7 +114,7 @@ function TokenFormDialog({
     if (isEdit && token) {
       mutation.mutate({ id: token.id, ...form })
     } else {
-      mutation.mutate(form)
+      mutation.mutate({ id: 0, ...form })
     }
   }
 

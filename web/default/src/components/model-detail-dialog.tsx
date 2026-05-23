@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
-import { X, MessageSquare, Cpu, DollarSign, Box, Layers, Play, ExternalLink } from 'lucide-react'
+import { MessageSquare, Cpu, DollarSign, Box, Layers } from 'lucide-react'
 import {
   Dialog,
   DialogContent,

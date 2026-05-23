@@ -100,7 +100,7 @@ function SetupPage() {
         toast.success(t('Setup completed! Redirecting...'))
         // Set credentials in localStorage and redirect to sign-in
         setTimeout(() => {
-          router.navigate({ to: '/sign-in' })
+          router.navigate({ to: '/sign-in', search: { redirect: undefined } })
         }, 1500)
       } else {
         toast.error(data.message || t('Setup failed'))

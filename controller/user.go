@@ -245,7 +245,7 @@ func Register(c *gin.Context) {
 		logger.SysError("failed to create default token for user " + strconv.Itoa(cleanUser.Id) + ": " + err.Error())
 	}
 
-	// 自动发放邀请注册奖励
+	// 自动发放邀请注册奖励 + 绑定推广关系
 	if inviterId > 0 {
 		setting, _ := model.GetCommissionSetting()
 		if setting.Enabled && setting.RegisterReward > 0 {
@@ -260,6 +260,21 @@ func Register(c *gin.Context) {
 			// 直接增加邀请人余额
 			model.DB.Model(&model.User{}).Where("id = ?", inviterId).
 				UpdateColumn("quota", gorm.Expr("quota + ?", setting.RegisterReward))
+		}
+
+		// 创建 affiliate_relation（推广关系绑定）
+		relation := model.AffiliateRelation{
+			PromoterId:  inviterId,
+			ConsumerId:  cleanUser.Id,
+			CreatedTime: time.Now().Unix(),
+		}
+		// 检查是否已有推广关系，避免重复绑定
+		var existing int64
+		model.DB.Model(&model.AffiliateRelation{}).Where("consumer_id = ?", cleanUser.Id).Count(&existing)
+		if existing == 0 {
+			if err := model.DB.Create(&relation).Error; err != nil {
+				logger.SysError(fmt.Sprintf("failed to create affiliate_relation: %v", err))
+			}
 		}
 	}
 

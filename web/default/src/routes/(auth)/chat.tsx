@@ -10,25 +10,25 @@
  * - Auth check: redirect to /sign-in if not logged in
  */
 
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import {
-  Send, Bot, User, Trash2, Copy, Check, StopCircle, Sparkles, Server,
-  AlertCircle, RefreshCw, Settings2, PanelRightOpen, PanelRightClose,
-  MessageSquare, Plus, Menu, X, Search as SearchIcon, ChevronDown,
-  Wifi, WifiOff, ExternalLink, Zap, Archive, Edit3, GripVertical,
-  Globe, Cpu, Database, BookOpen, Loader2
+  Send, Bot, Trash2, StopCircle, Server,
+  Settings2, PanelRightOpen, PanelRightClose,
+  MessageSquare, Plus,
+  Wifi, WifiOff, Zap, Edit3,
+  Globe, Cpu, BookOpen, Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
+
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { Skeleton } from '@/components/ui/skeleton'
+
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -40,9 +40,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { useAuthStore, type AuthUser } from '@/stores/auth-store'
+import { useAuthStore } from '@/stores/auth-store'
 import { useConversations } from '@/lib/use-conversations'
-import { ConversationSidebar, type Conversation } from '@/components/conversation-sidebar'
+import { type Conversation } from '@/components/conversation-sidebar'
 import { MessageBubble } from '@/components/message-bubble'
 import { ParameterPanel, defaultParams, type ChatParams } from '@/components/parameter-panel'
 import type { Message } from '@/components/message-types'
@@ -153,79 +153,13 @@ async function* streamOllamaResponse(response: Response): AsyncGenerator<string>
   }
 }
 
-// ── Simple Markdown component (for inline rendering if react-markdown fails) ──
-function SimpleMarkdown({ content }: { content: string }) {
-  const parts: React.ReactNode[] = []
-  let remaining = content
-  let idx = 0
-
-  while (remaining.length > 0) {
-    // Code block ```...```
-    const codeBlockMatch = remaining.match(/^```(\w*)\n([\s\S]*?)```\n?/)
-    if (codeBlockMatch) {
-      parts.push(
-        <pre key={idx++} className="my-2 rounded-lg bg-muted p-3 overflow-x-auto text-xs">
-          <code>{codeBlockMatch[2]}</code>
-        </pre>
-      )
-      remaining = remaining.slice(codeBlockMatch[0].length)
-      continue
-    }
-
-    // Inline code `...`
-    const inlineMatch = remaining.match(/^`([^`]+)`/)
-    if (inlineMatch) {
-      parts.push(
-        <code key={idx++} className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
-          {inlineMatch[1]}
-        </code>
-      )
-      remaining = remaining.slice(inlineMatch[0].length)
-      continue
-    }
-
-    // Bold **...**
-    const boldMatch = remaining.match(/^\*\*([^*]+)\*\*/)
-    if (boldMatch) {
-      parts.push(<strong key={idx++}>{boldMatch[1]}</strong>)
-      remaining = remaining.slice(boldMatch[0].length)
-      continue
-    }
-
-    // Link [...](...)
-    const linkMatch = remaining.match(/^\[([^\]]+)\]\(([^)]+)\)/)
-    if (linkMatch) {
-      parts.push(
-        <a key={idx++} href={linkMatch[2]} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">
-          {linkMatch[1]}
-        </a>
-      )
-      remaining = remaining.slice(linkMatch[0].length)
-      continue
-    }
-
-    // Newline
-    if (remaining.startsWith('\n')) {
-      parts.push(<br key={idx++} />)
-      remaining = remaining.slice(1)
-      continue
-    }
-
-    // Regular character
-    parts.push(remaining[0])
-    remaining = remaining.slice(1)
-  }
-
-  return <>{parts}</>
-}
-
 // ── Main Chat Page Component ────────────────────────────
 
 function ChatPage() {
   const { t, i18n } = useTranslation()
-  const navigate = useNavigate()
+
   const { auth } = useAuthStore()
-  const isAuthed = !!auth.user
+
 
   // State
   const [mode, setMode] = useState<ChatMode>('remote')
@@ -236,7 +170,7 @@ function ChatPage() {
   const [showSidebar, setShowSidebar] = useState(true)
   const [params, setParams] = useState<ChatParams>(defaultParams)
   const [selectedModel, setSelectedModel] = useState('')
-  const [copiedIdx, setCopiedIdx] = useState(-1)
+
   const [ollamaModels, setOllamaModels] = useState<{ name: string; label: string }[]>([])
   const [ollamaConnected, setOllamaConnected] = useState(false)
   const [ollamaChecking, setOllamaChecking] = useState(true)
@@ -250,8 +184,7 @@ function ChatPage() {
   const {
     conversations, activeId, activeConversation,
     setActiveId, addConversation, deleteConversation,
-    renameConversation, addMessage, updateLastAssistantMessage,
-    removeLastAssistantMessage,
+    renameConversation, addMessage,
   } = useConversations()
 
   // ── Load model catalog ────────────────────────────────
@@ -319,12 +252,7 @@ function ChatPage() {
     }
   }, [])
 
-  // ── Copy message ──────────────────────────────────────
-  const copyMessage = useCallback((content: string, idx: number) => {
-    navigator.clipboard.writeText(content)
-    setCopiedIdx(idx)
-    setTimeout(() => setCopiedIdx(-1), 2000)
-  }, [])
+
 
   // ── Clear / new conversation ──────────────────────────
   const handleNewConversation = useCallback(() => {

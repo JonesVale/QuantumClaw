@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Plus,
@@ -12,8 +12,6 @@ import {
   CheckCircle,
   XCircle,
   RefreshCw,
-  Globe,
-  Key,
   Server,
   Zap,
   Network,
@@ -24,7 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/empty-state'
 import {
   Table,
@@ -214,7 +212,7 @@ function ChannelFormDialog({
       if (form.sell_price_rate !== undefined) payload.sell_price_rate = form.sell_price_rate
       if (form.cache_billing_ratio !== undefined) payload.cache_billing_ratio = form.cache_billing_ratio
       if (form.thinking_to_content !== undefined) payload.thinking_to_content = form.thinking_to_content
-      updateMutation.mutate(payload as ChannelFormData & { id: number })
+      updateMutation.mutate(payload as unknown as ChannelFormData & { id: number })
     } else {
       createMutation.mutate(form)
     }

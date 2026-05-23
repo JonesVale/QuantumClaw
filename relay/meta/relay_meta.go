@@ -35,6 +35,11 @@ type Meta struct {
 	PromptTokens       int // only for DoResponse
 	ForcedSystemPrompt string
 	StartTime          time.Time
+
+	// Settlement system fields
+	PromoterId     int
+	ChannelOwnerId int
+	IsFallback     bool
 }
 
 func GetByContext(c *gin.Context) *Meta {
@@ -48,6 +53,9 @@ func GetByContext(c *gin.Context) *Meta {
 		Group:              c.GetString(ctxkey.Group),
 		ModelMapping:       c.GetStringMapString(ctxkey.ModelMapping),
 		OriginModelName:    c.GetString(ctxkey.RequestModel),
+		PromoterId:         c.GetInt("promoter_id"),
+		ChannelOwnerId:     c.GetInt("channel_owner"),
+		IsFallback:         c.GetBool("is_fallback"),
 		BaseURL:            c.GetString(ctxkey.BaseURL),
 		APIKey:             strings.TrimPrefix(c.Request.Header.Get("Authorization"), "Bearer "),
 		RequestURLPath:     c.Request.URL.String(),

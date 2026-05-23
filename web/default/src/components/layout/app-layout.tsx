@@ -84,6 +84,9 @@ import {
   GitCompare,
   Sparkles,
   Building2,
+  Percent,
+  Receipt,
+  Store,
 
 } from 'lucide-react'
 
@@ -176,6 +179,12 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/monitoring', icon: Activity, labelKey: 'Monitoring' },
   { path: '/profit', icon: TrendingUp, labelKey: 'Channel Profit', adminOnly: true },
   { path: '/news', icon: Newspaper, labelKey: 'AI News' },
+  { path: '/reseller-admin', icon: Store, labelKey: 'Reseller Management', adminOnly: true },
+  { path: '/settlement', icon: Percent, labelKey: 'Settlement Config', adminOnly: true },
+  { path: '/transactions', icon: Receipt, labelKey: 'Transactions', adminOnly: true },
+  { path: '/platform-settings', icon: Settings, labelKey: 'Platform Settings', adminOnly: true },
+  { path: '/reseller', icon: Store, labelKey: 'Reseller Portal' },
+  { path: '/reseller-keys', icon: Key, labelKey: 'My Keys' },
 ]
 
 
@@ -817,7 +826,7 @@ function AppLayout() {
 
           'hidden shrink-0 transition-all duration-200 md:block',
 
-          collapsed ? 'w-0 border-0' : 'w-56 lg:w-60 xl:w-64 2xl:w-72'
+          collapsed ? 'w-0 border-0' : 'w-64 lg:w-72 xl:w-80 2xl:w-88'
 
         )}
 
@@ -879,7 +888,7 @@ function AppLayout() {
 
               <div className="space-y-4">
 
-                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-10 w-56" />
 
                 <Skeleton className="h-64 w-full" />
 

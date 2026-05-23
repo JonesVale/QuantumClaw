@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
 import {
-  Users,
   Network,
   Key,
   Activity,
@@ -16,12 +15,9 @@ import {
   Wallet,
   Plus,
   List,
-  Gauge,
-  Loader2,
   BarChart4,
   Database,
   Inbox,
-  RefreshCw,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -310,7 +306,7 @@ function DashboardPage() {
         value: totalTokens.toLocaleString() || '0',
         description: t('All time'),
         icon: Key,
-        color: 'pink' as const,
+        color: 'pink' as unknown as 'blue' | 'green' | 'orange' | 'purple',
       },
     )
   }
@@ -468,11 +464,11 @@ function DashboardPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
-                      formatter={(value: number, name: string) => {
+                      formatter={((value: number, name: string): any => {
                         if (name === 'requests') return [value.toLocaleString(), t('Requests')]
                         if (name === 'cost') return [new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value), t('Cost')]
                         return [value, name]
-                      }}
+                      }) as any}
                     />
                     <Area
                       type="monotone"
@@ -525,7 +521,7 @@ function DashboardPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
-                      formatter={(value: number) => [value.toLocaleString(), t('Tokens')]}
+                      formatter={((value: number): any => [value.toLocaleString(), t('Tokens')]) as any}
                     />
                     <Bar dataKey="tokens" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                   </BarChart>
@@ -567,11 +563,11 @@ function DashboardPage() {
                       paddingAngle={3}
                       dataKey="request_count"
                       nameKey="provider"
-                      label={({ provider, request_count, token_count }) => {
+                      label={(({ provider, request_count }: any) => {
                         const total = providerBreakdown.reduce((s: number, p: ProviderBreakdown) => s + p.request_count, 0)
                         const pct = total > 0 ? ((request_count / total) * 100).toFixed(1) : '0'
                         return `${provider} ${pct}%`
-                      }}
+                      }) as any}
                     >
                       {providerBreakdown.map((_: ProviderBreakdown, index: number) => (
                         <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
@@ -583,7 +579,7 @@ function DashboardPage() {
                         border: '1px solid var(--border)',
                         borderRadius: '8px',
                       }}
-                      formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+                      formatter={((value: number, name: string): any => [value.toLocaleString(), name]) as any}
                     />
                     <Legend />
                   </PieChart>
@@ -629,11 +625,11 @@ function DashboardPage() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       }}
-                      formatter={(value: number, name: string) => {
+                      formatter={((value: number, name: string): any => {
                         if (name === 'requests') return [value.toLocaleString(), t('Requests')]
                         if (name === 'percentage') return [`${value}%`, t('Percentage')]
                         return [value, name]
-                      }}
+                      }) as any}
                     />
                     <Bar dataKey="requests" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                   </BarChart>
@@ -683,12 +679,12 @@ function DashboardPage() {
                     <div className="min-w-0">
                       <div className="font-semibold text-sm sm:text-base truncate">{model.model_name}</div>
                       <div className="text-xs sm:text-sm text-muted-foreground">
-                        {model.token_count.toLocaleString()} {t('tokens')} · {model.quota_used.toFixed(2)} {t('quota')}
+                        {(model.token_count || 0).toLocaleString()} {t('tokens')} · {(model.quota_used || 0).toFixed(2)} {t('quota')}
                       </div>
                     </div>
                   </div>
                   <Badge variant="secondary" className="text-xs sm:text-sm px-2 sm:px-3 py-1 shrink-0">
-                    {model.request_count.toLocaleString()} {t('requests')}
+                    {(model.request_count || 0).toLocaleString()} {t('requests')}
                   </Badge>
                 </div>
               ))}
@@ -731,8 +727,8 @@ function DashboardPage() {
                     <tr key={i} className="border-b last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="py-2.5 px-2 text-muted-foreground whitespace-nowrap">{log.day}</td>
                       <td className="py-2.5 px-2 font-medium truncate max-w-[200px]">{log.model_name}</td>
-                      <td className="py-2.5 px-2 text-right">{log.request_count.toLocaleString()}</td>
-                      <td className="py-2.5 px-2 text-right">{(log.prompt_tokens + log.completion_tokens).toLocaleString()}</td>
+                      <td className="py-2.5 px-2 text-right">{(log.request_count || 0).toLocaleString()}</td>
+                      <td className="py-2.5 px-2 text-right">{((log.prompt_tokens || 0) + (log.completion_tokens || 0)).toLocaleString()}</td>
                       <td className="py-2.5 px-2 text-right font-mono">
                         {new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 4 }).format(log.quota)}
                       </td>

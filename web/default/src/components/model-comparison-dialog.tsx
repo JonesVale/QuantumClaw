@@ -1,13 +1,12 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from '@tanstack/react-router'
-import { X, MessageSquare, Cpu, DollarSign, Box, Layers, Play } from 'lucide-react'
+import { Cpu, DollarSign, Box, Layers, Play } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ProviderIcon } from '@/components/provider-icon'
@@ -90,11 +89,7 @@ export function ModelComparisonDialog({ open, onOpenChange, models }: ModelCompa
 
           {/* Use Case / Category row */}
           <ComparisonCell label={t('Use Case')}>
-            <div className="space-y-1">
-              {(() => { const uc = useCaseLabels[m.use_case]; if (!uc) return null; return (
-                <span className={cn('inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-white bg-gradient-to-r', uc.color)}>{t(uc.label)}</span>
-              ) })()}
-            </div>
+            <span className="text-xs text-muted-foreground">{t('Use Case')}</span>
           </ComparisonCell>
           {models.map((m) => (
             <div key={`uc-${m.name}`}>

@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { Code, Mail, Globe, Shield, Server } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'

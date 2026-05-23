@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, redirect } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useAuthStore } from '@/stores/auth-store'
 import { getSelf } from '@/lib/api'
 import AppLayout from '@/components/layout/app-layout'
@@ -18,7 +18,7 @@ export const Route = createFileRoute('/_authenticated')({
       try {
         const res = await getSelf()
         if (res?.success && res.data) {
-          auth.setUser(res.data)
+          auth.setUser(res.data as import('@/stores/auth-store').AuthUser)
           sessionVerified = true
         } else {
           auth.reset()

@@ -268,7 +268,6 @@ function MonitoringPage() {
     },
     retry: 2,
     retryDelay: 1000,
-    retry: true,
     staleTime: 60_000,
   })
 
@@ -304,14 +303,14 @@ function MonitoringPage() {
   const systemName = statusData?.system_name ?? 'QuantumClaw'
   const version = statusData?.version ?? '-'
 
-  const systemCards = [
+  const systemCards: StatCardProps[] = [
     {
       title: t('Uptime'),
       value: formatUptime(uptimeSeconds),
       subtitle: t('Since last restart'),
       icon: Clock,
       color: 'blue',
-      status: uptimeSeconds > 86400 ? 'success' : 'info' as const,
+      status: (uptimeSeconds > 86400 ? 'success' : 'info') as 'success' | 'info',
     },
     {
       title: t('Memory (Heap)'),

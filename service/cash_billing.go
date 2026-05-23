@@ -131,6 +131,9 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 		IsStream:          meta.IsStream,
 		ElapsedTime:       helper.CalcElapsedTime(meta.StartTime),
 		SystemPromptReset: systemPromptReset,
+		PromoterId:        meta.PromoterId,
+		ChannelOwnerId:    meta.ChannelOwnerId,
+		IsFallback:        meta.IsFallback,
 	})
 	model.UpdateUserUsedQuotaAndRequestCount(meta.UserId, quota)
 	model.UpdateChannelUsedQuota(meta.ChannelId, quota)

@@ -1,12 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
-  Search, SlidersHorizontal, X, ArrowUpDown, RefreshCw,
+  Search, SlidersHorizontal, X, ArrowUpDown,
   ChevronRight, ChevronDown, MessageSquare, Code, Brain,
-  Image, Cpu, Atom, CheckCircle, Key, Play, ExternalLink,
-  Zap, CheckSquare, SquareIcon, BarChart3
+  Image, Cpu, Atom, Play,
+  CheckSquare, BarChart3
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -17,7 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils'
 import { codeToType } from '@/lib/tlanguages'
 import { useAuthStore } from '@/stores/auth-store'
-import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
+import { getEnhancedModels } from '@/lib/api-extended'
 import { ModelDetailDialog, type CatalogItem } from '@/components/model-detail-dialog'
 import { ModelComparisonDialog } from '@/components/model-comparison-dialog'
 
@@ -52,6 +52,10 @@ function ModelsPage() {
   // Detail dialog state
   const [detailModel, setDetailModel] = useState<CatalogItem | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+
+  // Pagination
+  const [visibleCount, setVisibleCount] = useState(30)
+  const PAGE_STEP = 30
 
   // Comparison state
   const [selectedModels, setSelectedModels] = useState<Set<string>>(new Set())
@@ -106,6 +110,11 @@ function ModelsPage() {
     switch (sortBy) { case 'price-asc': result.sort((a, b) => (a.input_price ?? 999) - (b.input_price ?? 999)); break; case 'price-desc': result.sort((a, b) => (b.input_price ?? 0) - (a.input_price ?? 0)); break; default: result.sort((a, b) => a.name.localeCompare(b.name)) }
     return result
   }, [catalog, search, useCaseFilter, providerFilter, seriesFilter, modalityFilter, contextFilter, sortBy])
+
+  // Reset pagination when filters change
+  useEffect(() => setVisibleCount(PAGE_STEP), [search, useCaseFilter, providerFilter, seriesFilter, modalityFilter, contextFilter, sortBy])
+
+  const displayed = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
 
   const toggleSelect = (name: string) => {
     setSelectedModels(prev => {
@@ -213,7 +222,7 @@ function ModelsPage() {
               {collapsed.context ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             {!collapsed.context && <div className="px-4 pb-2 space-y-0.5">
-              {[{v:'',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K - 32K'},{v:'32769-131072',l:'32K - 128K'},{v:'131073-999999999',l:'> 128K'}].map(r => (
+              {[{v:'',l:'All'},{v:'0-8192',l:'鈮?8K'},{v:'8193-32768',l:'8K - 32K'},{v:'32769-131072',l:'32K - 128K'},{v:'131073-999999999',l:'> 128K'}].map(r => (
                 <button key={r.v} onClick={() => setContextFilter(r.v)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', contextFilter === r.v ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{r.l}</button>
               ))}
             </div>}
@@ -315,8 +324,9 @@ function ModelsPage() {
               <p>{t('No models found')}</p>
             </div>
           ) : (
+            <>
             <div className="grid grid-cols-1 gap-4">
-              {filtered.map((m) => {
+              {displayed.map((m) => {
                 const isSelected = selectedModels.has(m.name)
                 return (
                   <div key={m.name} className={cn(
@@ -353,7 +363,7 @@ function ModelsPage() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-base text-muted-foreground leading-relaxed">{m.description}</p>
+                    <p className="text-base text-muted-foreground leading-relaxed">{m.description || t('no_description')}</p>
 
                     {/* Tags */}
                     <div className="flex flex-wrap items-center gap-1.5">
@@ -378,7 +388,7 @@ function ModelsPage() {
                         >
                           <BarChart3 className="h-3 w-3" />{t('Details')}
                         </Button>
-                        <Link to={auth.user ? '/chat' : '/sign-in?redirect=/chat'}>
+                        <Link to={auth.user ? '/chat' : '/sign-in'} search={auth.user ? undefined : { redirect: '/chat' }}>
                           <Button size="sm" className="h-7 text-xs gap-1">
                             <Play className="h-3 w-3" />{t('Call')}
                           </Button>
@@ -389,6 +399,19 @@ function ModelsPage() {
                 )
               })}
             </div>
+            {visibleCount < filtered.length && (
+              <div className="flex justify-center pt-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="gap-2 px-8"
+                  onClick={() => setVisibleCount(c => c + PAGE_STEP)}
+                >
+                  {t('Load More')} ({filtered.length - visibleCount} {t('remaining')})
+                </Button>
+              </div>
+            )}
+            </>
           )}
         </div>
       </div>

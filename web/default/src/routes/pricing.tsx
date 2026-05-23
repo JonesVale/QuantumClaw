@@ -11,6 +11,31 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
+// ── Helper functions ────────────────────────────────────────────────
+const PROVIDER_META: Record<string, { gradient: string }> = {
+  OpenAI: { gradient: 'from-green-600 to-emerald-700' },
+  Anthropic: { gradient: 'from-orange-600 to-amber-700' },
+  Google: { gradient: 'from-blue-600 to-indigo-700' },
+  DeepSeek: { gradient: 'from-blue-600 to-cyan-700' },
+  Meta: { gradient: 'from-indigo-600 to-blue-800' },
+  Mistral: { gradient: 'from-cyan-600 to-teal-700' },
+  Microsoft: { gradient: 'from-azure-600 to-blue-700' },
+  Amazon: { gradient: 'from-orange-600 to-yellow-700' },
+  Cohere: { gradient: 'from-purple-600 to-pink-700' },
+  Stability: { gradient: 'from-green-600 to-emerald-700' },
+}
+
+function getProviderMeta(provider: string): { gradient: string } {
+  return PROVIDER_META[provider] || { gradient: 'from-slate-600 to-slate-700' }
+}
+
+function formatPrice(price: number): string {
+  if (price === 0) return 'Free'
+  if (price < 0.000001) return `$${price.toExponential(2)}`
+  if (price < 0.001) return `$${price.toFixed(6)}`
+  return `$${price.toFixed(4)}`
+}
+
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
 })
@@ -107,7 +132,10 @@ function PricingPage() {
           <div>
             <h4 className="text-sm font-semibold text-muted-foreground mb-2">{t('Provider')}</h4>
             <div className="space-y-0.5">
-              <button className="w-full text-left px-3 py-2 text-sm rounded hover:bg-muted/50 text-muted-foreground transition-colors">{t('All')}</button>
+              <button onClick={() => setProviderFilter('all')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', providerFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All')}</button>
+              {providers.slice(0, 10).map(p => (
+                <button key={p} onClick={() => setProviderFilter(p)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', providerFilter === p ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{p}</button>
+              ))}
             </div>
           </div>
         </div>

@@ -205,6 +205,28 @@ func migrateDB() error {
 	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
 	attempt("ModelMetadata", func() error { return DB.AutoMigrate(&ModelMetadata{}) })
 	attempt("Notification", func() error { return DB.AutoMigrate(&Notification{}) })
+
+	// ── 结算系统新表 ──
+	attempt("SettlementConfig", func() error { return DB.AutoMigrate(&SettlementConfig{}) })
+	attempt("TokenTransaction", func() error { return DB.AutoMigrate(&TokenTransaction{}) })
+	attempt("Reseller", func() error { return DB.AutoMigrate(&Reseller{}) })
+	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
+	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
+
+	// 手动迁移：Ability 表新增 user_id 列
+	if !DB.Migrator().HasColumn(&Ability{}, "user_id") {
+		if addErr := DB.Migrator().AddColumn(&Ability{}, "user_id"); addErr != nil {
+			logger.SysLog("add ability.user_id column note: " + addErr.Error())
+		}
+	}
+
+	// 手动迁移：Channel 表新增 cost_price 列
+	if !DB.Migrator().HasColumn(&Channel{}, "cost_price") {
+		if addErr := DB.Migrator().AddColumn(&Channel{}, "cost_price"); addErr != nil {
+			logger.SysLog("add channel.cost_price column note: " + addErr.Error())
+		}
+	}
+
 	return lastErr
 }
 

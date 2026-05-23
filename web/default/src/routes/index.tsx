@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   ArrowRight,
   Brain, MessageSquare, Globe, Code,
@@ -136,7 +137,8 @@ function HomePage() {
   const { i18n, t } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
-  const { loggedIn } = useAuthStore()
+  const { auth } = useAuthStore()
+  const loggedIn = !!auth.user
   const { config: sysConfig } = useSystemConfigStore()
 
   const getNavItems = (loggedIn: boolean) => [
@@ -285,11 +287,24 @@ function HomePage() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link to="/sign-in"
-              className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-md transition-all whitespace-nowrap"
-              style={{ padding: 'clamp(4px, 0.5vw, 8px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(11px, 0.9vw, 13px)' }}>
-              {t('登录 / 注册')}
-            </Link>
+            {loggedIn ? (
+              <Link to="/dashboard"
+                className="inline-flex items-center gap-2 rounded-md bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xs hover:shadow-md transition-all"
+                style={{ padding: 'clamp(4px, 0.5vw, 10px) clamp(8px, 1.2vw, 16px)' }}>
+                <Avatar className="h-7 w-7">
+                  <AvatarFallback className="bg-gradient-to-br from-blue-600 to-purple-600 text-white text-xs">
+                    {(auth.user?.display_name || auth.user?.username || 'U')[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium hidden sm:inline">{auth.user?.display_name || auth.user?.username}</span>
+              </Link>
+            ) : (
+              <Link to="/sign-in" search={{ redirect: undefined }}
+                className="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:shadow-md transition-all whitespace-nowrap"
+                style={{ padding: 'clamp(4px, 0.5vw, 8px) clamp(8px, 1.2vw, 16px)', fontSize: 'clamp(11px, 0.9vw, 13px)' }}>
+                {t('登录 / 注册')}
+              </Link>
+            )}
 
             <button onClick={() => setMenuOpen(!menuOpen)}
               className="md:hidden inline-flex items-center justify-center rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
@@ -316,10 +331,22 @@ function HomePage() {
                   </button>
                 ))}
               </div>
-              <Link to="/sign-in" onClick={() => setMenuOpen(false)}
-                className="block px-3 py-2 rounded-md text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 mt-2">
-                {t('登录 / 注册')}
-              </Link>
+              {loggedIn ? (
+                <Link to="/dashboard" onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-semibold bg-gradient-to-r from-blue-600 to-purple-600 text-white mt-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="text-white text-[10px] bg-white/20">
+                      {(auth.user?.display_name || auth.user?.username || 'U')[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{auth.user?.display_name || auth.user?.username || t('Profile')}</span>
+                </Link>
+              ) : (
+                <Link to="/sign-in" search={{ redirect: undefined }} onClick={() => setMenuOpen(false)}
+                  className="block px-3 py-2 rounded-md text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600 mt-2">
+                  {t('登录 / 注册')}
+                </Link>
+              )}
             </div>
           </div>
         )}
@@ -344,14 +371,14 @@ function HomePage() {
                 <span className="font-semibold text-slate-700 dark:text-slate-300">{t('Key聚合分发')}</span> {t('·')} {t('聚合调用 AI 大模型 + 量子算力资源')}
               </p>
               <div className="flex flex-wrap gap-y-2 gap-x-3 justify-center" style={{ marginTop: 'clamp(16px, 3vw, 32px)' }}>
-                <Link to="/sign-in"
+                <Link to="/sign-in" search={{ redirect: undefined }}
                   className="inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(8px, 1vw, 16px) clamp(16px, 2.5vw, 28px)', fontSize: 'clamp(12px, 1.1vw, 16px)' }}>
                   <KeyRound style={{ width: 'clamp(14px, 1.3vw, 20px)', height: 'clamp(14px, 1.3vw, 20px)' }} />
                   {t('开始使用')}
                   <ArrowRight style={{ width: 'clamp(12px, 1vw, 16px)', height: 'clamp(12px, 1vw, 16px)' }} />
                 </Link>
-                <Link to="/playground"
+                <Link to="/models"
                   className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white font-bold shadow-xs hover:shadow-md transition-all hover:-translate-y-0.5"
                   style={{ padding: 'clamp(8px, 1vw, 16px) clamp(16px, 2.5vw, 28px)', fontSize: 'clamp(12px, 1.1vw, 16px)' }}>
                   {t('了解更多')}
@@ -596,7 +623,7 @@ function HomePage() {
               <p className="text-slate-500 dark:text-slate-400" style={{ fontSize: 'clamp(12px, 1.2vw, 16px)', marginBottom: 'clamp(16px, 2vw, 24px)' }}>
                 {t('一个 API Key 接入所有主流 AI 模型')}
               </p>
-              <Link to="/sign-in"
+              <Link to="/sign-in" search={{ redirect: undefined }}
                 className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5"
                 style={{ padding: 'clamp(8px, 1vw, 16px) clamp(20px, 3vw, 36px)', fontSize: 'clamp(12px, 1.1vw, 16px)' }}>
                 {t('免费注册')}

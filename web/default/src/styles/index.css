@@ -126,6 +126,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
 }
 
 #root {
@@ -152,4 +155,24 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
+}
+
+/* Spacious table cells */
+th, td {
+  padding: 12px 20px !important;
+}
+
+/* Consistent spacing between cards */
+.card-section {
+  margin-bottom: 2rem;
+}
+
+/* Larger popover / dropdown content */
+[data-radix-popper-content-wrapper] {
+  padding: 8px !important;
+}
+
+/* More padding in tabs */
+[role="tabpanel"] {
+  padding-top: 1.5rem !important;
 }

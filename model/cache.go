@@ -166,6 +166,7 @@ func CacheGetGroupModels(ctx context.Context, group string) ([]string, error) {
 }
 
 var group2model2channels map[string]map[string][]*Channel
+var group2model2ownerChannels map[string]map[string]map[int][]*Channel
 var channelSyncLock sync.RWMutex
 
 func InitChannelCache() {
@@ -193,22 +194,34 @@ func InitChannelCache() {
 		groups[ability.Group] = true
 	}
 	newGroup2model2channels := make(map[string]map[string][]*Channel)
+	newGroup2model2ownerChannels := make(map[string]map[string]map[int][]*Channel)
 	for group := range groups {
 		newGroup2model2channels[group] = make(map[string][]*Channel)
+		newGroup2model2ownerChannels[group] = make(map[string]map[int][]*Channel)
 	}
 	for _, channel := range channels {
 		channelGroups := strings.Split(channel.Group, ",")
 		for _, group := range channelGroups {
-			// 确保外层 map 存在（从 abilities 取 groups 可能不完整）
+			// 确保外层 map 存在
 			if _, ok := newGroup2model2channels[group]; !ok {
 				newGroup2model2channels[group] = make(map[string][]*Channel)
+				newGroup2model2ownerChannels[group] = make(map[string]map[int][]*Channel)
 			}
 			models := strings.Split(channel.Models, ",")
 			for _, model := range models {
+				// 全量索引
 				if _, ok := newGroup2model2channels[group][model]; !ok {
 					newGroup2model2channels[group][model] = make([]*Channel, 0)
 				}
 				newGroup2model2channels[group][model] = append(newGroup2model2channels[group][model], channel)
+
+				// 按 owner 索引
+				if _, ok := newGroup2model2ownerChannels[group][model]; !ok {
+					newGroup2model2ownerChannels[group][model] = make(map[int][]*Channel)
+				}
+				ownerId := channel.UserId
+				newGroup2model2ownerChannels[group][model][ownerId] = append(
+					newGroup2model2ownerChannels[group][model][ownerId], channel)
 			}
 		}
 	}
@@ -222,9 +235,20 @@ func InitChannelCache() {
 			newGroup2model2channels[group][model] = channels
 		}
 	}
+	for group, model2owner := range newGroup2model2ownerChannels {
+		for model, ownerMap := range model2owner {
+			for ownerId, channels := range ownerMap {
+				sort.Slice(channels, func(i, j int) bool {
+					return channels[i].GetPriority() > channels[j].GetPriority()
+				})
+				newGroup2model2ownerChannels[group][model][ownerId] = channels
+			}
+		}
+	}
 
 	channelSyncLock.Lock()
 	group2model2channels = newGroup2model2channels
+	group2model2ownerChannels = newGroup2model2ownerChannels
 	channelSyncLock.Unlock()
 	logger.SysLog("channels synced from database")
 }
@@ -265,4 +289,73 @@ func CacheGetRandomSatisfiedChannel(group string, model string, ignoreFirstPrior
 		}
 	}
 	return channels[idx], nil
+}
+
+// CacheGetRandomSatisfiedChannelByOwner 按 owner 查缓存
+// ownerId=0 → 平台渠道, ownerId>0 → 渠道商
+func CacheGetRandomSatisfiedChannelByOwner(group string, model string, ownerId int) (*Channel, error) {
+	if !config.MemoryCacheEnabled {
+		return GetRandomSatisfiedChannelByOwner(group, model, ownerId)
+	}
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+
+	ownerMap := group2model2ownerChannels[group][model]
+	if ownerMap == nil {
+		return nil, errors.New("channel not found for model")
+	}
+	channels := ownerMap[ownerId]
+	if len(channels) == 0 {
+		return nil, errors.New("channel not found for owner")
+	}
+	// 取最高 priority 中的随机一个
+	endIdx := len(channels)
+	first := channels[0]
+	if first.GetPriority() > 0 {
+		for i := range channels {
+			if channels[i].GetPriority() != first.GetPriority() {
+				endIdx = i
+				break
+			}
+		}
+	}
+	return channels[rand.Intn(endIdx)], nil
+}
+
+// CacheGetRandomSatisfiedChannelAnyOwner 从全资源池查（不限 owner）
+func CacheGetRandomSatisfiedChannelAnyOwner(group string, model string, excludeOwnerId int) (*Channel, error) {
+	if !config.MemoryCacheEnabled {
+		return GetRandomSatisfiedChannelAnyOwner(group, model, excludeOwnerId)
+	}
+	channelSyncLock.RLock()
+	defer channelSyncLock.RUnlock()
+
+	allChannels := group2model2channels[group][model]
+	if len(allChannels) == 0 {
+		return nil, errors.New("channel not found")
+	}
+
+	// 排除已试过的 owner
+	var candidates []*Channel
+	for _, ch := range allChannels {
+		if ch.UserId != excludeOwnerId {
+			candidates = append(candidates, ch)
+		}
+	}
+	if len(candidates) == 0 {
+		return nil, errors.New("no alternate channel available")
+	}
+
+	// 取最高 priority 中的随机一个
+	endIdx := len(candidates)
+	first := candidates[0]
+	if first.GetPriority() > 0 {
+		for i := range candidates {
+			if candidates[i].GetPriority() != first.GetPriority() {
+				endIdx = i
+				break
+			}
+		}
+	}
+	return candidates[rand.Intn(endIdx)], nil
 }

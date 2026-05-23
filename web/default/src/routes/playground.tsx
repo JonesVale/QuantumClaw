@@ -200,12 +200,6 @@ function PlaygroundPage() {
     setStreaming(false)
   }
 
-  const handleClear = () => {
-    if (activeId) {
-      renameConversation(activeId, '')
-      activeConversation && updateConversation(activeId, { messages: [] })
-    }
-  }
 
   const handleRegenerate = () => {
     if (activeConversation && activeConversation.messages.length >= 2) {

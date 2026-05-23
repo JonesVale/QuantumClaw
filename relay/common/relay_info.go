@@ -107,6 +107,11 @@ type RelayInfo struct {
 	UsePrice               bool
 	RelayMode              int
 	OriginModelName        string
+
+	// 结算系统字段（由 Distribute 中间件写入）
+	PromoterId     int
+	ChannelOwnerId int
+	ChannelId      int
 	RequestURLPath         string
 	RequestHeaders         map[string]string
 	ShouldIncludeUsage     bool
@@ -328,6 +333,9 @@ func genBaseRelayInfo(c *gin.Context, request dto.Request) *RelayInfo {
 		TokenGroup:     c.GetString("token_group"),
 
 		OriginModelName: c.GetString("original_model"),
+		PromoterId:     c.GetInt("promoter_id"),
+		ChannelOwnerId: c.GetInt("channel_owner"),
+		ChannelId:      c.GetInt("channel_id"),
 
 		RelayMode:      relaymode.GetByPath(c.Request.URL.Path),
 		RequestURLPath: c.Request.URL.String(),

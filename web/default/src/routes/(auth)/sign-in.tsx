@@ -32,6 +32,7 @@ function SignInPage() {
   const [affCode, setAffCode] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [botUsername, setBotUsername] = useState<string | null>(null)
+  const [userRole, setUserRole] = useState<1 | 2>(1)
 
   // Auto-fill invite code from URL (?aff=CODE)
   useEffect(() => {
@@ -46,8 +47,9 @@ function SignInPage() {
   // Load Telegram widget info
   useEffect(() => {
     getTelegramWidgetInfo().then((res) => {
-      if (res.success && res.data?.bot_username) {
-        setBotUsername(res.data.bot_username)
+      const info = res.data?.data
+      if (info?.bot_username) {
+        setBotUsername(info.bot_username)
       }
     }).catch(() => {
       // Telegram login not configured, ignore
@@ -66,7 +68,7 @@ function SignInPage() {
         .then((res) => {
           if (res.success) {
             toast.success(t('Welcome back!'))
-            auth.setUser(res.data)
+            auth.setUser(res.data as import('@/stores/auth-store').AuthUser)
             router.navigate({ to: (redirectUrl as string) || '/dashboard' })
           } else {
             toast.error(res.message || t('Login failed'))
@@ -91,7 +93,7 @@ function SignInPage() {
       const res = await signIn(username, password)
       if (res.success) {
         toast.success(t('Welcome back!'))
-        auth.setUser(res.data)
+        auth.setUser(res.data as import('@/stores/auth-store').AuthUser)
         router.navigate({ to: (redirectUrl as string) || '/dashboard' })
       } else {
         toast.error(res.message || t('Login failed'))

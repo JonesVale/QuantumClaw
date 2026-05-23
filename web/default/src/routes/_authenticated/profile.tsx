@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Shield, Key, Smartphone, Fingerprint, Plus, Trash2, QrCode, Copy, User } from 'lucide-react'
+import { Save, Shield, Key, Smartphone, Fingerprint, Plus, Trash2, QrCode, Copy, User, Store } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { useAuthStore } from '@/stores/auth-store'
 import { updateSelf } from '@/lib/api-extended'
+import apiClient from '@/lib/api'
 import { toast } from 'sonner'
 
 export const Route = createFileRoute('/_authenticated/profile')({
@@ -159,6 +160,30 @@ function ProfilePage() {
               {updateMutation.isPending ? t('Saving...') : t('Save')}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      {/* Upgrade to Reseller */}
+      <Card className="w-full max-w-2xl">
+        <CardHeader>
+          <CardTitle>{t('become_reseller')}</CardTitle>
+          <CardDescription>{t('become_reseller_desc')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={async () => {
+              try {
+                const r = await apiClient.post('/api/user/self/upgrade')
+                if (r.data?.success) { toast.success(t('upgrade_success')); window.location.reload() }
+                else { toast.error(r.data?.message || t('upgrade_failed')) }
+              } catch { toast.error(t('upgrade_failed')) }
+            }}
+          >
+            <Store className="h-4 w-4" />
+            {t('become_reseller')}
+          </Button>
         </CardContent>
       </Card>
 
@@ -426,16 +451,17 @@ function ProfilePage() {
                     toast.error(beginData.message || t('Failed to start registration'))
                     return
                   }
-                  const creationOptions: CredentialCreationOptions = beginData.data
-                  if (creationOptions.challenge) {
-                    const challengeStr = creationOptions.challenge as unknown as string
-                    creationOptions.challenge = Uint8Array.from(atob(challengeStr), c => c.charCodeAt(0))
+                  const rawData = beginData.data as any
+                  // Backend returns challenge/user at top level; convert to Uint8Array before passing to WebAuthn
+                  if (rawData.challenge) {
+                    const challengeStr = rawData.challenge as string
+                    rawData.challenge = Uint8Array.from(atob(challengeStr), c => c.charCodeAt(0))
                   }
-                  if (creationOptions.user && (creationOptions.user.id as unknown as string)) {
-                    const userIdStr = creationOptions.user.id as unknown as string
-                    creationOptions.user.id = Uint8Array.from(atob(userIdStr), c => c.charCodeAt(0))
+                  if (rawData.user?.id) {
+                    const userIdStr = rawData.user.id as string
+                    rawData.user.id = Uint8Array.from(atob(userIdStr), c => c.charCodeAt(0))
                   }
-                  const credential = await navigator.credentials.create({ publicKey: creationOptions })
+                  const credential = await navigator.credentials.create({ publicKey: rawData as PublicKeyCredentialCreationOptions })
                   if (!credential) {
                     toast.error(t('Registration cancelled'))
                     return

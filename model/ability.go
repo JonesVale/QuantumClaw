@@ -15,6 +15,7 @@ type Ability struct {
 	Group     string `json:"group" gorm:"type:varchar(32);primaryKey;autoIncrement:false"`
 	Model     string `json:"model" gorm:"primaryKey;autoIncrement:false"`
 	ChannelId int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
+	UserId    int    `json:"user_id" gorm:"default:0;index"`
 	Enabled   bool   `json:"enabled"`
 	Priority  *int64 `json:"priority" gorm:"bigint;default:0;index"`
 }
@@ -61,6 +62,7 @@ func (channel *Channel) AddAbilities() error {
 				Group:     group,
 				Model:     model,
 				ChannelId: channel.Id,
+				UserId:    channel.UserId,
 				Enabled:   channel.Status == ChannelStatusEnabled,
 				Priority:  channel.Priority,
 			}
@@ -109,4 +111,75 @@ func GetGroupModels(ctx context.Context, group string) ([]string, error) {
 	}
 	sort.Strings(models)
 	return models, err
+}
+
+// GetRandomSatisfiedChannelByOwner 按 group + model + ownerId 查 channel
+// ownerId=0 → 平台渠道, ownerId>0 → 指定渠道商
+func GetRandomSatisfiedChannelByOwner(group string, model string, ownerId int) (*Channel, error) {
+	ability := Ability{}
+	groupCol := "`group`"
+	trueVal := "1"
+	if common.UsingPostgreSQL {
+		groupCol = `"group"`
+		trueVal = "true"
+	}
+
+	// 取最高 priority 的 channel（限 owner）
+	maxPrioritySubQuery := DB.Model(&Ability{}).
+		Select("MAX(priority)").
+		Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and user_id = ?", group, model, ownerId)
+	channelQuery := DB.
+		Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and user_id = ? and priority = (?)",
+			group, model, ownerId, maxPrioritySubQuery)
+
+	if common.UsingSQLite || common.UsingPostgreSQL {
+		channelQuery.Order("RANDOM()").First(&ability)
+	} else {
+		channelQuery.Order("RAND()").First(&ability)
+	}
+	if ability.ChannelId == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	channel := Channel{}
+	channel.Id = ability.ChannelId
+	err := DB.First(&channel, "id = ?", ability.ChannelId).Error
+	return &channel, err
+}
+
+// GetRandomSatisfiedChannelAnyOwner 全资源池兜底——不限 UserId
+func GetRandomSatisfiedChannelAnyOwner(group string, model string, excludeOwnerId int) (*Channel, error) {
+	ability := Ability{}
+	groupCol := "`group`"
+	trueVal := "1"
+	if common.UsingPostgreSQL {
+		groupCol = `"group"`
+		trueVal = "true"
+	}
+
+	query := DB.
+		Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
+
+	// 排除已经试过的 owner（避免死循环）
+	if excludeOwnerId >= 0 {
+		query = query.Where("user_id != ?", excludeOwnerId)
+	}
+
+	// 取最高 priority
+	maxPrioritySubQuery := DB.Model(&Ability{}).
+		Select("MAX(priority)").
+		Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
+	query = query.Where("priority = (?)", maxPrioritySubQuery)
+
+	if common.UsingSQLite || common.UsingPostgreSQL {
+		query.Order("RANDOM()").First(&ability)
+	} else {
+		query.Order("RAND()").First(&ability)
+	}
+	if ability.ChannelId == 0 {
+		return nil, gorm.ErrRecordNotFound
+	}
+	channel := Channel{}
+	channel.Id = ability.ChannelId
+	err := DB.First(&channel, "id = ?", ability.ChannelId).Error
+	return &channel, err
 }

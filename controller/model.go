@@ -205,6 +205,23 @@ func DashboardListModels(c *gin.Context) {
 		}
 	}
 
+	// ── 补充有 metadata 但无渠道配置的模型 ──
+	resultNames := make(map[string]bool)
+	for _, r := range result {
+		resultNames[r.Name] = true
+	}
+	var metaModels []model.ModelMetadata
+	model.DB.Select("DISTINCT model_name, provider").Find(&metaModels)
+	for _, mm := range metaModels {
+		if !resultNames[mm.ModelName] {
+			result = append(result, ModelInfo{
+				Name:     mm.ModelName,
+				Provider: mm.Provider,
+				Status:   0,
+			})
+		}
+	}
+
 	if result == nil {
 		result = []ModelInfo{}
 	}
@@ -418,6 +435,42 @@ func ListModelRankings(c *gin.Context) {
 				if p, ok := channelTypeNames[ch.Type]; ok {
 					aggMap[key].provider = p
 				}
+			}
+		}
+	}
+
+	// ── 填充有渠道配置但无调用数据的模型 ──
+	for _, ch := range getValidChannels() {
+		for _, m := range strings.Split(ch.Models, ",") {
+			m = strings.TrimSpace(m)
+			if m == "" {
+				continue
+			}
+			if _, exists := aggMap[m]; !exists {
+				provider := ""
+				if p, ok := channelTypeNames[ch.Type]; ok {
+					provider = p
+				}
+				aggMap[m] = &aggregated{
+					totalTokens:   0,
+					requestCount:  0,
+					pricePer1k:    ch.CostPerUnit * ch.SellPriceRate,
+					channelName:   ch.Name,
+					provider:      provider,
+				}
+			}
+		}
+	}
+
+	// ── 填充有 metadata 但无任何渠道配置的模型 ──
+	var metaModels []model.ModelMetadata
+	model.DB.Select("DISTINCT model_name").Find(&metaModels)
+	for _, mm := range metaModels {
+		if _, exists := aggMap[mm.ModelName]; !exists {
+			aggMap[mm.ModelName] = &aggregated{
+				totalTokens:  0,
+				requestCount: 0,
+				provider:     mm.Provider,
 			}
 		}
 	}

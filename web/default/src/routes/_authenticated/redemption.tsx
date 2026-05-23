@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Copy,
   Ticket,
+  Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,7 +26,7 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  type RedemptionCode,
+  type Redemption,
   getRedemptionCodes,
   createRedemptionCode,
   deleteRedemptionCode,
@@ -80,7 +81,7 @@ function RedemptionPage() {
     },
   })
 
-  const codes: RedemptionCode[] = data?.data || []
+  const codes: Redemption[] = data?.data || []
 
   return (
     <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
@@ -141,17 +142,17 @@ function RedemptionPage() {
                   codes.map((code, idx) => (
                     <TableRow key={code.id}>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                      <TableCell className="font-medium">{code.name}</TableCell>
+                      <TableCell className="font-medium">{code.code}</TableCell>
                       <TableCell>
                         <Badge variant={code.status === 1 ? 'default' : 'secondary'}>
                           {code.status === 1 ? t('Unused') : t('Disabled')}
                         </Badge>
                       </TableCell>
                       <TableCell>{code.quota?.toLocaleString()}</TableCell>
-                      <TableCell>{code.count}</TableCell>
+                      <TableCell>{code.max_count}</TableCell>
                       <TableCell>{code.used_count || 0}</TableCell>
                       <TableCell className="text-muted-foreground text-xs">
-                        {dayjs(code.created_time * 1000).format('YYYY-MM-DD')}
+                        {dayjs(code.created_at * 1000).format('YYYY-MM-DD')}
                       </TableCell>
                       <TableCell>
                         <Button

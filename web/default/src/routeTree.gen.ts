@@ -21,12 +21,18 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
+import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
+import { Route as AuthenticatedSettlementRouteImport } from './routes/_authenticated/settlement'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedResellerKeysRouteImport } from './routes/_authenticated/reseller-keys'
+import { Route as AuthenticatedResellerAdminRouteImport } from './routes/_authenticated/reseller-admin'
+import { Route as AuthenticatedResellerRouteImport } from './routes/_authenticated/reseller'
 import { Route as AuthenticatedRedemptionRouteImport } from './routes/_authenticated/redemption'
 import { Route as AuthenticatedProfitRouteImport } from './routes/_authenticated/profit'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
@@ -103,6 +109,12 @@ const AuthenticatedUsersRoute = AuthenticatedUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTransactionsRoute =
+  AuthenticatedTransactionsRouteImport.update({
+    id: '/transactions',
+    path: '/transactions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -114,9 +126,31 @@ const AuthenticatedSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSettlementRoute = AuthenticatedSettlementRouteImport.update({
+  id: '/settlement',
+  path: '/settlement',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedResellerKeysRoute =
+  AuthenticatedResellerKeysRouteImport.update({
+    id: '/reseller-keys',
+    path: '/reseller-keys',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedResellerAdminRoute =
+  AuthenticatedResellerAdminRouteImport.update({
+    id: '/reseller-admin',
+    path: '/reseller-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedResellerRoute = AuthenticatedResellerRouteImport.update({
+  id: '/reseller',
+  path: '/reseller',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedRedemptionRoute = AuthenticatedRedemptionRouteImport.update({
@@ -134,6 +168,12 @@ const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedPlatformSettingsRoute =
+  AuthenticatedPlatformSettingsRouteImport.update({
+    id: '/platform-settings',
+    path: '/platform-settings',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotFoundRoute = AuthenticatedNotFoundRouteImport.update({
   id: '/not-found',
   path: '/not-found',
@@ -242,12 +282,18 @@ export interface FileRoutesByFullPath {
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
+  '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
+  '/reseller': typeof AuthenticatedResellerRoute
+  '/reseller-admin': typeof AuthenticatedResellerAdminRoute
+  '/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/settlement': typeof AuthenticatedSettlementRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
 }
@@ -277,12 +323,18 @@ export interface FileRoutesByTo {
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
+  '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
+  '/reseller': typeof AuthenticatedResellerRoute
+  '/reseller-admin': typeof AuthenticatedResellerAdminRoute
+  '/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/settings': typeof AuthenticatedSettingsRoute
+  '/settlement': typeof AuthenticatedSettlementRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/transactions': typeof AuthenticatedTransactionsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
 }
@@ -314,12 +366,18 @@ export interface FileRoutesById {
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
+  '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/profit': typeof AuthenticatedProfitRoute
   '/_authenticated/redemption': typeof AuthenticatedRedemptionRoute
+  '/_authenticated/reseller': typeof AuthenticatedResellerRoute
+  '/_authenticated/reseller-admin': typeof AuthenticatedResellerAdminRoute
+  '/_authenticated/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/settlement': typeof AuthenticatedSettlementRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
 }
@@ -351,12 +409,18 @@ export interface FileRouteTypes {
     | '/monitoring'
     | '/news'
     | '/not-found'
+    | '/platform-settings'
     | '/profile'
     | '/profit'
     | '/redemption'
+    | '/reseller'
+    | '/reseller-admin'
+    | '/reseller-keys'
     | '/settings'
+    | '/settlement'
     | '/subscription'
     | '/tasks'
+    | '/transactions'
     | '/users'
     | '/wallet'
   fileRoutesByTo: FileRoutesByTo
@@ -386,12 +450,18 @@ export interface FileRouteTypes {
     | '/monitoring'
     | '/news'
     | '/not-found'
+    | '/platform-settings'
     | '/profile'
     | '/profit'
     | '/redemption'
+    | '/reseller'
+    | '/reseller-admin'
+    | '/reseller-keys'
     | '/settings'
+    | '/settlement'
     | '/subscription'
     | '/tasks'
+    | '/transactions'
     | '/users'
     | '/wallet'
   id:
@@ -422,12 +492,18 @@ export interface FileRouteTypes {
     | '/_authenticated/monitoring'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
+    | '/_authenticated/platform-settings'
     | '/_authenticated/profile'
     | '/_authenticated/profit'
     | '/_authenticated/redemption'
+    | '/_authenticated/reseller'
+    | '/_authenticated/reseller-admin'
+    | '/_authenticated/reseller-keys'
     | '/_authenticated/settings'
+    | '/_authenticated/settlement'
     | '/_authenticated/subscription'
     | '/_authenticated/tasks'
+    | '/_authenticated/transactions'
     | '/_authenticated/users'
     | '/_authenticated/wallet'
   fileRoutesById: FileRoutesById
@@ -534,6 +610,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedUsersRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/transactions': {
+      id: '/_authenticated/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
+      preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -548,11 +631,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settlement': {
+      id: '/_authenticated/settlement'
+      path: '/settlement'
+      fullPath: '/settlement'
+      preLoaderRoute: typeof AuthenticatedSettlementRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/settings': {
       id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reseller-keys': {
+      id: '/_authenticated/reseller-keys'
+      path: '/reseller-keys'
+      fullPath: '/reseller-keys'
+      preLoaderRoute: typeof AuthenticatedResellerKeysRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reseller-admin': {
+      id: '/_authenticated/reseller-admin'
+      path: '/reseller-admin'
+      fullPath: '/reseller-admin'
+      preLoaderRoute: typeof AuthenticatedResellerAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/reseller': {
+      id: '/_authenticated/reseller'
+      path: '/reseller'
+      fullPath: '/reseller'
+      preLoaderRoute: typeof AuthenticatedResellerRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/redemption': {
@@ -574,6 +685,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/platform-settings': {
+      id: '/_authenticated/platform-settings'
+      path: '/platform-settings'
+      fullPath: '/platform-settings'
+      preLoaderRoute: typeof AuthenticatedPlatformSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/not-found': {
@@ -705,12 +823,18 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
+  AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProfitRoute: typeof AuthenticatedProfitRoute
   AuthenticatedRedemptionRoute: typeof AuthenticatedRedemptionRoute
+  AuthenticatedResellerRoute: typeof AuthenticatedResellerRoute
+  AuthenticatedResellerAdminRoute: typeof AuthenticatedResellerAdminRoute
+  AuthenticatedResellerKeysRoute: typeof AuthenticatedResellerKeysRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedSettlementRoute: typeof AuthenticatedSettlementRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
 }
@@ -729,12 +853,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
+  AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProfitRoute: AuthenticatedProfitRoute,
   AuthenticatedRedemptionRoute: AuthenticatedRedemptionRoute,
+  AuthenticatedResellerRoute: AuthenticatedResellerRoute,
+  AuthenticatedResellerAdminRoute: AuthenticatedResellerAdminRoute,
+  AuthenticatedResellerKeysRoute: AuthenticatedResellerKeysRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedSettlementRoute: AuthenticatedSettlementRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,
 }

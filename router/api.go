@@ -360,6 +360,33 @@ func SetApiRouter(router *gin.Engine) {
 		}
 		// Distributor self-service routes
 		apiRouter.GET("/distributor/self", middleware.UserAuth(), controller.GetMyDistributor)
+
+		// Settlement config routes
+		settlementRoute := apiRouter.Group("/settlement")
+		settlementRoute.Use(middleware.AdminAuth())
+		{
+			settlementRoute.GET("/config", controller.GetSettlementConfigs)
+			settlementRoute.POST("/config", controller.CreateSettlementConfig)
+			settlementRoute.PUT("/config/:id", controller.UpdateSettlementConfig)
+			settlementRoute.DELETE("/config/:id", controller.DeleteSettlementConfig)
+		}
+
+		// Transaction routes
+		apiRouter.GET("/transactions", middleware.UserAuth(), controller.GetTransactions)
+
+		// Platform config routes
+		apiRouter.GET("/platform/config", middleware.AdminAuth(), controller.GetPlatformConfigs)
+		apiRouter.PUT("/platform/config", middleware.AdminAuth(), controller.UpdatePlatformConfig)
+
+		// Reseller self-service routes
+		apiRouter.GET("/reseller/balance", middleware.UserAuth(), controller.GetResellerBalance)
+		apiRouter.POST("/reseller/withdraw", middleware.UserAuth(), controller.SubmitResellerWithdrawal)
+		apiRouter.GET("/reseller/stats", middleware.UserAuth(), controller.GetResellerStats)
+
+		// Admin reseller management
+		apiRouter.GET("/admin/resellers", middleware.AdminAuth(), controller.ListResellers)
+		apiRouter.GET("/admin/withdrawals", middleware.AdminAuth(), controller.ListWithdrawals)
+		apiRouter.POST("/admin/withdrawals/:id/approve", middleware.AdminAuth(), controller.ApproveWithdrawal)
 	}
 }
 

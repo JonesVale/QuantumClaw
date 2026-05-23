@@ -43,6 +43,7 @@ type Channel struct {
 	SystemPrompt       *string `json:"system_prompt" gorm:"type:text"`
 	Category           string  `json:"category" gorm:"default:''"`  // paid / free / custom
 	UserId             int     `json:"user_id" gorm:"type:int;default:0;index"` // 渠道归属：0=平台，>0=供应商
+	CostPrice          float64 `json:"cost_price" gorm:"type:decimal(10,6);default:0"` // Key 贡献者实际成本
 }
 
 type ChannelConfig struct {
