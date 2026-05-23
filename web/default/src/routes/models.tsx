@@ -75,11 +75,25 @@ function ModelsPage() {
   const catalog: CatalogItem[] = data?.data || []
 
   // Derived data - 依赖 catalog.length 避免每次 re-render 重算
-  const providers = useMemo(() => {
+  const aiProviders = useMemo(() => {
     if (catalog.length === 0) return []
     const map = new Map<string, number>()
     for (const m of catalog) {
+      if (m.use_case === 'quantum') continue
       const p = m.provider || 'Unknown'
+      if (p === 'Unknown' || p.startsWith('~')) continue
+      map.set(p, (map.get(p) || 0) + 1)
+    }
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1])
+  }, [catalog.length]) // eslint-disable-line
+
+  const quantumProviders = useMemo(() => {
+    if (catalog.length === 0) return []
+    const map = new Map<string, number>()
+    for (const m of catalog) {
+      if (m.use_case !== 'quantum') continue
+      const p = m.provider || 'Unknown'
+      if (p === 'Unknown' || p.startsWith('~')) continue
       map.set(p, (map.get(p) || 0) + 1)
     }
     return Array.from(map.entries()).sort((a, b) => b[1] - a[1])

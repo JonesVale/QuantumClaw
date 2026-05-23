@@ -1,29 +1,34 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
-import { useT } from '@/lib/use-t'
-import { useAuthStore } from '@/stores/auth-store'
-import { useSystemConfigStore } from '@/stores/system-config-store'
+const fs = require('fs');
+const path = 'H:/AiData/openclaw/workspace/QuantumClaw/web/default/src/routes/index.tsx';
+let c = fs.readFileSync(path, 'utf-8');
 
-export const Route = createFileRoute('/')({
-  component: HomePage,
-})
+// 1. Remove Card, Badge, Skeleton imports
+c = c.replace("import { Badge } from '@/components/ui/badge'\n", "");
+c = c.replace("import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'\n", "");
+c = c.replace("import { Skeleton } from '@/components/ui/skeleton'\n", "");
+c = c.replace("import { Avatar, AvatarFallback } from '@/components/ui/avatar'\n", "");
 
-function HomePage() {
-  const { t, language, changeLanguage } = useT()
-  const { auth } = useAuthStore()
-  const { config: sysConfig } = useSystemConfigStore()
-  const loggedIn = !!auth.user
+// 2. Replace full return block
+const retIdx = c.indexOf("  return (");
+const endIdx = c.lastIndexOf("}");
 
-  return (
+// Find component's closing
+const compEnd = c.lastIndexOf("}\n", endIdx - 1);
+const afterIdx = compEnd > retIdx ? compEnd + 1 : endIdx;
+
+const beforeRet = c.substring(0, retIdx);
+const after = c.substring(afterIdx);
+
+const newRet = `  return (
     <div className="min-h-screen bg-background">
-      {/* ===== NAV ===== */}
+      {/* ===== NAV (inline, simplified) ===== */}
       <header className="sticky top-0 z-50 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-8">
               <Link to="/" className="text-xl font-bold tracking-tight">
                 <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  QuantumClaw
+                  {t('QuantumClaw')}
                 </span>
               </Link>
               <nav className="hidden md:flex items-center gap-6">
@@ -34,20 +39,16 @@ function HomePage() {
               </nav>
             </div>
             <div className="flex items-center gap-3">
-              {loggedIn ? (
-                <Link to="/dashboard">
-                  <button className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground h-9 px-4 text-sm font-medium">{t('Dashboard')}</button>
-                </Link>
-              ) : (
-                <>
-                  <Link to="/sign-in">
-                    <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-9 px-4 text-sm font-medium hover:bg-accent">{t('Sign In')}</button>
-                  </Link>
-                  <Link to="/sign-in">
-                    <button className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground h-9 px-4 text-sm font-medium hover:bg-primary/90">{t('Get Started')}</button>
-                  </Link>
-                </>
-              )}
+              <Link to="/sign-in">
+                <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-9 px-4 text-sm font-medium hover:bg-accent">
+                  {t('Sign In')}
+                </button>
+              </Link>
+              <Link to="/sign-in">
+                <button className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground h-9 px-4 text-sm font-medium hover:bg-primary/90">
+                  {t('Get Started')}
+                </button>
+              </Link>
             </div>
           </div>
         </div>
@@ -60,7 +61,7 @@ function HomePage() {
           <div className="max-w-3xl">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-tight">
               <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                QuantumClaw
+                {t('QuantumClaw')}
               </span>
               <br />
               <span className="text-foreground">
@@ -73,30 +74,29 @@ function HomePage() {
             <div className="flex items-center gap-4 mt-8">
               <Link to="/models">
                 <button className="inline-flex items-center justify-center rounded-lg bg-primary text-primary-foreground h-12 px-6 text-sm font-semibold hover:bg-primary/90 gap-2">
-                  {t('Browse Models')} &rarr;
+                  {t('Browse Models')}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                 </button>
               </Link>
-              {!loggedIn && (
-                <Link to="/sign-in">
-                  <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-12 px-6 text-sm font-semibold hover:bg-accent">
-                    {t('Get Started Free')}
-                  </button>
-                </Link>
-              )}
+              <Link to="/sign-in">
+                <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-12 px-6 text-sm font-semibold hover:bg-accent">
+                  {t('Get Started Free')}
+                </button>
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== STATS ===== */}
+      {/* ===== STATS BAR ===== */}
       <section className="border-y bg-muted/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: '400+', label: t('AI Models') },
-              { value: '60+', label: t('Providers') },
-              { value: '5', label: t('Quantum Backends') },
-              { value: '99.9%', label: t('Uptime SLA') },
+              { icon: 'database', value: '400+', label: t('AI Models') },
+              { icon: 'globe', value: '60+', label: t('Providers') },
+              { icon: 'cpu', value: '5', label: t('Quantum Backends') },
+              { icon: 'zap', value: '99.9%', label: t('Uptime SLA') },
             ].map(s => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl sm:text-4xl font-bold text-foreground">{s.value}</div>
@@ -107,7 +107,7 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ===== FEATURES ===== */}
+      {/* ===== FEATURES / USE CASES ===== */}
       <section className="py-20 sm:py-28">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
           <div className="text-center mb-14">
@@ -118,14 +118,14 @@ function HomePage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: t('Chat & Assistant'), desc: t('GPT-4, Claude, Gemini and more chat models'), color: 'from-blue-500 to-blue-600' },
-              { title: t('Code Generation'), desc: t('DeepSeek Coder, Code Llama, Qwen Coder'), color: 'from-green-500 to-green-600' },
-              { title: t('Reasoning'), desc: t('o1, o3, Claude Opus for complex reasoning'), color: 'from-purple-500 to-purple-600' },
-              { title: t('Quantum Computing'), desc: t('IonQ, IBM, Rigetti, AWS Braket backends'), color: 'from-violet-500 to-purple-600' },
+              { icon: 'message-square', title: t('Chat & Assistant'), desc: t('GPT-4, Claude, Gemini and more chat models'), color: 'from-blue-500 to-blue-600' },
+              { icon: 'code', title: t('Code Generation'), desc: t('DeepSeek Coder, Code Llama, Qwen Coder'), color: 'from-green-500 to-green-600' },
+              { icon: 'brain', title: t('Reasoning'), desc: t('o1, o3, Claude Opus for complex tasks'), color: 'from-purple-500 to-purple-600' },
+              { icon: 'atom', title: t('Quantum Computing'), desc: t('IonQ, IBM, Rigetti, AWS Braket backends'), color: 'from-violet-500 to-purple-600' },
             ].map(f => (
               <div key={f.title} className="rounded-xl p-6 bg-card border-0 hover:shadow-md transition-all duration-200">
-                <div className={'w-10 h-10 rounded-lg bg-gradient-to-br ' + f.color + ' flex items-center justify-center mb-4'}>
-                  <div className="w-5 h-5 rounded-full bg-white/30" />
+                <div className={\`w-10 h-10 rounded-lg bg-gradient-to-br \${f.color} flex items-center justify-center mb-4\`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
                 </div>
                 <h3 className="text-base font-semibold mb-2">{f.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
@@ -135,18 +135,18 @@ function HomePage() {
         </div>
       </section>
 
-      {/* ===== PROVIDERS ===== */}
+      {/* ===== PROVIDERS SHOWCASE ===== */}
       <section className="py-20 sm:py-28 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">{t('Major Providers')}</h2>
             <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto">
-              {t('Browse models from leading AI companies and quantum providers')}
+              {t('Browse models from the world\'s leading AI companies')}
             </p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
             {['OpenAI', 'Anthropic', 'Google', 'DeepSeek', 'Meta', 'Mistral'].map(p => (
-              <Link key={p} to="/models" className="rounded-xl p-5 bg-card border-0 hover:shadow-md transition-all text-center block">
+              <Link key={p} to="/models" className="rounded-xl p-5 bg-card border-0 hover:shadow-md transition-all text-center">
                 <div className="font-semibold text-sm">{p}</div>
                 <div className="text-xs text-muted-foreground mt-1">{t('View models')}</div>
               </Link>
@@ -161,12 +161,18 @@ function HomePage() {
           <div className="rounded-2xl bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 p-10 sm:p-14 text-center">
             <h2 className="text-3xl sm:text-4xl font-bold text-white">{t('Ready to get started?')}</h2>
             <p className="text-lg text-white/80 mt-4 max-w-xl mx-auto">
-              {t('Create your account and access 400+ AI models and quantum computing resources.')}
+              {t('Create your free account and get instant access to 400+ AI models and quantum computing resources.')}
             </p>
             <div className="flex items-center justify-center gap-4 mt-8">
-              <Link to={loggedIn ? '/models' : '/sign-in'}>
+              <Link to="/sign-in">
                 <button className="inline-flex items-center justify-center rounded-lg bg-white text-blue-600 h-12 px-6 text-sm font-semibold hover:bg-white/90 gap-2">
-                  {loggedIn ? t('Browse Models') : t('Create Free Account')} &rarr;
+                  {t('Create Free Account')}
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                </button>
+              </Link>
+              <Link to="/models">
+                <button className="inline-flex items-center justify-center rounded-lg border border-white/30 text-white h-12 px-6 text-sm font-semibold hover:bg-white/10">
+                  {t('Browse Catalog')}
                 </button>
               </Link>
             </div>
@@ -202,7 +208,7 @@ function HomePage() {
             <div>
               <h4 className="text-sm font-semibold mb-4">{t('Company')}</h4>
               <div className="space-y-2">
-                <span className="block text-sm text-muted-foreground">QuantumClaw</span>
+                <span className="block text-sm text-muted-foreground">{t('QuantumClaw')}</span>
               </div>
             </div>
           </div>
@@ -212,5 +218,12 @@ function HomePage() {
         </div>
       </footer>
     </div>
-  )
-}
+  );`;
+
+c = beforeRet + newRet + after;
+
+// Clean up empty lines
+c = c.replace(/\n{4,}/g, '\n\n\n');
+
+fs.writeFileSync(path, c, 'utf-8');
+console.log('Index page redesigned (AWS homepage style)');
