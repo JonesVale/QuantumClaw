@@ -134,198 +134,75 @@ function PricingPage() {
   }, [filtered])
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
-      <aside className="w-60 shrink-0 border-r bg-card/50 backdrop-blur-sm hidden lg:block">
-        <div className="p-4 border-b">
-          <span className="font-semibold text-sm">{t('Filters')}</span>
-        </div>
-        <div className="p-4 space-y-4">
-          <div>
-            <h4 className="text-sm font-semibold text-muted-foreground mb-2">{t('Provider')}</h4>
-            <div className="space-y-0.5">
-              <button onClick={() => setProviderFilter('all')} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', providerFilter === 'all' ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{t('All')}</button>
-              {providers.slice(0, 10).map(p => (
-                <button key={p} onClick={() => setProviderFilter(p)} className={cn('w-full text-left px-3 py-2 text-sm rounded transition-colors', providerFilter === p ? 'bg-accent font-medium' : 'hover:bg-muted/50 text-muted-foreground')}>{p}</button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </aside>
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            馃挵 {t('Model Pricing')}
+    <div className="min-h-screen bg-background">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
+        {/* Hero */}
+        <div className="mb-12">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+              {t('Model Pricing')}
+            </span>
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base lg:text-lg">
-            {t('Transparent pricing across all providers')}
+          <p className="text-lg text-muted-foreground mt-4 max-w-2xl leading-relaxed">
+            {t('Browse pricing across providers')}
           </p>
         </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          {t('Refresh')}
-        </Button>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 max-w-xs">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            className="pl-9"
-            placeholder={t('Search models...')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
+        {/* Filter pills */}
+        <div className="flex flex-wrap gap-2 mb-10">
+          <button onClick={() => setProviderFilter('all')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              providerFilter === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-accent'
+            }`}>
+            {t('All Providers')}
+          </button>
+          {providers.slice(0, 15).map(p => (
+            <button key={p} onClick={() => setProviderFilter(p)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                providerFilter === p ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-accent'
+              }`}>
+              {p}
+            </button>
+          ))}
+          {providers.length > 15 && (
+            <details className="group inline-block">
+              <summary className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted cursor-pointer">
+                <span className="group-open:hidden">{t('More')} ({providers.length - 15})</span>
+                <span className="hidden group-open:inline">{t('Less')}</span>
+              </summary>
+            </details>
+          )}
         </div>
-        <Select value={providerFilter} onValueChange={setProviderFilter}>
-          <SelectTrigger className="w-[160px]">
-            <SelectValue placeholder={t('All Providers')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('All Providers')}</SelectItem>
-            {providers.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          variant={showActiveOnly ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setShowActiveOnly(!showActiveOnly)}
-          className="gap-2"
-        >
-          <Filter className="h-4 w-4" />
-          {t('Active only')}
-        </Button>
-      </div>
 
-      {/* Pricing Cards by Provider */}
-      {isLoading ? (
-        <div className="space-y-4">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {Array.from({ length: 3 }).map((_, j) => (
-                    <Skeleton key={j} className="h-8 w-full" />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+        {/* Pricing Cards by Provider */}
+        <div className="space-y-10">
+          {groupedByProvider.map(([provider, models]) => (
+            <div key={provider}>
+              <h2 className="text-xl font-semibold mb-4">{provider}</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {models.map((m: any) => (
+                  <div key={m.model} className="rounded-xl p-5 bg-card hover:shadow-md transition-all border-0">
+                    <h3 className="font-semibold text-sm mb-1">{m.model}</h3>
+                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">{m.provider}</p>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="inline-flex items-center gap-1">
+                        <span className="font-medium text-emerald-600 dark:text-emerald-400">IN</span>
+                        ${(m.input_price || 0).toFixed(4)}/1K
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <span className="font-medium text-amber-600 dark:text-amber-400">OUT</span>
+                        ${(m.output_price || 0).toFixed(4)}/1K
+                      </span>
+                      <span className="text-xs text-muted-foreground">{(m.context_window / 1000).toFixed(0)}K ctx</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-      ) : grouped.size === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center text-muted-foreground">
-            <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
-            {t('No models found')}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-        <div className="space-y-4">
-          {Array.from(grouped.entries()).slice(0, visibleCount).map(([provider, providerModels]) => {
-            const meta = getProviderMeta(provider)
-            return (
-              <Card key={provider} className="overflow-hidden">
-                {/* Provider Header */}
-                <div className={cn('bg-gradient-to-r p-4 text-white', meta.gradient)}>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-white/20 backdrop-blur">
-                      <span className="text-lg font-bold">{provider[0]}</span>
-                    </div>
-                    <CardTitle className="text-lg">{provider}</CardTitle>
-                    <Badge variant="secondary" className="ml-auto bg-white/20 text-white hover:bg-white/30">
-                      {providerModels.length} {t('Models')}
-                    </Badge>
-                  </div>
-                </div>
-
-                {/* Price Table */}
-                <CardContent className="p-0">
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b bg-muted/30">
-                          <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase tracking-wider">
-                            {t('Model')}
-                          </th>
-                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3 uppercase tracking-wider">
-                            {t('Input Price')}
-                          </th>
-                          <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3 uppercase tracking-wider">
-                            {t('Output Price')}
-                          </th>
-                          <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3 uppercase tracking-wider">
-                            {t('Status')}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {providerModels.map((m, idx) => (
-                          <tr
-                            key={m.name}
-                            className={cn(
-                              'border-b border-muted/50 transition-all duration-200 hover:bg-muted/30 hover:shadow-sm',
-                              idx % 2 === 0 && 'bg-muted/5'
-                            )}
-                          >
-                            <td className="px-4 py-3">
-                              <span className="font-medium text-sm">{m.name}</span>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <code className="text-sm font-mono text-blue-600 dark:text-blue-400">
-                                {m.input_price > 0 ? `${formatPrice(m.input_price)}/1K` : '-'}
-                              </code>
-                            </td>
-                            <td className="px-4 py-3 text-right">
-                              <code className="text-sm font-mono text-purple-600 dark:text-purple-400">
-                                {m.output_price > 0 ? `${formatPrice(m.output_price)}/1K` : '-'}
-                              </code>
-                            </td>
-                            <td className="px-4 py-3 text-center">
-                              {m.status === 1 ? (
-                                <Badge variant="outline" className="bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800">
-                                  {t('Active')}
-                                </Badge>
-                              ) : (
-                                <Badge variant="outline" className="bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800">
-                                  {t('Disabled')}
-                                </Badge>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-        {visibleCount < grouped.size && (
-          <div className="flex justify-center pt-4 pb-2">
-            <Button
-              variant="outline"
-              size="lg"
-              className="gap-2 px-8"
-              onClick={() => setVisibleCount(c => c + PAGE_STEP)}
-            >
-              {t('Load More')} ({filtered.length - visibleCount} {t('remaining')})
-            </Button>
-          </div>
-        )}
-        </>
-      )}
       </div>
     </div>
-  )
+  );
+
 }

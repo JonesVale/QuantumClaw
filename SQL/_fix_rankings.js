@@ -1,90 +1,30 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useT } from '@/lib/use-t'
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { RefreshCw, Trophy, TrendingUp, TrendingDown, Zap, Clock, DollarSign, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
-import type { ModelRanking } from '@/lib/api-extended'
+const fs = require('fs');
+const path = 'H:/AiData/openclaw/workspace/QuantumClaw/web/default/src/routes/rankings.tsx';
+let c = fs.readFileSync(path, 'utf-8');
 
-export const Route = createFileRoute('/rankings')({
-  component: RankingsPage,
-})
+// 1. Clean up imports - remove Card, Badge, Skeleton (will use simple divs)
+c = c.replace("import { Card, CardContent } from '@/components/ui/card'\n", "");
+c = c.replace("import { Badge } from '@/components/ui/badge'\n", "");
+c = c.replace("import { Skeleton } from '@/components/ui/skeleton'\n", "");
 
-// ── Tab definitions ───────────────────────────────────────────────
-type SortKey = 'request_count_7d' | 'tokens_7d' | 'avg_speed_ms' | 'price_per_1k'
+// 2. Remove seriesFilter state
+c = c.replace("  const [seriesFilter, setSeriesFilter] = useState('All')\n", "");
 
-// ── Helper constants & functions ────────────────────────────────────
-const RANK_STYLES = [
-  'bg-gradient-to-br from-yellow-500 to-yellow-600',
-  'bg-gradient-to-br from-slate-400 to-slate-500',
-  'bg-gradient-to-br from-amber-700 to-amber-800',
-]
+// 3. Remove seriesFilter from filter logic and memo
+c = c.replace(".filter(m => seriesFilter === 'All' || m.model.toLowerCase().includes(seriesFilter.toLowerCase()))\n    ", "");
+c = c.replace("rankings, seriesFilter, ", "rankings, ");
 
-function formatRequests(n: number): string {
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
-  return n.toLocaleString()
-}
+// 4. Replace the entire return block
+const returnIdx = c.indexOf("  return (");
+const endIdx = c.lastIndexOf("}");
+// Make sure we get the right closing
+const compEnd = c.indexOf("}\n", endIdx - 100);
+const finalIdx = compEnd > returnIdx ? compEnd + 1 : endIdx;
 
-function formatTokens(n: number): string {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
-  return n.toLocaleString()
-}
+const beforeReturn = c.substring(0, returnIdx);
+const afterReturn = c.substring(finalIdx + 1);
 
-interface TabItem {
-  key: SortKey
-  icon: React.ElementType
-  labelKey: string
-  sortDir: 'desc' | 'asc'
-}
-
-const TABS: TabItem[] = [
-  { key: 'request_count_7d', icon: Zap, labelKey: 'Request Count', sortDir: 'desc' },
-  { key: 'tokens_7d', icon: Sparkles, labelKey: 'Token Consumption', sortDir: 'desc' },
-  { key: 'avg_speed_ms', icon: Clock, labelKey: 'Response Speed', sortDir: 'asc' },
-  { key: 'price_per_1k', icon: DollarSign, labelKey: 'Price', sortDir: 'asc' },
-]
-
-// ── Fallback mock data ────────────────────────────────────────────
-function RankingsPage() {
-  const { t } = useT()
-  const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
-  const [seriesFilter, setSeriesFilter] = useState('All')
-  const [visibleCount, setVisibleCount] = useState(30)
-  const PAGE_STEP = 30
-
-  const { data, isLoading, refetch, isFetching } = useQuery({
-    queryKey: ['model-rankings'],
-    queryFn: async () => {
-      const res = await fetch('/api/models/rankings')
-      if (!res.ok) throw new Error('Failed to fetch')
-      return res.json()
-    },
-    retry: false,
-    staleTime: 60 * 1000,
-  })
-
-  const rankings: ModelRanking[] = data?.data ?? []
-
-  // Sort based on active tab - useRef to keep stable reference
-  const activeTabDef = TABS.find((t) => t.key === activeTab)!
-  const filteredRankings = useMemo(() => [...rankings]
-    .filter(m => seriesFilter === 'All' || m.model.toLowerCase().includes(seriesFilter.toLowerCase()))
-    .sort((a, b) => {
-      const aVal = a[activeTab]
-      const bVal = b[activeTab]
-      return activeTabDef.sortDir === 'desc' ? bVal - aVal : aVal - bVal
-    }), [rankings, activeTab, activeTabDef.sortDir])
-
-  const displayed = useMemo(() => filteredRankings.slice(0, visibleCount), [filteredRankings, visibleCount])
-
-  return (
+const newReturn = `  return (
     <div className="min-h-screen bg-background">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
         {/* Hero */}
@@ -101,7 +41,7 @@ function RankingsPage() {
               </p>
             </div>
             <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-10 px-4 text-sm font-medium hover:bg-accent gap-2 shrink-0" onClick={() => refetch()} disabled={isFetching}>
-              <svg className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+              <svg className={\`h-4 w-4 \${isFetching ? 'animate-spin' : ''}\`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
               {t('Refresh')}
             </button>
           </div>
@@ -116,11 +56,11 @@ function RankingsPage() {
               <button
                 key={tab.key}
                 onClick={() => setActiveTab(tab.key)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                className={\`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all \${
                   active
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
+                }\`}
               >
                 <Icon className="h-4 w-4" />
                 {t(tab.labelKey)}
@@ -157,12 +97,12 @@ function RankingsPage() {
               const rank = index + 1;
               const isTop3 = rank <= 3;
               return (
-                <div key={`${item.provider}-${item.model}`} className={`rounded-xl p-5 transition-all hover:shadow-md bg-card border-0 ${isTop3 ? 'ring-1 ring-yellow-500/20' : ''}`}>
+                <div key={\`\${item.provider}-\${item.model}\`} className={\`rounded-xl p-5 transition-all hover:shadow-md bg-card border-0 \${isTop3 ? 'ring-1 ring-yellow-500/20' : ''}\`}>
                   <div className="flex items-center gap-4">
                     {/* Rank */}
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-bold text-white shrink-0 ${
+                    <div className={\`flex items-center justify-center w-10 h-10 rounded-xl font-bold text-white shrink-0 \${
                       isTop3 ? RANK_STYLES[rank - 1] : 'bg-muted text-muted-foreground'
-                    }`}>
+                    }\`}>
                       {isTop3 ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> : rank}
                     </div>
 
@@ -197,17 +137,17 @@ function RankingsPage() {
                       )}
                       {activeTab === 'price_per_1k' && (
                         <div>
-                          <div className="text-sm font-semibold">${item.price_per_1k.toFixed(4)}</div>
+                          <div className="text-sm font-semibold">\${item.price_per_1k.toFixed(4)}</div>
                           <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/1K {t('Tokens')}</div>
                         </div>
                       )}
 
                       {/* Trend */}
-                      <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-1 rounded-full ${
+                      <span className={\`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-1 rounded-full \${
                         item.trend_percent >= 0
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                           : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
+                      }\`}>
                         {item.trend_percent >= 0
                           ? <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
                           : <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
@@ -232,6 +172,12 @@ function RankingsPage() {
         )}
       </div>
     </div>
-  );
+  );`;
 
-}
+c = beforeReturn + newReturn + afterReturn;
+
+// Clean up duplicate newlines
+c = c.replace(/\n{4,}/g, '\n\n\n');
+
+fs.writeFileSync(path, c, 'utf-8');
+console.log('Rankings page redesigned');

@@ -465,7 +465,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
 
 function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
-  const { t } = useT()
+  const { t, language, changeLanguage, langs } = useT()
 
   const { resolvedTheme, setTheme, theme } = useTheme()
 
@@ -497,35 +497,9 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
 
 
-  // Fetch available languages from DB for language selector
-  const [dbLanguages, setDbLanguages] = useState<string[]>([])
-  useEffect(() => {
-    fetch('/api/languages')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && Array.isArray(data.data)) {
-          setDbLanguages(data.data.map((l: { languages_type: string }) => l.languages_type))
-        }
-      })
-      .catch(() => {})
-  }, [])
-
-  // Map T_Languages type to i18next code
-  const typeToCode: Record<string, string> = {
-    '中文简体': 'zh-CN',
-    '中文繁体': 'zh-TW',
-    'English': 'en',
-    'Français': 'fr',
-    '日本語': 'ja',
-    'Русский': 'ru',
-    'Tiếng Việt': 'vi',
-  }
-
   const switchLanguage = useCallback((langType: string) => {
-    const code = typeToCode[langType] || langType
-    changeLanguage(code)
-    
-  }, [language])
+    changeLanguage(langType)
+  }, [changeLanguage])
 
   const cycleTheme = useCallback(() => {
 
@@ -650,7 +624,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
             <DropdownMenuSeparator />
 
-            {dbLanguages.length > 0 ? dbLanguages.map(lang => (
+            {langs.map(lang => (
               <DropdownMenuItem
 
                 key={lang}
@@ -665,16 +639,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
               </DropdownMenuItem>
 
-            )) : (
-              <>
-                <DropdownMenuItem onClick={() => switchLanguage('中文简体')}>
-                  中文简体
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => switchLanguage('English')}>
-                  English
-                </DropdownMenuItem>
-              </>
-            )}
+            ))}
           </DropdownMenuContent>
 
         </DropdownMenu>
