@@ -149,6 +149,7 @@ interface NavItem {
   labelKey: string
 
   adminOnly?: boolean
+  loginRequired?: boolean
 
 }
 
@@ -156,7 +157,7 @@ interface NavItem {
 
 // Product pages shown in top navigation bar
 const PRODUCT_ITEMS: NavItem[] = [
-  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard' },
+  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard', loginRequired: true },
   { path: '/chat', icon: MessageSquare, labelKey: 'AI Chat' },
   { path: '/models', icon: Box, labelKey: 'Models' },
   { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
@@ -171,42 +172,42 @@ const PRODUCT_ITEMS: NavItem[] = [
 const NAV_ITEMS: NavItem[] = [
   // 隐藏 /channels 对普通用户可见（仅供应商后台可见）
   // { path: '/channels', icon: Network, labelKey: 'Channels' },
-  { path: '/keys', icon: Key, labelKey: 'API Keys' },
+  { path: '/keys', icon: Key, labelKey: 'API Keys', loginRequired: true },
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
-  { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs' },
+  { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs', loginRequired: true },
   { path: '/redemption', icon: Ticket, labelKey: 'Redemption Codes', adminOnly: true },
   { path: '/distributors', icon: Truck, labelKey: 'Distributors', adminOnly: true },
   { path: '/admin-tools', icon: Wrench, labelKey: 'Admin Tools', adminOnly: true },
-  { path: '/monitoring', icon: Activity, labelKey: 'Monitoring' },
+  { path: '/monitoring', icon: Activity, labelKey: 'Monitoring', loginRequired: true },
   { path: '/profit', icon: TrendingUp, labelKey: 'Channel Profit', adminOnly: true },
   { path: '/news', icon: Newspaper, labelKey: 'AI News' },
   { path: '/reseller-admin', icon: Store, labelKey: 'Reseller Management', adminOnly: true },
   { path: '/settlement', icon: Percent, labelKey: 'Settlement Config', adminOnly: true },
   { path: '/transactions', icon: Receipt, labelKey: 'Transactions', adminOnly: true },
   { path: '/platform-settings', icon: Settings, labelKey: 'Platform Settings', adminOnly: true },
-  { path: '/reseller', icon: Store, labelKey: 'Reseller Portal' },
-  { path: '/reseller-keys', icon: Key, labelKey: 'My Keys' },
+  { path: '/reseller', icon: Store, labelKey: 'Reseller Portal', loginRequired: true },
+  { path: '/reseller-keys', icon: Key, labelKey: 'My Keys', loginRequired: true },
 ]
 
 
 
 const SETTINGS_ITEMS: NavItem[] = [
 
-  { path: '/profile', icon: User, labelKey: 'Profile' },
+  { path: '/profile', icon: User, labelKey: 'Profile', loginRequired: true },
 
-  { path: '/wallet', icon: Wallet, labelKey: 'Wallet' },
+  { path: '/wallet', icon: Wallet, labelKey: 'Wallet', loginRequired: true },
 
-  { path: '/billing', icon: DollarSign, labelKey: 'Billing' },
+  { path: '/billing', icon: DollarSign, labelKey: 'Billing', loginRequired: true },
 
-  { path: '/checkin', icon: Gift, labelKey: 'Daily Check-in' },
+  { path: '/checkin', icon: Gift, labelKey: 'Daily Check-in', loginRequired: true },
 
-  { path: '/subscription', icon: CreditCard, labelKey: 'Subscriptions' },
+  { path: '/subscription', icon: CreditCard, labelKey: 'Subscriptions', loginRequired: true },
 
   { path: '/tasks', icon: ClipboardList, labelKey: 'Task Logs', adminOnly: true },
 
   { path: '/settings', icon: Settings, labelKey: 'Settings', adminOnly: true },
 
-  { path: '/api-docs', icon: BookOpen, labelKey: 'API Docs' },
+  { path: '/api-docs', icon: BookOpen, labelKey: 'API Docs', loginRequired: true },
   { path: '/about', icon: Info, labelKey: 'About' },
 
 ]
@@ -230,7 +231,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   const { auth } = useAuthStore()
 
   const isAdmin = auth.user?.role === 100
-
+  const isLoggedIn = !!auth.user
 
 
 
@@ -248,6 +249,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   const renderNavItem = (item: NavItem) => {
 
     if (item.adminOnly && !isAdmin) return null
+    if (item.loginRequired && !isLoggedIn) return null
 
 
 
