@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import { RefreshCw, Database, ArrowUpDown, Zap, Save, Trash2 } from 'lucide-react'
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_authenticated/admin-tools')({
 })
 
 function AdminToolsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   // Model Sync
   const [syncCron, setSyncCron] = useState('0 3 * * *')

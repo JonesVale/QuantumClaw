@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -51,7 +51,7 @@ async function getChannelProfit(): Promise<ProfitItem[]> {
 }
 
 function ProfitPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [search, setSearch] = useState('')
 
   const { data: profitData, isLoading, refetch, isFetching } = useQuery({

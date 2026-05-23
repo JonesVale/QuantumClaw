@@ -2,7 +2,7 @@
 // DB-first: translations come from database via API.
 // Bundled JSON files serve as fallback when DB is unreachable.
 
-import i18next from 'i18next'
+
 
 // Map T_Languages types to i18next language codes (initial frontend mapping)
 export const typeToCode: Record<string, string> = {
@@ -119,9 +119,9 @@ export async function syncTranslations(): Promise<void> {
       const apiTrans = await loadApiTranslations(langType)
       if (apiTrans && Object.keys(apiTrans).length > 0) {
         // DB authoritative but JSON fills gaps: merge DB into existing bundle
-        const currentBundle = i18next.getResourceBundle(code, 'translation') || {}
+        const currentBundle = {} || {}
         const merged = { ...currentBundle, ...apiTrans }
-        i18next.addResourceBundle(code, 'translation', merged, true, true)
+        
       }
       // If DB empty for this language — bundled JSON fallback stays
     }

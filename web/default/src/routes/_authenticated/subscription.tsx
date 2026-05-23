@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { CreditCard, RefreshCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/_authenticated/subscription')({
 })
 
 function SubscriptionPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['subscriptions'],

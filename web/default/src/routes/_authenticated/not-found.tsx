@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Home, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_authenticated/not-found')({
 })
 
 function NotFoundPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 p-8 text-center">

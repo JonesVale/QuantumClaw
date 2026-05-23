@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Plus, Trash2, Play, RefreshCw, Key, Wifi, WifiOff } from 'lucide-react'
@@ -38,7 +38,7 @@ export const Route = createFileRoute('/_authenticated/reseller-keys')({
 })
 
 function ResellerKeysPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [form, setForm] = useState({ name: '', type: '1', key: '', base_url: '', models: '' })

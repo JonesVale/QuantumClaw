@@ -6,7 +6,7 @@
  */
 
 import axios from 'axios'
-import i18next from 'i18next'
+
 import { toast } from 'sonner'
 
 // ---------------------------------------------------------------------------
@@ -76,7 +76,7 @@ apiClient.interceptors.response.use(
     if (!(error?.config as unknown as Record<string, unknown>)?.skipErrorHandler) {
       const status = error?.response?.status
       if (status === 401) {
-        toast.error(i18next.t('Session expired!'))
+        toast.error('Session expired!')
         try {
           window.localStorage.removeItem('user')
           window.localStorage.removeItem('uid')

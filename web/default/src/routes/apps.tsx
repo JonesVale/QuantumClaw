@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import {
   ExternalLink, Search, Star, Code, Bot, MessageSquare,
@@ -41,7 +41,7 @@ const apps: App[] = [
 const categories = ['All', 'Development', 'Chat', 'Platform', 'Tools']
 
 function AppsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
 

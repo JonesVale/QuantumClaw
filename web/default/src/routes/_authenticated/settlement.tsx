@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Plus, RefreshCw, Pencil, Trash2, DollarSign } from 'lucide-react'
@@ -29,7 +29,7 @@ export const Route = createFileRoute('/_authenticated/settlement')({
 })
 
 function SettlementPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<SettlementConfigItem | null>(null)

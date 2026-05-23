@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { MessageSquare, Plus, Trash2, Edit3, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,7 +36,7 @@ function ConversationItem({
   onDelete: () => void
   onRename: (title: string) => void
 }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [editing, setEditing] = useState(false)
   const [editValue, setEditValue] = useState(conv.title)
 
@@ -124,7 +124,7 @@ export function ConversationSidebar({
   onRename,
   onClose,
 }: ConversationSidebarProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   return (
     <div className="w-64 shrink-0 border-r bg-card p-3 flex flex-col gap-2 overflow-y-auto">

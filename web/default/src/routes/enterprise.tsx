@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import {
   Shield, Lock, Key, Users, Server, Database,
   CheckCircle, ArrowRight, Globe, CreditCard, FileCheck,
@@ -15,7 +15,7 @@ export const Route = createFileRoute('/enterprise')({
 })
 
 function EnterprisePage() {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const features = [
     { icon: Shield, title: t('SSO & SAML'), desc: t('Single sign-on with SAML, OIDC, and OAuth providers. Support for Azure AD, Okta, Google Workspace.') },

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Send, Loader2, Trash2, Settings2, MessageSquarePlus, PanelRightOpen, PanelRightClose, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/playground')({
 })
 
 function PlaygroundPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const scrollRef = useRef<HTMLDivElement>(null)
   const [input, setInput] = useState('')
   const [model, setModel] = useState('auto')

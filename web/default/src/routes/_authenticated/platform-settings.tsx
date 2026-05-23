@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { Save, RefreshCw } from 'lucide-react'
@@ -19,7 +19,7 @@ interface ConfigMap {
 }
 
 function PlatformSettingsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const [form, setForm] = useState<ConfigMap>({})
 

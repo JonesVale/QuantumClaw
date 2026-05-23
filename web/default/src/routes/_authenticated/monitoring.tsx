@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import {
@@ -214,7 +214,7 @@ const latencyData = [
 ]
 
 function MonitoringPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [error, setError] = useState<string | null>(null)
 

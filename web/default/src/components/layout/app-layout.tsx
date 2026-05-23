@@ -16,7 +16,7 @@ import { Suspense, useCallback, useMemo, useState, useEffect } from 'react'
 
 import { Link, Outlet, useLocation, useRouter } from '@tanstack/react-router'
 
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 
 import {
 
@@ -128,7 +128,7 @@ import { cn } from '@/lib/utils'
 import { CustomerServiceFloating } from '@/components/customer-service'
 import { ErrorBoundary } from '@/components/error-boundary'
 
-import i18next from 'i18next'
+
 
 
 
@@ -226,7 +226,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
   const location = useLocation()
 
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const { auth } = useAuthStore()
 
@@ -465,7 +465,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
 
 function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
-  const { t, i18n } = useTranslation()
+  const { t } = useT()
 
   const { resolvedTheme, setTheme, theme } = useTheme()
 
@@ -524,7 +524,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
   const switchLanguage = useCallback((langType: string) => {
     const code = typeToCode[langType] || langType
     i18n.changeLanguage(code)
-    localStorage.setItem('i18nextLng', code)
+    
   }, [i18n])
 
   const cycleTheme = useCallback(() => {
@@ -809,7 +809,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
 function AppLayout() {
 
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const [collapsed, setCollapsed] = useState(true)
 

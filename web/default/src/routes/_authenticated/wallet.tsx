@@ -1,5 +1,5 @@
 ﻿import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign } from 'lucide-react'
@@ -16,7 +16,7 @@ export const Route = createFileRoute('/_authenticated/wallet')({
 })
 
 function WalletPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [redemptionCode, setRedemptionCode] = useState('')
   const [amounts, setAmounts] = useState<Record<string, string>>({})
   const queryClient = useQueryClient()

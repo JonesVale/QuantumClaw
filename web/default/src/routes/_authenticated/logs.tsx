@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -28,7 +28,7 @@ export const Route = createFileRoute('/_authenticated/logs')({
 })
 
 function LogsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [search, setSearch] = useState('')
   const [type, setType] = useState('0')
   const [page, setPage] = useState(1)

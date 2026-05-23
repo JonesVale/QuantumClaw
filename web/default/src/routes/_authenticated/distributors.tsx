@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, RefreshCw, Users } from 'lucide-react'
@@ -35,7 +35,7 @@ async function getDistributors(): Promise<Distributor[]> {
 }
 
 function DistributorsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Distributor | null>(null)

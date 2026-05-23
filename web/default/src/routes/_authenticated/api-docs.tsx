@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import {
   MessageSquare,
@@ -52,7 +52,7 @@ interface EndpointCategory {
 // ── Code Block Component ───────────────────────────────────────────
 
 function CodeBlock({ code, language = 'bash' }: { code: string; language?: string }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [copied, setCopied] = useState(false)
 
   const copyToClipboard = async () => {
@@ -83,7 +83,7 @@ function CodeBlock({ code, language = 'bash' }: { code: string; language?: strin
 // ── Endpoint Card ───────────────────────────────────────────────────
 
 function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [expanded, setExpanded] = useState(false)
   const [keyInput, setKeyInput] = useState('')
   const [result, setResult] = useState<string | null>(null)
@@ -184,7 +184,7 @@ function EndpointCard({ endpoint }: { endpoint: Endpoint }) {
 // ── Category Section ───────────────────────────────────────────────
 
 function CategorySection({ category }: { category: EndpointCategory }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <Card>
       <CardHeader>
@@ -205,7 +205,7 @@ function CategorySection({ category }: { category: EndpointCategory }) {
 // ── Base URL ────────────────────────────────────────────────────────
 
 function BaseUrlBanner() {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
       <Server className="h-4 w-4 text-blue-600 shrink-0" />
@@ -525,7 +525,7 @@ const API_ENDPOINTS: EndpointCategory[] = [
 // ── Page Component ─────────────────────────────────────────────────
 
 function ApiDocsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className=" w-full p-4 sm:p-6 space-y-6">
       {/* Header */}

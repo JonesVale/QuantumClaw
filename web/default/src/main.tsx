@@ -11,7 +11,7 @@ import {
   QueryClientProvider,
 } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import i18next from 'i18next'
+
 import { toast, Toaster } from 'sonner'
 import { useAuthStore } from '@/stores/auth-store'
 import { getStatus } from '@/lib/api'
@@ -39,7 +39,7 @@ const queryClient = new QueryClient({
     mutations: {
       onError: (error) => {
         if (error instanceof AxiosError && error.response?.status === 304) {
-          toast.error(i18next.t('Content not modified!'))
+          toast.error('Content not modified!')
         }
       },
     },
@@ -48,12 +48,12 @@ const queryClient = new QueryClient({
     onError: (error) => {
       if (error instanceof AxiosError) {
         if (error.response?.status === 401) {
-          toast.error(i18next.t('Session expired!'))
+          toast.error('Session expired!')
           useAuthStore.getState().auth.reset()
           window.location.href = '/sign-in'
         }
         if (error.response?.status === 500) {
-          toast.error(i18next.t('Internal Server Error!'))
+          toast.error('Internal Server Error!')
         }
       }
     },

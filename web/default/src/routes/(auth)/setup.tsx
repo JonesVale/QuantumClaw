@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter, redirect } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -30,7 +30,7 @@ export const Route = createFileRoute('/(auth)/setup')({
 })
 
 function SetupPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const router = useRouter()
   const [step, setStep] = useState(0)
   const [loading, setLoading] = useState(false)

@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { RefreshCw, Trophy, TrendingUp, TrendingDown, Zap, Clock, DollarSign, Sparkles } from 'lucide-react'
@@ -53,7 +53,7 @@ const TABS: TabItem[] = [
 
 // ── Fallback mock data ────────────────────────────────────────────
 function RankingsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
   const [seriesFilter, setSeriesFilter] = useState('All')
   const [visibleCount, setVisibleCount] = useState(30)

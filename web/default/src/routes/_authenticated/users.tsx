@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -51,7 +51,7 @@ function UserFormDialog({
   onOpenChange: (open: boolean) => void
   user?: User | null
 }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const isEdit = !!user
   const [form, setForm] = useState<UserFormData>({
@@ -160,7 +160,7 @@ function UserFormDialog({
 }
 
 function UsersPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore();
   const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
   if (!isAdmin) {

@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import {
   ArrowRight,
@@ -134,7 +134,7 @@ function HomePage() {
       .finally(() => setLoadingLangs(false))
   }, [])
 
-  const { i18n, t } = useTranslation()
+  const { t } = useT()
   const [menuOpen, setMenuOpen] = useState(false)
   const [currentLang, setCurrentLang] = useState(i18n.language || 'en')
   const { auth } = useAuthStore()
@@ -239,7 +239,7 @@ function HomePage() {
 
   const changeLang = (code: string) => {
     i18n.changeLanguage(code)
-    localStorage.setItem('i18nextLng', code)
+    
     setCurrentLang(code)
   }
   const langName = (Object.entries(typeToCode).find(([_, code]) => code === currentLang)?.[0]) || currentLang || 'English'

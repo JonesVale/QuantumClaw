@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useNavigate } from '@tanstack/react-router'
 import { MessageSquare, Cpu, DollarSign, Box, Layers } from 'lucide-react'
 import {
@@ -44,7 +44,7 @@ const useCaseLabels: Record<string, { label: string; color: string }> = {
 }
 
 export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDialogProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const navigate = useNavigate()
 
   if (!model) return null

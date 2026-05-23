@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -175,7 +175,7 @@ interface BalanceData {
 const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4', '#84cc16']
 
 function DashboardPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
 
   // ── Fetch dashboard stats ──────────────────────────────────────────────

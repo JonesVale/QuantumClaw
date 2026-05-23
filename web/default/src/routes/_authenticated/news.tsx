@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -70,7 +70,7 @@ function truncateText(text: string, maxLen: number): string {
 }
 
 function ArticleCard({ article }: { article: RssArticle }) {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   return (
     <Card className="flex flex-col h-full">
@@ -116,7 +116,7 @@ function ArticleCard({ article }: { article: RssArticle }) {
 }
 
 function EmptyState({ message }: { message: string }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-3">
       <Newspaper className="h-12 w-12 opacity-30" />
@@ -126,7 +126,7 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function LoadingState() {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
@@ -136,7 +136,7 @@ function LoadingState() {
 }
 
 function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className="flex flex-col items-center justify-center py-16 gap-3">
       <AlertCircle className="h-10 w-10 text-destructive/60" />
@@ -149,7 +149,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 }
 
 function NewsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [activeLang, setActiveLang] = useState<LangTab>('all')
   const [articles, setArticles] = useState<RssArticle[]>([])
   const [loading, setLoading] = useState(true)

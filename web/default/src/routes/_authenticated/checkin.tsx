@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Gift, Calendar, CheckCircle2, Clock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
@@ -46,7 +46,7 @@ export const Route = createFileRoute('/_authenticated/checkin')({
 })
 
 function CheckinPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
 
   const { data: statusData, isLoading, refetch } = useQuery({

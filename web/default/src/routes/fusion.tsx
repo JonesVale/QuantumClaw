@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -51,7 +51,7 @@ const PRESETS = [
 type PresetId = typeof PRESETS[number]['id']
 
 function FusionPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [prompt, setPrompt] = useState('')
   const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [results, setResults] = useState<FusionResult[]>([])

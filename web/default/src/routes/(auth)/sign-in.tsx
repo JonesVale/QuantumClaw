@@ -1,6 +1,6 @@
 import { createFileRoute, redirect, useSearch, useRouter } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/(auth)/sign-in')({
   validateSearch: (search) => ({ redirect: (search.redirect as string) || undefined }),
 })
 function SignInPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
   const router = useRouter()
   const { redirect: redirectUrl } = useSearch({ strict: false })

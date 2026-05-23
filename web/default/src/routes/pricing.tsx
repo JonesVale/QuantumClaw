@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { Search, DollarSign, RefreshCw, Filter } from 'lucide-react'
@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 
-// ── Helper functions ────────────────────────────────────────────────
+// 鈹€鈹€ Helper functions 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 const PROVIDER_META: Record<string, { gradient: string }> = {
   OpenAI: { gradient: 'from-green-600 to-emerald-700' },
   Anthropic: { gradient: 'from-orange-600 to-amber-700' },
@@ -40,7 +40,7 @@ export const Route = createFileRoute('/pricing')({
   component: PricingPage,
 })
 
-// ── Types ─────────────────────────────────────────────────────────
+// 鈹€鈹€ Types 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 interface ModelPricing {
   name: string
   provider: string
@@ -49,9 +49,9 @@ interface ModelPricing {
   status: number
 }
 
-// ── Fallback mock data ────────────────────────────────────────────
+// 鈹€鈹€ Fallback mock data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function PricingPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [search, setSearch] = useState('')
   const [providerFilter, setProviderFilter] = useState('all')
   const [showActiveOnly, setShowActiveOnly] = useState(true)
@@ -111,7 +111,7 @@ function PricingPage() {
   // Reset pagination when filters change
   useEffect(() => setVisibleCount(PAGE_STEP), [search, providerFilter, showActiveOnly])
 
-  // Unique providers - 用 useRef 缓存，减少重复遍历
+  // Unique providers - 鐢?useRef 缂撳瓨锛屽噺灏戦噸澶嶉亶鍘?
   const cachedProviders = useRef<string[]>([])
   const cachedKey = useRef('')
   const currentKey = `${(models||[]).length}-${showActiveOnly}`
@@ -156,7 +156,7 @@ function PricingPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            💰 {t('Model Pricing')}
+            馃挵 {t('Model Pricing')}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base lg:text-lg">
             {t('Transparent pricing across all providers')}

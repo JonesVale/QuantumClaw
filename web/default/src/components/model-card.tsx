@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { ProviderIcon } from '@/components/provider-icon'
@@ -10,13 +10,13 @@ export interface ModelCardProps {
 }
 
 export function ModelCard({ model, onDetail }: ModelCardProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const isActive = model.status === 1
 
   return (
     <Card
-      className="group cursor-pointer transition-all duration-200 hover:shadow-lg hover:border-primary/30 hover:-translate-y-0.5"
+      className="group cursor-pointer transition-all duration-200 hover:-translate-y-0.5 border-0 shadow-none bg-transparent"
       onClick={() => onDetail(model)}
     >
       <CardContent className="p-4 sm:p-5">
@@ -36,11 +36,11 @@ export function ModelCard({ model, onDetail }: ModelCardProps) {
         {/* Bottom row: prices + status */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1 rounded-md bg-muted/60 px-2 py-0.5">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5">
               <span className="font-medium text-emerald-600 dark:text-emerald-400">IN</span>
               ${model.input_price.toFixed(4)}/1K
             </span>
-            <span className="inline-flex items-center gap-1 rounded-md bg-muted/60 px-2 py-0.5">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5">
               <span className="font-medium text-amber-600 dark:text-amber-400">OUT</span>
               ${model.output_price.toFixed(4)}/1K
             </span>

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import {
@@ -35,7 +35,7 @@ const useCaseLabels: Record<string, { label: string; icon: React.ElementType; co
 type SortOption = 'name' | 'price-asc' | 'price-desc'
 
 function ModelsPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
   const [search, setSearch] = useState('')
   const [useCaseFilter, setUseCaseFilter] = useState('all')

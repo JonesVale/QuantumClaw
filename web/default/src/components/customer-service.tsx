@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { MessageCircle, X, MessageSquare, ChevronDown, Bot, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -14,7 +14,7 @@ const WECHAT = '634165717'
 export function CustomerServiceFloating() {
   const [open, setOpen] = useState(false)
   const [expanded, setExpanded] = useState<string | null>(null)
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
 

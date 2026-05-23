@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Save, Shield, Key, Smartphone, Fingerprint, Plus, Trash2, QrCode, Copy, User, Store } from 'lucide-react'
@@ -20,7 +20,7 @@ export const Route = createFileRoute('/_authenticated/profile')({
 })
 
 function ProfilePage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
   const user = auth.user
   const queryClient = useQueryClient()

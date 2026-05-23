@@ -1,5 +1,5 @@
 ﻿import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Code, Mail, Globe, Shield, Server } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -8,7 +8,7 @@ export const Route = createFileRoute('/_authenticated/about')({
 })
 
 function AboutPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <div className=" w-full p-4 sm:p-6 space-y-6">
       {/* Header */}

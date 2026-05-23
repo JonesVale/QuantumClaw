@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
 import { ClipboardList, RefreshCw, Clock, CheckCircle2, AlertCircle, Shield } from 'lucide-react'
@@ -31,7 +31,7 @@ export const Route = createFileRoute('/_authenticated/tasks')({
 })
 
 function TaskLogsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore();
   const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
   if (!isAdmin) {

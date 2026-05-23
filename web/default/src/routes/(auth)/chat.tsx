@@ -11,7 +11,7 @@
  */
 
 import { createFileRoute, redirect } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import ReactMarkdown from 'react-markdown'
@@ -156,7 +156,7 @@ async function* streamOllamaResponse(response: Response): AsyncGenerator<string>
 // ── Main Chat Page Component ────────────────────────────
 
 function ChatPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useT()
 
   const { auth } = useAuthStore()
 

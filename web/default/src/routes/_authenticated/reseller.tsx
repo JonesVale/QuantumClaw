@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { Plus, Key, ExternalLink, Copy, RefreshCw, TrendingUp, PieChart } from 'lucide-react'
@@ -23,7 +23,7 @@ export const Route = createFileRoute('/_authenticated/reseller')({
 })
 
 function ResellerPortal() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const { auth } = useAuthStore()
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)

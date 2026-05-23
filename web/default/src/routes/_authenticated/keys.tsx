@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -80,7 +80,7 @@ function TokenFormDialog({
   onOpenChange: (open: boolean) => void
   token?: Token | null
 }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const isEdit = !!token
   const [newKey, setNewKey] = useState<string | null>(null)
@@ -253,7 +253,7 @@ function DeleteConfirmDialog({
   onConfirm: () => void
   pending: boolean
 }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm">
@@ -282,7 +282,7 @@ function DeleteConfirmDialog({
 // ─── KeysPage (main) ────────────────────────────────────────────────────────
 
 function KeysPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const [search, setSearch] = useState('')
   const [dialogOpen, setDialogOpen] = useState(false)

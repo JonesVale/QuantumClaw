@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Atom, Cpu, Clock, Database, Zap, BarChart3, Play, Loader2, History, Terminal } from 'lucide-react'
@@ -104,7 +104,7 @@ measure q -> c;`
 type TabKey = 'overview' | 'submit' | 'history'
 
 function QuantumPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [activeTab, setActiveTab] = useState<TabKey>('overview')
   const [qasm, setQasm] = useState(sampleQasm)
   const [selectedProvider, setSelectedProvider] = useState('ionq')

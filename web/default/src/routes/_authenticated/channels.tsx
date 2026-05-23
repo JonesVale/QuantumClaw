@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -78,7 +78,7 @@ function ChannelFormDialog({
   channel?: Channel | null
   creatingNew?: boolean
 }) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const queryClient = useQueryClient()
   const isEdit = !!channel
 
@@ -474,7 +474,7 @@ function ChannelFormDialog({
 }
 
 function ChannelsPage() {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<string>('all')
   const [typeCategory, setTypeCategory] = useState<string>('all')

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { User, Bot, Copy, Check, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -79,7 +79,7 @@ function SimpleMarkdown({ content }: { content: string }) {
 }
 
 export function MessageBubble({ message, isLast, onRegenerate, streaming }: MessageBubbleProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const [copied, setCopied] = useState(false)
 
   const copyMessage = async () => {

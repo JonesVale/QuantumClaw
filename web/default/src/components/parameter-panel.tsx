@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/textarea'
@@ -32,7 +32,7 @@ interface ParameterPanelProps {
 }
 
 export function ParameterPanel({ params, onParamsChange, onClose }: ParameterPanelProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
 
   const update = (key: keyof ChatParams, value: number | string) => {
     onParamsChange({ ...params, [key]: value })

@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next'
+import { useT } from '@/lib/use-t'
 import { useNavigate } from '@tanstack/react-router'
 import { Cpu, DollarSign, Box, Layers, Play } from 'lucide-react'
 import {
@@ -45,7 +45,7 @@ function ComparisonCell({
 }
 
 export function ModelComparisonDialog({ open, onOpenChange, models }: ModelComparisonDialogProps) {
-  const { t } = useTranslation()
+  const { t } = useT()
   const navigate = useNavigate()
 
   if (!models || models.length === 0) return null
