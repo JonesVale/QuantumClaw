@@ -69,6 +69,7 @@ type RssSource struct {
 	Name     string
 	FeedURL  string
 	Language string
+	Enabled  bool
 }
 
 // RssSources returns the list of RSS/Atom feeds to fetch.
@@ -80,57 +81,68 @@ func RssSources() []RssSource {
 			Name:     "机器之心",
 			FeedURL:  "https://www.jiqizhixin.com/feed",
 			Language: "zh",
+			Enabled:  false, // RSS feed deprecated (returns HTML, not RSS)
 		},
 		{
 			Name:     "量子位",
 			FeedURL:  "https://www.qbitai.com/feed",
 			Language: "zh",
+			Enabled:  true,
 		},
 		{
 			Name:     "36氪 AI",
 			FeedURL:  "https://36kr.com/feed",
 			Language: "zh",
+			Enabled:  true,
 		},
 		{
 			Name:     "雷锋网",
-			FeedURL:  "https://www.leiphone.com/feed/category/ai",
+			FeedURL:  "https://www.leiphone.com/feed",
 			Language: "zh",
+			Enabled:  true, // Fixed from /feed/category/ai to /feed
 		},
 		// ── English ──
 		{
 			Name:     "OpenAI Blog",
 			FeedURL:  "https://openai.com/blog/feed.xml",
 			Language: "en",
+			Enabled:  false, // OpenAI no longer serves RSS (HTTP 403)
 		},
 		{
 			Name:     "Anthropic",
 			FeedURL:  "https://www.anthropic.com/blog/feed.xml",
 			Language: "en",
+			Enabled:  false, // Anthropic RSS feed not available (HTTP 404)
 		},
 		{
 			Name:     "Google AI",
 			FeedURL:  "https://feeds.feedburner.com/blogspot/gJZg",
 			Language: "en",
+			Enabled:  true,
 		},
 		{
 			Name:     "MIT Tech Review",
 			FeedURL:  "https://www.technologyreview.com/topic/artificial-intelligence/feed/",
 			Language: "en",
+			Enabled:  true,
 		},
 		{
 			Name:     "ArXiv",
 			FeedURL:  "https://export.arxiv.org/rss/cs.AI",
 			Language: "en",
+			Enabled:  true,
 		},
 		{
 			Name:     "Hugging Face",
 			FeedURL:  "https://huggingface.co/blog/feed.xml",
 			Language: "en",
+			Enabled:  true,
 		},
 		{
 			Name:     "Reddit AI",
 			FeedURL:  "https://www.reddit.com/r/artificial/.rss",
 			Language: "en",
+			Enabled:  true,
 		},
 	}
 }
@@ -349,6 +361,10 @@ func StartRssService(ctx context.Context) {
 	// Do an initial fetch on startup
 	sources := RssSources()
 	for _, source := range sources {
+		if !source.Enabled {
+			logger.SysLog(fmt.Sprintf("RSS source [%s] is disabled, skipping", source.Name))
+			continue
+		}
 		select {
 		case <-ctx.Done():
 			logger.SysLog("RSS fetch service stopped (context cancelled)")
@@ -377,6 +393,10 @@ func StartRssService(ctx context.Context) {
 				case <-ctx.Done():
 					return
 				default:
+				}
+
+				if !source.Enabled {
+					continue
 				}
 
 				if !rssRateLimiter.canFetch(source.Name, 10*time.Minute) {

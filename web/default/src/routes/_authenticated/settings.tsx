@@ -3,7 +3,7 @@ import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Settings, DollarSign, Gauge, UserPlus, Mail, Lock, Bell, Zap, Shield, Server, Smartphone, Copy, Clock, Monitor, Globe, QrCode } from 'lucide-react'
+import { Save, Settings, DollarSign, Gauge, UserPlus, Mail, Lock, Bell, Zap, Shield, Server, Smartphone, Copy, Clock, Monitor, Globe, QrCode, Key, Plus, Trash2, Fingerprint } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -129,6 +129,25 @@ function SettingsPage() {
   const [ipWhitelist, setIpWhitelist] = useState('')
   const [ipBlacklist, setIpBlacklist] = useState('')
   const [ssrfProtection, setSsrfProtection] = useState(false)
+
+  // WebAuthn credentials
+  const [webauthnCredentials, setWebauthnCredentials] = useState<any[]>([])
+  const [registeringWebAuthn, setRegisteringWebAuthn] = useState(false)
+
+  useQuery({
+    queryKey: ['settings-webauthn-credentials'],
+    queryFn: async () => {
+      try {
+        const res = await fetch('/api/user/self/webauthn/credentials')
+        const data = await res.json()
+        if (data.success) {
+          setWebauthnCredentials(data.data || [])
+        }
+      } catch {}
+      return []
+    },
+    staleTime: 10 * 1000,
+  })
 
   // 2FA states
   const [twoFAStatus, setTwoFAStatus] = useState(false)
@@ -499,6 +518,114 @@ function SettingsPage() {
                     </Button>
                     <Button variant="outline" size="sm" onClick={() => { setDisabling2FA(false); setDisableCode('') }}>{t('Cancel')}</Button>
                   </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* WebAuthn Security Keys Section */}
+          <Card className="mt-4">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Fingerprint className="h-4 w-4" />{t('WebAuthn Security Keys')}</CardTitle><CardDescription>{t('Manage your passkeys and security keys')}</CardDescription></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center gap-2 mb-2">
+                <p className="text-sm text-muted-foreground flex-1">{t('Use biometrics, security keys, or platform authenticators for passwordless sign-in')}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={registeringWebAuthn}
+                  onClick={async () => {
+                    setRegisteringWebAuthn(true)
+                    try {
+                      const beginRes = await fetch('/api/webauthn/register/begin', { method: 'POST' })
+                      const beginData = await beginRes.json()
+                      if (!beginData.success) {
+                        toast.error(beginData.message || t('Failed to start registration'))
+                        return
+                      }
+                      const rawData = beginData.data as any
+                      if (rawData.challenge) {
+                        const challengeStr = rawData.challenge as string
+                        rawData.challenge = Uint8Array.from(atob(challengeStr), c => c.charCodeAt(0))
+                      }
+                      if (rawData.user?.id) {
+                        const userIdStr = rawData.user.id as string
+                        rawData.user.id = Uint8Array.from(atob(userIdStr), c => c.charCodeAt(0))
+                      }
+                      const credential = await navigator.credentials.create({ publicKey: rawData as PublicKeyCredentialCreationOptions })
+                      if (!credential) {
+                        toast.error(t('Registration cancelled'))
+                        return
+                      }
+                      const finishRes = await fetch('/api/webauthn/register/finish', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: credential.id,
+                          rawId: credential.id,
+                          type: credential.type,
+                          response: (credential as PublicKeyCredential).response,
+                        }),
+                      })
+                      const finishData = await finishRes.json()
+                      if (finishData.success) {
+                        toast.success(t('Security key registered'))
+                        queryClient.invalidateQueries({ queryKey: ['settings-webauthn-credentials'] })
+                      } else {
+                        toast.error(finishData.message || t('Failed to register security key'))
+                      }
+                    } catch (err: any) {
+                      toast.error(err?.message || t('Failed to register security key'))
+                    } finally {
+                      setRegisteringWebAuthn(false)
+                    }
+                  }}
+                >
+                  <Plus className="mr-1 h-3 w-3" />
+                  {registeringWebAuthn ? t('Registering...') : t('Register New Key')}
+                </Button>
+              </div>
+              {webauthnCredentials.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">
+                  <Key className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                  <p>{t('No security keys registered yet')}</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {webauthnCredentials.map((cred: any) => (
+                    <div
+                      key={cred.id || cred.credential_id}
+                      className="flex items-center justify-between p-3 rounded-xl border gap-2"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Fingerprint className="h-5 w-5 text-primary shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">{cred.device_name || t('Security Key')}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {t('Registered')}: {cred.created_time ? new Date(cred.created_time * 1000).toLocaleDateString() : '-'}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                        onClick={async () => {
+                          const res = await fetch(`/api/user/self/webauthn/credentials/${cred.credential_id}`, {
+                            method: 'DELETE',
+                          })
+                          const data = await res.json()
+                          if (data.success) {
+                            toast.success(t('Security key removed'))
+                            queryClient.invalidateQueries({ queryKey: ['settings-webauthn-credentials'] })
+                          } else {
+                            toast.error(data.message || t('Failed to remove security key'))
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>
