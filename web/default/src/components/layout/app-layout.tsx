@@ -357,7 +357,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
       {/* Collapse Toggle */}
 
-      <div className="border-t p-2">
+      <div className="border-t border-border/20 p-2">
 
         <Button
 
