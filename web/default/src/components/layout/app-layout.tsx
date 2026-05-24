@@ -275,6 +275,7 @@ const GROUP_LABEL_KEYS: Record<string, string> = {
   '': '',
   'management': 'Management',
   'account': 'Account',
+  'quantum': 'Quantum Computing',
 }
 
 // ---------------------------------------------------------------------------

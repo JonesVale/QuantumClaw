@@ -60,8 +60,9 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/models', icon: 'Box', labelKey: 'Models', groupName: '' },
   { path: '/rankings', icon: 'TrendingUp', labelKey: 'Rankings', groupName: '' },
   { path: '/pricing', icon: 'DollarSign', labelKey: 'Pricing', groupName: '' },
-  { path: '/quantum', icon: 'Atom', labelKey: 'Quantum', groupName: '' },
-  { path: '/fusion', icon: 'GitCompare', labelKey: 'Fusion', groupName: '' },
+  { path: '/quantum', icon: 'Atom', labelKey: 'Quantum', groupName: 'quantum' },
+  { path: '/fusion', icon: 'GitCompare', labelKey: 'Fusion', groupName: 'quantum' },
+  { path: '/quantum', icon: 'Dice', labelKey: 'QRNG Generator', groupName: 'quantum' },
   { path: '/apps', icon: 'Sparkles', labelKey: 'Apps', groupName: '' },
   { path: '/enterprise', icon: 'Building2', labelKey: 'Enterprise', groupName: '' },
   // Management group

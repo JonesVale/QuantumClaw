@@ -60,7 +60,7 @@ function HomePage() {
           </div>
           <div className="qc-fade-up qc-fade-up-5 flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-muted-foreground">
             {[{ icon: icons.bolt, text: 'No GPU Required' }, { icon: icons.layers, text: 'Pay Per Token' }, { icon: icons.shield, text: '99.9% Uptime' }, { icon: icons.cpu, text: 'Reseller Ready' }].map(item => (
-              <span key={item.text} className="flex items-center gap-2.5"><span className="text-orange-500">{item.icon}</span>{item.text}</span>
+              <span key={item.key} className="flex items-center gap-2.5"><span className="text-orange-500">{item.icon}</span>{t(item.key)}</span>
             ))}
           </div>
         </div>
