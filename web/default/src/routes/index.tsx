@@ -52,7 +52,7 @@ function HomePage() {
             Unified Access to<br /><span className="qc-gradient-text">400+ AI Models</span>
           </h1>
           <p className="qc-fade-up qc-fade-up-3 qc-text-body qc-readable-width text-muted-foreground mt-6 leading-relaxed">
-            Access leading AI models and quantum computing resources through a single, unified endpoint. OpenAI SDK compatible, real-time billing, transparent settlement.
+            Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.
           </p>
           <div className="qc-fade-up qc-fade-up-4 flex flex-wrap items-center justify-center gap-4 mt-10">
             <Link to="/models"><button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3.5 text-base font-semibold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 transition-all">{t('Browse Models')} {icons.arrowR}</button></Link>
@@ -69,7 +69,7 @@ function HomePage() {
       {/* ═══ PROMO CAROUSEL ═══ */}
       <section className="qc-section-pad-sm">
         <div className="qc-wrap">
-          <PromoCarousel pageKey="home" />
+          <PromoCarousel large pageKey="home" />
         </div>
       </section>
 
@@ -86,9 +86,10 @@ function HomePage() {
             )) : (
               <>
                 <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">400+</div><div className="text-sm font-semibold mt-2">AI Models</div><div className="text-xs text-muted-foreground mt-1">Chat, Code, Vision, Audio</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">60+</div><div className="text-sm font-semibold mt-2">Providers</div><div className="text-xs text-muted-foreground mt-1">OpenAI, Anthropic, Google</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">50M+</div><div className="text-sm font-semibold mt-2">Daily Tokens</div><div className="text-xs text-muted-foreground mt-1">Processed per day</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">60+</div><div className="text-sm font-semibold mt-2">Providers</div><div className="text-xs text-muted-foreground mt-1">Leading AI providers integrated</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">50M+</div><div className="text-sm font-semibold mt-2">Daily Tokens</div><div className="text-xs text-muted-foreground mt-1">Processed daily</div></div>
                 <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">99.9%</div><div className="text-sm font-semibold mt-2">Uptime SLA</div><div className="text-xs text-muted-foreground mt-1">Enterprise grade</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">30K+</div><div className="text-sm font-semibold mt-2">Developers</div><div className="text-xs text-muted-foreground mt-1">Active on platform</div></div>
               </>
             )}
           </div>
@@ -101,14 +102,14 @@ function HomePage() {
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">Core Features</div>
             <h2 className="qc-title-section font-bold tracking-tight text-foreground">QuantumClaw, <span className="qc-gradient-text">Every Model</span></h2>
-            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">Access leading AI models through a single OpenAI-compatible API endpoint with intelligent routing and real-time analytics.</p>
+            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">Access leading AI models through a single unified API endpoint with intelligent routing and real-time analytics.</p>
           </div>
           <div className="qc-grid-auto gap-6">
             {(features.length > 0 ? features : [
-              { key: 'chat', title: 'Chat & Assistant', desc: 'GPT-4, Claude, Gemini and more chat models at your fingertips.', icon_name: 'bolt' },
-              { key: 'code', title: 'Code Generation', desc: 'DeepSeek Coder, Code Llama, Qwen Coder for any programming task.', icon_name: 'cpu' },
+              { key: 'chat', title: 'Chat & Assistant', desc: 'Top-tier chat models for every use case, unified in one API.', icon_name: 'bolt' },
+              { key: 'code', title: 'Code Generation', desc: 'High-performance code models for generation, review, and debugging.', icon_name: 'cpu' },
               { key: 'reason', title: 'Reasoning & Logic', desc: 'Advanced reasoning models for complex problem-solving and analysis.', icon_name: 'layers' },
-              { key: 'quantum', title: 'Quantum Computing', desc: 'Access IonQ, IBM, Rigetti quantum processors through unified API.', icon_name: 'shield' },
+              { key: 'quantum', title: 'Quantum Computing', desc: 'Quantum processors accessible via unified API — trapped-ion, superconducting, and more.', icon_name: 'shield' },
             ]).map((f, i) => (
               <div key={f.key} className={`qc-card-hover rounded-2xl border border-border/50 bg-white p-6 sm:p-8 qc-fade-up qc-fade-up-${i + 1}`}>
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 text-white shadow-md shadow-orange-500/10">
@@ -174,7 +175,7 @@ function HomePage() {
           <div className="qc-grid-auto gap-10">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">{icons.layers}</div>
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"><img src="/logo.webp" alt="QuantumClaw" className="w-6 h-6 object-contain" /></div>
                 <span className="text-base font-bold text-foreground">QuantumClaw</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">AI API Gateway & Token Distribution Platform</p>

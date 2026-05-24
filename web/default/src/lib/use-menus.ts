@@ -77,6 +77,7 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/reseller-admin', icon: 'Store', labelKey: 'Reseller Management', groupName: 'management' },
   { path: '/settlement', icon: 'Percent', labelKey: 'Settlement Config', groupName: 'management' },
   { path: '/transactions', icon: 'Receipt', labelKey: 'Transactions', groupName: 'management' },
+  { path: '/promo-ads', icon: 'Megaphone', labelKey: 'Promo Ads', groupName: 'management' },
   { path: '/platform-settings', icon: 'Settings', labelKey: 'Platform Settings', groupName: 'management' },
   { path: '/reseller', icon: 'Store', labelKey: 'Reseller Portal', groupName: 'management' },
   { path: '/reseller-keys', icon: 'Key', labelKey: 'My Keys', groupName: 'management' },
@@ -207,7 +208,7 @@ function getFallbackSidebar(role: number): SidebarMenuItem[] {
     if (item.groupName === 'management') {
       // Admin-only items
       const adminOnlyPaths = ['/users', '/redemption', '/distributors', '/admin-tools',
-        '/profit', '/reseller-admin', '/settlement', '/transactions', '/platform-settings']
+        '/profit', '/reseller-admin', '/settlement', '/transactions', '/platform-settings', '/promo-ads']
       const loginRequiredPaths = ['/keys', '/logs', '/monitoring', '/reseller', '/reseller-keys']
       const publicPaths = ['/news']
 

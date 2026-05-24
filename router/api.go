@@ -175,6 +175,19 @@ func SetApiRouter(router *gin.Engine) {
 		// Menu permission routes (public - filtered by user role, guest-friendly)
 		apiRouter.GET("/menus", controller.GetMenus)
 
+		// Promo ads (public)
+		apiRouter.GET("/promo-ads", controller.GetPromoAds)
+
+		// Promo ads (admin only)
+		adminPromoRoute := apiRouter.Group("/admin/promo-ads")
+		adminPromoRoute.Use(middleware.AdminAuth())
+		{
+			adminPromoRoute.GET("/", controller.AdminGetAllPromoAds)
+			adminPromoRoute.POST("/", controller.AdminCreatePromoAd)
+			adminPromoRoute.PUT("/", controller.AdminUpdatePromoAd)
+			adminPromoRoute.DELETE("/:id", controller.AdminDeletePromoAd)
+		}
+
 		// Menu permission routes (admin only)
 		adminMenuRoute := apiRouter.Group("/admin/menus")
 		adminMenuRoute.Use(middleware.AdminAuth())

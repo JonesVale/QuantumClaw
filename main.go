@@ -107,6 +107,9 @@ func main() {
 	// Initialize distributor tables
 	model.InitDistributorTables()
 
+	// Initialize promo ads tables
+	model.InitPromoAdsTables()
+
 	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
 	go func() {
 		time.Sleep(30 * time.Second)

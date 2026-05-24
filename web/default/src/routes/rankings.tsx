@@ -1,9 +1,9 @@
 ﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { PromoCarousel } from '@/components/promo-carousel'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import type { ModelRanking } from '@/lib/api-extended'
+import { PromoCarousel } from '@/components/promo-carousel'
 
 export const Route = createFileRoute('/rankings')({
   component: RankingsPage,
@@ -55,18 +55,12 @@ function RankingsPage() {
   return (
     <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
-        <div className="mb-8">
+        <div className="mb-6">
           <PromoCarousel pageKey="rankings" />
         </div>
-        <div className="qc-fade-up text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">{t('Real-time Rankings')}</div>
-          <h1 className="qc-title-hero font-bold tracking-tight text-foreground">{t('Model Rankings')}</h1>
-          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed mx-auto">{t('See which models are trending. Sorted by real usage across the platform.')}</p>
-        </div>
-
         <div className="flex gap-8">
           {/* Sidebar */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-56'}`}>
+          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-72'}`}>
             <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 space-y-1">
               {collapse ? (
                 <div className="space-y-1">
@@ -75,13 +69,13 @@ function RankingsPage() {
               ) : (
                 <>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Sort By')}</span>
-                    <button onClick={()=>setCollapse(true)} className="w-6 h-6 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
+                    <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Sort By')}</span>
+                    <button onClick={()=>setCollapse(true)} className="w-7 h-7 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
                   </div>
                   {TABS.map(tab=>(
                     <button key={tab.key} onClick={()=>setSortKey(tab.key)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${sortKey===tab.key?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-                      <span className="text-base w-5 text-center">{tab.icon}</span>
+                      className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${sortKey===tab.key?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
+                      <span className="text-base w-6 text-center">{tab.icon}</span>
                       <span>{t(tab.label)}</span>
                     </button>
                   ))}

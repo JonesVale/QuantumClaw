@@ -128,8 +128,8 @@ import { signOut } from '@/lib/api-extended'
 import { cn } from '@/lib/utils'
 import { CustomerServiceFloating } from '@/components/customer-service'
 import { ErrorBoundary } from '@/components/error-boundary'
-import { useSidebarMenus, groupSidebarMenus, type SidebarMenuItem } from '@/lib/use-menus'
 import { PromoCarousel } from '@/components/promo-carousel'
+import { useSidebarMenus, groupSidebarMenus, type SidebarMenuItem } from '@/lib/use-menus'
 
 
 
@@ -348,13 +348,13 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
       <Link
         to={item.path}
         className={cn(
-          'flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-base font-medium transition-colors',
+          'flex items-center gap-4 rounded-xl px-4 py-3 text-base font-medium transition-colors',
           active
             ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm'
             : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/40'
         )}
       >
-        <Icon className="h-5 w-5 shrink-0" />
+        <Icon className="h-6 w-6 shrink-0" />
         {!collapsed && <span>{t(item.labelKey)}</span>}
       </Link>
     )
@@ -372,22 +372,22 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   }
 
   return (
-    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-4 w-60">
+    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 w-72">
 
       {/* Brand Header */}
-      <div className="flex h-14 items-center px-3">
+      <div className="flex h-16 items-center px-4">
         <Link to="/" className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
-            <img src="/logo.webp" alt="QuantumClaw" className="w-6 h-6 object-contain" />
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
+            <img src="/logo.webp" alt="QuantumClaw" className="w-8 h-8 object-contain" />
           </div>
           {!collapsed && (
-            <span className="text-base font-bold tracking-tight">{t('QuantumClaw')}</span>
+            <span className="text-lg font-bold tracking-tight">{t('QuantumClaw')}</span>
           )}
         </Link>
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-3 py-2">
+      <ScrollArea className="flex-1 px-4 py-2">
         <div className="space-y-1">
           {Object.entries(sidebarGroups).map(([group, items]) => {
             if (items.length === 0) return null
@@ -395,8 +395,8 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
               <div key={group || '__default'}>
                 {/* Group label for non-empty group names */}
                 {group && !collapsed && (
-                  <div className="px-3 py-2 mb-1.5">
-                    <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">
+                  <div className="px-3 py-2.5 mb-1.5">
+                    <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">
                       {t(GROUP_LABEL_KEYS[group] || group)}
                     </span>
                   </div>
@@ -411,14 +411,14 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
       </ScrollArea>
 
       {/* Collapse Toggle */}
-      <div className="border-t border-border/20 p-2">
+      <div className="border-t border-border/20 p-3">
         <Button
           variant="ghost"
           size="icon"
           className="w-full"
           onClick={onToggle}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </Button>
       </div>
 
@@ -690,7 +690,7 @@ function AppLayout() {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-60 transition-transform duration-200 md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 md:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
@@ -701,7 +701,7 @@ function AppLayout() {
       <div className="flex-1 min-w-0">
 
         <main className="p-3 sm:p-4 md:p-6">
-          <div className="qc-wrapper mb-6">
+          <div className="mb-4">
             <PromoCarousel
               pageKey={
                 location.pathname === '/dashboard' ? 'dashboard' :

@@ -1,24 +1,24 @@
 /**
  * QuantumClaw - PromoCarousel Component
  *
- * Per-page rotating advertisement carousel with glass-morphism styling,
- * automatic rotation, hover pause, arrows, and pagination dots.
+ * Continuous horizontal scrolling marquee of model/resource ads.
+ * Fetches ads from API, falls back to hardcoded defaults.
+ * When `large` prop is true (homepage), content is displayed 3x bigger.
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useRef } from 'react'
 import { Link } from '@tanstack/react-router'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useT } from '@/lib/use-t'
+import { useQuery } from '@tanstack/react-query'
+import apiClient from '@/lib/api'
 
 // ─── Types ──────────────────────────────────────────────────────────
 export interface AdItem {
-  titleKey: string
-  descKey: string
-  ctaKey: string
-  ctaTo: string
-  gradient: string  // e.g. 'from-amber-400 to-orange-500'
-  icon?: string     // emoji
+  id?: number
+  icon: string
+  title: string
+  link_url: string
 }
 
 export type PromoPageKey =
@@ -30,263 +30,95 @@ export type PromoPageKey =
   | 'enterprise'
   | 'dashboard'
 
-// ─── Per-page Ad Data ──────────────────────────────────────────────
-// Keys are translation keys resolved via useT()
-const PAGE_ADS: Record<PromoPageKey, AdItem[]> = {
-  home: [
-    {
-      titleKey: 'Quantum API Gateway',
-      descKey: 'Enterprise-grade AI gateway with 30+ model providers, real-time billing, and intelligent routing.',
-      ctaKey: 'Explore Models',
-      ctaTo: '/models',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '⚡',
-    },
-    {
-      titleKey: 'Multi-Model Fusion',
-      descKey: 'Combine GPT-4o, Claude, Gemini and more into a single unified API with automatic failover.',
-      ctaKey: 'View Pricing',
-      ctaTo: '/pricing',
-      gradient: 'from-violet-500 to-purple-600',
-      icon: '🧬',
-    },
-    {
-      titleKey: 'Quantum Random Generator',
-      descKey: 'True quantum random number generation via ANU QRNG — provably unpredictable.',
-      ctaKey: 'Learn More',
-      ctaTo: '/quantum',
-      gradient: 'from-emerald-500 to-teal-600',
-      icon: '🔮',
-    },
-  ],
-  models: [
-    {
-      titleKey: 'GPT-4o — Free Trial',
-      descKey: 'Experience OpenAI\'s flagship multimodal model with vision, audio, and text capabilities.',
-      ctaKey: 'Try Now',
-      ctaTo: '/playground',
-      gradient: 'from-emerald-400 to-green-500',
-      icon: '🤖',
-    },
-    {
-      titleKey: 'Claude Opus 4',
-      descKey: 'Anthropic\'s most capable model for complex reasoning, code generation, and analysis.',
-      ctaKey: 'View Details',
-      ctaTo: '/models',
-      gradient: 'from-blue-500 to-indigo-600',
-      icon: '🧠',
-    },
-    {
-      titleKey: 'DeepSeek V3 — 90% Cheaper',
-      descKey: 'Chinese reasoning model at a fraction of the cost. Ideal for bulk inference.',
-      ctaKey: 'Compare Pricing',
-      ctaTo: '/pricing',
-      gradient: 'from-rose-400 to-pink-500',
-      icon: '💰',
-    },
-  ],
-  pricing: [
-    {
-      titleKey: 'Pay-As-You-Go',
-      descKey: 'No monthly commitments. Pay only for what you use with transparent per-token pricing.',
-      ctaKey: 'Calculate Cost',
-      ctaTo: '/pricing',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '💳',
-    },
-    {
-      titleKey: 'Enterprise Plan',
-      descKey: 'Volume discounts, dedicated support, custom SLAs, and on-premise deployment options.',
-      ctaKey: 'Contact Sales',
-      ctaTo: '/enterprise',
-      gradient: 'from-violet-500 to-purple-600',
-      icon: '🏢',
-    },
-  ],
-  rankings: [
-    {
-      titleKey: 'Weekly Model Rankings',
-      descKey: 'Real-time performance data across all major models — speed, quality, and cost efficiency.',
-      ctaKey: 'See Rankings',
-      ctaTo: '/rankings',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '🏆',
-    },
-    {
-      titleKey: 'Best Value Models',
-      descKey: 'Top-performing models ranked by cost-per-token for budget-conscious deployments.',
-      ctaKey: 'View Pricing',
-      ctaTo: '/pricing',
-      gradient: 'from-teal-400 to-emerald-500',
-      icon: '⭐',
-    },
-  ],
-  apps: [
-    {
-      titleKey: 'AI Chat Playground',
-      descKey: 'Test any model instantly in our interactive chat interface — no API key required.',
-      ctaKey: 'Open Playground',
-      ctaTo: '/playground',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '💬',
-    },
-    {
-      titleKey: 'API Key Management',
-      descKey: 'Generate, rotate, and monitor API keys with granular permission controls.',
-      ctaKey: 'Manage Keys',
-      ctaTo: '/keys',
-      gradient: 'from-blue-500 to-indigo-600',
-      icon: '🔑',
-    },
-  ],
-  enterprise: [
-    {
-      titleKey: 'Dedicated Infrastructure',
-      descKey: 'Private clusters, custom model fine-tuning, and 24/7 dedicated support team.',
-      ctaKey: 'Contact Us',
-      ctaTo: '/enterprise',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '🏗️',
-    },
-    {
-      titleKey: 'SLA Guaranteed',
-      descKey: '99.9% uptime SLA with multi-region failover and comprehensive monitoring.',
-      ctaKey: 'Learn More',
-      ctaTo: '/enterprise',
-      gradient: 'from-emerald-500 to-teal-600',
-      icon: '✅',
-    },
-  ],
-  dashboard: [
-    {
-      titleKey: 'Welcome to QuantumClaw',
-      descKey: 'Your centralized AI API hub. Monitor usage, manage keys, and track costs in real time.',
-      ctaKey: 'View API Keys',
-      ctaTo: '/keys',
-      gradient: 'from-amber-400 to-orange-500',
-      icon: '👋',
-    },
-    {
-      titleKey: 'Need Help Getting Started?',
-      descKey: 'Browse our API documentation or try out models in the playground for free.',
-      ctaKey: 'API Docs',
-      ctaTo: '/api-docs',
-      gradient: 'from-violet-500 to-purple-600',
-      icon: '📖',
-    },
-  ],
-}
+// ─── Hardcoded fallback ads ─────────────────────────────────────────
+const FALLBACK_ADS: AdItem[] = [
+  { icon: '🤖', title: 'GPT-4o — Multimodal Vision & Audio', link_url: '/models' },
+  { icon: '🧠', title: 'Claude Sonnet 4 — Code & Reasoning', link_url: '/models' },
+  { icon: '💎', title: 'DeepSeek V3 — 90% Cost Saving', link_url: '/models' },
+  { icon: '🟢', title: 'Gemini 2.5 Pro — Long Context 1M', link_url: '/models' },
+  { icon: '⚡', title: 'Groq — Ultra-Fast Inference', link_url: '/models' },
+  { icon: '📐', title: 'Mistral Large — Precision & Control', link_url: '/models' },
+  { icon: '🔮', title: 'Quantum Computing API — IonQ & IBM', link_url: '/quantum' },
+  { icon: '🎲', title: 'Quantum Random Generator — ANU QRNG', link_url: '/quantum' },
+  { icon: '🔄', title: 'Multi-Model Fusion — Auto Failover', link_url: '/fusion' },
+  { icon: '⚡', title: '99.9% Uptime SLA — Enterprise Ready', link_url: '/enterprise' },
+  { icon: '💰', title: 'Pay Per Token — Only for What You Use', link_url: '/pricing' },
+  { icon: '🛡', title: 'Enterprise Security — RBAC & Audit', link_url: '/enterprise' },
+]
 
 // ─── PromoCarousel Component ───────────────────────────────────────
 
 interface PromoCarouselProps {
   pageKey: PromoPageKey
+  large?: boolean
   className?: string
 }
 
-export function PromoCarousel({ pageKey, className }: PromoCarouselProps) {
+export function PromoCarousel({ pageKey, large, className }: PromoCarouselProps) {
   const { t } = useT()
-  const ads = PAGE_ADS[pageKey] || PAGE_ADS.home
-  const [current, setCurrent] = useState(0)
-  const [isPaused, setIsPaused] = useState(false)
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const ref = useRef<HTMLDivElement>(null)
 
-  const total = ads.length
-  const prev = useCallback(() => setCurrent(c => (c - 1 + total) % total), [total])
-  const next = useCallback(() => setCurrent(c => (c + 1) % total), [total])
+  const { data: apiAds = [] } = useQuery({
+    queryKey: ['promo-ads', pageKey],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get(`/api/promo-ads?page_key=${pageKey}`, { skipErrorHandler: true } as never)
+        if (res.data?.success && Array.isArray(res.data.data)) {
+          return res.data.data as AdItem[]
+        }
+      } catch { /* fallback */ }
+      return FALLBACK_ADS
+    },
+    staleTime: 60_000,
+    retry: 1,
+  })
 
-  // Auto-rotate every 5s, pause on hover
-  useEffect(() => {
-    if (isPaused || total <= 1) return
-    timerRef.current = setInterval(next, 5000)
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [isPaused, total, next])
-
-  // Reset timer on manual navigation
-  const goTo = useCallback((i: number) => {
-    setCurrent(i)
-    if (timerRef.current) clearInterval(timerRef.current)
-  }, [])
-
-  if (total === 0) return null
-
-  const ad = ads[current]
+  const ads = apiAds.length > 0 ? apiAds : FALLBACK_ADS
+  const doubled = [...ads, ...ads]
 
   return (
     <div
+      ref={ref}
       className={cn(
-        'relative overflow-hidden rounded-2xl bg-white/50 backdrop-blur-sm border border-border/10 shadow-sm transition-shadow duration-300 hover:shadow-md',
+        'relative overflow-hidden rounded-2xl bg-white/50 backdrop-blur-sm border border-border/10 shadow-sm',
+        large ? 'py-20 md:py-24' : 'py-14 md:py-16',
         className
       )}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
-      {/* Gradient background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${ad.gradient} opacity-5 rounded-2xl`} />
-
-      {/* Slide content */}
-      <div className="relative flex items-center justify-between px-6 py-5 md:px-8 md:py-6">
-        {/* Text area */}
-        <div className="flex-1 min-w-0 pr-4">
-          <div className="flex items-center gap-2 mb-1.5">
-            {ad.icon && <span className="text-xl leading-none">{ad.icon}</span>}
-            <h3 className="text-base md:text-lg font-semibold text-foreground tracking-tight">
-              {t(ad.titleKey)}
-            </h3>
-          </div>
-          <p
-            className="text-sm text-muted-foreground/70 mb-3"
-            style={{ maxWidth: 'min(50ch, 100%)' }}
-          >
-            {t(ad.descKey)}
-          </p>
-          <Link
-            to={ad.ctaTo}
-            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-sm font-medium text-white bg-gradient-to-r ${ad.gradient} shadow-sm hover:shadow-md transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]`}
-          >
-            {t(ad.ctaKey)}
-            <ChevronRight className="h-3.5 w-3.5" />
-          </Link>
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-50/30 via-white/50 to-orange-50/30 rounded-2xl" />
+      <div
+        className="relative flex overflow-hidden group"
+        onMouseEnter={() => { if (ref.current) ref.current.style.setProperty('--play-state', 'paused') }}
+        onMouseLeave={() => { if (ref.current) ref.current.style.setProperty('--play-state', 'running') }}
+      >
+        <div
+          className={cn('flex animate-marquee', large ? 'gap-10 md:gap-12' : 'gap-6 md:gap-8')}
+          style={{ animationPlayState: 'var(--play-state, running)' }}
+        >
+          {doubled.map((ad, i) => (
+            <Link
+              key={i}
+              to={ad.link_url}
+              className={cn(
+                'flex items-center shrink-0 rounded-xl bg-white/80 backdrop-blur border border-border/10 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 no-underline',
+                large
+                  ? 'gap-6 md:gap-8 px-12 md:px-14 py-10 md:py-12'
+                  : 'gap-4 md:gap-5 px-8 md:px-10 py-6 md:py-7'
+              )}
+            >
+              <span className={cn('leading-none', large ? 'text-5xl md:text-6xl' : 'text-2xl md:text-3xl')}>{ad.icon}</span>
+              <span className={cn('font-bold text-foreground whitespace-nowrap', large ? 'text-3xl md:text-4xl' : 'text-lg md:text-xl')}>{ad.title}</span>
+            </Link>
+          ))}
         </div>
-
-        {/* Pagination dots */}
-        {total > 1 && (
-          <div className="flex flex-col items-center gap-2 shrink-0">
-            {/* Up arrow */}
-            <button
-              onClick={prev}
-              className="p-1 rounded-full hover:bg-muted/50 transition-colors text-muted-foreground/50 hover:text-foreground"
-              aria-label="Previous ad"
-            >
-              <ChevronLeft className="h-3.5 w-3.5" />
-            </button>
-            {/* Dots */}
-            <div className="flex flex-col gap-1.5">
-              {ads.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goTo(i)}
-                  className={cn(
-                    'w-1.5 h-1.5 rounded-full transition-all duration-300',
-                    i === current
-                      ? 'bg-amber-500 scale-125'
-                      : 'bg-muted-foreground/20 hover:bg-muted-foreground/40'
-                  )}
-                  aria-label={`Go to ad ${i + 1}`}
-                />
-              ))}
-            </div>
-            {/* Down arrow */}
-            <button
-              onClick={next}
-              className="p-1 rounded-full hover:bg-muted/50 transition-colors text-muted-foreground/50 hover:text-foreground"
-              aria-label="Next ad"
-            >
-              <ChevronRight className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        )}
       </div>
+      <style>{`
+        @keyframes qc-marquee {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-marquee { animation: qc-marquee 50s linear infinite; }
+      `}</style>
     </div>
   )
 }

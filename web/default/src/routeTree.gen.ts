@@ -32,6 +32,7 @@ import { Route as AuthenticatedResellerKeysRouteImport } from './routes/_authent
 import { Route as AuthenticatedResellerAdminRouteImport } from './routes/_authenticated/reseller-admin'
 import { Route as AuthenticatedResellerRouteImport } from './routes/_authenticated/reseller'
 import { Route as AuthenticatedRedemptionRouteImport } from './routes/_authenticated/redemption'
+import { Route as AuthenticatedPromoAdsRouteImport } from './routes/_authenticated/promo-ads'
 import { Route as AuthenticatedProfitRouteImport } from './routes/_authenticated/profit'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
@@ -172,6 +173,11 @@ const AuthenticatedResellerRoute = AuthenticatedResellerRouteImport.update({
 const AuthenticatedRedemptionRoute = AuthenticatedRedemptionRouteImport.update({
   id: '/redemption',
   path: '/redemption',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedPromoAdsRoute = AuthenticatedPromoAdsRouteImport.update({
+  id: '/promo-ads',
+  path: '/promo-ads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedProfitRoute = AuthenticatedProfitRouteImport.update({
@@ -329,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
+  '/promo-ads': typeof AuthenticatedPromoAdsRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/reseller': typeof AuthenticatedResellerRoute
   '/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -376,6 +383,7 @@ export interface FileRoutesByTo {
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
+  '/promo-ads': typeof AuthenticatedPromoAdsRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/reseller': typeof AuthenticatedResellerRoute
   '/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -425,6 +433,7 @@ export interface FileRoutesById {
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/profit': typeof AuthenticatedProfitRoute
+  '/_authenticated/promo-ads': typeof AuthenticatedPromoAdsRoute
   '/_authenticated/redemption': typeof AuthenticatedRedemptionRoute
   '/_authenticated/reseller': typeof AuthenticatedResellerRoute
   '/_authenticated/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -474,6 +483,7 @@ export interface FileRouteTypes {
     | '/platform-settings'
     | '/profile'
     | '/profit'
+    | '/promo-ads'
     | '/redemption'
     | '/reseller'
     | '/reseller-admin'
@@ -521,6 +531,7 @@ export interface FileRouteTypes {
     | '/platform-settings'
     | '/profile'
     | '/profit'
+    | '/promo-ads'
     | '/redemption'
     | '/reseller'
     | '/reseller-admin'
@@ -569,6 +580,7 @@ export interface FileRouteTypes {
     | '/_authenticated/platform-settings'
     | '/_authenticated/profile'
     | '/_authenticated/profit'
+    | '/_authenticated/promo-ads'
     | '/_authenticated/redemption'
     | '/_authenticated/reseller'
     | '/_authenticated/reseller-admin'
@@ -763,6 +775,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRedemptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/promo-ads': {
+      id: '/_authenticated/promo-ads'
+      path: '/promo-ads'
+      fullPath: '/promo-ads'
+      preLoaderRoute: typeof AuthenticatedPromoAdsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/profit': {
       id: '/_authenticated/profit'
       path: '/profit'
@@ -948,6 +967,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProfitRoute: typeof AuthenticatedProfitRoute
+  AuthenticatedPromoAdsRoute: typeof AuthenticatedPromoAdsRoute
   AuthenticatedRedemptionRoute: typeof AuthenticatedRedemptionRoute
   AuthenticatedResellerRoute: typeof AuthenticatedResellerRoute
   AuthenticatedResellerAdminRoute: typeof AuthenticatedResellerAdminRoute
@@ -983,6 +1003,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProfitRoute: AuthenticatedProfitRoute,
+  AuthenticatedPromoAdsRoute: AuthenticatedPromoAdsRoute,
   AuthenticatedRedemptionRoute: AuthenticatedRedemptionRoute,
   AuthenticatedResellerRoute: AuthenticatedResellerRoute,
   AuthenticatedResellerAdminRoute: AuthenticatedResellerAdminRoute,

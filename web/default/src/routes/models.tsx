@@ -1,9 +1,9 @@
 ﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { PromoCarousel } from '@/components/promo-carousel'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
+import { PromoCarousel } from '@/components/promo-carousel'
 import { ModelDetailDialog, type CatalogItem } from '@/components/model-detail-dialog'
 import { ModelComparisonDialog } from '@/components/model-comparison-dialog'
 
@@ -97,32 +97,32 @@ function ModelsPage() {
       ) : (
         <>
           <div className="flex items-center justify-between mb-4">
-            <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Browse')}</span>
-            <button onClick={()=>setCollapse(true)} className="w-6 h-6 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
+            <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Browse')}</span>
+            <button onClick={()=>setCollapse(true)} className="w-7 h-7 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
           </div>
           {NAV.map(n=>
             <button key={n.id} onClick={()=>setCat(n.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${cat===n.id ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-              <span className="text-base w-5 text-center">{n.icon}</span>
+              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${cat===n.id ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
+              <span className="text-base w-6 text-center">{n.icon}</span>
               <span>{t(n.label)}</span>
             </button>
           )}
           <hr className="my-5 border-border/30" />
-          <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-3 block mb-2">{t('Providers')}</span>
+          <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-4 block mb-2">{t('Providers')}</span>
           <div className="space-y-0.5 max-h-52 overflow-y-auto thin-scroll">
             {providers.map(([p,c])=>
               <button key={p} onClick={()=>setProv(prov===p?'':p)}
-                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all ${prov===p ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
+                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm transition-all ${prov===p ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
                 <span>{p}</span>
                 <span className="text-xs text-muted-foreground/40">{c}</span>
               </button>
             )}
           </div>
           <hr className="my-5 border-border/30" />
-          <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-3 block mb-2">{t('Context')}</span>
+          <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-4 block mb-2">{t('Context')}</span>
           {[{v:'',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K–32K'},{v:'32769-131072',l:'32K–128K'},{v:'131073-999999999',l:'≥ 128K'}].map(r=>
             <button key={r.v} onClick={()=>setCtx(r.v)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-all ${ctx===r.v ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
+              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${ctx===r.v ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
               {r.l}</button>
           )}
         </>
@@ -148,22 +148,12 @@ function ModelsPage() {
       )}
 
       <div className="qc-wrap qc-section-pad-sm">
-        <div className="mb-8">
+        <div className="mb-6">
           <PromoCarousel pageKey="models" />
         </div>
-        {/* ─── Header ─── */}
-        <div className="qc-fade-up text-center mb-10">
-          <h1 className="qc-title-hero font-bold tracking-tight text-foreground">
-            {t('AI Model Catalog')}
-          </h1>
-          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed mx-auto">
-            {t('Browse and compare models from all major providers')}
-          </p>
-        </div>
-
         <div className="flex gap-8">
           {/* ─── Desktop sidebar ─── */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-56'}`}>
+          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-72'}`}>
             <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm">
               {collapse ? (
                 <div className="p-2 space-y-1">

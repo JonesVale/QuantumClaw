@@ -1,7 +1,7 @@
 ﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { PromoCarousel } from '@/components/promo-carousel'
 import { useState } from 'react'
+import { PromoCarousel } from '@/components/promo-carousel'
 
 export const Route = createFileRoute('/apps')({
   component: AppsPage,
@@ -36,18 +36,12 @@ function AppsPage() {
   return (
     <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
-        <div className="mb-8">
+        <div className="mb-6">
           <PromoCarousel pageKey="apps" />
         </div>
-        <div className="qc-fade-up text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">{apps.length}+ {t('integrations')}</div>
-          <h1 className="qc-title-hero font-bold tracking-tight text-foreground">{t('Apps & Integrations')}</h1>
-          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed mx-auto">{t('Applications and tools powered by QuantumClaw API')}</p>
-        </div>
-
         <div className="flex gap-8">
           {/* Sidebar */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-56'}`}>
+          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-72'}`}>
             <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 space-y-1">
               {collapse ? (
                 <div className="space-y-1">
