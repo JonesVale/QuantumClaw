@@ -91,13 +91,11 @@ function ProfitPage() {
   }, [profitData])
 
   return (
-    <div className="p-4 sm:p-6 w-full space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 bg-clip-text text-transparent">
-            {t('Channel Profit')}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Channel Profit')}</h1>
           <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
             {t('Revenue, cost and margin analysis per channel')}
           </p>
@@ -155,7 +153,7 @@ function ProfitPage() {
           <CardContent>
             <p className="text-2xl font-bold">{stats.avgMargin.toFixed(1)}%</p>
             <p className="text-xs text-muted-foreground mt-1">
-              {stats.profitable} {t('profitable')} · {stats.negative} {t('negative')}
+              {stats.profitable} {t('profitable')} &middot; {stats.negative} {t('negative')}
             </p>
           </CardContent>
         </Card>

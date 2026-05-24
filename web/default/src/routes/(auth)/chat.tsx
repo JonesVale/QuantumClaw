@@ -26,9 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-
 import { ScrollArea } from '@/components/ui/scroll-area'
-
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
@@ -63,7 +61,7 @@ export const Route = createFileRoute('/(auth)/chat')({
   component: ChatPage,
 })
 
-// 鈹€鈹€ Types 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Types ──
 
 interface CatalogItem {
   name: string
@@ -84,7 +82,7 @@ interface CatalogItem {
 
 type ChatMode = 'remote' | 'local'
 
-// 鈹€鈹€ API Calls 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── API Calls ──
 
 async function* streamResponse(response: Response): AsyncGenerator<string> {
   const reader = response.body?.getReader()
@@ -133,7 +131,7 @@ async function callOllamaChat(model: string, messages: any[], signal?: AbortSign
   return res
 }
 
-// 鈹€鈹€ Ollama stream (non-SSE, NDJSON) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Ollama stream (non-SSE, NDJSON) ──
 async function* streamOllamaResponse(response: Response): AsyncGenerator<string> {
   const reader = response.body?.getReader()
   if (!reader) throw new Error('No response body')
@@ -153,13 +151,11 @@ async function* streamOllamaResponse(response: Response): AsyncGenerator<string>
   }
 }
 
-// 鈹€鈹€ Main Chat Page Component 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Main Chat Page Component ──
 
 function ChatPage() {
   const { t, language } = useT()
-
   const { auth } = useAuthStore()
-
 
   // State
   const [mode, setMode] = useState<ChatMode>('remote')
@@ -187,7 +183,7 @@ function ChatPage() {
     renameConversation, addMessage,
   } = useConversations()
 
-  // 鈹€鈹€ Load model catalog 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Load model catalog ──
   const lang = language || 'English'
   const { data: catalogData, isLoading: catalogLoading } = useQuery({
     queryKey: ['model-catalog', lang],
@@ -207,7 +203,7 @@ function ChatPage() {
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [catalog])
 
-  // 鈹€鈹€ Ollama connection check 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Ollama connection check ──
   useEffect(() => {
     const checkOllama = async () => {
       setOllamaChecking(true)
@@ -235,40 +231,38 @@ function ChatPage() {
     checkOllama()
   }, [])
 
-  // 鈹€鈹€ Auto-scroll 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Auto-scroll ──
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [activeConversation?.messages, streamedContent])
 
-  // 鈹€鈹€ Auto focus input 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Auto focus input ──
   useEffect(() => {
     inputRef.current?.focus()
   }, [mode, selectedModel])
 
-  // 鈹€鈹€ Ensure a conversation exists 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Ensure a conversation exists ──
   useEffect(() => {
     if (!activeConversation && conversations.length === 0) {
       addConversation(selectedModel || 'auto')
     }
   }, [])
 
-
-
-  // 鈹€鈹€ Clear / new conversation 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Clear / new conversation ──
   const handleNewConversation = useCallback(() => {
     const conv = addConversation(selectedModel || 'auto')
     setInput('')
     setStreamedContent('')
   }, [addConversation, selectedModel])
 
-  // 鈹€鈹€ Stop generation 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Stop generation ──
   const stopGeneration = useCallback(() => {
     abortRef.current?.abort()
     setLoading(false)
     setStreamedContent('')
   }, [])
 
-  // 鈹€鈹€ Send message 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Send message ──
   const handleSend = async () => {
     const trimmed = input.trim()
     if (!trimmed || loading) return
@@ -327,7 +321,7 @@ function ChatPage() {
       const errorMsg = err instanceof Error ? err.message : String(err)
       addMessage({
         role: 'assistant',
-        content: `鈿狅笍 **Error**: ${errorMsg}\n\nPlease check your connection or try again.`,
+        content: `⚠️ **Error**: ${errorMsg}\n\nPlease check your connection or try again.`,
         timestamp: Date.now(),
       })
     } finally {
@@ -337,7 +331,7 @@ function ChatPage() {
     }
   }
 
-  // 鈹€鈹€ Handle Enter key 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Handle Enter key ──
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -345,12 +339,12 @@ function ChatPage() {
     }
   }
 
-  // 鈹€鈹€ Messages for current conversation 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+  // ── Messages for current conversation ──
   const messages = activeConversation?.messages || []
 
   return (
     <div className="flex h-screen bg-background overflow-hidden">
-      {/* 鈹€鈹€ Left: Conversation Sidebar 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+      {/* ── Left: Conversation Sidebar ── */}
       {showSidebar && (
         <div className="w-64 shrink-0 border-r bg-card flex flex-col">
           {/* Sidebar Header */}
@@ -404,9 +398,9 @@ function ChatPage() {
         </div>
       )}
 
-      {/* 鈹€鈹€ Right: Main Chat Area 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+      {/* ── Right: Main Chat Area ── */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* 鈹€鈹€ Top Bar 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+        {/* ── Top Bar ── */}
         <div className="flex items-center gap-2 px-4 py-2.5 border-b bg-card/50 shrink-0">
           {/* Toggle sidebar */}
           {!showSidebar && (
@@ -440,7 +434,7 @@ function ChatPage() {
           {/* Model Selector */}
           {mode === 'remote' ? (
             <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="h-8 w-[260px] text-xs">
+              <SelectTrigger className="h-8 w-full sm:w-[260px] text-xs">
                 <SelectValue placeholder={t('Select a model...')} />
               </SelectTrigger>
               <SelectContent className="max-h-[300px]">
@@ -464,7 +458,7 @@ function ChatPage() {
             </Select>
           ) : (
             <Select value={selectedModel} onValueChange={setSelectedModel}>
-              <SelectTrigger className="h-8 w-[200px] text-xs">
+              <SelectTrigger className="h-8 w-full sm:w-[200px] text-xs">
                 <SelectValue placeholder={t('Select local model...')} />
               </SelectTrigger>
               <SelectContent>
@@ -510,7 +504,7 @@ function ChatPage() {
           </Tooltip>
         </div>
 
-        {/* 鈹€鈹€ Messages Area 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+        {/* ── Messages Area ── */}
         <div className="flex-1 flex overflow-hidden">
           {/* Messages */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -536,11 +530,10 @@ function ChatPage() {
                           className="text-xs h-auto py-2 px-3"
                           onClick={() => {
                             setSelectedModel(m.name)
-                            // Send a welcome message
                             const conv = activeConversation || addConversation(m.name)
                             addMessage({
                               role: 'assistant',
-                              content: `馃憢 Using **${m.name}**. How can I help you today?`,
+                              content: `Using **${m.name}**. How can I help you today?`,
                               timestamp: Date.now(),
                             })
                           }}
@@ -611,7 +604,7 @@ function ChatPage() {
               )}
             </ScrollArea>
 
-            {/* 鈹€鈹€ Input Area 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+            {/* ── Input Area ── */}
             <div className="border-t bg-card/30 px-4 py-3 shrink-0">
               <div className="max-w-4xl mx-auto">
                 {/* Selected model indicator */}
@@ -644,7 +637,7 @@ function ChatPage() {
                       }
                       disabled={loading}
                       rows={1}
-                      className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] max-h-[120px]"
+                      className="w-full resize-none rounded-xl border border-input bg-background px-4 py-3 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px] max-h-[30vh] sm:max-h-[20vh]"
                       style={{ height: 'auto', minHeight: '44px' }}
                       onInput={e => {
                         const el = e.currentTarget
@@ -679,17 +672,17 @@ function ChatPage() {
 
                 <div className="flex items-center justify-between mt-1.5">
                   <p className="text-[10px] text-muted-foreground">
-                    {mode === 'remote' ? 'Remote API' : 'Local Ollama'} 路 {selectedModel || t('No model selected')}
+                    {mode === 'remote' ? 'Remote API' : 'Local Ollama'} · {selectedModel || t('No model selected')}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    Temp: {params.temperature.toFixed(1)} 路 Top P: {params.top_p.toFixed(1)} 路 Max: {params.max_tokens}
+                    Temp: {params.temperature.toFixed(1)} · Top P: {params.top_p.toFixed(1)} · Max: {params.max_tokens}
                   </p>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* 鈹€鈹€ Right: Parameter Panel 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€ */}
+          {/* ── Right: Parameter Panel ── */}
           {showParams && (
             <div className="w-72 shrink-0 border-l bg-card overflow-y-auto">
               <ParameterPanel
@@ -705,7 +698,7 @@ function ChatPage() {
   )
 }
 
-// 鈹€鈹€ Conversation Item Component (inline) 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
+// ── Conversation Item Component (inline) ──
 
 function ConversationItem({
   conv, isActive, onSelect, onDelete, onRename, t,

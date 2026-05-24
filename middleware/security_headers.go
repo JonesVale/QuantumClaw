@@ -10,7 +10,7 @@ import (
 func SecurityHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// CSP - inline styles/scripts needed for web UI
-		csp := "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https:; frame-src 'none'; object-src 'none'; base-uri 'self'"
+		csp := "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com; img-src 'self' data: blob:; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' https:; frame-src 'none'; object-src 'none'; base-uri 'self'"
 		if config.CSPReportOnly {
 			c.Header("Content-Security-Policy-Report-Only", csp)
 		} else {

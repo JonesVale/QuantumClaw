@@ -89,10 +89,10 @@ function SettlementPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t('settlement_config')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('settlement_config')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('settlement_config_desc')}</p>
         </div>
         <Button onClick={openCreate} className="gap-2">

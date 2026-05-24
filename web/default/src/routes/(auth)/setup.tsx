@@ -118,8 +118,8 @@ function SetupPage() {
 
   if (checking) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-8 w-8 animate-spin text-[oklch(0.72_0.18_52)]" />
       </div>
     )
   }
@@ -135,10 +135,10 @@ function SetupPage() {
   ]
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="items-center text-center">
-          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-blue-600 to-purple-600">
+          <div className="mb-2 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600">
             <Wrench className="h-7 w-7 text-white" />
           </div>
           <CardTitle className="text-2xl font-bold">{t('Welcome to QuantumClaw')}</CardTitle>
@@ -153,10 +153,10 @@ function SetupPage() {
                 <div
                   className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold transition-all ${
                     i === step
-                      ? 'bg-blue-600 text-white shadow-md'
+                      ? 'bg-[oklch(0.72_0.18_52)] text-white shadow-md'
                       : i < step
-                        ? 'bg-green-500 text-white'
-                        : 'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                        ? 'bg-emerald-500 text-white'
+                        : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {i < step ? <Check className="h-4 w-4" /> : <s.icon className="h-4 w-4" />}
@@ -164,14 +164,14 @@ function SetupPage() {
                 {i < steps.length - 1 && (
                   <div
                     className={`h-0.5 w-12 transition-colors ${
-                      i < step ? 'bg-green-500' : 'bg-slate-200 dark:bg-slate-700'
+                      i < step ? 'bg-emerald-500' : 'bg-border'
                     }`}
                   />
                 )}
               </div>
             ))}
           </div>
-          <p className="mt-2 text-center text-sm text-slate-500">
+          <p className="mt-2 text-center text-sm text-muted-foreground">
             {steps[step]?.label}
           </p>
         </div>
@@ -190,7 +190,7 @@ function SetupPage() {
                   minLength={3}
                   maxLength={12}
                 />
-                <p className="text-xs text-slate-400">{t('3-12 characters')}</p>
+                <p className="text-xs text-muted-foreground">{t('3-12 characters')}</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">{t('Admin Email')}</Label>
@@ -243,7 +243,7 @@ function SetupPage() {
                   value={siteName}
                   onChange={(e) => setSiteName(e.target.value)}
                 />
-                <p className="text-xs text-slate-400">{t('The name displayed on your platform')}</p>
+                <p className="text-xs text-muted-foreground">{t('The name displayed on your platform')}</p>
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -271,18 +271,18 @@ function SetupPage() {
 
           {step === 2 && (
             <div className="space-y-4 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                <Check className="h-8 w-8 text-green-600 dark:text-green-400" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900">
+                <Check className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold">{t('All Set!')}</h3>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-muted-foreground">
                   {t('Your QuantumClaw platform is ready to use. Click "Finish" to complete setup and sign in.')}
                 </p>
               </div>
-              <div className="rounded-lg bg-slate-50 p-4 text-left dark:bg-slate-800">
+              <div className="rounded-lg bg-muted p-4 text-left">
                 <p className="text-sm font-medium">{t('Summary')}</p>
-                <ul className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
+                <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                   <li>
                     <strong>{t('Admin:')}</strong> {username}
                   </li>

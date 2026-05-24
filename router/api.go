@@ -16,6 +16,10 @@ func SetApiRouter(router *gin.Engine) {
 	apiRouter.Use(middleware.SecurityHeaders())
 	{
 		apiRouter.GET("/status", controller.GetStatus)
+		apiRouter.GET("/site-content", controller.GetSiteContent)
+		apiRouter.GET("/site-stats", controller.GetSiteStats)
+		apiRouter.GET("/site-features", controller.GetSiteFeatures)
+		apiRouter.GET("/site-providers", controller.GetSiteProviders)
 		apiRouter.GET("/setup/check", controller.CheckSetup)
 		apiRouter.POST("/setup/complete", middleware.CriticalRateLimit(), controller.CompleteSetup)
 		apiRouter.GET("/rss/articles", controller.GetRssArticles)
@@ -390,4 +394,5 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.POST("/admin/withdrawals/:id/approve", middleware.AdminAuth(), controller.ApproveWithdrawal)
 	}
 }
+
 

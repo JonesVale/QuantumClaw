@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -182,19 +182,16 @@ function WalletPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[min(96vw,1600px)] w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Wallet')}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Wallet')}</h1>
+          <p className="text-muted-foreground mt-2">
             {t('View and manage your quota balance')}
           </p>
         </div>
       </div>
 
-      {/* Cash Balance Card — 主余额 */}
       {balanceData?.success && (
         <Card className="w-full max-w-2xl border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50/50 to-transparent">
           <CardHeader>
@@ -205,7 +202,7 @@ function WalletPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl sm:text-3xl font-bold tracking-tight text-yellow-600">
-              ¥{Number(balanceData.data.balance_yuan || 0).toFixed(2)}
+              &yen;{Number(balanceData.data.balance_yuan || 0).toFixed(2)}
             </div>
             <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
@@ -217,12 +214,11 @@ function WalletPage() {
         </Card>
       )}
 
-      {/* Legacy Quota — 小字显示，次要 */}
       <details className="w-full max-w-2xl">
         <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground select-none">
           {t('Legacy Quota')} ({remaining.toLocaleString()} {t('remaining')})
         </summary>
-        <div className="mt-2 p-3 rounded-lg border bg-card text-xs space-y-1">
+        <div className="mt-2 p-3 rounded-xl border bg-card text-xs space-y-1">
           <div className="flex justify-between">
             <span className="text-muted-foreground">{t('Total Quota')}</span>
             <span className="font-mono">{quota.toLocaleString()}</span>
@@ -238,7 +234,6 @@ function WalletPage() {
         </div>
       </details>
 
-      {/* Balance Logs */}
       {balanceData?.success && balanceData.data.logs?.length > 0 && (
         <Card className="w-full max-w-2xl">
           <CardHeader className="pb-2">
@@ -249,9 +244,9 @@ function WalletPage() {
               {balanceData.data.logs.slice(0, 15).map((log: any, i: number) => (
                 <div key={log.id || i} className="flex justify-between items-center text-xs border-b pb-1 last:border-0">
                   <span className={log.amount > 0 ? 'text-green-600' : 'text-red-600'}>
-                    {log.amount > 0 ? '+' : ''}{log.amount}分
+                    {log.amount > 0 ? '+' : ''}{log.amount}&#20998;
                   </span>
-                  <span className="text-muted-foreground truncate ml-2 max-w-[200px]">
+                  <span className="text-muted-foreground truncate ml-2 max-w-[min(20vw,200px)]">
                     {log.remark || log.type}
                   </span>
                   <span className="text-muted-foreground ml-2">
@@ -264,7 +259,6 @@ function WalletPage() {
         </Card>
       )}
 
-      {/* Upgrade to Provider */}
       {user?.user_type !== 'provider' && (
         <Card className="w-full max-w-2xl border-purple-200 dark:border-purple-800">
           <CardHeader>
@@ -300,7 +294,6 @@ function WalletPage() {
         </Card>
       )}
 
-      {/* Withdraw Section — only for providers */}
       {user?.user_type === 'provider' && withdrawableData?.success && withdrawableData.data.available > 0 && (
         <Card className="w-full max-w-2xl border-blue-200 dark:border-blue-800">
           <CardHeader>
@@ -314,19 +307,19 @@ function WalletPage() {
               <div>
                 <p className="text-xs text-muted-foreground">{t('Total Earned')}</p>
                 <p className="text-lg font-semibold text-green-600">
-                  ¥{Number(withdrawableData.data.total_earned_yuan || 0).toFixed(2)}
+                  &yen;{Number(withdrawableData.data.total_earned_yuan || 0).toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">{t('Pending Fee')}</p>
                 <p className="text-lg font-semibold text-orange-600">
-                  ¥{Number(withdrawableData.data.pending_fee_yuan || 0).toFixed(2)}
+                  &yen;{Number(withdrawableData.data.pending_fee_yuan || 0).toFixed(2)}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">{t('Available')}</p>
                 <p className="text-lg font-semibold text-blue-600">
-                  ¥{Number(withdrawableData.data.available_yuan || 0).toFixed(2)}
+                  &yen;{Number(withdrawableData.data.available_yuan || 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -370,7 +363,7 @@ function WalletPage() {
                   type="number"
                   min="1"
                   step="0.01"
-                  placeholder={t('Amount (¥)')}
+                  placeholder={t('Amount (\u00a5)')}
                   value={withdrawAmount}
                   onChange={(e) => setWithdrawAmount(e.target.value)}
                 />
@@ -385,13 +378,12 @@ function WalletPage() {
               </Button>
             </form>
             <p className="text-xs text-muted-foreground mt-2">
-              {t('Minimum withdrawal: ¥1. Platform fee (5%) will be deducted automatically on settlement.')}
+              {t('Minimum withdrawal: \u00a51. Platform fee (5%) will be deducted automatically on settlement.')}
             </p>
           </CardContent>
         </Card>
       )}
 
-      {/* Redemption */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -421,7 +413,6 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      {/* Payment Methods */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -444,7 +435,7 @@ function WalletPage() {
                 return (
                   <div
                     key={method}
-                    className="flex flex-col p-4 rounded-lg border bg-card hover:bg-accent/50 transition-colors gap-3"
+                    className="flex flex-col p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors gap-3"
                   >
                     <div className="flex items-center gap-2">
                       <Icon className="h-5 w-5 text-primary" />
@@ -477,7 +468,6 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      {/* Top-up History */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -535,7 +525,6 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      {/* Commission / Affiliate Section */}
       <div className="grid gap-6 md:grid-cols-3 border-t pt-6">
         <Card className="border-green-200 dark:border-green-800">
           <CardHeader className="pb-2">

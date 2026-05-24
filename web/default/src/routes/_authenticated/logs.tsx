@@ -11,7 +11,6 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/empty-state'
@@ -47,13 +46,11 @@ function LogsPage() {
   const logs: LogEntry[] = data?.data || []
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Usage Logs')}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base lg:text-lg">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Usage Logs')}</h1>
+          <p className="text-muted-foreground mt-2">
             {t('API request history and audit logs')}
           </p>
         </div>
@@ -137,7 +134,7 @@ function LogsPage() {
                       <TableCell className="text-muted-foreground text-xs">
                         {log.created_at
                           ? dayjs(log.created_at * 1000).format('MM-DD HH:mm:ss')
-                          : '—'}
+                          : '\u2014'}
                       </TableCell>
                     </TableRow>
                   ))

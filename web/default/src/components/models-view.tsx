@@ -74,7 +74,7 @@ export function ModelsPageView(props: ModelsPageProps) {
 
         {/* Top action bar */}
         <div className="flex items-center gap-4 mb-10 flex-wrap">
-          <div className="relative flex-1 min-w-[240px] max-w-sm">
+          <div className="relative flex-1 min-w-[180px] sm:min-w-[240px] max-w-full sm:max-w-sm">
             <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <input className="flex h-10 w-full rounded-xl border border-input bg-background px-9 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder={t('Search models...')} value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>

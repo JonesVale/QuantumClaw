@@ -204,12 +204,10 @@ function UsersPage() {
   const users = data?.data || []
 
   return (
-    <div className="p-4 sm:p-6 space-y-6  w-full min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Users')}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Users')}</h1>
           <p className="text-muted-foreground text-sm sm:text-base mt-2">
             {t('Manage user accounts')}
           </p>
@@ -274,7 +272,7 @@ function UsersPage() {
                     <TableRow key={u.id}>
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
                       <TableCell className="font-medium">{u.username}</TableCell>
-                      <TableCell>{u.display_name || '—'}</TableCell>
+                      <TableCell>{u.display_name || '\u2014'}</TableCell>
                       <TableCell>
                         <Badge variant={u.role >= 100 ? 'default' : u.role >= 10 ? 'secondary' : 'outline'}>
                           {u.role >= 100 ? t('Super Admin') : u.role >= 10 ? t('Admin') : t('User')}

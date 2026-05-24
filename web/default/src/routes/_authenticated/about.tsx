@@ -1,4 +1,4 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { Code, Mail, Globe, Shield, Server } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -10,13 +10,11 @@ export const Route = createFileRoute('/_authenticated/about')({
 function AboutPage() {
   const { t } = useT()
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
       <div className="text-center py-8">
         <div className="flex items-center justify-center mb-4">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg">
-            
-          </div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg" />
         </div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
           QuantumClaw
@@ -38,14 +36,14 @@ function AboutPage() {
       <Card>
         <CardHeader><CardTitle>{t('Key Features')}</CardTitle></CardHeader>
         <CardContent>
-          <div className="grid md:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
               { icon: Shield, title: t('Token Management'), desc: t('Create, manage, and rotate API keys with granular quotas') },
               { icon: Server, title: t('50+ AI Models'), desc: t('Unified access to OpenAI, Claude, Gemini, DeepSeek and more') },
               { icon: Globe, title: t('Load Balancing'), desc: t('Intelligent routing with failover across channels') },
               { icon: Code, title: t('OpenAPI Compatible'), desc: t('Drop-in replacement for any OpenAI-compatible client') },
             ].map((f, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+              <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-muted/50">
                 <f.icon className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
                 <div>
                   <div className="font-medium text-sm">{f.title}</div>
@@ -73,7 +71,7 @@ function AboutPage() {
           </div>
         </CardContent>
       </Card>
-    
+
       {/* Company Info */}
       <Card>
         <CardHeader>
@@ -88,7 +86,6 @@ function AboutPage() {
           <div><span className="font-medium">{t('Bank Account')}:</span> 000396168236</div>
         </CardContent>
       </Card>
-</div>
+    </div>
   )
 }
-

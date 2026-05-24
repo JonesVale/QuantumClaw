@@ -12,6 +12,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
+	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"os"
 	"strings"
@@ -74,6 +75,9 @@ func chooseDB(envName string) (*gorm.DB, error) {
 	dsn := os.Getenv(envName)
 
 	switch {
+	case strings.HasPrefix(dsn, "sqlserver://"):
+		// Use MSSQL
+		return openMSSQL(dsn)
 	case strings.HasPrefix(dsn, "postgres://"):
 		// Use PostgreSQL
 		return openPostgreSQL(dsn)
@@ -84,6 +88,14 @@ func chooseDB(envName string) (*gorm.DB, error) {
 		// Use SQLite
 		return openSQLite()
 	}
+}
+
+func openMSSQL(dsn string) (*gorm.DB, error) {
+	logger.SysLog("using MSSQL as database")
+	common.UsingMySQL = true // reuse MySQL flag for MSSQL (mostly compatible)
+	return gorm.Open(sqlserver.Open(dsn), &gorm.Config{
+		PrepareStmt: true,
+	})
 }
 
 func openPostgreSQL(dsn string) (*gorm.DB, error) {
@@ -302,3 +314,4 @@ func CloseDB() error {
 	}
 	return closeDB(DB)
 }
+

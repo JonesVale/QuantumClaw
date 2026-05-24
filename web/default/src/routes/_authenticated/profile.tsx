@@ -43,7 +43,6 @@ function ProfilePage() {
   const [passkeys, setPasskeys] = useState<{ id: string; name: string; created_at: string }[]>([])
   const [registeringPasskey, setRegisteringPasskey] = useState(false)
 
-  // Fetch 2FA status
   const { data: twoFAStatus } = useQuery({
     queryKey: ['2fa-status'],
     queryFn: async () => {
@@ -55,7 +54,6 @@ function ProfilePage() {
     staleTime: 10 * 1000,
   })
 
-  // Fetch WebAuthn credentials
   useQuery({
     queryKey: ['webauthn-credentials'],
     queryFn: async () => {
@@ -102,19 +100,16 @@ function ProfilePage() {
   }
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Profile')}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Profile')}</h1>
+          <p className="text-muted-foreground mt-2">
             {t('Manage your account settings')}
           </p>
         </div>
       </div>
 
-      {/* Profile Info */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -163,7 +158,6 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Upgrade to Reseller */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>{t('become_reseller')}</CardTitle>
@@ -187,7 +181,6 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Password Change */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>{t('Change Password')}</CardTitle>
@@ -229,7 +222,6 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Security */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -239,7 +231,6 @@ function ProfilePage() {
           <CardDescription>{t('Manage two-factor authentication and passkeys')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Two-Factor Authentication */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -259,7 +250,6 @@ function ProfilePage() {
               onClick={async () => {
                 if (twoFAStatus?.enabled) {
                   if (disablingTotp) {
-                    // Confirm disable with code
                     setDisablingTotp(false)
                     setDisableCode('')
                   } else {
@@ -288,7 +278,7 @@ function ProfilePage() {
               {enablingTotp ? t('Setting up...') : twoFAStatus?.enabled ? t('Disable') : t('Enable')}
             </Button>
             {disablingTotp && (
-              <div className="mt-3 p-3 rounded-lg border border-red-200 bg-red-50 dark:bg-red-950/20 space-y-2">
+              <div className="mt-3 p-3 rounded-xl border border-red-200 bg-red-50 dark:bg-red-950/20 space-y-2">
                 <p className="text-sm font-medium text-red-700 dark:text-red-300">
                   {t('Enter your TOTP code to disable 2FA')}
                 </p>
@@ -335,7 +325,7 @@ function ProfilePage() {
               </div>
             )}
             {showSetupKey && (
-              <div className="mt-3 p-3 rounded-lg border bg-muted/50 space-y-2">
+              <div className="mt-3 p-3 rounded-xl border bg-muted/50 space-y-2">
                 <div className="flex items-center gap-2">
                   <QrCode className="h-4 w-4" />
                   <span className="text-sm font-medium">{t('Setup Key')}</span>
@@ -411,7 +401,7 @@ function ProfilePage() {
               </div>
             )}
             {backupCodes.length > 0 && (
-              <div className="mt-3 p-3 rounded-lg border border-green-200 bg-green-50 dark:bg-green-950/20 space-y-2">
+              <div className="mt-3 p-3 rounded-xl border border-green-200 bg-green-50 dark:bg-green-950/20 space-y-2">
                 <p className="text-sm font-medium text-green-700 dark:text-green-300">
                   {t('2FA Enabled! Backup codes:')}
                 </p>
@@ -429,7 +419,6 @@ function ProfilePage() {
 
           <Separator />
 
-          {/* Passkeys / WebAuthn */}
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Fingerprint className="h-4 w-4 text-muted-foreground" />
@@ -452,7 +441,6 @@ function ProfilePage() {
                     return
                   }
                   const rawData = beginData.data as any
-                  // Backend returns challenge/user at top level; convert to Uint8Array before passing to WebAuthn
                   if (rawData.challenge) {
                     const challengeStr = rawData.challenge as string
                     rawData.challenge = Uint8Array.from(atob(challengeStr), c => c.charCodeAt(0))
@@ -498,7 +486,7 @@ function ProfilePage() {
                 {passkeys.map((pk) => (
                   <div
                     key={pk.id}
-                    className="flex items-center justify-between p-2 rounded-lg border gap-2"
+                    className="flex items-center justify-between p-2 rounded-xl border gap-2"
                   >
                     <div className="flex items-center gap-2 min-w-0">
                       <Key className="h-4 w-4 text-muted-foreground shrink-0" />
@@ -536,7 +524,6 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      {/* Account Info */}
       <Card className="w-full max-w-2xl">
         <CardHeader>
           <CardTitle>{t('Account Details')}</CardTitle>

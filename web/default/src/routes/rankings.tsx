@@ -1,237 +1,143 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { RefreshCw, Trophy, TrendingUp, TrendingDown, Zap, Clock, DollarSign, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
+import { useState, useMemo } from 'react'
 import type { ModelRanking } from '@/lib/api-extended'
 
 export const Route = createFileRoute('/rankings')({
   component: RankingsPage,
 })
 
-// ── Tab definitions ───────────────────────────────────────────────
 type SortKey = 'request_count_7d' | 'tokens_7d' | 'avg_speed_ms' | 'price_per_1k'
 
-// ── Helper constants & functions ────────────────────────────────────
-const RANK_STYLES = [
-  'bg-gradient-to-br from-yellow-500 to-yellow-600',
-  'bg-gradient-to-br from-slate-400 to-slate-500',
-  'bg-gradient-to-br from-amber-700 to-amber-800',
-]
-
-function formatRequests(n: number): string {
+function formatNum(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
   if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
   return n.toLocaleString()
 }
 
-function formatTokens(n: number): string {
-  if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B'
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
-  return n.toLocaleString()
-}
-
-interface TabItem {
-  key: SortKey
-  icon: React.ElementType
-  labelKey: string
-  sortDir: 'desc' | 'asc'
-}
-
-const TABS: TabItem[] = [
-  { key: 'request_count_7d', icon: Zap, labelKey: 'Request Count', sortDir: 'desc' },
-  { key: 'tokens_7d', icon: Sparkles, labelKey: 'Token Consumption', sortDir: 'desc' },
-  { key: 'avg_speed_ms', icon: Clock, labelKey: 'Response Speed', sortDir: 'asc' },
-  { key: 'price_per_1k', icon: DollarSign, labelKey: 'Price', sortDir: 'asc' },
+const TABS: { key: SortKey; label: string; icon: string }[] = [
+  { key: 'request_count_7d', label: 'By Requests', icon: '≡' },
+  { key: 'tokens_7d', label: 'By Tokens', icon: '◈' },
+  { key: 'avg_speed_ms', label: 'By Speed', icon: '⚡' },
+  { key: 'price_per_1k', label: 'By Price', icon: '$' },
 ]
 
-// ── Fallback mock data ────────────────────────────────────────────
 function RankingsPage() {
   const { t } = useT()
-  const [activeTab, setActiveTab] = useState<SortKey>('request_count_7d')
-  const [seriesFilter, setSeriesFilter] = useState('All')
-  const [visibleCount, setVisibleCount] = useState(30)
-  const PAGE_STEP = 30
+  const [sortKey, setSortKey] = useState<SortKey>('request_count_7d')
 
-  const { data, isLoading, refetch, isFetching } = useQuery({
+  const { data, isLoading } = useQuery({
     queryKey: ['model-rankings'],
     queryFn: async () => {
-      const res = await fetch('/api/models/rankings')
-      if (!res.ok) throw new Error('Failed to fetch')
-      return res.json()
+      const r = await fetch('/api/model-rankings')
+      if (!r.ok) throw Error()
+      return r.json()
     },
-    retry: false,
-    staleTime: 60 * 1000,
+    staleTime: 60_000,
   })
+  const rankings: ModelRanking[] = data?.data || []
 
-  const rankings: ModelRanking[] = data?.data ?? []
+  const sorted = useMemo(() => {
+    const r = [...rankings]
+    if (sortKey === 'avg_speed_ms') r.sort((a, b) => (a.avg_speed_ms ?? 999) - (b.avg_speed_ms ?? 999))
+    else r.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0))
+    return r.slice(0, 50)
+  }, [rankings, sortKey])
 
-  // Sort based on active tab - useRef to keep stable reference
-  const activeTabDef = TABS.find((t) => t.key === activeTab)!
-  const filteredRankings = useMemo(() => [...rankings]
-    .filter(m => seriesFilter === 'All' || m.model.toLowerCase().includes(seriesFilter.toLowerCase()))
-    .sort((a, b) => {
-      const aVal = a[activeTab]
-      const bVal = b[activeTab]
-      return activeTabDef.sortDir === 'desc' ? bVal - aVal : aVal - bVal
-    }), [rankings, activeTab, activeTabDef.sortDir])
-
-  const displayed = useMemo(() => filteredRankings.slice(0, visibleCount), [filteredRankings, visibleCount])
+  const statValue = (m: ModelRanking, k: SortKey): string => {
+    switch (k) {
+      case 'request_count_7d': return formatNum(m.request_count_7d || 0)
+      case 'tokens_7d': return formatNum(m.tokens_7d || 0)
+      case 'avg_speed_ms': return (m.avg_speed_ms || 0).toFixed(0) + 'ms'
+      case 'price_per_1k': return '$' + (m.price_per_1k || 0).toFixed(6)
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
-        {/* Hero */}
-        <div className="mb-12">
-          <div className="flex items-start justify-between">
-            <div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-                <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-                  {t('Model Rankings')}
-                </span>
-              </h1>
-              <p className="text-lg text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-                {t('Model performance rankings across providers')}
-              </p>
-            </div>
-            <button className="inline-flex items-center justify-center rounded-lg border border-input bg-background h-10 px-4 text-sm font-medium hover:bg-accent gap-2 shrink-0" onClick={() => refetch()} disabled={isFetching}>
-              <svg className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
-              {t('Refresh')}
+    <div className="min-h-screen bg-background"
+      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
+      <div className="qc-wrap qc-section-pad-sm">
+        {/* Header */}
+        <div className="qc-fade-up mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            {t('Real-time Rankings')}
+          </div>
+          <h1 className="qc-title-hero font-bold tracking-tight text-foreground">
+            {t('Model Rankings')}
+          </h1>
+          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed">
+            {t('See which models are trending. Sorted by real usage across the platform.')}
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <div className="qc-fade-up flex items-center gap-2 mb-8 bg-muted/30 rounded-2xl p-1.5 border border-border/10 w-fit flex-wrap">
+          {TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setSortKey(tab.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                sortKey === tab.key
+                  ? 'bg-white shadow-sm text-foreground'
+                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-white/50'
+              }`}
+            >
+              <span>{tab.icon}</span>
+              {t(tab.label)}
             </button>
-          </div>
+          ))}
         </div>
 
-        {/* Tab pills */}
-        <div className="flex flex-wrap gap-3 mb-10">
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  active
-                    ? 'bg-primary text-primary-foreground shadow-sm'
-                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {t(tab.labelKey)}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Rankings List */}
+        {/* List */}
         {isLoading ? (
-          <div className="space-y-3">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl p-5 bg-card animate-pulse">
-                <div className="flex items-center gap-4">
-                  <div className="h-10 w-10 rounded-xl bg-muted" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-5 w-40 rounded bg-muted" />
-                    <div className="h-4 w-24 rounded bg-muted" />
-                  </div>
-                  <div className="h-6 w-20 rounded bg-muted" />
-                </div>
-              </div>
-            ))}
+          <div className="flex justify-center py-20">
+            <div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
           </div>
-        ) : filteredRankings.length === 0 ? (
+        ) : sorted.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mx-auto mb-4 opacity-20"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 9 6 9 9.5v3c0 1.1-.9 2-2 2H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5C17 4 15 6 15 9.5v3c0 1.1.9 2 2 2h1"/></svg>
-            {t('No data available')}
+            <p className="text-lg font-medium">{t('No ranking data yet')}</p>
           </div>
         ) : (
           <>
-          <div className="space-y-3">
-            {displayed.map((item, index) => {
-              const rank = index + 1;
-              const isTop3 = rank <= 3;
-              return (
-                <div key={`${item.provider}-${item.model}`} className={`rounded-xl p-5 transition-all hover:shadow-md bg-card border-0 ${isTop3 ? 'ring-1 ring-yellow-500/20' : ''}`}>
-                  <div className="flex items-center gap-4">
-                    {/* Rank */}
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-xl font-bold text-white shrink-0 ${
-                      isTop3 ? RANK_STYLES[rank - 1] : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {isTop3 ? <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> : rank}
+            <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{t('Top 50 models')}</p>
+            <div className="space-y-2">
+              {/* Header */}
+              <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                <span className="w-10 text-center">#</span>
+                <span className="flex-[2]">{t('Model')}</span>
+                <span className="flex-1">{t('Provider')}</span>
+                <span className="flex-1 text-right">
+                  {TABS.find(t => t.key === sortKey)?.label.replace('By ', '') || t('Value')}
+                </span>
+              </div>
+              {sorted.map((m, i) => {
+                const rank = i + 1
+                return (
+                  <div key={m.model_name || i}
+                    className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm"
+                    style={{ animationDelay: `${(i % 10) * 0.04}s` }}>
+                    <div className="w-10 flex items-center justify-center shrink-0">
+                      {rank <= 3
+                        ? <span className={`text-lg font-bold ${rank === 1 ? 'text-amber-500' : rank === 2 ? 'text-slate-400' : 'text-amber-700'}`}>#{rank}</span>
+                        : <span className="text-xs font-semibold text-muted-foreground/40">#{rank}</span>
+                      }
                     </div>
-
-                    {/* Model info */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-semibold text-base">{item.model}</span>
-                        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground">{item.provider}</span>
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-0.5">{item.channel_name}</div>
+                    <div className="flex-[2] min-w-0">
+                      <span className="text-sm font-semibold text-foreground">{m.model_name || m.name}</span>
                     </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 sm:gap-6 text-right shrink-0">
-                      {activeTab === 'request_count_7d' && (
-                        <div>
-                          <div className="text-sm font-semibold">{formatRequests(item.request_count_7d)}</div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('Requests')}</div>
-                        </div>
-                      )}
-                      {activeTab === 'tokens_7d' && (
-                        <div>
-                          <div className="text-sm font-semibold">{formatTokens(item.tokens_7d)}</div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('Tokens')}</div>
-                        </div>
-                      )}
-                      {activeTab === 'avg_speed_ms' && (
-                        <div>
-                          <div className="text-sm font-semibold">{item.avg_speed_ms}ms</div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">{t('Avg Speed')}</div>
-                        </div>
-                      )}
-                      {activeTab === 'price_per_1k' && (
-                        <div>
-                          <div className="text-sm font-semibold">${item.price_per_1k.toFixed(4)}</div>
-                          <div className="text-[10px] text-muted-foreground uppercase tracking-wider">/1K {t('Tokens')}</div>
-                        </div>
-                      )}
-
-                      {/* Trend */}
-                      <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-2 py-1 rounded-full ${
-                        item.trend_percent >= 0
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                      }`}>
-                        {item.trend_percent >= 0
-                          ? <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                          : <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
-                        }
-                        {Math.abs(item.trend_percent)}%
-                      </span>
-                    </div>
+                    <span className="flex-1 text-sm text-muted-foreground/70">{m.provider || '—'}</span>
+                    <span className="flex-1 text-sm text-right font-medium tabular-nums">
+                      {statValue(m, sortKey)}
+                    </span>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-          {visibleCount < filteredRankings.length && (
-            <div className="flex justify-center mt-10">
-              <button className="inline-flex items-center justify-center rounded-xl border border-input bg-background w-full max-w-sm py-3 text-sm font-medium hover:bg-accent"
-                onClick={() => setVisibleCount(c => c + PAGE_STEP)}>
-                {t('Load More')} ({filteredRankings.length - visibleCount} {t('remaining')})
-              </button>
+                )
+              })}
             </div>
-          )}
           </>
         )}
       </div>
     </div>
-  );
-
+  )
 }

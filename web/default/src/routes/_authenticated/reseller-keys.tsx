@@ -102,10 +102,10 @@ function ResellerKeysPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t('my_keys')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('my_keys')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('my_keys_desc')}</p>
         </div>
         <Button onClick={() => { resetForm(); setDialogOpen(true) }} className="gap-2">
@@ -136,7 +136,7 @@ function ResellerKeysPage() {
                           <span className="font-medium text-sm">{ch.name}</span>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground max-w-[200px] truncate">{ch.models || '-'}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground max-w-[min(30vw,200px)] truncate">{ch.models || '-'}</td>
                       <td className="px-4 py-3 text-center">
                         <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
                       </td>

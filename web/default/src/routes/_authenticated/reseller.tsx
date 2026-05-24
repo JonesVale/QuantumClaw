@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, Key, ExternalLink, Copy, RefreshCw, TrendingUp, PieChart } from 'lucide-react'
+import { Plus, Key, ExternalLink, Copy, RefreshCw, TrendingUp, PieChart, DollarSign } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart as RePieChart, Pie, Cell, Legend
@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import { getTransactions, type TransactionItem } from '@/lib/api-extended'
@@ -28,10 +27,7 @@ function ResellerPortal() {
   const queryClient = useQueryClient()
   const [copied, setCopied] = useState(false)
 
-  // Generate affiliate link for this user
   const userId = auth.user?.id
-  // In a real system, the reseller would have a code from the reseller table
-  // For now, use user ID as the code
   const affiliateLink = typeof window !== 'undefined'
     ? `${window.location.origin}/sign-in?aff=${userId}`
     : ''
@@ -43,7 +39,6 @@ function ResellerPortal() {
     toast.success(t('copied'))
   }
 
-  // Fetch transactions where this user is the promoter
   const { data: promoterTxns, isLoading: promoterLoading } = useQuery({
     queryKey: ['transactions-promoter', userId],
     queryFn: () => getTransactions({ promoter_id: userId, page_size: 10 }),
@@ -51,7 +46,6 @@ function ResellerPortal() {
     staleTime: 15_000,
   })
 
-  // Fetch transactions where this user's channels were used
   const { data: ownerTxns, isLoading: ownerLoading } = useQuery({
     queryKey: ['transactions-owner', userId],
     queryFn: () => getTransactions({ channel_owner_id: userId, page_size: 10 }),
@@ -62,12 +56,10 @@ function ResellerPortal() {
   const promotedTxns = promoterTxns?.data?.transactions || []
   const ownedTxns = ownerTxns?.data?.transactions || []
 
-  // Summary calculations
   const totalCommission = promotedTxns.reduce((s, t) => s + t.commission_amount, 0)
   const totalRevenue = ownedTxns.reduce((s, t) => s + t.unified_cost, 0)
   const totalFallbacks = promotedTxns.filter(t => t.is_fallback).length
 
-  // Withdrawal
   const [withdrawing, setWithdrawing] = useState(false)
   const handleWithdraw = async () => {
     setWithdrawing(true)
@@ -86,7 +78,6 @@ function ResellerPortal() {
   })
   const withdrawableBalance = balanceData?.balance || 0
 
-  // Stats / Charts
   const { data: statsData } = useQuery({
     queryKey: ['reseller-stats', userId],
     queryFn: async () => { const r = await apiClient.get('/api/reseller/stats?days=30'); return r.data?.data },
@@ -99,13 +90,12 @@ function ResellerPortal() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">{t('reseller_portal')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('reseller_portal')}</h1>
         <p className="text-sm text-muted-foreground mt-1">{t('reseller_portal_desc')}</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <Card>
           <CardContent className="py-4 text-center">
@@ -127,9 +117,7 @@ function ResellerPortal() {
         </Card>
       </div>
 
-      {/* Charts Row */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
-        {/* Daily Revenue Trend */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -151,7 +139,6 @@ function ResellerPortal() {
           </CardContent>
         </Card>
 
-        {/* Model Distribution */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
@@ -182,7 +169,6 @@ function ResellerPortal() {
         </Card>
       </div>
 
-      {/* Affiliate Link */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -202,7 +188,6 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      {/* Promotion Earnings */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -248,7 +233,6 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      {/* Key Earnings */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -289,7 +273,6 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      {/* Withdrawal */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
@@ -314,7 +297,6 @@ function ResellerPortal() {
           </div>
         </CardContent>
       </Card>
-
     </div>
   )
 }

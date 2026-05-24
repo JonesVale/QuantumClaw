@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { useState, memo, useMemo, useEffect, useRef } from 'react'
 import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { newsSources, type NewsSource } from '@/lib/news-sources'
 
 export const Route = createFileRoute('/_authenticated/news')({
   component: NewsPage,
@@ -38,7 +37,7 @@ type LangTab = (typeof LANG_TABS)[number]
 
 const LANG_LABELS: Record<string, string> = {
   all: 'All',
-  zh: '中文',
+  zh: '\u4e2d\u6587',
   en: 'EN',
 }
 
@@ -63,15 +62,13 @@ function formatDate(dateStr: string): string {
 
 function truncateText(text: string, maxLen: number): string {
   if (!text) return ''
-  // Strip extra whitespace
   const clean = text.replace(/\s+/g, ' ').trim()
   if (clean.length <= maxLen) return clean
-  return clean.slice(0, maxLen) + '…'
+  return clean.slice(0, maxLen) + '\u2026'
 }
 
 function ArticleCard({ article }: { article: RssArticle }) {
   const { t } = useT()
-
   return (
     <Card className="flex flex-col h-full">
       <CardHeader className="pb-3">
@@ -130,7 +127,7 @@ function LoadingState() {
   return (
     <div className="flex items-center justify-center py-16 gap-2 text-muted-foreground">
       <Loader2 className="h-5 w-5 animate-spin" />
-      <p className="text-sm">{t('Loading articles…')}</p>
+      <p className="text-sm">{t('Loading articles\u2026')}</p>
     </div>
   )
 }
@@ -178,20 +175,16 @@ function NewsPage() {
   }, [activeLang])
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-8 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
-      {/* Header */}
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('AI News')}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base lg:text-lg">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('AI News')}</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
             {t('Latest AI articles from top sources')}
           </p>
         </div>
       </div>
 
-      {/* Language tabs */}
       <div className="flex gap-2 flex-wrap">
         {LANG_TABS.map((lang) => (
           <Button
@@ -206,7 +199,6 @@ function NewsPage() {
         ))}
       </div>
 
-      {/* Article grid */}
       {loading ? (
         <LoadingState />
       ) : error ? (

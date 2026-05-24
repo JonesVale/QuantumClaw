@@ -19,8 +19,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -36,7 +36,6 @@ import {
 } from '@/components/ui/tooltip'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Separator } from '@/components/ui/separator'
-import { EmptyState } from '@/components/empty-state'
 import {
   type Token, type TokenFormData,
   getTokens, createToken, updateToken, deleteToken, manageToken,
@@ -48,7 +47,7 @@ export const Route = createFileRoute('/_authenticated/keys')({
   component: KeysPage,
 })
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ── Helpers ──
 
 /** Mask a key for display: show first 4 + last 4 chars, hide the middle. */
 function maskKey(key: string): string {
@@ -69,7 +68,7 @@ function quotaPercent(used: number | undefined | null, remaining: number | undef
   return Math.min(100, Math.round(((used || 0) / total) * 100))
 }
 
-// ─── TokenFormDialog ────────────────────────────────────────────────────────
+// ── TokenFormDialog ──
 
 function TokenFormDialog({
   open,
@@ -120,7 +119,7 @@ function TokenFormDialog({
 
   return (
     <>
-      {/* 创建/编辑 Key 表单 Dialog */}
+      {/* Create/Edit Key form Dialog */}
       <Dialog open={open && !newKey} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -177,7 +176,7 @@ function TokenFormDialog({
         </DialogContent>
       </Dialog>
 
-      {/* 创建成功后展示 Key 的 Dialog */}
+      {/* Show created Key Dialog */}
       <Dialog open={!!newKey} onOpenChange={(v) => { if (!v) setNewKey(null) }}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -238,7 +237,7 @@ curl -X POST ${window.location.origin}/v1/quantum/run \\
   )
 }
 
-// ─── DeleteConfirmDialog ────────────────────────────────────────────────────
+// ── DeleteConfirmDialog ──
 
 function DeleteConfirmDialog({
   open,
@@ -279,7 +278,7 @@ function DeleteConfirmDialog({
   )
 }
 
-// ─── KeysPage (main) ────────────────────────────────────────────────────────
+// ── KeysPage (main) ──
 
 function KeysPage() {
   const { t } = useT()
@@ -336,11 +335,11 @@ function KeysPage() {
   }
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 w-full min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 min-h-screen bg-background">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
             {t('API Keys')}
           </h1>
           <p className="text-muted-foreground text-sm sm:text-base mt-2">
@@ -350,20 +349,20 @@ function KeysPage() {
       </div>
 
       {/* Connection Info Card */}
-      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 border-blue-200 dark:border-blue-800">
+      <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
         <CardContent className="p-4 sm:p-6">
           <div className="flex items-start gap-3">
-            <div className="hidden sm:flex w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900 items-center justify-center flex-shrink-0">
-              <Globe className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+            <div className="hidden sm:flex w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 items-center justify-center flex-shrink-0">
+              <Globe className="h-5 w-5 text-[oklch(0.72_0.18_52)]" />
             </div>
             <div className="space-y-2 flex-1 min-w-0">
-              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                 {t('API Access')}
               </p>
-              <div className="text-xs sm:text-sm text-blue-700 dark:text-blue-400 space-y-1.5">
+              <div className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 space-y-1.5">
                 <p>
                   <span className="font-medium">{t('Base URL')}:</span>{' '}
-                  <code className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono break-all">
+                  <code className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono break-all">
                     {window.location.origin}
                   </code>
                   <Button
@@ -379,13 +378,13 @@ function KeysPage() {
                   </Button>
                 </p>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <code className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
+                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
                     Authorization: Bearer {'{'}sk-...{'}'}
                   </code>
-                  <code className="px-2 py-1 rounded bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300 text-xs font-mono">
+                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
                     POST {window.location.origin}/v1/chat/completions
                   </code>
-                  <code className="px-2 py-1 rounded bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300 text-xs font-mono">
+                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
                     POST {window.location.origin}/v1/quantum/run
                   </code>
                 </div>
@@ -420,20 +419,21 @@ function KeysPage() {
 
       {/* Token List */}
       {!isLoading && tokens.length === 0 ? (
-        <EmptyState
-          icon={Key}
-          title={t('No tokens found')}
-          description={t('Create your first API token to get started')}
-          action={{
-            label: t('Create Token'),
-            onClick: () => {
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+          <Key className="h-12 w-12 mb-4 opacity-20" />
+          <p className="text-lg font-medium">{t('No tokens found')}</p>
+          <p className="text-sm mt-1 mb-6">{t('Create your first API token to get started')}</p>
+          <Button
+            onClick={() => {
               setEditingToken(null)
               setDialogOpen(true)
-            },
-          }}
-        />
+            }}
+          >
+            {t('Create Token')}
+          </Button>
+        </div>
       ) : (
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card>
           <CardContent className="p-0">
             <div className="rounded-lg border overflow-x-auto">
               <Table>
@@ -473,10 +473,10 @@ function KeysPage() {
                             <TableCell className="font-medium">{idx + 1}</TableCell>
                             <TableCell className="font-medium">
                               <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
                                   <Key className="h-4 w-4 text-white" />
                                 </div>
-                                <span className="truncate max-w-[160px]" title={tk.name}>
+                                <span className="truncate max-w-[min(20vw,160px)]" title={tk.name}>
                                   {tk.name}
                                 </span>
                               </div>
@@ -539,7 +539,7 @@ function KeysPage() {
                               )}
                             </TableCell>
                             <TableCell>
-                              <div className="flex flex-col gap-1 min-w-[120px]">
+                              <div className="flex flex-col gap-1 min-w-[max(80px,10vw)]">
                                 <div className="flex items-center justify-between text-xs text-muted-foreground">
                                   <span>
                                     {isUnlimited
@@ -560,8 +560,8 @@ function KeysPage() {
                                           quotaPercent(used, remaining) > 80
                                             ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
                                             : quotaPercent(used, remaining) > 50
-                                              ? 'linear-gradient(90deg, #3b82f6, #8b5cf6)'
-                                              : 'linear-gradient(90deg, #10b981, #06b6d4)',
+                                              ? 'linear-gradient(90deg, #f97316, #ea580c)'
+                                              : 'linear-gradient(90deg, #22c55e, #06b6d4)',
                                       }}
                                     />
                                   </div>

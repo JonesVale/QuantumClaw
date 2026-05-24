@@ -90,19 +90,17 @@ function CheckinPage() {
   }
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Daily Check-in')}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-lg">
-          {t('Check in daily to earn rewards and maintain your streak')}
-        </p>
-      </div>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Daily Check-in')}</h1>
+          <p className="text-muted-foreground mt-2">
+            {t('Check in daily to earn rewards and maintain your streak')}
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
         {/* Check-in Card */}
         <Card className="relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10" />
@@ -183,11 +181,11 @@ function CheckinPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-purple-500/10 to-pink-500/10">
+              <div className="text-center p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10">
                 <p className="text-3xl font-bold text-purple-600">{consecutiveDays}</p>
                 <p className="text-sm text-muted-foreground mt-1">{t('Consecutive Days')}</p>
               </div>
-              <div className="text-center p-4 rounded-lg bg-gradient-to-br from-green-500/10 to-emerald-500/10">
+              <div className="text-center p-4 rounded-xl bg-gradient-to-br from-green-500/10 to-emerald-500/10">
                 <p className="text-3xl font-bold text-green-600">{totalReward}</p>
                 <p className="text-sm text-muted-foreground mt-1">{t('Total Rewards')}</p>
               </div>
@@ -232,7 +230,7 @@ function CheckinPage() {
               {history.slice(0, 10).map((record) => (
                 <div
                   key={record.id}
-                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-lg border"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3 rounded-xl border"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">

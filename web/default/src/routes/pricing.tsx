@@ -1,46 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo, useEffect, useRef } from 'react'
-import { Search, DollarSign, RefreshCw, Filter } from 'lucide-react'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { cn } from '@/lib/utils'
-
-// 鈹€鈹€ Helper functions 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
-const PROVIDER_META: Record<string, { gradient: string }> = {
-  OpenAI: { gradient: 'from-green-600 to-emerald-700' },
-  Anthropic: { gradient: 'from-orange-600 to-amber-700' },
-  Google: { gradient: 'from-blue-600 to-indigo-700' },
-  DeepSeek: { gradient: 'from-blue-600 to-cyan-700' },
-  Meta: { gradient: 'from-indigo-600 to-blue-800' },
-  Mistral: { gradient: 'from-cyan-600 to-teal-700' },
-  Microsoft: { gradient: 'from-azure-600 to-blue-700' },
-  Amazon: { gradient: 'from-orange-600 to-yellow-700' },
-  Cohere: { gradient: 'from-purple-600 to-pink-700' },
-  Stability: { gradient: 'from-green-600 to-emerald-700' },
-}
-
-function getProviderMeta(provider: string): { gradient: string } {
-  return PROVIDER_META[provider] || { gradient: 'from-slate-600 to-slate-700' }
-}
-
-function formatPrice(price: number): string {
-  if (price === 0) return 'Free'
-  if (price < 0.000001) return `$${price.toExponential(2)}`
-  if (price < 0.001) return `$${price.toFixed(6)}`
-  return `$${price.toFixed(4)}`
-}
+import { useState, useMemo } from 'react'
 
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
 })
 
-// 鈹€鈹€ Types 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 interface ModelPricing {
   name: string
   provider: string
@@ -49,7 +15,6 @@ interface ModelPricing {
   status: number
 }
 
-// 鈹€鈹€ Fallback mock data 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 function PricingPage() {
   const { t } = useT()
   const [search, setSearch] = useState('')
@@ -61,148 +26,129 @@ function PricingPage() {
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['model-pricing', 'models'],
     queryFn: async () => {
-      const res = await fetch('/api/models')
-      if (!res.ok) throw new Error('Failed to fetch')
-      return res.json()
+      const r = await fetch('/api/model-catalog?lang=en')
+      if (!r.ok) throw Error()
+      return r.json()
     },
-    retry: false,
-    staleTime: 60 * 1000,
+    staleTime: 60_000,
   })
+  const all: ModelPricing[] = data?.data || []
 
-  // Transform API response or use fallback
-  const models: ModelPricing[] = useMemo(() => {
-    const raw = data?.data
-    if (Array.isArray(raw)) return raw as ModelPricing[]
-    if (raw && typeof raw === 'object') {
-      // Handle dict format: { "1": ["gpt-4", ...] }
-      const dict = raw as Record<string, string[]>
-      const entries = Object.entries(dict)
-      if (entries.length > 0 && Array.isArray(entries[0][1])) {
-        return entries.flatMap(([channelId, names]) =>
-          (names as string[]).map((name) => ({
-            name,
-            provider: `Channel ${channelId}`,
-            input_price: 0,
-            output_price: 0,
-            status: 1,
-          }))
-        )
-      }
-    }
-    return []
-  }, [data])
+  const providers = useMemo(() => {
+    const s = new Set(all.map(m => m.provider).filter(Boolean))
+    return Array.from(s).sort()
+  }, [all])
 
-  // Filter
   const filtered = useMemo(() => {
-    let list = models
-    if (search) {
-      const q = search.toLowerCase()
-      list = list.filter((m) => m.name.toLowerCase().includes(q) || m.provider.toLowerCase().includes(q))
-    }
-    if (providerFilter !== 'all') {
-      list = list.filter((m) => m.provider === providerFilter)
-    }
-    if (showActiveOnly) {
-      list = list.filter((m) => m.status === 1)
-    }
-    return list
-  }, [models, search, providerFilter, showActiveOnly])
+    let r = all
+    if (search) { const q = search.toLowerCase(); r = r.filter(m => m.name.toLowerCase().includes(q) || m.provider?.toLowerCase().includes(q)) }
+    if (providerFilter !== 'all') r = r.filter(m => m.provider === providerFilter)
+    if (showActiveOnly) r = r.filter(m => m.status === 1)
+    return r
+  }, [all, search, providerFilter, showActiveOnly])
 
-  // Reset pagination when filters change
-  useEffect(() => setVisibleCount(PAGE_STEP), [search, providerFilter, showActiveOnly])
-
-  // Unique providers - 鐢?useRef 缂撳瓨锛屽噺灏戦噸澶嶉亶鍘?
-  const cachedProviders = useRef<string[]>([])
-  const cachedKey = useRef('')
-  const currentKey = `${(models||[]).length}-${showActiveOnly}`
-  if (cachedKey.current !== currentKey) {
-    const pool = showActiveOnly ? models.filter(m => m.status === 1) : models
-    const set = new Set(pool.map((m) => m.provider))
-    cachedProviders.current = Array.from(set).sort()
-    cachedKey.current = currentKey
-  }
-  const providers = cachedProviders.current
-
-  // Group by provider
-  const grouped = useMemo(() => {
-    const map = new Map<string, ModelPricing[]>()
-    for (const m of filtered) {
-      if (!map.has(m.provider)) map.set(m.provider, [])
-      map.get(m.provider)!.push(m)
-    }
-    return map
-  }, [filtered])
+  const shown = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
-        {/* Hero */}
-        <div className="mb-12">
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            <span className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-              {t('Model Pricing')}
-            </span>
+    <div className="min-h-screen bg-background"
+      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
+      <div className="qc-wrap qc-section-pad-sm">
+        {/* Header */}
+        <div className="qc-fade-up mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">
+            <span className="w-2 h-2 rounded-full bg-amber-500" />
+            {t('Transparent Pricing')}
+          </div>
+          <h1 className="qc-title-hero font-bold tracking-tight text-foreground">
+            {t('Model Pricing')}
           </h1>
-          <p className="text-lg text-muted-foreground mt-4 max-w-2xl leading-relaxed">
-            {t('Browse pricing across providers')}
+          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed">
+            {t('Compare token pricing across all providers. Pay only for what you use.')}
           </p>
         </div>
 
-        {/* Filter pills */}
-        <div className="flex flex-wrap gap-2 mb-10">
-          <button onClick={() => setProviderFilter('all')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-              providerFilter === 'all' ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-accent'
-            }`}>
-            {t('All Providers')}
+        {/* Controls */}
+        <div className="qc-fade-up flex items-center gap-3 flex-wrap mb-8">
+          <div className="relative flex-1 min-w-[180px] max-w-xs">
+            <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all"
+              placeholder={`${t('Search')} ${all.length} ${t('models')}...`} />
+          </div>
+          <select value={providerFilter} onChange={e => setProviderFilter(e.target.value)}
+            className="h-10 rounded-xl border border-border/30 bg-white/70 px-3 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all">
+            <option value="all">{t('All Providers')}</option>
+            {providers.map(p => <option key={p} value={p}>{p}</option>)}
+          </select>
+          <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-white/70 text-sm cursor-pointer hover:bg-muted/30 transition-all select-none">
+            <input type="checkbox" checked={showActiveOnly} onChange={e => setShowActiveOnly(e.target.checked)}
+              className="w-4 h-4 rounded border-2 border-muted-foreground/30 accent-[oklch(0.72_0.18_52)]" />
+            {t('Active only')}
+          </label>
+          <button onClick={() => refetch()}
+            className="h-10 px-3 rounded-xl border border-border/30 bg-white/70 hover:bg-muted/40 transition-all text-muted-foreground"
+            title={t('Refresh')}>
+            <svg className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
           </button>
-          {providers.slice(0, 15).map(p => (
-            <button key={p} onClick={() => setProviderFilter(p)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                providerFilter === p ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted text-muted-foreground hover:bg-accent'
-              }`}>
-              {p}
-            </button>
-          ))}
-          {providers.length > 15 && (
-            <details className="group inline-block">
-              <summary className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:bg-muted cursor-pointer">
-                <span className="group-open:hidden">{t('More')} ({providers.length - 15})</span>
-                <span className="hidden group-open:inline">{t('Less')}</span>
-              </summary>
-            </details>
-          )}
         </div>
 
-        {/* Pricing Cards by Provider */}
-        <div className="space-y-10">
-          {groupedByProvider.map(([provider, models]) => (
-            <div key={provider}>
-              <h2 className="text-xl font-semibold mb-4">{provider}</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {models.map((m: any) => (
-                  <div key={m.model} className="rounded-xl p-5 bg-card hover:shadow-md transition-all border-0">
-                    <h3 className="font-semibold text-sm mb-1">{m.model}</h3>
-                    <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-3">{m.provider}</p>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="inline-flex items-center gap-1">
-                        <span className="font-medium text-emerald-600 dark:text-emerald-400">IN</span>
-                        ${(m.input_price || 0).toFixed(4)}/1K
-                      </span>
-                      <span className="inline-flex items-center gap-1">
-                        <span className="font-medium text-amber-600 dark:text-amber-400">OUT</span>
-                        ${(m.output_price || 0).toFixed(4)}/1K
-                      </span>
-                      <span className="text-xs text-muted-foreground">{(m.context_window / 1000).toFixed(0)}K ctx</span>
-                    </div>
-                  </div>
-                ))}
+        {/* Loading / Empty / Table */}
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" />
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-20 text-muted-foreground">
+            <p className="text-lg font-medium mb-2">{t('No models found')}</p>
+            <button onClick={() => { setSearch(''); setProviderFilter('all') }}
+              className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">
+              {t('Reset filters')}
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('models')}</p>
+            <div className="space-y-2">
+              {/* Table header */}
+              <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                <span className="flex-[2]">{t('Model')}</span>
+                <span className="flex-1">{t('Provider')}</span>
+                <span className="flex-1 text-right">{t('Input / 1K tokens')}</span>
+                <span className="flex-1 text-right">{t('Output / 1K tokens')}</span>
+                <span className="w-16 text-center">{t('Status')}</span>
               </div>
+              {shown.map((m, i) => (
+                <div key={m.name + i}
+                  className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm"
+                  style={{ animationDelay: `${(i % 10) * 0.05}s` }}>
+                  <div className="flex-[2] min-w-0">
+                    <span className="text-sm font-semibold text-foreground">{m.name}</span>
+                  </div>
+                  <span className="flex-1 text-sm text-muted-foreground/70">{m.provider}</span>
+                  <span className="flex-1 text-sm text-right font-medium tabular-nums text-foreground/80">
+                    {m.input_price > 0 ? `$${m.input_price.toFixed(6)}` : <span className="text-emerald-600 font-semibold">{t('Free')}</span>}
+                  </span>
+                  <span className="flex-1 text-sm text-right font-medium tabular-nums text-foreground/80">
+                    {m.output_price > 0 ? `$${m.output_price.toFixed(6)}` : <span className="text-emerald-600 font-semibold">{t('Free')}</span>}
+                  </span>
+                  <div className="w-16 flex justify-center">
+                    <span className={`inline-block w-2 h-2 rounded-full ${m.status === 1 ? 'bg-emerald-500' : 'bg-muted-foreground/30'}`}
+                      title={m.status === 1 ? t('Active') : t('Inactive')} />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+            {visibleCount < filtered.length && (
+              <div className="flex justify-center mt-8">
+                <button onClick={() => setVisibleCount(v => v + PAGE_STEP)}
+                  className="px-8 py-3 rounded-xl border border-border/30 bg-white/70 hover:bg-white hover:shadow-sm text-sm font-medium transition-all hover:-translate-y-0.5">
+                  {t('Show more')} <span className="text-muted-foreground/60">({filtered.length - visibleCount})</span>
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
-  );
-
+  )
 }

@@ -34,43 +34,45 @@ function ResellerAdminPage() {
   })
 
   return (
-    <div className="p-4 sm:p-6 space-y-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Resellers list */}
       <div>
-        <h1 className="text-2xl font-bold mb-2">{t('reseller_management')}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">{t('reseller_management')}</h1>
         <p className="text-sm text-muted-foreground mb-4">{t('reseller_management_desc')}</p>
         <Card>
           <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('username')}</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('store_name')}</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('balance')}</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('total_earned')}</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('status')}</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('created')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(resellers || []).map((r: any) => (
-                  <tr key={r.id} className="border-b border-muted/50">
-                    <td className="px-4 py-3 font-medium">{r.username || '-'}</td>
-                    <td className="px-4 py-3">{r.name || '-'}</td>
-                    <td className="px-4 py-3 text-right font-mono">${(r.balance || 0).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-mono">${(r.total_earned || 0).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant={r.status === 1 ? 'default' : 'secondary'}>
-                        {r.status === 1 ? t('active') : t('disabled')}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground text-right">
-                      {dayjs(r.created_time * 1000).format('YYYY-MM-DD')}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('username')}</th>
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('store_name')}</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('balance')}</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('total_earned')}</th>
+                    <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('status')}</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('created')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(resellers || []).map((r: any) => (
+                    <tr key={r.id} className="border-b border-muted/50">
+                      <td className="px-4 py-3 font-medium">{r.username || '-'}</td>
+                      <td className="px-4 py-3">{r.name || '-'}</td>
+                      <td className="px-4 py-3 text-right font-mono">${(r.balance || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-right font-mono">${(r.total_earned || 0).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={r.status === 1 ? 'default' : 'secondary'}>
+                          {r.status === 1 ? t('active') : t('disabled')}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-muted-foreground text-right">
+                        {dayjs(r.created_time * 1000).format('YYYY-MM-DD')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -80,36 +82,38 @@ function ResellerAdminPage() {
         <h2 className="text-lg font-semibold mb-3">{t('pending_withdrawals')}</h2>
         <Card>
           <CardContent className="p-0">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('user_id')}</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('amount')}</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('status')}</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(withdrawals || []).map((w: any) => (
-                  <tr key={w.id} className="border-b border-muted/50">
-                    <td className="px-4 py-3">{w.user_id}</td>
-                    <td className="px-4 py-3 text-right font-mono">${(w.amount / 100).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-center">
-                      <Badge variant={w.status === 'pending' ? 'secondary' : 'default'}>
-                        {w.status === 'pending' ? t('pending') : t('approved')}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      {w.status === 'pending' && (
-                        <Button size="sm" variant="outline" onClick={() => approveMut.mutate(w.id)}>
-                          {t('approve')}
-                        </Button>
-                      )}
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b bg-muted/30">
+                    <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3">{t('user_id')}</th>
+                    <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3">{t('amount')}</th>
+                    <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('status')}</th>
+                    <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3">{t('actions')}</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(withdrawals || []).map((w: any) => (
+                    <tr key={w.id} className="border-b border-muted/50">
+                      <td className="px-4 py-3">{w.user_id}</td>
+                      <td className="px-4 py-3 text-right font-mono">${(w.amount / 100).toFixed(2)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <Badge variant={w.status === 'pending' ? 'secondary' : 'default'}>
+                          {w.status === 'pending' ? t('pending') : t('approved')}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        {w.status === 'pending' && (
+                          <Button size="sm" variant="outline" onClick={() => approveMut.mutate(w.id)}>
+                            {t('approve')}
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>

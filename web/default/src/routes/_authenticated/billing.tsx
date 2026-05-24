@@ -90,23 +90,16 @@ function BillingPage() {
     }
   }
 
-  const formatAmount = (amount: number, type: string) => {
-    const sign = type === 'income' || type === 'topup' || type === 'payment' ? '+' : '-'
-    return `${sign}${amount.toFixed(2)}`
-  }
-
   const formatTime = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleString()
   }
 
   return (
-    <div className=" w-full p-4 sm:p-6 space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-            {t('Billing')}
-          </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Billing')}</h1>
+          <p className="text-muted-foreground mt-2">
             {t('View and manage your billing history and balance')}
           </p>
         </div>

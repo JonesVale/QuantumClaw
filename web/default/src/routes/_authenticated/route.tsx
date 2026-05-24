@@ -8,7 +8,7 @@ let sessionVerified = false
 export const Route = createFileRoute('/_authenticated')({
   beforeLoad: async () => {
     const { auth } = useAuthStore.getState()
-    // 已登录用户验证 session 有效性
+    // Verify logged-in user session validity
     if (auth.user && !sessionVerified) {
       try {
         const res = await getSelf()
@@ -22,7 +22,7 @@ export const Route = createFileRoute('/_authenticated')({
         auth.reset()
       }
     }
-    // 未登录用户可以正常浏览页面，不跳转
+    // Non-logged-in users can browse normally without redirect
   },
   component: () => <AppLayout />,
 })

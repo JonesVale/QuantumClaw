@@ -1,22 +1,19 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useState, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, RefreshCw, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { EmptyState } from '@/components/empty-state'
+import { Card, CardContent } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Switch } from '@/components/ui/switch'
 import apiClient from '@/lib/api'
 import { cn } from '@/lib/utils'
+import { useMemo } from 'react'
 
 export const Route = createFileRoute('/_authenticated/distributors')({
   component: DistributorsPage,
@@ -49,12 +46,10 @@ function DistributorsPage() {
   }, [data, search])
 
   return (
-    <div className="p-4 sm:p-6 w-full space-y-6 min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/50 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/50">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight bg-gradient-to-r from-amber-600 via-orange-600 to-red-600 bg-clip-text text-transparent">
-            {t('Distributors')}
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Distributors')}</h1>
           <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{t('Manage reseller distributors and pricing')}</p>
         </div>
         <div className="flex gap-2">

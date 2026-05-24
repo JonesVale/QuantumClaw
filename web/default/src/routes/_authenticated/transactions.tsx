@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
-import { RefreshCw, DollarSign, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Search, RefreshCw, DollarSign } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -32,10 +32,10 @@ function TransactionsPage() {
   const totalPages = Math.ceil(total / 20)
 
   return (
-    <div className="p-4 sm:p-6 space-y-6">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{t('transactions')}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('transactions')}</h1>
           <p className="text-sm text-muted-foreground mt-1">{t('transactions_desc')}</p>
         </div>
         <div className="flex items-center gap-2">

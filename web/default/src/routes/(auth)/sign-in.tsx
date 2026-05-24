@@ -1,315 +1,77 @@
-import { createFileRoute, redirect, useSearch, useRouter } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-import { signIn, register } from '@/lib/api-extended'
-import { toast } from 'sonner'
-import { getTelegramWidgetInfo } from '@/lib/api-extended'
+import { setCookie } from '@/lib/cookies'
+
 export const Route = createFileRoute('/(auth)/sign-in')({
   component: SignInPage,
-  beforeLoad: () => {
-    const { auth } = useAuthStore.getState()
-    if (auth.user) {
-      throw redirect({ to: '/dashboard' })
-    }
-  },
-  validateSearch: (search) => ({ redirect: (search.redirect as string) || undefined }),
 })
+
 function SignInPage() {
   const { t } = useT()
-  const { auth } = useAuthStore()
-  const router = useRouter()
-  const { redirect: redirectUrl } = useSearch({ strict: false })
-  const [mode, setMode] = useState<'login' | 'register'>('login')
-  const [loading, setLoading] = useState(false)
-  const [username, setUsername] = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [affCode, setAffCode] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [botUsername, setBotUsername] = useState<string | null>(null)
-  const [userRole, setUserRole] = useState<1 | 2>(1)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const navigate = useNavigate()
+  const auth = useAuthStore(s => s.auth)
 
-  // Auto-fill invite code from URL (?aff=CODE)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('aff');
-    if (code) {
-      setAffCode(code);
-      setMode('register');
-    }
-  }, []);
-
-  // Load Telegram widget info
-  useEffect(() => {
-    getTelegramWidgetInfo().then((res) => {
-      const info = res.data?.data
-      if (info?.bot_username) {
-        setBotUsername(info.bot_username)
-      }
-    }).catch(() => {
-      // Telegram login not configured, ignore
-    })
-  }, [])
-  // Telegram auth callback handler - listens for redirected Telegram auth data
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.has('id') && params.has('hash') && params.has('auth_date')) {
-      // Telegram auth data detected in URL - send to backend
-      setLoading(true)
-      fetch('/api/oauth/telegram' + window.location.search, {
-        method: 'GET',
-      })
-        .then((r) => r.json())
-        .then((res) => {
-          if (res.success) {
-            toast.success(t('Welcome back!'))
-            auth.setUser(res.data as import('@/stores/auth-store').AuthUser)
-            router.navigate({ to: (redirectUrl as string) || '/dashboard' })
-          } else {
-            toast.error(res.message || t('Login failed'))
-          }
-        })
-        .catch(() => toast.error(t('Login failed')))
-        .finally(() => setLoading(false))
-    }
-  }, [])
-  const handleTelegramLogin = () => {
-    if (botUsername) {
-      // Open Telegram Login Widget in a popup
-      const redirectUri = window.location.origin + '/api/oauth/telegram'
-      const tgAuthUrl = `https://oauth.telegram.org/auth?bot_id=${botUsername}&origin=${encodeURIComponent(window.location.origin)}&return_to=${encodeURIComponent(redirectUri)}`
-      window.open(tgAuthUrl, 'TelegramLogin', 'width=600,height=500')
-    }
-  }
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  const doLogin = useCallback(async () => {
+    if (!email || !password) return
+    setLoading(true); setError('')
     try {
-      const res = await signIn(username, password)
-      if (res.success) {
-        toast.success(t('Welcome back!'))
-        auth.setUser(res.data as import('@/stores/auth-store').AuthUser)
-        router.navigate({ to: (redirectUrl as string) || '/dashboard' })
+      const res = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,password}) }).then(r=>r.json())
+      if (res.success && res.data?.token) {
+        setCookie(import.meta.env.VITE_TOKEN_KEY || 'token', res.data.token)
+        auth.setUser(res.data.user)
+        navigate({ to: '/dashboard' })
       } else {
-        toast.error(res.message || t('Login failed'))
+        setError(res.message || t('Login failed'))
       }
-    } catch {
-      toast.error(t('Login failed'))
-    } finally {
-      setLoading(false)
-    }
-  }
+    } catch { setError(t('Network error')) }
+    setLoading(false)
+  }, [email, password, t, navigate, auth])
 
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (password !== confirmPassword) {
-      toast.error(t('Passwords do not match'))
-      return
-    }
-    setLoading(true)
-    try {
-      const res = await register({
-        username,
-        password,
-        display_name: username,
-        aff_code: affCode || undefined,
-      })
-      if (res.success) {
-        toast.success(t('Registration successful! Please sign in.'))
-        setMode('login')
-        setConfirmPassword('')
-      } else {
-        toast.error(res.message || t('Registration failed'))
-      }
-    } catch {
-      toast.error(t('Registration failed'))
-    } finally {
-      setLoading(false)
-    }
-  }
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 via-white to-blue-50 p-4 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950 mx-auto max-w-[min(96vw,1600px)] w-full">
-      <Card className="w-full sm:max-w-md">
-        <CardHeader className="items-center text-center">
-          <img src="/logo.webp" alt="QuantumClaw" className="h-12 w-12 rounded-xl object-cover mb-2" />
-          <CardTitle className="text-2xl sm:text-3xl font-bold">{t('QuantumClaw')}</CardTitle>
-          <CardDescription>{t('AI API Gateway & Management Platform')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex mb-4 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden">
-            <button
-              type="button"
-              onClick={() => { setMode('login'); setConfirmPassword('') }}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'login' ? 'bg-blue-600 text-white' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-            >
-              {t('Sign In')}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setMode('register'); setConfirmPassword('') }}
-              className={`flex-1 py-2 text-sm font-medium transition-colors ${mode === 'register' ? 'bg-blue-600 text-white' : 'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-            >
-              {t('Register')}
-            </button>
+    <div className="min-h-screen bg-background flex items-center justify-center"
+      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
+      <div className="qc-fade-up w-full max-w-sm mx-auto px-4">
+        <div className="text-center mb-8">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/20 mx-auto mb-4">
+            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">{t('Sign In')}</h1>
+          <p className="text-sm text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
+        </div>
 
-          {mode === 'login' ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="username">{t('Username')}</Label>
-                <Input
-                  id="username"
-                  placeholder={t('Username or email')}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">{t('Password')}</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t('Signing in...') : t('Sign In')}
-              </Button>
-            </form>
-          ) : (
-            <form onSubmit={handleRegister} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="reg-username">{t('Username')}</Label>
-                <Input
-                  id="reg-username"
-                  placeholder={t('Choose a username')}
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  required
-                  minLength={3}
-                  maxLength={12}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-password">{t('Password')}</Label>
-                <Input
-                  id="reg-password"
-                  type="password"
-                  placeholder={t('At least 8 characters')}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  minLength={8}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-confirm-password">{t('Confirm Password')}</Label>
-                <Input
-                  id="reg-confirm-password"
-                  type="password"
-                  placeholder={t('Re-enter password')}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                />
-                {confirmPassword && password !== confirmPassword && (
-                  <p className="text-xs text-red-500">{t('Passwords do not match')}</p>
-                )}
-              </div>
-              {/* Account type selector */}
-              <div className="space-y-2">
-                <Label>{t('Account type')}</Label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setUserRole(1)}
-                    className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-colors ${userRole === 1 ? 'bg-blue-600 text-white border-blue-600' : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50'}`}
-                  >
-                    {t('Regular User')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setUserRole(2)}
-                    className={`flex-1 py-2 px-3 text-sm rounded-lg border transition-colors ${userRole === 2 ? 'bg-purple-600 text-white border-purple-600' : 'bg-transparent text-muted-foreground border-border hover:bg-muted/50'}`}
-                  >
-                    {t('Channel Supplier')}
-                  </button>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reg-aff-code">{t('Invite Code')}</Label>
-                <Input
-                  id="reg-aff-code"
-                  placeholder={t('Optional')}
-                  value={affCode}
-                  onChange={(e) => setAffCode(e.target.value)}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t('Registering...') : t('Register')}
-              </Button>
-            </form>
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-border/20 shadow-sm p-6">
+          {error && (
+            <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-medium border border-red-200/50">
+              {error}
+            </div>
           )}
-          {botUsername && (
-            <>
-              <Separator className="my-4" />
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={handleTelegramLogin}
-                  disabled={loading}
-                >
-                  <svg
-                    className="mr-2 h-4 w-4"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.127.087.497.131.666.046.178.162.688.185.803a5.268 5.268 0 0 1 .054.644c-.002.052.004.626-.065.98-.028.145-.052.283-.1.392-.02.046-.046.125-.089.16a.365.365 0 0 1-.229.076.899.899 0 0 1-.531-.168c-.042-.032-.503-.348-.789-.545-.092-.064-.19-.113-.299-.07-.082.032-.13.107-.146.188-.02.1-.005.222.004.3.009.06.014.117-.004.187-.065.247-.366.444-.541.516-.11.046-.358.143-.583.178a6.067 6.067 0 0 1-2.313-.027c-.34-.07-.669-.168-.962-.268-.173-.06-.346-.138-.505-.21l-.078-.035c.023-.044.049-.086.077-.126a3.946 3.946 0 0 0 .49-.722c.193-.354.394-.814.516-1.202.03-.095.058-.19.058-.288 0-.006-.002-.402-.03-.47a.33.33 0 0 0-.14-.191.354.354 0 0 0-.214-.047c-.078.01-.258.05-.371.095-.295.117-.731.581-.98.776-.082.064-.185.128-.274.182l-.618.388c-.085.052-.18.113-.243.167-.14.12-.192.214-.23.244-.013.01-.04.019-.064.017-.053-.003-.08-.02-.1-.04a.252.252 0 0 1-.056-.084c-.056-.127-.108-.478-.141-.724-.03-.216-.045-.436-.035-.532.003-.03.01-.058.025-.082a.42.42 0 0 1 .131-.12c.008-.005.288-.176.318-.2.062-.05.137-.12.218-.183.654-.525 1.558-1.058 2.182-1.333.698-.309 1.575-.587 2.413-.537z"/>
-                  </svg>
-                  {t('Sign in with Telegram')}
-                </Button>
-              </div>
-            </>
-          )}
-          {/* LinuxDO Login */}
-          <Separator className="my-4" />
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={async () => {
-                try {
-                  const res = await fetch('/api/oauth/linuxdo/generate')
-                  const data = await res.json()
-                  if (data.success && data.data) {
-                    window.location.href = data.data
-                  } else {
-                    toast.error(t('Failed to initiate LinuxDO login'))
-                  }
-                } catch {
-                  toast.error(t('Failed to initiate LinuxDO login'))
-                }
-              }}
-              disabled={loading}
-            >
-              <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-              </svg>
-              {t('Sign in with LinuxDO')}
-            </Button>
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground/60 block mb-1.5">{t('Email')}</label>
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                className="w-full h-10 rounded-xl border border-border/30 bg-white px-4 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                placeholder="you@example.com" autoComplete="email" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground/60 block mb-1.5">{t('Password')}</label>
+              <input type="password" value={password} onChange={e => setPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && doLogin()}
+                className="w-full h-10 rounded-xl border border-border/30 bg-white px-4 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                placeholder="••••••••" autoComplete="current-password" />
+            </div>
+            <button onClick={doLogin} disabled={loading || !email || !password}
+              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+              {loading ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Sign In')}
+            </button>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

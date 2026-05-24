@@ -21,9 +21,9 @@ RUN cd default && \
 # ============================================================
 # Stage 2: Build Go Backend
 # ============================================================
-FROM golang:1.23-alpine AS backend-builder
+FROM golang:1.23-bookworm AS backend-builder
 
-RUN apk add --no-cache git ca-certificates tzdata build-base
+# bookworm includes gcc, no need to install
 
 WORKDIR /app
 
@@ -42,7 +42,7 @@ COPY --from=frontend-builder /app/web/build/default ./web/default/dist
 # 3. Build
 ARG VERSION=dev
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w -X github.com/quantumclaw/quantumclaw/common.Version=${VERSION}" \
+    go build -ldflags="-s -w -linkmode external -extldflags '-static' -X github.com/quantumclaw/quantumclaw/common.Version=${VERSION}" \
     -o quantumclaw .
 
 # ============================================================
