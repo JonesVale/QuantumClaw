@@ -50,11 +50,7 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
         <div className="flex items-center justify-between h-[4.5rem]">
           {/* ─── Logo ─── */}
           <Link to="/" className="flex items-center gap-3 no-underline group shrink-0">
-            <div className="relative w-11 h-11 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 transition-transform duration-300 group-hover:scale-105">
-              <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-              </svg>
-            </div>
+            <img src="/logo.webp" alt="QuantumClaw" className="w-11 h-11 rounded-xl object-cover shadow-lg shadow-orange-500/20 transition-transform duration-300 group-hover:scale-105" />
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-foreground leading-tight">
                 Quantum<span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Claw</span>
