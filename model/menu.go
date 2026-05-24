@@ -207,6 +207,9 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-settings", ParentKey: "", MenuType: "sidebar", LabelKey: "Settings", Icon: "Settings", Path: "/settings", SortOrder: 70, Roles: "[10,100]", GroupName: "account", Enabled: true},
 		{MenuKey: "sidebar-api-docs", ParentKey: "", MenuType: "sidebar", LabelKey: "API Docs", Icon: "BookOpen", Path: "/api-docs", SortOrder: 80, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},
 		{MenuKey: "sidebar-about", ParentKey: "", MenuType: "sidebar", LabelKey: "About", Icon: "Info", Path: "/about", SortOrder: 90, Roles: "[0,1,2,10,100]", GroupName: "account", Enabled: true},
+		{MenuKey: "sidebar-connections", ParentKey: "", MenuType: "sidebar", LabelKey: "OAuth Connections", Icon: "Link2", Path: "/connections", SortOrder: 92, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},
+		{MenuKey: "sidebar-notifications", ParentKey: "", MenuType: "sidebar", LabelKey: "Notifications", Icon: "Bell", Path: "/notifications", SortOrder: 94, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},
+		{MenuKey: "sidebar-password", ParentKey: "", MenuType: "sidebar", LabelKey: "Password & Security", Icon: "Lock", Path: "/password", SortOrder: 96, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},
 	}
 
 	for _, m := range menus {

@@ -13,6 +13,7 @@ import { Route as RankingsRouteImport } from './routes/rankings'
 import { Route as QuantumRouteImport } from './routes/quantum'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlaygroundRouteImport } from './routes/playground'
+import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as ModelsRouteImport } from './routes/models'
 import { Route as FusionRouteImport } from './routes/fusion'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
@@ -34,6 +35,8 @@ import { Route as AuthenticatedRedemptionRouteImport } from './routes/_authentic
 import { Route as AuthenticatedProfitRouteImport } from './routes/_authenticated/profit'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_authenticated/platform-settings'
+import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticated/password'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
@@ -71,6 +74,11 @@ const PricingRoute = PricingRouteImport.update({
 const PlaygroundRoute = PlaygroundRouteImport.update({
   id: '/playground',
   path: '/playground',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OauthCallbackRoute = OauthCallbackRouteImport.update({
+  id: '/oauth-callback',
+  path: '/oauth-callback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ModelsRoute = ModelsRouteImport.update({
@@ -182,6 +190,17 @@ const AuthenticatedPlatformSettingsRoute =
     path: '/platform-settings',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPasswordRoute = AuthenticatedPasswordRouteImport.update({
+  id: '/password',
+  path: '/password',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedNotFoundRoute = AuthenticatedNotFoundRouteImport.update({
   id: '/not-found',
   path: '/not-found',
@@ -282,6 +301,7 @@ export interface FileRoutesByFullPath {
   '/enterprise': typeof EnterpriseRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
   '/pricing': typeof PricingRoute
   '/quantum': typeof QuantumRoute
@@ -304,6 +324,8 @@ export interface FileRoutesByFullPath {
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
@@ -326,6 +348,7 @@ export interface FileRoutesByTo {
   '/enterprise': typeof EnterpriseRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
   '/pricing': typeof PricingRoute
   '/quantum': typeof QuantumRoute
@@ -348,6 +371,8 @@ export interface FileRoutesByTo {
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/password': typeof AuthenticatedPasswordRoute
   '/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
@@ -372,6 +397,7 @@ export interface FileRoutesById {
   '/enterprise': typeof EnterpriseRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
+  '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
   '/pricing': typeof PricingRoute
   '/quantum': typeof QuantumRoute
@@ -394,6 +420,8 @@ export interface FileRoutesById {
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/password': typeof AuthenticatedPasswordRoute
   '/_authenticated/platform-settings': typeof AuthenticatedPlatformSettingsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/profit': typeof AuthenticatedProfitRoute
@@ -418,6 +446,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/fusion'
     | '/models'
+    | '/oauth-callback'
     | '/playground'
     | '/pricing'
     | '/quantum'
@@ -440,6 +469,8 @@ export interface FileRouteTypes {
     | '/monitoring'
     | '/news'
     | '/not-found'
+    | '/notifications'
+    | '/password'
     | '/platform-settings'
     | '/profile'
     | '/profit'
@@ -462,6 +493,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/fusion'
     | '/models'
+    | '/oauth-callback'
     | '/playground'
     | '/pricing'
     | '/quantum'
@@ -484,6 +516,8 @@ export interface FileRouteTypes {
     | '/monitoring'
     | '/news'
     | '/not-found'
+    | '/notifications'
+    | '/password'
     | '/platform-settings'
     | '/profile'
     | '/profit'
@@ -507,6 +541,7 @@ export interface FileRouteTypes {
     | '/enterprise'
     | '/fusion'
     | '/models'
+    | '/oauth-callback'
     | '/playground'
     | '/pricing'
     | '/quantum'
@@ -529,6 +564,8 @@ export interface FileRouteTypes {
     | '/_authenticated/monitoring'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
+    | '/_authenticated/notifications'
+    | '/_authenticated/password'
     | '/_authenticated/platform-settings'
     | '/_authenticated/profile'
     | '/_authenticated/profit'
@@ -553,6 +590,7 @@ export interface RootRouteChildren {
   EnterpriseRoute: typeof EnterpriseRoute
   FusionRoute: typeof FusionRoute
   ModelsRoute: typeof ModelsRoute
+  OauthCallbackRoute: typeof OauthCallbackRoute
   PlaygroundRoute: typeof PlaygroundRoute
   PricingRoute: typeof PricingRoute
   QuantumRoute: typeof QuantumRoute
@@ -590,6 +628,13 @@ declare module '@tanstack/react-router' {
       path: '/playground'
       fullPath: '/playground'
       preLoaderRoute: typeof PlaygroundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/oauth-callback': {
+      id: '/oauth-callback'
+      path: '/oauth-callback'
+      fullPath: '/oauth-callback'
+      preLoaderRoute: typeof OauthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/models': {
@@ -739,6 +784,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlatformSettingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/password': {
+      id: '/_authenticated/password'
+      path: '/password'
+      fullPath: '/password'
+      preLoaderRoute: typeof AuthenticatedPasswordRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/not-found': {
       id: '/_authenticated/not-found'
       path: '/not-found'
@@ -884,6 +943,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedPasswordRoute: typeof AuthenticatedPasswordRoute
   AuthenticatedPlatformSettingsRoute: typeof AuthenticatedPlatformSettingsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProfitRoute: typeof AuthenticatedProfitRoute
@@ -917,6 +978,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedPasswordRoute: AuthenticatedPasswordRoute,
   AuthenticatedPlatformSettingsRoute: AuthenticatedPlatformSettingsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProfitRoute: AuthenticatedProfitRoute,
@@ -944,6 +1007,7 @@ const rootRouteChildren: RootRouteChildren = {
   EnterpriseRoute: EnterpriseRoute,
   FusionRoute: FusionRoute,
   ModelsRoute: ModelsRoute,
+  OauthCallbackRoute: OauthCallbackRoute,
   PlaygroundRoute: PlaygroundRoute,
   PricingRoute: PricingRoute,
   QuantumRoute: QuantumRoute,

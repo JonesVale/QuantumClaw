@@ -246,6 +246,7 @@ const SETTINGS_ITEMS: NavItem[] = [
   { path: '/connections', icon: Link2, labelKey: 'OAuth Connections', loginRequired: true },
 
   { path: '/api-docs', icon: BookOpen, labelKey: 'API Docs', loginRequired: true },
+  { path: '/notifications', icon: Bell, labelKey: 'Notifications', loginRequired: true },
   { path: '/about', icon: Info, labelKey: 'About' },
 
 ]
