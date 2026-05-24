@@ -36,38 +36,38 @@ function SignInPage() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center"
       style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
-      <div className="qc-fade-up w-full max-w-sm mx-auto px-4">
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-md shadow-orange-500/20 mx-auto mb-4">
-            <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div className="qc-fade-up w-full max-w-md mx-auto px-6">
+        <div className="text-center mb-10">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mx-auto mb-5">
+            <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">{t('Sign In')}</h1>
-          <p className="text-sm text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">{t('Sign In')}</h1>
+          <p className="text-base text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
         </div>
 
-        <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-border/20 shadow-sm p-6">
+        <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-border/20 shadow-sm p-8">
           {error && (
-            <div className="mb-4 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 text-xs font-medium border border-red-200/50">
+            <div className="mb-5 px-5 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-200/50">
               {error}
             </div>
           )}
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div>
-              <label className="text-xs font-medium text-muted-foreground/60 block mb-1.5">{t('Email')}</label>
+              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Email')}</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-                className="w-full h-10 rounded-xl border border-border/30 bg-white px-4 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
                 placeholder="you@example.com" autoComplete="email" />
             </div>
             <div>
-              <label className="text-xs font-medium text-muted-foreground/60 block mb-1.5">{t('Password')}</label>
+              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Password')}</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doLogin()}
-                className="w-full h-10 rounded-xl border border-border/30 bg-white px-4 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
                 placeholder="••••••••" autoComplete="current-password" />
             </div>
             <button onClick={doLogin} disabled={loading || !email || !password}
-              className="w-full py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
-              {loading ? <><div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Sign In')}
+              className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+              {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Sign In')}
             </button>
           </div>
         </div>

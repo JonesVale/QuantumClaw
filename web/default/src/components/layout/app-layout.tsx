@@ -1,4 +1,4 @@
-/**
+﻿/**
 
  * QuantumClaw - Main Application Layout
 
@@ -170,7 +170,7 @@ const PRODUCT_ITEMS: NavItem[] = [
 
 // Admin/management pages (sidebar)
 const NAV_ITEMS: NavItem[] = [
-  // 隐藏 /channels 对普通用户可见（仅供应商后台可见）
+  // 闅愯棌 /channels 瀵规櫘閫氱敤鎴峰彲瑙侊紙浠呬緵搴斿晢鍚庡彴鍙锛?
   // { path: '/channels', icon: Network, labelKey: 'Channels' },
   { path: '/keys', icon: Key, labelKey: 'API Keys', loginRequired: true },
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
@@ -267,13 +267,13 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
         className={cn(
 
-          'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+          'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
 
           active
 
-            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+            ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm'
 
-            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+            : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/40'
 
         )}
 
@@ -315,7 +315,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
   return (
 
-    <div className="flex h-full flex-col border-r bg-sidebar">
+    <div className="flex h-full flex-col border-r border-border/20 bg-white/60 backdrop-blur-xl">
 
       {/* Brand Header */}
 
@@ -323,7 +323,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
         <Link to="/" className="flex items-center gap-2">
 
-          <img src="/logo.webp" alt="QuantumClaw" className="h-8 w-8 rounded-lg object-cover" />
+          <img src="/logo.webp" alt="QuantumClaw" className="h-8 w-8 rounded-xl object-cover" />
 
           {!collapsed && (
 
@@ -393,7 +393,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
 
 
-// ── Breadcrumbs ────────────────────────────────────────────────────
+// 鈹€鈹€ Breadcrumbs 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
 
 const breadcrumbMap: Record<string, string> = {
 
@@ -517,7 +517,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 
   return (
 
-    <header className="flex h-14 items-center gap-2 border-b bg-background px-4">
+    <header className="flex h-14 items-center gap-2 border-b border-border/20 bg-white/80 backdrop-blur-xl px-4">
 
       {/* Mobile Menu */}
 
@@ -558,7 +558,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
               key={item.path}
               to={item.path}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-md transition-colors',
+                'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
                 active
                   ? 'bg-accent text-accent-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
@@ -883,10 +883,10 @@ function AppLayout() {
             <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
             <span className="text-muted-foreground/40">|</span>
             <button
-              onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ群号已复制: 587600277'); }}
+              onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ缇ゅ彿宸插鍒? 587600277'); }}
               className="text-blue-500 hover:text-blue-400 transition-colors"
             >
-              💬 QQ 群: 587600277
+              馃挰 QQ 缇? 587600277
             </button>
           </div>
         </footer>
@@ -904,4 +904,6 @@ function AppLayout() {
 			<CustomerServiceFloating />
 
 export default AppLayout
+
+
 
