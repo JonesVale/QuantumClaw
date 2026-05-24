@@ -16,7 +16,7 @@ type Notification struct {
 	Title     string    `json:"title" gorm:"type:varchar(255);not null"`
 	Content   string    `json:"content" gorm:"type:text"`
 	Data      string    `json:"data" gorm:"type:text"` // JSON 附加数据
-	Read      bool      `json:"read" gorm:"default:false"`
+	Read      bool      `json:"read" gorm:"column:is_read;default:false"`
 	CreatedAt time.Time `json:"created_at"`
 	ReadAt    *time.Time `json:"read_at,omitempty" gorm:"default:null"`
 }
@@ -73,7 +73,7 @@ func MarkNotificationRead(notifId int, userId int) error {
 // MarkAllNotificationsRead 标记用户所有通知为已读
 func MarkAllNotificationsRead(userId int) error {
 	return DB.Model(&Notification{}).
-		Where("user_id = ? AND read = ?", userId, false).
+		Where("user_id = ? AND is_read = ?", userId, false).
 		Updates(map[string]interface{}{
 			"read":     true,
 			"read_at": time.Now(),
@@ -83,7 +83,7 @@ func MarkAllNotificationsRead(userId int) error {
 // GetUnreadNotificationCount 获取未读通知数量
 func GetUnreadNotificationCount(userId int) (int64, error) {
 	var count int64
-	err := DB.Model(&Notification{}).Where("user_id = ? AND read = ?", userId, false).Count(&count).Error
+	err := DB.Model(&Notification{}).Where("user_id = ? AND is_read = ?", userId, false).Count(&count).Error
 	return count, err
 }
 
