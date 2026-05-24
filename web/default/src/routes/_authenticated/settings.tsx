@@ -3,7 +3,7 @@ import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Save, Settings, DollarSign, Gauge, UserPlus, Mail, Lock, Bell, Zap, Shield, Server } from 'lucide-react'
+import { Save, Settings, DollarSign, Gauge, UserPlus, Mail, Lock, Bell, Zap, Shield, Server, Smartphone, Copy, Clock, Monitor, Globe, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,6 +11,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import apiClient from '@/lib/api'
 import { getOptions, updateOptions, updateOption, type SystemOption } from '@/lib/api-extended'
 import { toast } from 'sonner'
 
@@ -127,6 +130,20 @@ function SettingsPage() {
   const [ipBlacklist, setIpBlacklist] = useState('')
   const [ssrfProtection, setSsrfProtection] = useState(false)
 
+  // 2FA states
+  const [twoFAStatus, setTwoFAStatus] = useState(false)
+  const [twoFALoading, setTwoFALoading] = useState(false)
+  const [enabling2FA, setEnabling2FA] = useState(false)
+  const [disabling2FA, setDisabling2FA] = useState(false)
+  const [qrCodeUrl, setQrCodeUrl] = useState('')
+  const [totpSecret, setTotpSecret] = useState('')
+  const [verifyCode, setVerifyCode] = useState('')
+  const [disableCode, setDisableCode] = useState('')
+
+  // Security activity
+  const [securityActivity, setSecurityActivity] = useState<any[]>([])
+  const [activityLoading, setActivityLoading] = useState(false)
+
   useEffect(() => {
     if (!optionsData?.data) return
     setSystemName(getOptionValue('SystemName', 'QuantumClaw'))
@@ -211,6 +228,28 @@ function SettingsPage() {
     setCompanyBankAccount(getOptionValue('CompanyBankAccount', '000396168236'))
     setCompanyAlipayQr(getOptionValue('CompanyAlipayQr', '/payment/alipay-qr.jpg'))
   }, [optionsData])
+
+  // Fetch 2FA status
+  useEffect(() => {
+    fetch('/api/user/2fa')
+      .then(r => r.json())
+      .then(data => { if (data.success) setTwoFAStatus(data.data?.enabled || false) })
+      .catch(() => {})
+  }, [])
+
+  // Fetch security activity
+  useEffect(() => {
+    setActivityLoading(true)
+    fetch('/api/user/self/security/activity')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setSecurityActivity(data.data.activity_logs || [])
+        }
+      })
+      .catch(() => {})
+      .finally(() => setActivityLoading(false))
+  }, [])
 
   const saveMutation = useMutation({
     mutationFn: updateOptions,
@@ -306,6 +345,208 @@ function SettingsPage() {
               <Button onClick={() => handleSave({ MinPasswordLength: minPasswordLength || '8', RequireSpecialChars: String(requireSpecialChars), SessionTimeout: sessionTimeout || '120', Enforce2FA: String(enforce2fa), IPWhitelist: ipWhitelist, IPBlacklist: ipBlacklist, EnableSSRFProtection: String(ssrfProtection) })} disabled={saveMutation.isPending}>
                 <Save className="mr-2 h-4 w-4" />{saveMutation.isPending ? t('Saving...') : t('Save')}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/⾯ 2FA Section ⾯/}
+          <Card className="mt-4">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Smartphone className="h-4 w-4" />{t('Two-Factor Authentication')}</CardTitle><CardDescription>{t('Add an extra layer of security to your account')}</CardDescription></CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between rounded-xl border p-3">
+                <div>
+                  <div className="flex items-center gap-2"><Smartphone className="h-4 w-4 text-muted-foreground" /><Label>{t('2FA Status')}</Label></div>
+                  <p className="text-xs text-muted-foreground mt-1">{t('Two-factor authentication using TOTP')}</p>
+                </div>
+                <Badge variant={twoFAStatus ? 'default' : 'secondary'}>{twoFAStatus ? t('Enabled') : t('Disabled')}</Badge>
+              </div>
+
+              {!disabling2FA && !enabling2FA && (
+                <Button
+                  variant={twoFAStatus ? 'destructive' : 'default'}
+                  size="sm"
+                  onClick={async () => {
+                    if (twoFAStatus) {
+                      setDisabling2FA(true)
+                      setDisableCode('')
+                    } else {
+                      setEnabling2FA(true)
+                      setVerifyCode('')
+                      setQrCodeUrl('')
+                      setTotpSecret('')
+                      try {
+                        const initRes = await fetch('/api/user/self/2fa/init', { method: 'POST' })
+                        const initData = await initRes.json()
+                        if (initData.success) {
+                          const qrRes = await fetch('/api/user/self/2fa/qrcode')
+                          const qrData = await qrRes.json()
+                          if (qrData.success) {
+                            setQrCodeUrl(qrData.data?.qr_code_url || qrData.data?.url || '')
+                            setTotpSecret(qrData.data?.secret || '')
+                          } else {
+                            toast.error(qrData.message || t('Failed to get QR code'))
+                          }
+                        } else {
+                          toast.error(initData.message || t('Failed to initialize 2FA'))
+                        }
+                      } catch {
+                        toast.error(t('Failed to initialize 2FA'))
+                      }
+                    }
+                  }}
+                  disabled={twoFALoading}
+                >
+                  {twoFAStatus ? t('Disable 2FA') : t('Enable 2FA')}
+                </Button>
+              )}
+
+              {enabling2FA && (
+                <div className="rounded-xl border p-4 space-y-3">
+                  <h4 className="text-sm font-medium">{t('Set Up Two-Factor Authentication')}</h4>
+                  {qrCodeUrl && (
+                    <div className="flex justify-center p-2 bg-white dark:bg-black rounded-lg">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrCodeUrl)}`}
+                        alt="TOTP QR Code"
+                        className="h-44 w-44"
+                      />
+                    </div>
+                  )}
+                  {totpSecret && (
+                    <div className="flex items-center gap-2">
+                      <code className="flex-1 p-1.5 text-xs rounded border bg-background font-mono break-all">{totpSecret}</code>
+                      <Button variant="outline" size="icon" className="h-7 w-7 shrink-0" onClick={() => { navigator.clipboard.writeText(totpSecret); toast.success(t('Copied')) }}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <Label htmlFor="verify-2fa-code">{t('Enter 6-digit TOTP code')}</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="verify-2fa-code"
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={6}
+                        placeholder="123456"
+                        value={verifyCode}
+                        onChange={(e) => setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      />
+                      <Button
+                        size="sm"
+                        disabled={verifyCode.length !== 6}
+                        onClick={async () => {
+                          const res = await fetch('/api/user/self/2fa/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ code: verifyCode }),
+                          })
+                          const data = await res.json()
+                          if (data.success) {
+                            setTwoFAStatus(true)
+                            setEnabling2FA(false)
+                            setVerifyCode('')
+                            toast.success(t('2FA enabled successfully'))
+                          } else {
+                            toast.error(data.message || t('Invalid code'))
+                          }
+                        }}
+                      >
+                        {t('Verify & Enable')}
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => { setEnabling2FA(false); setVerifyCode(''); setQrCodeUrl(''); setTotpSecret('') }}>
+                        {t('Cancel')}
+                      </Button>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{t('Scan the QR code with your authenticator app and enter the 6-digit code to enable 2FA')}</p>
+                </div>
+              )}
+
+              {disabling2FA && (
+                <div className="rounded-xl border border-red-200 p-4 space-y-3 dark:border-red-900/50">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-400">{t('Disable Two-Factor Authentication')}</p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="123456"
+                      value={disableCode}
+                      onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    />
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={disableCode.length !== 6}
+                      onClick={async () => {
+                        const res = await fetch('/api/user/self/2fa/disable', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ code: disableCode }),
+                        })
+                        const data = await res.json()
+                        if (data.success) {
+                          setTwoFAStatus(false)
+                          setDisabling2FA(false)
+                          setDisableCode('')
+                          toast.success(t('2FA disabled'))
+                        } else {
+                          toast.error(data.message || t('Failed to disable 2FA'))
+                        }
+                      }}
+                    >
+                      {t('Confirm Disable')}
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => { setDisabling2FA(false); setDisableCode('') }}>{t('Cancel')}</Button>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/⾯ Security Activity Section ⾯/}
+          <Card className="mt-4">
+            <CardHeader><CardTitle className="flex items-center gap-2"><Clock className="h-4 w-4" />{t('Security Activity')}</CardTitle><CardDescription>{t('Recent security events and login activity')}</CardDescription></CardHeader>
+            <CardContent>
+              {activityLoading ? (
+                <div className="flex items-center justify-center py-8"><div className="h-5 w-5 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin" /></div>
+              ) : securityActivity.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground text-sm">{t('No security activity recorded yet')}</div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('Time')}</TableHead>
+                        <TableHead>{t('Type')}</TableHead>
+                        <TableHead>{t('Details')}</TableHead>
+                        <TableHead>{t('IP Address')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {securityActivity.map((entry: any, idx: number) => (
+                        <TableRow key={entry.id || idx}>
+                          <TableCell className="text-xs font-mono whitespace-nowrap">
+                            {entry.created_time
+                              ? new Date(entry.created_time * 1000).toLocaleString()
+                              : entry.time
+                                ? new Date(entry.time).toLocaleString()
+                                : '-'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="text-xs">
+                              {entry.type === 3 ? t('Admin Action') : entry.type === 2 ? t('Login') : entry.type === 1 ? t('Register') : t('Other')}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs max-w-[200px] truncate">{entry.content || entry.description || entry.action || '-'}</TableCell>
+                          <TableCell className="text-xs font-mono">{entry.ip || entry.ip_address || '-'}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

@@ -87,6 +87,7 @@ import {
   Percent,
   Receipt,
   Store,
+  Link2,
 
 } from 'lucide-react'
 
@@ -241,6 +242,8 @@ const SETTINGS_ITEMS: NavItem[] = [
   { path: '/tasks', icon: ClipboardList, labelKey: 'Task Logs', adminOnly: true },
 
   { path: '/settings', icon: Settings, labelKey: 'Settings', adminOnly: true },
+
+  { path: '/connections', icon: Link2, labelKey: 'OAuth Connections', loginRequired: true },
 
   { path: '/api-docs', icon: BookOpen, labelKey: 'API Docs', loginRequired: true },
   { path: '/about', icon: Info, labelKey: 'About' },
@@ -465,6 +468,7 @@ const breadcrumbMap: Record<string, string> = {
 
   '/settings': 'Settings',
   '/menu-permissions': 'Menu Permissions',
+  '/connections': 'OAuth Connections',
 
 }
 
