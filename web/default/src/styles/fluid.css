@@ -1,0 +1,17 @@
+/* ── Truly fluid layout - no fixed values ── */
+.qc-container { width: 100%; padding: 0 5vw; margin: 0 auto; }
+.qc-section-pad { padding-top: 6vh; padding-bottom: 6vh; }
+.qc-section-pad-lg { padding-top: 10vh; padding-bottom: 10vh; }
+.qc-section-pad-sm { padding-top: 4vh; padding-bottom: 4vh; }
+
+/* Truly fluid typography - pure vw, no clamp, no fixed sizes */
+.qc-title-hero { font-size: 5vw; line-height: 1.08; font-weight: 700; letter-spacing: -0.02em; }
+.qc-title-section { font-size: 3vw; font-weight: 700; letter-spacing: -0.02em; }
+.qc-title-card { font-size: 1.3vw; font-weight: 600; }
+.qc-text-body { font-size: 1.1vw; }
+.qc-text-small { font-size: 0.9vw; }
+.qc-stat-number { font-size: 4vw; font-weight: 700; }
+
+/* Auto-fill grids - true responsive, no breakpoints */
+.qc-grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.qc-grid-auto-sm { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
