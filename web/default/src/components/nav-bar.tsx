@@ -1,4 +1,4 @@
-import { Link, useLocation } from '@tanstack/react-router'
+﻿import { Link, useLocation } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
@@ -204,3 +204,4 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
     </header>
   )
 }
+

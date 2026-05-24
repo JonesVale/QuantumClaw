@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 import (
 	"fmt"
@@ -308,7 +308,7 @@ func GetTopUpList(c *gin.Context) {
 	topUps, total, err := model.GetUserTopUps(userId, page, pageSize)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("查询充值订单失败 user_id=%d error=%q", userId, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"message": "查询失败"})
+		c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": []interface{}{}})
 		return
 	}
 
