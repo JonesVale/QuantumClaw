@@ -315,7 +315,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
   return (
 
-    <div className="flex h-full flex-col border-r border-border/20 bg-white/60 backdrop-blur-xl">
+    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-4 w-60">
 
       {/* Brand Header */}
 
@@ -784,7 +784,7 @@ function AppLayout() {
 
   return (
 
-    <div className="flex h-screen w-full overflow-hidden bg-background">
+    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
       {/* Desktop Sidebar */}
 
@@ -840,13 +840,13 @@ function AppLayout() {
 
       {/* Main Content Area */}
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-
-        <AppHeader onMobileMenuToggle={() => setMobileOpen(true)} />
+      <div className="flex-1 min-w-0">
 
 
 
-        <main className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+
+
+        <main className="p-3 sm:p-4 md:p-6">
 
           <Breadcrumbs pathname={location.pathname} />
 
