@@ -37,7 +37,9 @@ function SignInPage() {
       style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
         <div className="text-center mb-10">
-          <img src="/logo.webp" alt="QuantumClaw" className="w-16 h-16 rounded-2xl mx-auto mb-5 object-cover shadow-lg shadow-orange-500/20" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 mx-auto mb-5">
+            <img src="/logo.webp" alt="QuantumClaw" className="w-12 h-12 object-contain" />
+          </div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">{t('Sign In')}</h1>
           <p className="text-base text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
         </div>

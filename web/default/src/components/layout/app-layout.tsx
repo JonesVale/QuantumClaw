@@ -377,7 +377,9 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
       {/* Brand Header */}
       <div className="flex h-14 items-center px-3">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.webp" alt="QuantumClaw" className="h-8 w-8 rounded-xl object-cover" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
+            <img src="/logo.webp" alt="QuantumClaw" className="w-6 h-6 object-contain" />
+          </div>
           {!collapsed && (
             <span className="text-base font-bold tracking-tight">{t('QuantumClaw')}</span>
           )}
