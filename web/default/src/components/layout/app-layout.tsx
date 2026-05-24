@@ -788,21 +788,11 @@ function AppLayout() {
 
       {/* Desktop Sidebar */}
 
-      <aside
-
-        className={cn(
-
-          'hidden shrink-0 transition-all duration-200 md:block',
-
-          collapsed ? 'w-0 border-0' : 'w-64 lg:w-72 xl:w-80 2xl:w-88'
-
-        )}
-
-      >
+      <div className="hidden md:block shrink-0 pt-4 pl-4">
 
         <SidebarNav collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
 
-      </aside>
+      </div>
 
 
 
