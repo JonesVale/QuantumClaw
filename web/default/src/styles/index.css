@@ -182,6 +182,12 @@ body {
 .qc-card-hover { transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
 .qc-card-hover:hover { box-shadow: 0 8px 32px oklch(0.72 0.18 52 / 0.1); transform: translateY(-3px); }
 
+/* ── qc-wrapper: main content container for authenticated pages ── */
+.qc-wrapper {
+  width: 85vw;
+  margin: 0 auto;
+}
+
 /* ═══ Readable Text Width ═══ */
 .qc-readable-width {
   width: 100%;

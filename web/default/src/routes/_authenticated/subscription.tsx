@@ -57,18 +57,10 @@ function SubscriptionPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Subscription Management')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('Manage your subscription plans and billing')}
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          {t('Refresh')}
-        </Button>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Subscription Management')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage your subscription plans and billing')}</p>
       </div>
 
       {isLoading ? (
@@ -86,7 +78,7 @@ function SubscriptionPage() {
           ))}
         </div>
       ) : subscriptions.length === 0 ? (
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardContent className="py-12 text-center">
             <CreditCard className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">{t('No subscriptions found')}</p>
@@ -132,7 +124,7 @@ function SubscriptionPage() {
         </div>
       )}
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('Need a Subscription?')}</CardTitle>
           <CardDescription>

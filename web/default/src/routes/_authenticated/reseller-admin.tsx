@@ -34,12 +34,13 @@ function ResellerAdminPage() {
   })
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="qc-wrapper py-8 space-y-8">
       {/* Resellers list */}
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-6">{t('reseller_management')}</h1>
-        <p className="text-sm text-muted-foreground mb-4">{t('reseller_management_desc')}</p>
-        <Card>
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('reseller_management')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('reseller_management_desc')}</p>
+      </div>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -75,12 +76,11 @@ function ResellerAdminPage() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
       {/* Pending withdrawals */}
       <div>
         <h2 className="text-lg font-semibold mb-3">{t('pending_withdrawals')}</h2>
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">

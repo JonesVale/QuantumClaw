@@ -46,19 +46,13 @@ function DistributorsPage() {
   }, [data, search])
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Distributors')}</h1>
-          <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{t('Manage reseller distributors and pricing')}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => refetch()}><RefreshCw className="mr-2 h-4 w-4" />{t('Refresh')}</Button>
-          <Button onClick={() => { setEditing(null); setIsOpen(true) }}><Plus className="mr-2 h-4 w-4" />{t('Add Distributor')}</Button>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Distributors')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage reseller distributors and pricing')}</p>
       </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardContent className="p-0">
           <div className="p-4 border-b">
             <div className="relative w-full max-w-sm"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder={t('Search...')} value={search} onChange={(e) => setSearch(e.target.value)} /></div>

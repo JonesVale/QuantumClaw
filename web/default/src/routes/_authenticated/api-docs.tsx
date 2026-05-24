@@ -241,8 +241,8 @@ const API_ENDPOINTS: EndpointCategory[] = [
 function ApiDocsPage() {
   const { t } = useT()
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="space-y-2">
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-3">
           <BookOpen className="h-8 w-8 text-blue-600" />
           {t('API Documentation')}

@@ -90,10 +90,10 @@ function ResellerPortal() {
   const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16']
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('reseller_portal')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('reseller_portal_desc')}</p>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('reseller_portal')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('reseller_portal_desc')}</p>
       </div>
 
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
@@ -169,7 +169,7 @@ function ResellerPortal() {
         </Card>
       </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <ExternalLink className="h-4 w-4" />
@@ -188,7 +188,7 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Key className="h-4 w-4 text-blue-600" />
@@ -233,7 +233,7 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Key className="h-4 w-4 text-emerald-600" />
@@ -273,7 +273,7 @@ function ResellerPortal() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <DollarSign className="h-4 w-4 text-blue-600" />

@@ -32,23 +32,13 @@ function TransactionsPage() {
   const totalPages = Math.ceil(total / 20)
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('transactions')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('transactions_desc')}</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input className="pl-9 w-48" placeholder={t('search_model')} value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1) }} />
-          </div>
-          <Button variant="outline" onClick={() => refetch()}><RefreshCw className="h-4 w-4" /></Button>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('transactions')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('transactions_desc')}</p>
       </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">

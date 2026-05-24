@@ -146,20 +146,13 @@ function ChannelsPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Channels')}</h1>
-          <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">{t('Manage AI and Quantum computing channels')}</p>
-        </div>
-        {isProvider ? (
-          <Button onClick={() => { setEditingChannel(null); setCreatingNew(true) }} className="gap-2"><Plus className="h-4 w-4" />{t('Add Channel')}</Button>
-        ) : (
-          <Button variant="outline" onClick={() => window.location.href = '/wallet'} className="gap-2"><Wallet className="h-4 w-4" />{t('Become a Provider')}</Button>
-        )}
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Channels')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage AI and Quantum computing channels')}</p>
       </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative w-full sm:flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder={t('Search channels...')} value={search} onChange={(e) => setSearch(e.target.value)} /></div>
@@ -183,7 +176,7 @@ function ChannelsPage() {
       {!isLoading && filtered.length === 0 ? (
         <EmptyState icon={Network} title={t('No channels found')} description={t('Add your first channel to get started')} action={{ label: t('Add Channel'), onClick: () => { setEditingChannel(null); setCreatingNew(true) } }} />
       ) : (
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>

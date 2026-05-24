@@ -182,14 +182,13 @@ function MonitoringPage() {
   const version = statusData?.version ?? '-'
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('System Monitoring')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Real-time performance and health overview')}</p>
+      </div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('System Monitoring')}</h1>
-          <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-            {t('Real-time performance and health overview')}
-          </p>
-        </div>
+        <div />
         <div className="flex items-center gap-3">
           {error && (
             <Badge variant="destructive" className="flex items-center gap-1">

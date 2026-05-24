@@ -182,18 +182,14 @@ function WalletPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Wallet')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('View and manage your quota balance')}
-          </p>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Wallet')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('View and manage your quota balance')}</p>
       </div>
 
       {balanceData?.success && (
-        <Card className="w-full max-w-2xl border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50/50 to-transparent">
+        <Card className="w-full border-yellow-200 dark:border-yellow-800 bg-gradient-to-br from-yellow-50/50 to-transparent bg-white/80 backdrop-blur-xl rounded-xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5 text-yellow-600" />
@@ -214,7 +210,7 @@ function WalletPage() {
         </Card>
       )}
 
-      <details className="w-full max-w-2xl">
+      <details className="w-full">
         <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground select-none">
           {t('Legacy Quota')} ({remaining.toLocaleString()} {t('remaining')})
         </summary>
@@ -235,7 +231,7 @@ function WalletPage() {
       </details>
 
       {balanceData?.success && balanceData.data.logs?.length > 0 && (
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">{t('Balance History')}</CardTitle>
           </CardHeader>
@@ -260,7 +256,7 @@ function WalletPage() {
       )}
 
       {user?.user_type !== 'provider' && (
-        <Card className="w-full max-w-2xl border-purple-200 dark:border-purple-800">
+        <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border border-purple-200 dark:border-purple-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wallet className="h-4 w-4 text-purple-600" />
@@ -295,7 +291,7 @@ function WalletPage() {
       )}
 
       {user?.user_type === 'provider' && withdrawableData?.success && withdrawableData.data.available > 0 && (
-        <Card className="w-full max-w-2xl border-blue-200 dark:border-blue-800">
+        <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border border-blue-200 dark:border-blue-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Wallet className="h-4 w-4" />
@@ -384,7 +380,7 @@ function WalletPage() {
         </Card>
       )}
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-4 w-4" />
@@ -413,7 +409,7 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Banknote className="h-4 w-4" />
@@ -468,7 +464,7 @@ function WalletPage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History className="h-4 w-4" />
@@ -591,7 +587,7 @@ function WalletPage() {
       </div>
 
       {(myWithdrawals?.data || []).length > 0 && (
-        <Card className="w-full max-w-2xl">
+        <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm">{t('Withdrawals')}</CardTitle>
           </CardHeader>

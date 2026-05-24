@@ -95,23 +95,15 @@ function BillingPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Billing')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('View and manage your billing history and balance')}
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          {t('Refresh')}
-        </Button>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Billing')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('View and manage your billing history and balance')}</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -125,7 +117,7 @@ function BillingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -139,7 +131,7 @@ function BillingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -153,7 +145,7 @@ function BillingPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -169,7 +161,7 @@ function BillingPage() {
       </div>
 
       {/* Transaction History */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <div className="flex items-center gap-2">
             <History className="h-6 w-6 text-blue-600" />

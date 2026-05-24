@@ -204,14 +204,10 @@ function UsersPage() {
   const users = data?.data || []
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Users')}</h1>
-          <p className="text-muted-foreground text-sm sm:text-base mt-2">
-            {t('Manage user accounts')}
-          </p>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Users')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage user accounts')}</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3 items-start">
@@ -243,7 +239,7 @@ function UsersPage() {
           action={{ label: t('Create User'), onClick: () => { setEditingUser(null); setDialogOpen(true) } }}
         />
       ) : (
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

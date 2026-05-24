@@ -90,14 +90,10 @@ function CheckinPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Daily Check-in')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('Check in daily to earn rewards and maintain your streak')}
-          </p>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Daily Check-in')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Check in daily to earn rewards and maintain your streak')}</p>
       </div>
 
       <div className="grid gap-6 grid-cols-1 md:grid-cols-2">
@@ -169,7 +165,7 @@ function CheckinPage() {
         </Card>
 
         {/* Stats Card */}
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Calendar className="h-6 w-6 text-blue-600" />
@@ -211,7 +207,7 @@ function CheckinPage() {
       </div>
 
       {/* History Card */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('Check-in History')}</CardTitle>
           <CardDescription>

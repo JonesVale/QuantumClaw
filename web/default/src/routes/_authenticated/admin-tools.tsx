@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useQuery, useMutation } from '@tanstack/react-query'
 import { RefreshCw, Database, ArrowUpDown, Zap, Save, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -39,10 +39,12 @@ function AdminToolsPage() {
   const { data: syncStatusData } = useQuery({ queryKey: ['modelSyncStatus'], queryFn: async () => { const r = await apiClient.get('/api/admin/model-sync'); return r.data?.data || {} } })
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Admin Tools')}</h1>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-8">{t('Admin Tools')}</h1>
+      </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle className="flex items-center gap-2"><Database className="h-5 w-5" />{t('Model Sync')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -57,7 +59,7 @@ function AdminToolsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle className="flex items-center gap-2"><ArrowUpDown className="h-5 w-5" />{t('Upstream Update')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -71,7 +73,7 @@ function AdminToolsPage() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle className="flex items-center gap-2"><Zap className="h-5 w-5" />{t('Channel Affinity')}</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex items-center justify-between">

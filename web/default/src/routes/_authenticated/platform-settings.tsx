@@ -54,18 +54,13 @@ function PlatformSettingsPage() {
   ]
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('platform_settings')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">{t('platform_settings_desc')}</p>
-        </div>
-        <Button onClick={() => saveMut.mutate(form)} disabled={saveMut.isPending} className="gap-2">
-          <Save className="h-4 w-4" /> {t('save')}
-        </Button>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('platform_settings')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('platform_settings_desc')}</p>
       </div>
 
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="text-base">{t('promotion_settings')}</CardTitle>
         </CardHeader>

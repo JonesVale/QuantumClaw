@@ -91,24 +91,16 @@ function ProfitPage() {
   }, [profitData])
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="qc-wrapper py-8 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Channel Profit')}</h1>
-          <p className="text-muted-foreground mt-1 sm:mt-2 text-sm sm:text-base">
-            {t('Revenue, cost and margin analysis per channel')}
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={cn('mr-2 h-4 w-4', isFetching && 'animate-spin')} />
-          {t('Refresh')}
-        </Button>
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Channel Profit')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Revenue, cost and margin analysis per channel')}</p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <DollarSign className="h-4 w-4 text-green-500" />
@@ -119,7 +111,7 @@ function ProfitPage() {
             <p className="text-2xl font-bold">{stats.totalRevenue.toFixed(2)}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-red-500" />
@@ -130,7 +122,7 @@ function ProfitPage() {
             <p className="text-2xl font-bold text-red-600">{stats.totalCost.toFixed(2)}</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-emerald-500" />
@@ -143,7 +135,7 @@ function ProfitPage() {
             </p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
               <BarChart3 className="h-4 w-4 text-blue-500" />
@@ -160,7 +152,7 @@ function ProfitPage() {
       </div>
 
       {/* Profit Table */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardContent className="p-0">
           <div className="p-4 border-b">
             <div className="relative w-full max-w-sm">

@@ -84,24 +84,10 @@ function RedemptionPage() {
   const codes: Redemption[] = data?.data || []
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Redemption Codes')}</h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            {t('Manage quota redemption codes')}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => refetch()}>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            {t('Refresh')}
-          </Button>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t('Create Codes')}
-          </Button>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Redemption Codes')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage quota redemption codes')}</p>
       </div>
 
       {!isLoading && codes.length === 0 ? (
@@ -112,7 +98,7 @@ function RedemptionPage() {
           action={{ label: t('Create Codes'), onClick: () => setDialogOpen(true) }}
         />
       ) : (
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

@@ -10,7 +10,7 @@ export const Route = createFileRoute('/_authenticated/about')({
 function AboutPage() {
   const { t } = useT()
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="qc-wrapper py-8 space-y-6">
       {/* Header */}
       <div className="text-center py-8">
         <div className="flex items-center justify-center mb-4">
@@ -24,7 +24,7 @@ function AboutPage() {
       </div>
 
       {/* Description */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle>{t('What is QuantumClaw?')}</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
           <p>{t('QuantumClaw is an enterprise-grade AI API gateway that provides unified access to 50+ AI models from providers including OpenAI, Anthropic, Google, DeepSeek, and more.')}</p>
@@ -33,7 +33,7 @@ function AboutPage() {
       </Card>
 
       {/* Features */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle>{t('Key Features')}</CardTitle></CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -56,7 +56,7 @@ function AboutPage() {
       </Card>
 
       {/* Links */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle>{t('Links')}</CardTitle></CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-4">
@@ -73,7 +73,7 @@ function AboutPage() {
       </Card>
 
       {/* Company Info */}
-      <Card>
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('Company Info')}</CardTitle>
         </CardHeader>

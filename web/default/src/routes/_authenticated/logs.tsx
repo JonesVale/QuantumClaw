@@ -46,18 +46,10 @@ function LogsPage() {
   const logs: LogEntry[] = data?.data || []
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Usage Logs')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('API request history and audit logs')}
-          </p>
-        </div>
-        <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
-          <RefreshCw className={`mr-2 h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
-          {t('Refresh')}
-        </Button>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Usage Logs')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('API request history and audit logs')}</p>
       </div>
 
       {/* Filters */}
@@ -93,7 +85,7 @@ function LogsPage() {
           description={t('API usage logs will appear here once requests are made')}
         />
       ) : (
-        <Card>
+        <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
           <CardContent className="p-0">
             <Table>
               <TableHeader>

@@ -247,18 +247,11 @@ function MenuPermissionsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t('Menu Permissions')}</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {t('Configure which menu items are visible to each user role.')}
-          </p>
-        </div>
-        <Button onClick={handleCreate}>{t('Add Menu Item')}</Button>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Menu Permissions')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Configure which menu items are visible to each user role.')}</p>
       </div>
-
-      <Separator />
 
       {/* Menu Table */}
       <div className="border rounded-xl overflow-hidden">

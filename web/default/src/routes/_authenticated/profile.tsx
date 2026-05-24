@@ -100,17 +100,13 @@ function ProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('Profile')}</h1>
-          <p className="text-muted-foreground mt-2">
-            {t('Manage your account settings')}
-          </p>
-        </div>
+    <div className="qc-wrapper py-8 space-y-6">
+      <div className="flex flex-col items-center">
+        <h1 className="text-3xl font-bold mb-2">{t('Profile')}</h1>
+        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('Manage your account settings')}</p>
       </div>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -158,7 +154,7 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('become_reseller')}</CardTitle>
           <CardDescription>{t('become_reseller_desc')}</CardDescription>
@@ -181,7 +177,7 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('Change Password')}</CardTitle>
           <CardDescription>{t('Update your password to keep your account secure')}</CardDescription>
@@ -222,7 +218,7 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
@@ -524,7 +520,7 @@ function ProfilePage() {
         </CardContent>
       </Card>
 
-      <Card className="w-full max-w-2xl">
+      <Card className="w-full bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
           <CardTitle>{t('Account Details')}</CardTitle>
         </CardHeader>
