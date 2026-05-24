@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
-import { setCookie } from '@/lib/cookies'
 
 export const Route = createFileRoute('/(auth)/sign-in')({
   component: SignInPage,
@@ -22,9 +21,9 @@ function SignInPage() {
     setLoading(true); setError('')
     try {
       const res = await fetch('/api/user/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:email, password}) }).then(r=>r.json())
-      if (res.success && res.data?.token) {
-        setCookie(import.meta.env.VITE_TOKEN_KEY || 'token', res.data.token)
-        auth.setUser(res.data.user)
+      if (res.success && res.data) {
+        // Session-based auth — backend sets cookie automatically
+        auth.setUser(res.data)
         navigate({ to: '/dashboard' })
       } else {
         setError(res.message || t('Login failed'))
