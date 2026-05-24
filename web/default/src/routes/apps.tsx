@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { PromoCarousel } from '@/components/promo-carousel'
 import { useState } from 'react'
 
 export const Route = createFileRoute('/apps')({
@@ -35,6 +36,9 @@ function AppsPage() {
   return (
     <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
+        <div className="mb-8">
+          <PromoCarousel pageKey="apps" />
+        </div>
         <div className="qc-fade-up text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">{apps.length}+ {t('integrations')}</div>
           <h1 className="qc-title-hero font-bold tracking-tight text-foreground">{t('Apps & Integrations')}</h1>

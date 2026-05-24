@@ -1,5 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { PromoCarousel } from '@/components/promo-carousel'
 
 export const Route = createFileRoute('/enterprise')({
   component: EnterprisePage,
@@ -20,6 +21,9 @@ function EnterprisePage() {
     <div className="min-h-screen bg-background"
       style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
       <div className="qc-wrap qc-section-pad-sm">
+        <div className="mb-8">
+          <PromoCarousel pageKey="enterprise" />
+        </div>
         <div className="qc-fade-up text-center mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">
             <span className="w-2 h-2 rounded-full bg-amber-500" />

@@ -1,5 +1,6 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { PromoCarousel } from '@/components/promo-carousel'
 import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
@@ -147,6 +148,9 @@ function ModelsPage() {
       )}
 
       <div className="qc-wrap qc-section-pad-sm">
+        <div className="mb-8">
+          <PromoCarousel pageKey="models" />
+        </div>
         {/* ─── Header ─── */}
         <div className="qc-fade-up text-center mb-10">
           <h1 className="qc-title-hero font-bold tracking-tight text-foreground">

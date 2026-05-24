@@ -1,6 +1,7 @@
 ﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useT } from '@/lib/use-t'
+import { PromoCarousel } from '@/components/promo-carousel'
 import { useAuthStore } from '@/stores/auth-store'
 export const Route = createFileRoute('/')({ component: HomePage })
 
@@ -62,6 +63,13 @@ function HomePage() {
               <span key={item.text} className="flex items-center gap-2.5"><span className="text-orange-500">{item.icon}</span>{item.text}</span>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ═══ PROMO CAROUSEL ═══ */}
+      <section className="qc-section-pad-sm">
+        <div className="qc-wrap">
+          <PromoCarousel pageKey="home" />
         </div>
       </section>
 

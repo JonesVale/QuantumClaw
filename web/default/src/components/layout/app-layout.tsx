@@ -129,6 +129,7 @@ import { cn } from '@/lib/utils'
 import { CustomerServiceFloating } from '@/components/customer-service'
 import { ErrorBoundary } from '@/components/error-boundary'
 import { useSidebarMenus, groupSidebarMenus, type SidebarMenuItem } from '@/lib/use-menus'
+import { PromoCarousel } from '@/components/promo-carousel'
 
 
 
@@ -347,13 +348,13 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
       <Link
         to={item.path}
         className={cn(
-          'flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors',
+          'flex items-center gap-3.5 rounded-xl px-3 py-2.5 text-base font-medium transition-colors',
           active
             ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm'
             : 'text-muted-foreground/70 hover:text-foreground hover:bg-muted/40'
         )}
       >
-        <Icon className="h-4 w-4 shrink-0" />
+        <Icon className="h-5 w-5 shrink-0" />
         {!collapsed && <span>{t(item.labelKey)}</span>}
       </Link>
     )
@@ -392,15 +393,15 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
               <div key={group || '__default'}>
                 {/* Group label for non-empty group names */}
                 {group && !collapsed && (
-                  <div className="px-3 py-1.5 mb-1">
-                    <span className="text-[10px] font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">
+                  <div className="px-3 py-2 mb-1.5">
+                    <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">
                       {t(GROUP_LABEL_KEYS[group] || group)}
                     </span>
                   </div>
                 )}
                 {items.map(renderNavItem)}
                 {/* Separator between groups (except last) */}
-                <div className="my-2 border-t border-border/10" />
+                <div className="my-3 border-t border-border/10" />
               </div>
             )
           })}
@@ -698,6 +699,18 @@ function AppLayout() {
       <div className="flex-1 min-w-0">
 
         <main className="p-3 sm:p-4 md:p-6">
+          <div className="qc-wrapper mb-6">
+            <PromoCarousel
+              pageKey={
+                location.pathname === '/dashboard' ? 'dashboard' :
+                location.pathname === '/models' ? 'models' :
+                location.pathname === '/pricing' ? 'pricing' :
+                location.pathname === '/rankings' ? 'rankings' :
+                location.pathname === '/apps' ? 'apps' :
+                'dashboard'
+              }
+            />
+          </div>
           <Breadcrumbs pathname={location.pathname} />
           <Suspense
             fallback={
