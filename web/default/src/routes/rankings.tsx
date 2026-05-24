@@ -30,7 +30,7 @@ function RankingsPage() {
 
   const { data, isLoading } = useQuery({
     queryKey: ['model-rankings'],
-    queryFn: async () => { const r = await fetch('/api/model-rankings'); if (!r.ok) throw Error(); return r.json() },
+    queryFn: async () => { const r = await fetch('/api/models/rankings'); if (!r.ok) throw Error(); return r.json() },
     staleTime: 60_000,
   })
   const rankings: ModelRanking[] = data?.data || []
