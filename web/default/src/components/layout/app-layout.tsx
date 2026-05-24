@@ -784,7 +784,7 @@ function AppLayout() {
 
   return (
 
-    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="flex min-h-screen w-full bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
       {/* Desktop Sidebar */}
 
