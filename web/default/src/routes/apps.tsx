@@ -79,42 +79,50 @@ function AppsPage() {
               </div>
             </div>
 
-            {filtered.filter(a=>a.featured).length>0&&(
-              <div className="qc-grid-auto-sm gap-5 mb-8">
-                {filtered.filter(a=>a.featured).map((app,i)=>(
-                  <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                    className="qc-fade-up qc-card-hover group block rounded-2xl bg-white/70 backdrop-blur-sm p-6 hover:bg-white/90 hover:shadow-md border border-border/10" style={{animationDelay:`${i*0.1}s`}}>
-                    <div className="flex items-start gap-4">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm shrink-0">{app.icon}</div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-bold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h3>
-                        <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{app.description}</p>
-                        <div className="flex items-center gap-3 mt-3"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
-                      </div>
-                    </div>
-                  </a>
-                ))}
-              </div>
-            )}
-
             {filtered.length===0?(
               <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium mb-2">{t('No apps found')}</p><button onClick={()=>{setSearch('');setCat('All')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button></div>
             ):(
-              <div className="qc-grid-auto-sm gap-4">
-                {filtered.map((app,i)=>(
-                  <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                    className="qc-fade-up group block rounded-2xl bg-white/60 hover:bg-white/90 p-5 hover:shadow-sm border border-border/10 transition-all" style={{animationDelay:`${(i%12)*0.05}s`}}>
-                    <div className="flex items-start gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shrink-0">{app.icon}</div>
-                      <div className="min-w-0 flex-1">
-                        <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>
-                        <p className="text-xs text-muted-foreground/60 mt-0.5 line-clamp-2">{app.description}</p>
-                        <div className="flex items-center gap-2 mt-2"><span className="text-[10px] font-medium px-2 py-0.5 rounded bg-muted/50 text-muted-foreground/70">{app.category}</span><span className="text-[10px] text-muted-foreground/50">{app.users}</span></div>
-                      </div>
+              <>
+                <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('apps')}</p>
+                {filtered.filter(a=>a.featured).length>0&&(
+                  <div className="mb-6">
+                    <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('Featured')}</p>
+                    <div className="space-y-3">
+                      {filtered.filter(a=>a.featured).map((app,i)=>(
+                        <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
+                          className="qc-fade-up group flex items-start gap-4 px-5 py-4 rounded-2xl bg-white/70 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${i*0.08}s`}}>
+                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm shrink-0">{app.icon}</div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-base font-bold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h3>
+                              <svg className="w-4 h-4 text-muted-foreground/30 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
+                            </div>
+                            <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{app.description}</p>
+                            <div className="flex items-center gap-3 mt-2"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
+                          </div>
+                        </a>
+                      ))}
                     </div>
-                  </a>
-                ))}
-              </div>
+                  </div>
+                )}
+                <div className="space-y-2">
+                  {filtered.filter(a=>!a.featured).length>0&&(
+                    <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('All Apps')}</p>
+                  )}
+                  {filtered.map((app,i)=>!app.featured&&(
+                    <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
+                      className="qc-fade-up group flex items-start gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shadow-sm shrink-0">{app.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>
+                        <p className="text-sm text-muted-foreground/60 mt-0.5 leading-relaxed">{app.description}</p>
+                        <div className="flex items-center gap-3 mt-1.5"><span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-muted/50 text-muted-foreground/70">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users}</span></div>
+                      </div>
+                      <svg className="w-5 h-5 text-muted-foreground/20 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0 mt-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
+                    </a>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
