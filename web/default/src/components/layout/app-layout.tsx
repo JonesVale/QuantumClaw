@@ -372,7 +372,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   }
 
   return (
-    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 w-72">
+    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 w-96">
 
       {/* Brand Header */}
       <div className="flex h-16 items-center px-4">
@@ -690,7 +690,7 @@ function AppLayout() {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-72 md:w-96 transition-transform duration-200 md:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >

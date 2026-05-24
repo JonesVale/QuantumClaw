@@ -166,7 +166,7 @@ body {
 .qc-text-body { font-size: 1.1vw; }
 .qc-text-small { font-size: 0.9vw; }
 .qc-stat-number { font-size: 4vw; font-weight: 700; }
-.qc-grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+.qc-grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; }
 .qc-grid-auto-sm { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
 
 /* ���� Centered container ���� */

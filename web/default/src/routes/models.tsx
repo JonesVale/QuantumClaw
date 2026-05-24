@@ -153,7 +153,7 @@ function ModelsPage() {
         </div>
         <div className="flex gap-8">
           {/* ─── Desktop sidebar ─── */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-72'}`}>
+          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-96'}`}>
             <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm">
               {collapse ? (
                 <div className="p-2 space-y-1">
