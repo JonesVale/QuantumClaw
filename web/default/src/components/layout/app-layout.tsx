@@ -319,7 +319,7 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
 
       {/* Brand Header */}
 
-      <div className="flex h-14 items-center border-b px-3">
+      <div className="flex h-14 items-center px-3">
 
         <Link to="/" className="flex items-center gap-2">
 
@@ -558,7 +558,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
               key={item.path}
               to={item.path}
               className={cn(
-                'px-3 py-1.5 text-xs font-medium rounded-lg transition-colors',
+                'px-3 py-1.5 text-xs font-medium rounded-xl transition-colors',
                 active
                   ? 'bg-accent text-accent-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-accent/50'
