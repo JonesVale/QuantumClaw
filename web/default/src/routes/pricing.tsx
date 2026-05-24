@@ -11,7 +11,7 @@ export const Route = createFileRoute('/pricing')({
 interface ModelPricing { name: string; provider: string; input_price: number; output_price: number; status: number }
 
 function PricingPage() {
-  const { t } = useT()
+  const { t, language } = useT()
   const [search, setSearch] = useState('')
   const [prov, setProv] = useState('')
   const [activeOnly, setActiveOnly] = useState(true)
@@ -20,7 +20,7 @@ function PricingPage() {
   const STEP = 20
 
   const { data, isLoading } = useQuery({
-    queryKey:['model-pricing'], queryFn: async()=>{const r=await fetch('/api/model-catalog?lang=en');if(!r.ok)throw Error();return r.json()}, staleTime:60_000,
+    queryKey:['model-pricing',language], queryFn: async()=>{const r=await fetch('/api/model-catalog?lang='+encodeURIComponent(language||'English'));if(!r.ok)throw Error();return r.json()}, staleTime:60_000,
   })
   const all: ModelPricing[] = data?.data || []
 
