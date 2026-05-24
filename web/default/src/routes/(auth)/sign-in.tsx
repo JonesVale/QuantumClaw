@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+﻿import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useCallback } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/(auth)/sign-in')({
 
 function SignInPage() {
   const { t } = useT()
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,10 +17,10 @@ function SignInPage() {
   const auth = useAuthStore(s => s.auth)
 
   const doLogin = useCallback(async () => {
-    if (!email || !password) return
+    if (!username || !password) return
     setLoading(true); setError('')
     try {
-      const res = await fetch('/api/user/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username:email, password}) }).then(r=>r.json())
+      const res = await fetch('/api/user/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username, password}) }).then(r=>r.json())
       if (res.success && res.data) {
         // Session-based auth — backend sets cookie automatically
         auth.setUser(res.data)
@@ -30,7 +30,7 @@ function SignInPage() {
       }
     } catch { setError(t('Network error')) }
     setLoading(false)
-  }, [email, password, t, navigate, auth])
+  }, [username, password, t, navigate, auth])
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center"
@@ -52,10 +52,10 @@ function SignInPage() {
           )}
           <div className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Email')}</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Username')}</label>
+              <input type="text" value={username} onChange={e => setUsername(e.target.value)}
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
-                placeholder="you@example.com" autoComplete="email" />
+                placeholder="Enter your username" autoComplete="username" />
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Password')}</label>
@@ -64,7 +64,7 @@ function SignInPage() {
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
                 placeholder="••••••••" autoComplete="current-password" />
             </div>
-            <button onClick={doLogin} disabled={loading || !email || !password}
+            <button onClick={doLogin} disabled={loading || !username || !password}
               className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
               {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Sign In')}
             </button>
@@ -74,3 +74,5 @@ function SignInPage() {
     </div>
   )
 }
+
+
