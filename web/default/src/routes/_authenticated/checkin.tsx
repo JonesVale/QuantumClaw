@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Gift, Calendar, CheckCircle2, Clock } from 'lucide-react'
@@ -27,17 +27,17 @@ interface CheckinResponse extends ApiResponse<{
 interface CheckinHistoryResponse extends ApiResponse<CheckinRecord[]> {}
 
 async function getCheckinStatus(): Promise<CheckinResponse> {
-  const res = await apiClient.get('/api/checkin')
+  const res = await apiClient.get('/api/user/self/checkin')
   return res.data
 }
 
 async function getCheckinHistory(): Promise<CheckinHistoryResponse> {
-  const res = await apiClient.get('/api/checkin/history')
+  const res = await apiClient.get('/api/user/self/checkin/history')
   return res.data
 }
 
 async function doCheckin(): Promise<ApiResponse<{ amount: number }>> {
-  const res = await apiClient.post('/api/checkin')
+  const res = await apiClient.post('/api/user/self/checkin')
   return res.data
 }
 
@@ -253,3 +253,4 @@ function CheckinPage() {
     </div>
   )
 }
+

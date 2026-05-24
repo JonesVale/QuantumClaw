@@ -69,3 +69,8 @@ func DoCheckin(c *gin.Context) {
 		},
 	})
 }
+
+// GetCheckinHistory 获取签到历史记录
+func GetCheckinHistory(c *gin.Context) {
+	GetCheckinStatus(c)
+}

@@ -144,6 +144,15 @@ func DeleteUserById(id int) (err error) {
 	return user.Delete()
 }
 
+// GetUsersByInviter 获取通过指定邀请人注册的用户列表
+func GetUsersByInviter(inviterId int) ([]*User, error) {
+	var users []*User
+	err := DB.Where("inviter_id = ?", inviterId).
+		Select("id, username, display_name, email, role, status, quota, used_quota, request_count").
+		Find(&users).Error
+	return users, err
+}
+
 func (user *User) Insert(ctx context.Context, inviterId int) error {
 	var err error
 	if user.Password != "" {

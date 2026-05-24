@@ -22,6 +22,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
 import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authenticated/transactions'
+import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
 import { Route as AuthenticatedSettlementRouteImport } from './routes/_authenticated/settlement'
@@ -36,6 +37,7 @@ import { Route as AuthenticatedPlatformSettingsRouteImport } from './routes/_aut
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
+import { Route as AuthenticatedMenuPermissionsRouteImport } from './routes/_authenticated/menu-permissions'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedKeysRouteImport } from './routes/_authenticated/keys'
 import { Route as AuthenticatedDistributorsRouteImport } from './routes/_authenticated/distributors'
@@ -115,6 +117,11 @@ const AuthenticatedTransactionsRoute =
     path: '/transactions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedTeamRoute = AuthenticatedTeamRouteImport.update({
+  id: '/team',
+  path: '/team',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -189,6 +196,12 @@ const AuthenticatedMonitoringRoute = AuthenticatedMonitoringRouteImport.update({
   path: '/monitoring',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMenuPermissionsRoute =
+  AuthenticatedMenuPermissionsRouteImport.update({
+    id: '/menu-permissions',
+    path: '/menu-permissions',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
   id: '/logs',
   path: '/logs',
@@ -279,6 +292,7 @@ export interface FileRoutesByFullPath {
   '/distributors': typeof AuthenticatedDistributorsRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
+  '/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -293,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/settlement': typeof AuthenticatedSettlementRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -320,6 +335,7 @@ export interface FileRoutesByTo {
   '/distributors': typeof AuthenticatedDistributorsRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
+  '/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -334,6 +350,7 @@ export interface FileRoutesByTo {
   '/settlement': typeof AuthenticatedSettlementRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/team': typeof AuthenticatedTeamRoute
   '/transactions': typeof AuthenticatedTransactionsRoute
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
@@ -363,6 +380,7 @@ export interface FileRoutesById {
   '/_authenticated/distributors': typeof AuthenticatedDistributorsRoute
   '/_authenticated/keys': typeof AuthenticatedKeysRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
+  '/_authenticated/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
@@ -377,6 +395,7 @@ export interface FileRoutesById {
   '/_authenticated/settlement': typeof AuthenticatedSettlementRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/team': typeof AuthenticatedTeamRoute
   '/_authenticated/transactions': typeof AuthenticatedTransactionsRoute
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
@@ -406,6 +425,7 @@ export interface FileRouteTypes {
     | '/distributors'
     | '/keys'
     | '/logs'
+    | '/menu-permissions'
     | '/monitoring'
     | '/news'
     | '/not-found'
@@ -420,6 +440,7 @@ export interface FileRouteTypes {
     | '/settlement'
     | '/subscription'
     | '/tasks'
+    | '/team'
     | '/transactions'
     | '/users'
     | '/wallet'
@@ -447,6 +468,7 @@ export interface FileRouteTypes {
     | '/distributors'
     | '/keys'
     | '/logs'
+    | '/menu-permissions'
     | '/monitoring'
     | '/news'
     | '/not-found'
@@ -461,6 +483,7 @@ export interface FileRouteTypes {
     | '/settlement'
     | '/subscription'
     | '/tasks'
+    | '/team'
     | '/transactions'
     | '/users'
     | '/wallet'
@@ -489,6 +512,7 @@ export interface FileRouteTypes {
     | '/_authenticated/distributors'
     | '/_authenticated/keys'
     | '/_authenticated/logs'
+    | '/_authenticated/menu-permissions'
     | '/_authenticated/monitoring'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
@@ -503,6 +527,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settlement'
     | '/_authenticated/subscription'
     | '/_authenticated/tasks'
+    | '/_authenticated/team'
     | '/_authenticated/transactions'
     | '/_authenticated/users'
     | '/_authenticated/wallet'
@@ -617,6 +642,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTransactionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/team': {
+      id: '/_authenticated/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof AuthenticatedTeamRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -713,6 +745,13 @@ declare module '@tanstack/react-router' {
       path: '/monitoring'
       fullPath: '/monitoring'
       preLoaderRoute: typeof AuthenticatedMonitoringRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/menu-permissions': {
+      id: '/_authenticated/menu-permissions'
+      path: '/menu-permissions'
+      fullPath: '/menu-permissions'
+      preLoaderRoute: typeof AuthenticatedMenuPermissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/logs': {
@@ -820,6 +859,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDistributorsRoute: typeof AuthenticatedDistributorsRoute
   AuthenticatedKeysRoute: typeof AuthenticatedKeysRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
+  AuthenticatedMenuPermissionsRoute: typeof AuthenticatedMenuPermissionsRoute
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
@@ -834,6 +874,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettlementRoute: typeof AuthenticatedSettlementRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
   AuthenticatedTransactionsRoute: typeof AuthenticatedTransactionsRoute
   AuthenticatedUsersRoute: typeof AuthenticatedUsersRoute
   AuthenticatedWalletRoute: typeof AuthenticatedWalletRoute
@@ -850,6 +891,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDistributorsRoute: AuthenticatedDistributorsRoute,
   AuthenticatedKeysRoute: AuthenticatedKeysRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
+  AuthenticatedMenuPermissionsRoute: AuthenticatedMenuPermissionsRoute,
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
@@ -864,6 +906,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettlementRoute: AuthenticatedSettlementRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedTeamRoute: AuthenticatedTeamRoute,
   AuthenticatedTransactionsRoute: AuthenticatedTransactionsRoute,
   AuthenticatedUsersRoute: AuthenticatedUsersRoute,
   AuthenticatedWalletRoute: AuthenticatedWalletRoute,

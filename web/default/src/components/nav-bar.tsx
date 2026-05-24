@@ -2,8 +2,10 @@ import { Link, useLocation } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
+import { useNavMenus } from '@/lib/use-menus'
 
-const NAV_ITEMS = [
+// Hardcoded fallback nav items (used if API is unavailable)
+const FALLBACK_NAV_ITEMS = [
   { to: '/models',     label: 'Models',     icon: '☰' },
   { to: '/pricing',    label: 'Pricing',    icon: '¤' },
   { to: '/rankings',   label: 'Rankings',   icon: '≡' },
@@ -19,6 +21,9 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+
+  // Fetch nav menus from API
+  const { data: navItems = FALLBACK_NAV_ITEMS } = useNavMenus()
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -56,9 +61,8 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
           </Link>
 
           {/* ─── Desktop Nav ─── */}
-          {/* Each item takes equal share (flex-1) for proportional spacing, font is 2x text-sm = text-xl */}
           <nav className="hidden lg:flex items-center bg-muted/30 rounded-2xl border border-border/10 flex-1 max-w-[55%] mx-8">
-            {NAV_ITEMS.map(n => (
+            {navItems.map(n => (
               <Link
                 key={n.to}
                 to={n.to}
@@ -162,7 +166,7 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
         {/* ─── Mobile nav ─── */}
         {mobileOpen && (
           <div className="lg:hidden pb-6 pt-2 border-t border-border/20 space-y-0.5">
-            {NAV_ITEMS.map(n => (
+            {navItems.map(n => (
               <Link
                 key={n.to}
                 to={n.to}

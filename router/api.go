@@ -108,6 +108,7 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/topup/list", controller.GetTopUpList)
 
 				selfRoute.GET("/checkin", controller.GetCheckinStatus)
+				selfRoute.GET("/checkin/history", controller.GetCheckinHistory)
 				selfRoute.POST("/checkin", controller.DoCheckin)
 
 				selfRoute.GET("/subscription/plans", controller.GetSubscriptionPlans)
@@ -123,8 +124,11 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/notifications/unread_count", controller.GetUnreadNotificationCount)
 				selfRoute.PUT("/notifications/:id/read", controller.MarkNotificationRead)
 				selfRoute.PUT("/notifications/read_all", controller.MarkAllNotificationsRead)
+				selfRoute.GET("/billing/stats", controller.GetBillingStats)
+				selfRoute.GET("/billing/records", controller.GetBillingRecords)
 				selfRoute.GET("/balance", controller.GetSelfBalance)
-				selfRoute.POST("/upgrade", controller.UpgradeToProvider)
+				selfRoute.GET("/team", controller.GetMyTeam)
+	selfRoute.POST("/upgrade", controller.UpgradeToProvider)
 				selfRoute.POST("/withdraw", controller.SubmitWithdrawal)
 				selfRoute.GET("/withdraw/list", controller.GetMyWithdrawals)
 				selfRoute.GET("/withdraw/available", controller.GetMyWithdrawable)
@@ -168,6 +172,18 @@ func SetApiRouter(router *gin.Engine) {
 			channelUserRoute.PUT("/", controller.UpdateChannel)
 			channelUserRoute.DELETE("/:id", controller.DeleteChannel)
 		}
+		// Menu permission routes (public - filtered by user role, guest-friendly)
+		apiRouter.GET("/menus", controller.GetMenus)
+
+		// Menu permission routes (admin only)
+		adminMenuRoute := apiRouter.Group("/admin/menus")
+		adminMenuRoute.Use(middleware.AdminAuth())
+		{
+			adminMenuRoute.GET("/", controller.AdminGetAllMenus)
+			adminMenuRoute.POST("/", controller.AdminCreateOrUpdateMenu)
+			adminMenuRoute.DELETE("/:id", controller.AdminDeleteMenu)
+		}
+
 		// 渠道管理维护（管理员）
 		channelAdminRoute := apiRouter.Group("/channel")
 		channelAdminRoute.Use(middleware.AdminAuth())

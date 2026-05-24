@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, memo, useMemo, useEffect, useRef } from 'react'
 import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
@@ -175,7 +175,7 @@ function NewsPage() {
   }, [activeLang])
 
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="qc-wrapper py-8 space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('AI News')}</h1>
@@ -215,3 +215,4 @@ function NewsPage() {
     </div>
   )
 }
+

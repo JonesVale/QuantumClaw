@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -70,7 +70,7 @@ function WalletPage() {
   const { data: myCommission } = useQuery({
     queryKey: ['commission'],
     queryFn: async () => {
-      const res = await fetch('/api/user/self/commission')
+      const res = await fetch('/api/commission/self/records')
       if (!res.ok) return null
       return res.json()
     },
@@ -81,7 +81,7 @@ function WalletPage() {
   const { data: myWithdrawals } = useQuery({
     queryKey: ['withdrawals'],
     queryFn: async () => {
-      const res = await fetch('/api/user/self/withdrawals')
+      const res = await fetch('/api/user/self/withdraw/list')
       if (!res.ok) return null
       return res.json()
     },

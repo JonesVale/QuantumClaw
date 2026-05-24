@@ -62,6 +62,50 @@ func GetSubscription(c *gin.Context) {
 	return
 }
 
+// GetBillingStats 获取用户消费统计数据
+func GetBillingStats(c *gin.Context) {
+	userId := c.GetInt(ctxkey.Id)
+	usedQuota, _ := model.GetUserUsedQuota(userId)
+	remainQuota, _ := model.GetUserQuota(userId)
+	var logCount int64
+	model.DB.Model(&model.Log{}).Where("user_id = ?", userId).Count(&logCount)
+
+	c.JSON(200, gin.H{
+		"success": true,
+		"data": gin.H{
+			"total_quota":     remainQuota + usedQuota,
+			"used_quota":      usedQuota,
+			"remain_quota":    remainQuota,
+			"request_count":   logCount,
+			"display_in_currency": config.DisplayInCurrencyEnabled,
+			"quota_per_unit":  config.QuotaPerUnit,
+		},
+	})
+}
+
+// GetBillingRecords 获取用户消费记录
+func GetBillingRecords(c *gin.Context) {
+	userId := c.GetInt(ctxkey.Id)
+	records, _, err := model.GetUserTransactionLogs(userId, 1, 50)
+	if err != nil || records == nil {
+		records = []model.TransactionLog{}
+	}
+	data := make([]gin.H, 0, len(records))
+	for _, r := range records {
+		data = append(data, gin.H{
+			"id":           r.Id,
+			"amount":       r.Amount,
+			"action":       r.Action,
+			"before_quota": r.BeforeQuota,
+			"after_quota":  r.AfterQuota,
+			"status":       r.Status,
+			"remark":       r.Remark,
+			"created_at":   r.CreatedAt,
+		})
+	}
+	c.JSON(200, gin.H{"success": true, "data": data})
+}
+
 func GetUsage(c *gin.Context) {
 	var quota int64
 	var err error

@@ -1086,9 +1086,12 @@ func UpgradeToProvider(c *gin.Context) {
 		return
 	}
 
-	// 升级为渠道商
+	// 升级为渠道商（角色提升为供应商 level 2）
 	if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
-		Update("user_type", model.UserTypeProvider).Error; err != nil {
+		Updates(map[string]interface{}{
+			"user_type": model.UserTypeProvider,
+			"role":      model.RoleSupplier,
+		}).Error; err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "升级失败"})
 		return
 	}
@@ -1101,3 +1104,45 @@ func UpgradeToProvider(c *gin.Context) {
 		"message": "升级成功，您现在可以添加 API 渠道了",
 	})
 }
+
+// GetMyTeam 获取我的团队成员
+func GetMyTeam(c *gin.Context) {
+	userId := c.GetInt("id")
+
+	members, err := model.GetUsersByInviter(userId)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取团队成员失败"})
+		return
+	}
+
+	type TeamMember struct {
+		Id          int    `json:"id"`
+		Username    string `json:"username"`
+		DisplayName string `json:"display_name"`
+		Role        int    `json:"role"`
+		Status      int    `json:"status"`
+		Quota       int64  `json:"quota"`
+		UsedQuota   int64  `json:"used_quota"`
+		RequestCount int   `json:"request_count"`
+	}
+
+	var result []TeamMember
+	for _, m := range members {
+		result = append(result, TeamMember{
+			Id:           m.Id,
+			Username:     m.Username,
+			DisplayName:  m.DisplayName,
+			Role:         m.Role,
+			Status:       m.Status,
+			Quota:        m.Quota,
+			UsedQuota:    m.UsedQuota,
+			RequestCount: m.RequestCount,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    result,
+	})
+} 

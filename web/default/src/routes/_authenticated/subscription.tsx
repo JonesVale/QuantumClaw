@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
 import { CreditCard, RefreshCw } from 'lucide-react'
@@ -20,7 +20,7 @@ interface Subscription {
 interface SubscriptionResponse extends ApiResponse<Subscription[]> {}
 
 async function getSubscriptions(): Promise<SubscriptionResponse> {
-  const res = await apiClient.get('/api/subscription')
+  const res = await apiClient.get('/api/subscription/plans')
   return res.data
 }
 
@@ -148,3 +148,4 @@ function SubscriptionPage() {
     </div>
   )
 }
+

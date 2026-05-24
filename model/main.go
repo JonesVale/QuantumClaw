@@ -3,6 +3,9 @@
 import (
 	"database/sql"
 	"fmt"
+	"os"
+	"strings"
+	"time"
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/env"
@@ -14,9 +17,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"os"
-	"strings"
-	"time"
 )
 
 var DB *gorm.DB
@@ -158,11 +158,15 @@ func InitDB() {
 
 	// Initialize language types
 	InitLanguageTypes()
-		// 预设默认渠道(检测为空时自动插入)
-	SeedModelMetadata()
-		SeedDefaultChannels()
 
-logger.SysLog("language types initialized")
+	// Seed default menu items
+	SeedDefaultMenus()
+
+	// 预设默认渠道(检测为空时自动插入)
+	SeedModelMetadata()
+	SeedDefaultChannels()
+
+	logger.SysLog("language types initialized")
 
 	// Initialize Chinese language resources
 	InitChineseLanguageResources()
@@ -176,6 +180,11 @@ func migrateDB() error {
 			return
 		}
 		if e := fn(); e != nil {
+			// Skip non-fatal duplicate key/index errors
+			if strings.Contains(e.Error(), "Error 1062") || strings.Contains(e.Error(), "Duplicate entry") {
+				logger.SysWarn("migrate " + name + " (non-fatal, continuing): " + e.Error())
+				return
+			}
 			logger.SysWarn("migrate " + name + ": " + e.Error())
 			lastErr = e
 		}
@@ -211,19 +220,20 @@ func migrateDB() error {
 	attempt("VideoTask", func() error { return DB.AutoMigrate(&VideoTask{}) })
 	attempt("SunoTask", func() error { return DB.AutoMigrate(&SunoTask{}) })
 	attempt("WebAuthnCredential", func() error { return DB.AutoMigrate(&WebAuthnCredential{}) })
+	attempt("MenuItem", func() error { return DB.AutoMigrate(&MenuItem{}) })
 	attempt("LanguageType", func() error { return DB.AutoMigrate(&LanguageType{}) })
-	attempt("LanguageResource", func() error { return DB.AutoMigrate(&LanguageResource{}) })
 	attempt("RssArticle", func() error { return DB.AutoMigrate(&RssArticle{}) })
 	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
 	attempt("ModelMetadata", func() error { return DB.AutoMigrate(&ModelMetadata{}) })
 	attempt("Notification", func() error { return DB.AutoMigrate(&Notification{}) })
-
-	// ── 结算系统新表 ──
 	attempt("SettlementConfig", func() error { return DB.AutoMigrate(&SettlementConfig{}) })
 	attempt("TokenTransaction", func() error { return DB.AutoMigrate(&TokenTransaction{}) })
 	attempt("Reseller", func() error { return DB.AutoMigrate(&Reseller{}) })
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
+
+		attempt("LanguageResource", func() error { return DB.AutoMigrate(&LanguageResource{}) })
+// ── 结算系统新表 ──
 
 	// 手动迁移：Ability 表新增 user_id 列
 	if !DB.Migrator().HasColumn(&Ability{}, "user_id") {
@@ -314,4 +324,3 @@ func CloseDB() error {
 	}
 	return closeDB(DB)
 }
-
