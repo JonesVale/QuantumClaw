@@ -54,10 +54,10 @@ function RankingsPage() {
   return (
     <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
-        <div className="qc-fade-up mb-8">
+        <div className="qc-fade-up text-center mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-xs font-semibold tracking-wide mb-5">{t('Real-time Rankings')}</div>
           <h1 className="qc-title-hero font-bold tracking-tight text-foreground">{t('Model Rankings')}</h1>
-          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed">{t('See which models are trending. Sorted by real usage across the platform.')}</p>
+          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed mx-auto">{t('See which models are trending. Sorted by real usage across the platform.')}</p>
         </div>
 
         <div className="flex gap-8">

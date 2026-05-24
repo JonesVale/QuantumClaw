@@ -148,11 +148,11 @@ function ModelsPage() {
 
       <div className="qc-wrap qc-section-pad-sm">
         {/* ─── Header ─── */}
-        <div className="qc-fade-up mb-10">
+        <div className="qc-fade-up text-center mb-10">
           <h1 className="qc-title-hero font-bold tracking-tight text-foreground">
             {t('AI Model Catalog')}
           </h1>
-          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed">
+          <p className="qc-text-body qc-readable-width text-muted-foreground/70 mt-2 leading-relaxed mx-auto">
             {t('Browse and compare models from all major providers')}
           </p>
         </div>
