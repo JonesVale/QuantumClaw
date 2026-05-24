@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
@@ -92,7 +92,7 @@ function HomePage() {
         <div className="qc-wrap">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">Core Features</div>
-            <h2 className="qc-title-section font-bold tracking-tight text-foreground">One API, <span className="qc-gradient-text">Every Model</span></h2>
+            <h2 className="qc-title-section font-bold tracking-tight text-foreground">QuantumClaw, <span className="qc-gradient-text">Every Model</span></h2>
             <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">Access leading AI models through a single OpenAI-compatible API endpoint with intelligent routing and real-time analytics.</p>
           </div>
           <div className="qc-grid-auto gap-6">
@@ -149,7 +149,7 @@ function HomePage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/3 -translate-y-1/3 w-[30vw] h-[30vw] bg-white/5 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               <h2 className="qc-title-section font-bold text-white tracking-tight">{t('Ready to Build?')}</h2>
-              <p className="qc-text-body text-white/80 mt-4 max-w-xl mx-auto leading-relaxed">One API key unlocks 400+ models. Start building in minutes, scale to millions.</p>
+              <p className="qc-text-body text-white/80 mt-4 max-w-xl mx-auto leading-relaxed">A single API key unlocks 400+ models. Start building in minutes, scale to millions.</p>
               <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
                 <Link to={loggedIn ? '/models' : '/sign-in'}>
                   <button className="inline-flex items-center gap-2 rounded-xl bg-white text-orange-600 px-8 py-3.5 text-base font-semibold hover:bg-white/90 hover:shadow-xl hover:shadow-white/10 transition-all">{loggedIn ? t('Browse Models') : t('Create Free Account')} {icons.arrowR}</button>

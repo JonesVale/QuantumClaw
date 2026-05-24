@@ -1,4 +1,4 @@
-{
+﻿{
   "587600277": "587600277",
   "/": "/",
   "/api/admin/model-sync": "/api/admin/model-sync",
@@ -620,7 +620,7 @@
   "Of {{total}} total": "共 {{total}} 个",
   "Official": "官方",
   "On-premise deployment option": "本地部署选项",
-  "One API": "一个 API",
+  "One API": "QuantumClaw",
   "One IP or CIDR per line.": "One  I P or  C I D R per line.",
   "One IP or CIDR per line. Whitelist takes precedence.": "One  I P or  C I D R per line.  Whitelist takes precedence.",
   "One domain per line. Leave empty to allow all domains.": "One domain per line.  Leave empty to allow all domains.",

@@ -1,4 +1,4 @@
-{
+﻿{
   "587600277": "587600277",
   "/": "/",
   "/api/admin/model-sync": "/api/admin/model-sync",
@@ -623,7 +623,7 @@
   "Of {{total}} total": "Of {{total}} total",
   "Official": "Official",
   "On-premise deployment option": "On-premise deployment option",
-  "One API": "One API",
+  "One API": "QuantumClaw",
   "One IP or CIDR per line.": "One  I P or  C I D R per line.",
   "One IP or CIDR per line. Whitelist takes precedence.": "One  I P or  C I D R per line.  Whitelist takes precedence.",
   "One domain per line. Leave empty to allow all domains.": "One domain per line.  Leave empty to allow all domains.",
