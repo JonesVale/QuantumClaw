@@ -1,0 +1,5 @@
+c = open('models.tsx', 'rb').read().decode('utf-8')
+c = c.replace('p => p[0] not in ["IonQ","IBM","Rigetti"]', '!["IonQ","IBM","Rigetti"].includes(p[0])')
+c = c.replace('p => p[0] in ["IonQ","IBM","Rigetti"]', '["IonQ","IBM","Rigetti"].includes(p[0])')
+open('models.tsx', 'wb').write(c.encode('utf-8'))
+print('Fixed')

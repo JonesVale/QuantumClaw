@@ -1,7 +1,7 @@
 ﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { PromoCarousel } from '@/components/promo-carousel'
 import { ModelDetailDialog, type CatalogItem } from '@/components/model-detail-dialog'
@@ -21,13 +21,6 @@ const useCaseMeta: Record<string,{label:string;icon:string;gradient:string}> = {
 type SortOpt = 'name'|'price-asc'|'price-desc'
 
 /** Left sidebar: categories + providers + context */
-const NAV = [
-  { id:'all', icon:'⊞', label:'All Models' },
-  { id:'chat', icon:'💬', label:'Chat' },
-  { id:'coding', icon:'</>', label:'Code' },
-  { id:'reasoning', icon:'🧠', label:'Reasoning' },
-  { id:'vision', icon:'👁', label:'Vision' },
-]
 
 function ModelsPage() {
   const { t, language } = useT()
@@ -37,7 +30,7 @@ function ModelsPage() {
   const [prov, setProv] = useState('')
   const [ctx, setCtx] = useState('')
   const [sort, setSort] = useState<SortOpt>('name')
-  const [collapse, setCollapse] = useState(false)
+  const [hovered, setHovered] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [dm, setDm] = useState<CatalogItem|null>(null)
   const [do_, setDo_] = useState(false)
@@ -45,6 +38,25 @@ function ModelsPage() {
   const STEP = 30
   const [sel, setSel] = useState<Set<string>>(new Set)
   const [cop, setCop] = useState(false)
+  const [sidebarOpenGroups, setSidebarOpenGroups] = useState<Record<string, boolean>>({categories:true,providers:true,context:true})
+  const expandTimer = useRef<ReturnType<typeof setTimeout>>()
+  const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
+
+  const handleSidebarEnter = () => {
+    clearTimeout(collapseTimer.current)
+    expandTimer.current = setTimeout(() => setHovered(true), 200)
+  }
+  const handleSidebarLeave = () => {
+    clearTimeout(expandTimer.current)
+    collapseTimer.current = setTimeout(() => setHovered(false), 150)
+  }
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(expandTimer.current)
+      clearTimeout(collapseTimer.current)
+    }
+  }, [])
 
   const lang = language || 'English'
   const { data } = useQuery({
@@ -60,17 +72,51 @@ function ModelsPage() {
     return [...m].sort((a,b)=>b[1]-a[1])
   },[all])
 
+  const allProviders = providers
+  const aiProviders = useMemo(()=>providers.filter(p => !["IonQ","IBM","Rigetti"].includes(p[0])),[providers])
+  const quantumProviders = useMemo(()=>providers.filter(p => ["IonQ","IBM","Rigetti"].includes(p[0])),[providers])
+
+  // Dynamic use cases from data
+  const useCases = useMemo(() => {
+    const s = new Set(all.map(m => m.use_case).filter(Boolean))
+    const items: {id:string;icon:string;label:string;gradient:string}[] = [
+      { id:'all', icon:'\u228e', label:'All Models', gradient:'' }
+    ]
+    s.forEach(uc => {
+      const meta = useCaseMeta[uc]
+      items.push({
+        id: uc,
+        icon: meta?.icon || '📦',
+        label: meta?.label || uc,
+        gradient: meta?.gradient || 'from-gray-400 to-gray-500'
+      })
+    })
+    return items
+  },[all])
+
+  // Dynamic context window buckets from data
+  const contextBuckets = useMemo(() => {
+    const w = all.map(m => m.context_window || 0).filter(Boolean)
+    const buckets: {v:string;l:string}[] = [{v:'', l:'All'}]
+    if (w.length > 0) {
+      const max = Math.max(...w)
+      const steps = 4
+      for (let i = 1; i <= steps; i++) {
+        const low = Math.round(max * (i-1) / steps)
+        const high = Math.round(max * i / steps)
+        const fmt = (n:number) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n/1000).toFixed(0)+'K'
+        buckets.push({ v: low+'-'+high, l: fmt(low)+'-'+fmt(high) })
+      }
+    }
+    return buckets
+  },[all])
+
   const filtered = useMemo(()=>{
     let r = all
     if(q){const l=q.toLowerCase();r=r.filter(m=>m.name.toLowerCase().includes(l)||m.description.toLowerCase().includes(l))}
     if(cat!=='all')r=r.filter(m=>m.use_case===cat)
     if(prov)r=r.filter(m=>m.provider===prov)
-    if(ctx){const c=(m:any)=>m.context_window||0;switch(ctx){
-      case'0-8192':r=r.filter(m=>c(m)<=8192);break
-      case'8193-32768':r=r.filter(m=>c(m)>8192&&c(m)<=32768);break
-      case'32769-131072':r=r.filter(m=>c(m)>32768&&c(m)<=131072);break
-      case'131073-999999999':r=r.filter(m=>c(m)>131072);break
-    }}
+    if(ctx && ctx.includes('-')){const [cLow,cHigh]=ctx.split('-').map(Number);r=r.filter(m=>(m.context_window||0)>=cLow&&(m.context_window||0)<=cHigh)}
     switch(sort){
       case'price-asc':r.sort((a,b)=>(a.input_price??999)-(b.input_price??999));break
       case'price-desc':r.sort((a,b)=>(b.input_price??0)-(a.input_price??0));break
@@ -86,46 +132,105 @@ function ModelsPage() {
   const selList = useMemo(()=>all.filter(m=>sel.has(m.name)),[all,sel])
 
   /** Sidebar panel (shared between desktop + mobile overlay) */
-  const Sidebar = ({compact=false,onClose}:{compact?:boolean;onClose?:()=>void}) => (
-    <div className={`${compact?'p-2':'p-5'} space-y-1`}>
-      {compact ? (
-        NAV.map(n=>
-          <button key={n.id} onClick={()=>{setCat(n.id);onClose?.()}}
-            className={`w-full flex items-center justify-center h-10 rounded-xl transition-all duration-200 text-lg ${cat===n.id ? 'bg-[oklch(0.72_0.18_52)]/10 text-[oklch(0.72_0.18_52)]' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
-            title={n.label}>{n.icon}</button>
-        )
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-4">
-            <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Browse')}</span>
-            <button onClick={()=>setCollapse(true)} className="w-7 h-7 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
-          </div>
-          {NAV.map(n=>
-            <button key={n.id} onClick={()=>setCat(n.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${cat===n.id ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-              <span className="text-base w-6 text-center">{n.icon}</span>
-              <span>{t(n.label)}</span>
-            </button>
+const SidebarContent = ({expanded=false,onClose}:{expanded?:boolean;onClose?:()=>void}) => (
+    <div className="space-y-1">
+      {!expanded ? (
+        <div className="p-2 space-y-1">
+          {useCases.map(n=>
+            <button key={n.id} onClick={()=>{setCat(n.id);onClose?.()}}
+              className={`w-full flex items-center justify-center h-10 rounded-xl transition-all duration-200 text-xl ${cat===n.id ? 'bg-[oklch(0.72_0.18_52)]/10 text-[oklch(0.72_0.18_52)]' : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'}`}
+              title={n.label}>{n.icon}</button>
           )}
-          <hr className="my-5 border-border/30" />
-          <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-4 block mb-2">{t('Providers')}</span>
-          <div className="space-y-0.5 max-h-52 overflow-y-auto thin-scroll">
-            {providers.map(([p,c])=>
-              <button key={p} onClick={()=>setProv(prov===p?'':p)}
-                className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-sm transition-all ${prov===p ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
-                <span>{p}</span>
-                <span className="text-xs text-muted-foreground/40">{c}</span>
-              </button>
+        </div>
+      ) : (
+        <div className="p-4 space-y-1">
+          {/* Categories */}
+          <div>
+            <button onClick={() => setSidebarOpenGroups(prev => ({...prev, categories: !prev.categories}))}
+              className="w-full flex items-center gap-2 px-3 py-2.5 mb-1 rounded-lg hover:bg-muted/30 transition-colors text-left">
+              <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
+              <svg className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ${sidebarOpenGroups.categories ? '' : '-rotate-90'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+              <span className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Browse')}</span>
+            </button>
+            <div className={`overflow-hidden transition-all duration-200 ${sidebarOpenGroups.categories ? 'max-h-[999px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="space-y-0.5 pl-2">
+                {useCases.map(n=>
+                  <button key={n.id} onClick={()=>setCat(n.id)}
+                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-xl font-medium transition-all duration-200 ${cat===n.id ? 'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm' : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
+                    <span className="text-lg w-6 text-center">{n.icon}</span>
+                    <span>{n.label}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+            {sidebarOpenGroups.categories && (
+              <Link to="/rankings" className="block px-6 py-1.5 text-lg text-muted-foreground/50 hover:text-accent transition-colors">
+                {t('View Rankings')} →
+              </Link>
             )}
           </div>
-          <hr className="my-5 border-border/30" />
-          <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em] px-4 block mb-2">{t('Context')}</span>
-          {[{v:'',l:'All'},{v:'0-8192',l:'≤ 8K'},{v:'8193-32768',l:'8K–32K'},{v:'32769-131072',l:'32K–128K'},{v:'131073-999999999',l:'≥ 128K'}].map(r=>
-            <button key={r.v} onClick={()=>setCtx(r.v)}
-              className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all ${ctx===r.v ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
-              {r.l}</button>
-          )}
-        </>
+          <div className="my-3 border-t border-border/10" />
+          {/* Providers */}
+          <div>
+            <button onClick={() => setSidebarOpenGroups(prev => ({...prev, providers: !prev.providers}))}
+              className="w-full flex items-center gap-2 px-3 py-2.5 mb-1 rounded-lg hover:bg-muted/30 transition-colors text-left">
+              <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
+              <svg className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ${sidebarOpenGroups.providers ? '' : '-rotate-90'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+              <span className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Providers')}</span>
+            </button>
+            <div className={`overflow-hidden transition-all duration-200 ${sidebarOpenGroups.providers ? 'max-h-[9999px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="space-y-0.5 pl-2">
+                <button onClick={()=>setProv('')}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-xl transition-all ${prov==='' ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
+                  <span>{t('All Providers')}</span>
+                </button>
+                {aiProviders.map(([p,c])=>
+                <button key={p} onClick={()=>setProv(prov===p?'':p)}
+                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-xl transition-all ${prov===p ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
+                  <span>{p}</span>
+                  <span className="text-lg text-muted-foreground/40">{c}</span>
+                </button>
+              )}
+              </div>
+            </div>
+            {sidebarOpenGroups.providers && aiProviders.length > 10 && (
+              <Link to="/models" className="block px-6 py-1.5 text-lg text-muted-foreground/50 hover:text-accent transition-colors">
+                {t('View All')} →
+              </Link>
+            )}
+                      {sidebarOpenGroups.providers && quantumProviders.length > 0 && (
+              <div className="mt-4">
+                <div className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em] px-4 mb-2">量子资源</div>
+                {quantumProviders.map(([p,c])=>(
+                  <button key={p} onClick={()=>setProv(prov===p?'':p)}
+                    className={'w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-xl transition-all '+(prov===p?'bg-amber-50 text-amber-800 font-medium':'text-muted-foreground hover:text-foreground hover:bg-muted/30')}>
+                    <span>{p}</span>
+                    <span className="text-lg text-muted-foreground/40">{c}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          <div className="my-3 border-t border-border/10" />
+          {/* Context */}
+          <div>
+            <button onClick={() => setSidebarOpenGroups(prev => ({...prev, context: !prev.context}))}
+              className="w-full flex items-center gap-2 px-3 py-2.5 mb-1 rounded-lg hover:bg-muted/30 transition-colors text-left">
+              <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
+              <svg className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ${sidebarOpenGroups.context ? '' : '-rotate-90'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
+              <span className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Context')}</span>
+            </button>
+            <div className={`overflow-hidden transition-all duration-200 ${sidebarOpenGroups.context ? 'max-h-[999px] opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className="space-y-0.5 pl-2">
+                {contextBuckets.map(r=>
+                  <button key={r.v} onClick={()=>setCtx(r.v)}
+                    className={`w-full text-left px-4 py-2.5 rounded-lg text-xl transition-all ${ctx===r.v ? 'bg-amber-50 text-amber-800 font-medium' : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>
+                    {r.l}</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
@@ -142,7 +247,7 @@ function ModelsPage() {
               <span className="text-sm font-bold tracking-tight">{t('Filters')}</span>
               <button onClick={()=>setMobileOpen(false)} className="w-7 h-7 rounded-lg hover:bg-muted flex items-center justify-center text-muted-foreground text-sm">✕</button>
             </div>
-            <Sidebar onClose={()=>setMobileOpen(false)} />
+            <SidebarContent expanded={true} onClose={()=>setMobileOpen(false)} />
           </div>
         </div>
       )}
@@ -151,28 +256,26 @@ function ModelsPage() {
         <div className="mb-6">
           <PromoCarousel pageKey="models" />
         </div>
-        <div className="flex gap-8">
+        <div className="relative">
           {/* ─── Desktop sidebar ─── */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-96'}`}>
-            <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm">
-              {collapse ? (
-                <div className="p-2 space-y-1">
-                  {NAV.map(n=>
-                    <button key={n.id} onClick={()=>setCat(n.id)}
-                      className={`w-full flex items-center justify-center h-10 rounded-xl transition-all duration-200 text-lg ${cat===n.id ? 'bg-[oklch(0.72_0.18_52)]/10 text-[oklch(0.72_0.18_52)]' : 'text-muted-foreground hover:bg-muted/40 hover:text-foreground'}`}
-                      title={n.label}>{n.icon}</button>
-                  )}
-                  <hr className="my-2 border-border/20" />
-                  <button onClick={()=>setCollapse(false)} className="w-full flex items-center justify-center h-8 rounded-lg text-muted-foreground/40 hover:text-muted-foreground text-xs">▶</button>
-                </div>
-              ) : (
-                <Sidebar compact={false} />
-              )}
+          <div
+            className="hidden md:block absolute left-0 z-40"
+            style={{ top: '0' }}
+            onMouseEnter={handleSidebarEnter}
+            onMouseLeave={handleSidebarLeave}
+          >
+            <div
+              className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm overflow-hidden transition-[width] duration-200 ease-out"
+              style={{ width: hovered ? '288px' : '56px' }}
+            >
+              <SidebarContent expanded={hovered} />
             </div>
+          </div>
           </div>
 
           {/* ─── Main area ─── */}
-          <div className="flex-1 min-w-0 space-y-6">
+          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+            <div className="flex-1 min-w-0 space-y-6">
             {/* Search + sort bar */}
             <div className="qc-fade-up flex items-center gap-3 flex-wrap">
               <button onClick={()=>setMobileOpen(true)}

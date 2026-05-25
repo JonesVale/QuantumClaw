@@ -1,6 +1,6 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { PromoCarousel } from '@/components/promo-carousel'
 
 export const Route = createFileRoute('/apps')({
@@ -22,14 +22,31 @@ const apps: App[] = [
 ]
 
 const categories = ['All', 'Development', 'Chat', 'Platform', 'Tools']
-
 const CAT_ICONS: Record<string,string> = { 'All':'⊞', 'Development':'</>', 'Chat':'💬', 'Platform':'🗄', 'Tools':'🔧' }
 
 function AppsPage() {
   const { t } = useT()
   const [cat, setCat] = useState('All')
   const [search, setSearch] = useState('')
-  const [collapse, setCollapse] = useState(false)
+  const [hovered, setHovered] = useState(true)
+  const expandTimer = useRef<ReturnType<typeof setTimeout>>()
+  const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
+
+  const handleSidebarEnter = () => {
+    clearTimeout(collapseTimer.current)
+    expandTimer.current = setTimeout(() => setHovered(true), 200)
+  }
+  const handleSidebarLeave = () => {
+    clearTimeout(expandTimer.current)
+    collapseTimer.current = setTimeout(() => setHovered(false), 150)
+  }
+
+  useEffect(() => {
+    return () => {
+      clearTimeout(expandTimer.current)
+      clearTimeout(collapseTimer.current)
+    }
+  }, [])
 
   const filtered = apps.filter(a => (cat==='All'||a.category===cat) && (!search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase())))
 
@@ -39,38 +56,35 @@ function AppsPage() {
         <div className="mb-6">
           <PromoCarousel pageKey="apps" />
         </div>
-        <div className="flex gap-8">
+        <div className="relative">
           {/* Sidebar */}
-          <div className={`hidden md:block shrink-0 transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${collapse?'w-16':'w-96'}`}>
-            <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 space-y-1">
-              {collapse ? (
-                <div className="space-y-1">
-                  <button onClick={()=>setCollapse(false)} className="w-full h-10 rounded-xl hover:bg-muted/40 flex items-center justify-center text-muted-foreground/50 text-xs">▶</button>
-                </div>
-              ) : (
-                <>
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">{t('Categories')}</span>
-                    <button onClick={()=>setCollapse(true)} className="w-6 h-6 rounded-lg hover:bg-muted/50 flex items-center justify-center text-muted-foreground/50 text-xs">◀</button>
-                  </div>
-                  {categories.map(c=>(
-                    <button key={c} onClick={()=>setCat(c)}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${cat===c?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-                      <span className="text-base w-5 text-center">{CAT_ICONS[c]||'⊞'}</span>
-                      <span>{t(c)}</span>
-                    </button>
-                  ))}
-                </>
-              )}
+          <div
+            className="hidden md:block absolute left-0 z-40"
+            style={{ top: '0' }}
+            onMouseEnter={handleSidebarEnter}
+            onMouseLeave={handleSidebarLeave}
+          >
+            <div
+              className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm overflow-hidden transition-[width] duration-200 ease-out"
+              style={{ width: hovered ? '288px' : '56px' }}
+            >
+              <div className="p-4 space-y-1">
+                <div className="mb-2 text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Categories')}</div>
+                {hovered && categories.map(c=>(
+                  <button key={c} onClick={()=>setCat(c)}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-lg font-medium transition-all duration-200 ${cat===c?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
+                    <span className="text-xl w-5 text-center">{CAT_ICONS[c]||'⊞'}</span>
+                    <span>{t(c)}</span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           {/* Content */}
-          <div className="flex-1 min-w-0">
+          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+            <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-6">
-              <button onClick={()=>setCollapse(!collapse)} className="hidden md:flex w-9 h-9 rounded-xl border border-border/30 hover:bg-muted/40 items-center justify-center text-muted-foreground">
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="12" y1="18" x2="20" y2="18"/></svg>
-              </button>
               <div className="relative flex-1 min-w-[160px] max-w-xs">
                 <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all" placeholder={t('Search apps...')} />
@@ -122,6 +136,7 @@ function AppsPage() {
                 </div>
               </>
             )}
+            </div>
           </div>
         </div>
       </div>

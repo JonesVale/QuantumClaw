@@ -76,7 +76,7 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
   }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl">
+      <DialogContent className="max-w-2xl">
         <DialogHeader><DialogTitle className="flex items-center gap-2">{isEdit ? <><Pencil className="h-5 w-5" />{t('Edit Channel')}</> : <><Plus className="h-5 w-5" />{t('Create Channel')}</>}</DialogTitle>
           <DialogDescription>{isEdit ? t('Update channel configuration') : t('Add a new AI or Quantum computing provider channel')}</DialogDescription>
         </DialogHeader>

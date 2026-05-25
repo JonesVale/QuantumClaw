@@ -12,7 +12,7 @@
 
 
 
-import { Suspense, useCallback, useMemo, useState, useEffect } from 'react'
+import { Suspense, useCallback, useMemo, useState, useEffect, useRef } from 'react'
 
 import { Link, Outlet, useLocation, useRouter } from '@tanstack/react-router'
 
@@ -46,6 +46,7 @@ import {
 
   LogOut,
 
+  ChevronDown,
   ChevronRight as ChevronRightSmall,
 
   Menu,
@@ -190,15 +191,10 @@ interface NavItem {
 
 // Product pages shown in top navigation bar
 const PRODUCT_ITEMS: NavItem[] = [
-  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard', loginRequired: true },
-  { path: '/chat', icon: MessageSquare, labelKey: 'AI Chat' },
-  { path: '/models', icon: Box, labelKey: 'Models' },
-  { path: '/rankings', icon: TrendingUp, labelKey: 'Rankings' },
-  { path: '/pricing', icon: DollarSign, labelKey: 'Pricing' },
-  { path: '/quantum', icon: Atom, labelKey: 'Quantum' },
-  { path: '/fusion', icon: GitCompare, labelKey: 'Fusion' },
-  { path: '/apps', icon: Sparkles, labelKey: 'Apps' },
-  { path: '/enterprise', icon: Building2, labelKey: 'Enterprise' },
+  { path: '/dashboard', icon: LayoutDashboard, labelKey: 'Dashboard' },
+  { path: '/models',    icon: Box,            labelKey: 'Models' },
+  { path: '/pricing',   icon: DollarSign,     labelKey: 'Pricing' },
+  { path: '/api-docs',  icon: BookOpen,       labelKey: 'API Docs' },
 ]
 
 // Admin/management pages (sidebar) - hardcoded fallback
@@ -284,7 +280,33 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const { auth } = useAuthStore()
   const isAdmin = auth.user?.role === 100
   const isLoggedIn = !!auth.user
-  const [hovered, setHovered] = useState(false)
+  const [hovered, setHovered] = useState(true)
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    '': true,           // default group (Dashboard, Chat...) always open
+    management: false,  // Management initially closed
+    account: false,     // Account initially closed
+  })
+  const expandTimer = useRef<ReturnType<typeof setTimeout>>()
+  const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(expandTimer.current)
+      clearTimeout(collapseTimer.current)
+    }
+  }, [])
+
+  // Hover debounce: 200ms to expand, 150ms to collapse
+  const handleMouseEnter = () => {
+    clearTimeout(collapseTimer.current)
+    expandTimer.current = setTimeout(() => setHovered(true), 200)
+  }
+
+  const handleMouseLeave = () => {
+    clearTimeout(expandTimer.current)
+    collapseTimer.current = setTimeout(() => setHovered(false), 150)
+  }
 
   // collapsed when NOT mobile AND NOT hovered
   const collapsed = !mobile && !hovered
@@ -369,9 +391,9 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   return (
     <div
       className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 transition-all duration-200"
-      style={{ width: collapsed ? 'auto' : '24rem' }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      style={{ width: collapsed ? '4rem' : '24rem' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Brand Header */}
       <div className="flex h-16 items-center px-4">
@@ -390,19 +412,44 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
         <div className="space-y-1">
           {Object.entries(sidebarGroups).map(([group, items]) => {
             if (items.length === 0) return null
+            const isOpen = openGroups[group] !== false
+            const groupLabel = GROUP_LABEL_KEYS[group] || group
             return (
               <div key={group || '__default'}>
-                {/* Group label for non-empty group names */}
-                {group && !collapsed && (
-                  <div className="px-3 py-2.5 mb-1.5">
-                    <span className="text-sm font-semibold text-muted-foreground/40 uppercase tracking-[0.15em]">
-                      {t(GROUP_LABEL_KEYS[group] || group)}
-                    </span>
-                  </div>
-                )}
-                {items.map(renderNavItem)}
-                {/* Separator between groups (except last) */}
-                {!collapsed && <div className="my-3 border-t border-border/10" />}
+                {/* Group header — clickable for named groups */}
+                {group ? (
+                  !collapsed ? (
+                    <button
+                      onClick={() => setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }))}
+                      className="w-full flex items-center gap-2 px-3 py-2.5 mb-1 rounded-lg hover:bg-muted/30 transition-colors text-left"
+                    >
+                      <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
+                      <ChevronDown
+                        className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ${
+                          isOpen ? '' : '-rotate-90'
+                        }`}
+                      />
+                      <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
+                        {t(groupLabel)}
+                      </span>
+                    </button>
+                  ) : null
+                ) : null}
+                {/* Group items */}
+                <div className={`overflow-hidden transition-all duration-200 ${isOpen || collapsed ? 'max-h-[999px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  {items.map(renderNavItem)}
+                  {/* Bottom CTA for named groups */}
+                  {group && !collapsed && isOpen && (
+                    <Link
+                      to={group === 'management' ? '/menu-permissions' : group === 'account' ? '/settings' : '/dashboard'}
+                      className="block px-3 py-2 text-xs text-muted-foreground/50 hover:text-accent transition-colors"
+                    >
+                      {t(group === 'management' ? 'Manage Permissions' : group === 'account' ? 'Account Settings' : 'View All')} →
+                    </Link>
+                  )}
+                </div>
+                {/* Separator between groups */}
+                {!collapsed && group !== '' && <div className="my-3 border-t border-border/10" />}
               </div>
             )
           })}
@@ -659,10 +706,10 @@ function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="flex min-h-screen w-full bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen w-full bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
-      {/* Desktop Sidebar — hover to expand */}
-      <div className="hidden md:block shrink-0 pt-4 pl-4">
+      {/* Desktop Sidebar — fixed position, overlays content when expanded */}
+      <div className="hidden md:block fixed left-0 top-24 z-40 pt-4 pl-4">
         <SidebarNav />
       </div>
 
@@ -675,15 +722,15 @@ function AppLayout() {
       )}
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 w-72 md:w-96 transition-transform duration-200 md:hidden',
+          'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 md:hidden',
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
         <SidebarNav mobile />
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0">
+      {/* Main Content Area — left margin to avoid fixed sidebar overlap */}
+      <div className="min-h-screen ml-20">
 
         <main className="p-3 sm:p-4 md:p-6">
           <div className="mb-4">
@@ -734,3 +781,6 @@ function AppLayout() {
 }
 
 export default AppLayout
+
+
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * QuantumClaw - Application Entry Point
  */
 
@@ -130,3 +130,12 @@ root.render(
     </ThemeProvider>
   </StrictMode>,
 )
+
+
+
+
+
+import testVal from './test_new_file'; console.log(testVal);
+
+
+

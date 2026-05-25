@@ -127,7 +127,7 @@ export function ConversationSidebar({
   const { t } = useT()
 
   return (
-    <div className="w-64 shrink-0 border-r bg-card p-3 flex flex-col gap-2 overflow-y-auto">
+    <div className="w-64 shrink-0 border-r bg-card p-3 flex flex-col gap-2">
       <div className="flex items-center justify-between mb-1">
         <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
           {t('Conversations')}
@@ -138,7 +138,7 @@ export function ConversationSidebar({
           </Button>
         </div>
       </div>
-      <div className="space-y-1 flex-1 overflow-y-auto">
+      <div className="space-y-1">
         {conversations.length === 0 ? (
           <p className="text-xs text-muted-foreground text-center py-8">{t('No conversations yet')}</p>
         ) : (
