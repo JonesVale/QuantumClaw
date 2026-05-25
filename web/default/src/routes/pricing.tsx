@@ -1,8 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { PromoCarousel } from '@/components/promo-carousel'
+import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/components/model-filter-sidebar'
 
 export const Route = createFileRoute('/pricing')({
   component: PricingPage,
@@ -14,6 +14,8 @@ function PricingPage() {
   const { t, language } = useT()
   const [search, setSearch] = useState('')
   const [prov, setProv] = useState('')
+  const [cat, setCat] = useState('all')
+  const [ctx, setCtx] = useState('')
   const [activeOnly, setActiveOnly] = useState(true)
   const [hovered, setHovered] = useState(true)
   const [vis, setVis] = useState(20)
@@ -31,28 +33,23 @@ function PricingPage() {
   }
 
   useEffect(() => {
-    return () => {
-      clearTimeout(expandTimer.current)
-      clearTimeout(collapseTimer.current)
-    }
+    return () => { clearTimeout(expandTimer.current); clearTimeout(collapseTimer.current) }
   }, [])
 
-  const { data, isLoading } = useQuery({
-    queryKey:['model-pricing',language], queryFn: async()=>{const r=await fetch('/api/model-catalog?lang='+encodeURIComponent(language||'English'));if(!r.ok)throw Error();return r.json()}, staleTime:60_000,
-  })
-  const all: ModelPricing[] = data?.data || []
+  const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
+  const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
 
-  const providers = useMemo(()=>[...new Set(all.map(m=>m.provider).filter(Boolean))].sort(),[all])
-  const aiProviders = useMemo(()=>providers.filter(p=>!['IonQ','IBM','Rigetti'].includes(p)),[providers])
-  const quantumProviders = useMemo(()=>providers.filter(p=>['IonQ','IBM','Rigetti'].includes(p)),[providers])
+  const allPrices: ModelPricing[] = all
 
   const filtered = useMemo(()=>{
-    let r=all
+    let r=allPrices
     if(search){const q=search.toLowerCase();r=r.filter(m=>m.name.toLowerCase().includes(q)||m.provider?.toLowerCase().includes(q))}
+    if(cat!=='all')r=r.filter(m=>m.use_case===cat)
     if(prov)r=r.filter(m=>m.provider===prov)
+    if(ctx && ctx.includes('-')){const [cL,cH]=ctx.split('-').map(Number);r=r.filter(m=>(m.context_window||0)>=cL&&(m.context_window||0)<=cH)}
     if(activeOnly)r=r.filter(m=>m.status===1)
     return r
-  },[all,search,prov,activeOnly])
+  },[allPrices,search,cat,prov,ctx,activeOnly])
 
   const shown = useMemo(()=>filtered.slice(0,vis),[filtered,vis])
 
@@ -63,57 +60,26 @@ function PricingPage() {
           <PromoCarousel pageKey="pricing" />
         </div>
         <div className="relative">
-          {/* Sidebar */}
-          <div
-            className="hidden md:block absolute left-0 z-40"
-            style={{ top: '0' }}
-            onMouseEnter={handleSidebarEnter}
-            onMouseLeave={handleSidebarLeave}
-          >
-            <div
-              className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm overflow-hidden transition-[width] duration-200 ease-out"
-              style={{ width: hovered ? '288px' : '56px' }}
-            >
-              <div className="p-4 space-y-1">
-                <div className="mb-2 text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Providers')}</div>
-                {hovered && aiProviders.map(p=>(
-                  <button key={p} onClick={()=>setProv(prov===p?'':p)}
-                    className={`w-full text-left px-4 py-2.5 rounded-lg transition-all text-lg ${prov===p?'bg-amber-50 text-amber-800 font-medium':'text-muted-foreground hover:text-foreground hover:bg-muted/30'}`}>{p}</button>
-                ))}
-                {hovered && quantumProviders.length>0 && (
-                  <>
-                    <div className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em] px-4 mb-2 mt-4">量子资源</div>
-                    {quantumProviders.map(p=>(
-                      <button key={p} onClick={()=>setProv(prov===p?'':p)}
-                        className={'w-full text-left px-4 py-2.5 rounded-lg text-xl transition-all '+(prov===p?'bg-amber-50 text-amber-800 font-medium':'text-muted-foreground hover:text-foreground hover:bg-muted/30')}>{p}</button>
-                    ))}
-                  </>
-                )}
-                <hr className="my-4 border-border/30" />
-                <label className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-lg text-muted-foreground hover:text-foreground cursor-pointer transition-all">
-                  <input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)} className="w-5 h-5 rounded border-2 border-muted-foreground/30 accent-[oklch(0.72_0.18_52)]" />
-                  {t('Active only')}
-                </label>
-              </div>
-            </div>
-          </div>
+          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
+            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          {/* Content */}
           <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-6">
               <div className="relative flex-1 min-w-[160px] max-w-xs">
                 <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all" placeholder={`${t('Search')} ${all.length} ${t('models')}...`} />
+                <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all" placeholder={`${t('Search')} ${allPrices.length} ${t('models')}...`} />
               </div>
+              <label className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border/30 bg-white/70 text-sm cursor-pointer hover:bg-muted/40 transition-all">
+                <input type="checkbox" checked={activeOnly} onChange={e=>setActiveOnly(e.target.checked)} className="w-4 h-4 rounded border-2 border-muted-foreground/30 accent-[oklch(0.72_0.18_52)]" />
+                {t('Active only')}
+              </label>
             </div>
 
-            {isLoading ? (
-              <div className="flex justify-center py-20"><div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin"/></div>
-            ) : filtered.length===0 ? (
+            {filtered.length===0 ? (
               <div className="text-center py-20 text-muted-foreground">
                 <p className="text-lg font-medium mb-2">{t('No models found')}</p>
-                <button onClick={()=>{setSearch('');setProv('')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button>
+                <button onClick={()=>{setSearch('');setProv('');setCat('all');setCtx('')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button>
               </div>
             ) : (
               <>

@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useQuery } from '@tanstack/react-query'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import type { ModelRanking } from '@/lib/api-extended'
 import { PromoCarousel } from '@/components/promo-carousel'
+import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/components/model-filter-sidebar'
 
 export const Route = createFileRoute('/rankings')({
   component: RankingsPage,
@@ -25,8 +25,11 @@ function formatNum(n: number): string {
 }
 
 function RankingsPage() {
-  const { t } = useT()
+  const { t, language } = useT()
   const [sortKey, setSortKey] = useState<SortKey>('request_count_7d')
+  const [cat, setCat] = useState('all')
+  const [prov, setProv] = useState('')
+  const [ctx, setCtx] = useState('')
   const [hovered, setHovered] = useState(true)
   const expandTimer = useRef<ReturnType<typeof setTimeout>>()
   const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -41,25 +44,28 @@ function RankingsPage() {
   }
 
   useEffect(() => {
-    return () => {
-      clearTimeout(expandTimer.current)
-      clearTimeout(collapseTimer.current)
-    }
+    return () => { clearTimeout(expandTimer.current); clearTimeout(collapseTimer.current) }
   }, [])
+
+  const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
+  const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
 
   const { data, isLoading } = useQuery({
     queryKey: ['model-rankings'],
     queryFn: async () => { const r = await fetch('/api/models/rankings'); if (!r.ok) throw Error(); return r.json() },
     staleTime: 60_000,
-  })
+  }) as any
   const rankings: ModelRanking[] = data?.data || []
 
   const sorted = useMemo(() => {
-    const r = [...rankings]
+    let r = [...rankings]
+    // Use sidebar filters on rankings data (match by model name)
+    if (cat !== 'all') r = r.filter(m => (m as any).use_case === cat)
+    if (prov) r = r.filter(m => m.provider === prov)
     if (sortKey === 'avg_speed_ms') r.sort((a, b) => (a.avg_speed_ms ?? 999) - (b.avg_speed_ms ?? 999))
     else r.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0))
     return r.slice(0, 50)
-  }, [rankings, sortKey])
+  }, [rankings, sortKey, cat, prov])
 
   const statValue = (m: ModelRanking, k: SortKey): string => {
     switch (k) {
@@ -77,33 +83,22 @@ function RankingsPage() {
           <PromoCarousel pageKey="rankings" />
         </div>
         <div className="relative">
-          {/* Sidebar */}
-          <div
-            className="hidden md:block absolute left-0 z-40"
-            style={{ top: '0' }}
-            onMouseEnter={handleSidebarEnter}
-            onMouseLeave={handleSidebarLeave}
-          >
-            <div
-              className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm overflow-hidden transition-[width] duration-200 ease-out"
-              style={{ width: hovered ? '288px' : '56px' }}
-            >
-              <div className="p-4 space-y-1">
-                <div className="mb-2 text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Sort By')}</div>
-                {hovered && TABS.map(tab=>(
-                  <button key={tab.key} onClick={()=>setSortKey(tab.key)}
-                    className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-all duration-200 ${sortKey===tab.key?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-                    <span className="text-xl w-6 text-center">{tab.icon}</span>
-                    <span>{t(tab.label)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
+            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          {/* Content */}
           <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
+            {/* Sort tabs */}
+            <div className="flex items-center gap-2 flex-wrap mb-6">
+              {TABS.map(tab=>(
+                <button key={tab.key} onClick={()=>setSortKey(tab.key)}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${sortKey===tab.key?'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
+                  <span className="mr-1.5">{tab.icon}</span>
+                  {t(tab.label)}
+                </button>
+              ))}
+            </div>
+
             {isLoading ? (
               <div className="flex justify-center py-20"><div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin"/></div>
             ) : sorted.length===0 ? (
@@ -126,7 +121,7 @@ function RankingsPage() {
                           {rank<=3?<span className={`text-lg font-bold ${rank===1?'text-amber-500':rank===2?'text-slate-400':'text-amber-700'}`}>#{rank}</span>:<span className="text-xs font-semibold text-muted-foreground/40">#{rank}</span>}
                         </div>
                         <div className="flex-[2] min-w-0"><span className="text-sm font-semibold text-foreground">{m.model_name||m.name}</span></div>
-                        <span className="flex-1 text-sm text-muted-foreground/70">{m.provider||'—'}</span>
+                        <span className="flex-1 text-sm text-muted-foreground/70">{m.provider||'\u2014'}</span>
                         <span className="flex-1 text-sm text-right font-medium tabular-nums">{statValue(m,sortKey)}</span>
                       </div>
                     )

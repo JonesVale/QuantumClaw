@@ -1,6 +1,65 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { useQuery } from '@tanstack/react-query'
+
+export interface CatalogItem { name:string; display_name?:string; description:string; use_case:string; context_window:number; input_modalities?:string[]; series?:string; provider:string; channel_id?:number; channel_name?:string; input_price:number; output_price:number; status:number; group?:string }
+
+const useCaseMeta: Record<string,{label:string;icon:string;gradient:string}> = {
+  chat:     { label:'Chat', icon:'💬', gradient:'from-amber-500 to-orange-500' },
+  coding:   { label:'Code', icon:'</>', gradient:'from-emerald-500 to-teal-500' },
+  reasoning:{ label:'Reasoning', icon:'🧠', gradient:'from-amber-600 to-rose-600' },
+  vision:   { label:'Vision', icon:'👁', gradient:'from-orange-400 to-rose-400' },
+}
+
+export function useSidebarData(language?: string) {
+  const lang = language || 'English'
+  const { data } = useQuery({
+    queryKey:['model-catalog',lang],
+    queryFn:async()=>{const r=await fetch('/api/model-catalog?lang='+encodeURIComponent(lang));if(!r.ok)throw Error();return r.json()},
+    staleTime:60_000,
+  })
+  const all: CatalogItem[] = data?.data || []
+
+  const providers = useMemo(()=>{
+    const m=new Map<string,number>()
+    all.forEach(mt=>{const p=mt.provider;if(p&&p!=='Unknown'&&!p.startsWith('~'))m.set(p,(m.get(p)||0)+1)})
+    return [...m].sort((a,b)=>b[1]-a[1])
+  },[all])
+
+  const aiProviders = useMemo(()=>providers.filter(p=>!['IonQ','IBM','Rigetti'].includes(p[0])),[providers])
+  const quantumProviders = useMemo(()=>providers.filter(p=>['IonQ','IBM','Rigetti'].includes(p[0])),[providers])
+
+  const useCases = useMemo(() => {
+    const s = new Set(all.map(m => m.use_case).filter(Boolean))
+    const items: {id:string;icon:string;label:string;gradient:string}[] = [
+      { id:'all', icon:'⊞', label:'All Models', gradient:'' }
+    ]
+    s.forEach(uc => {
+      const meta = useCaseMeta[uc]
+      items.push({ id: uc, icon: meta?.icon || '📦', label: meta?.label || uc, gradient: meta?.gradient || 'from-gray-400 to-gray-500' })
+    })
+    return items
+  },[all])
+
+  const contextBuckets = useMemo(() => {
+    const w = all.map(m => m.context_window || 0).filter(Boolean)
+    const buckets: {v:string;l:string}[] = [{v:'', l:'All'}]
+    if (w.length > 0) {
+      const max = Math.max(...w)
+      const steps = 4
+      for (let i = 1; i <= steps; i++) {
+        const low = Math.round(max * (i-1) / steps)
+        const high = Math.round(max * i / steps)
+        const fmt = (n:number) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n/1000).toFixed(0)+'K'
+        buckets.push({ v: low+'-'+high, l: fmt(low)+'–'+fmt(high) })
+      }
+    }
+    return buckets
+  },[all])
+
+  return { all, aiProviders, quantumProviders, useCases, contextBuckets }
+}
 
 export interface SidebarFilters {
   cat: string

@@ -2,6 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useEffect, useRef } from 'react'
 import { PromoCarousel } from '@/components/promo-carousel'
+import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/components/model-filter-sidebar'
 
 export const Route = createFileRoute('/apps')({
   component: AppsPage,
@@ -10,9 +11,9 @@ export const Route = createFileRoute('/apps')({
 interface App { name: string; description: string; url: string; category: string; icon: string; users: string; featured?: boolean }
 
 const apps: App[] = [
-  { name:'Cursor', description:'AI-first code editor with multi-model support. Integrates QuantumClaw API for intelligent code completion.', url:'https://cursor.sh', category:'Development', icon:'</>', users:'1.2M+' },
-  { name:'ChatBox', description:'All-in-one AI desktop client supporting all major LLMs through QuantumClaw gateway.', url:'https://chatbox.app', category:'Chat', icon:'💬', users:'800K+', featured:true },
-  { name:'Continue', description:'Open-source AI code assistant for VS Code & JetBrains, powered by QuantumClaw API.', url:'https://continue.dev', category:'Development', icon:'{ }', users:'500K+' },
+  { name:'Cursor', description:'AI-first code editor with multi-model support.', url:'https://cursor.sh', category:'Development', icon:'</>', users:'1.2M+' },
+  { name:'ChatBox', description:'All-in-one AI desktop client supporting all major LLMs.', url:'https://chatbox.app', category:'Chat', icon:'💬', users:'800K+', featured:true },
+  { name:'Continue', description:'Open-source AI code assistant for VS Code & JetBrains.', url:'https://continue.dev', category:'Development', icon:'{ }', users:'500K+' },
   { name:'LobeChat', description:'Modern chat framework with plugin system and multi-model support.', url:'https://lobehub.com', category:'Chat', icon:'🤖', users:'300K+', featured:true },
   { name:'Open WebUI', description:'Self-hosted WebUI for LLMs with QuantumClaw API integration.', url:'https://openwebui.com', category:'Chat', icon:'🌐', users:'250K+' },
   { name:'Dify', description:'Open-source LLM app development platform. Build and deploy AI applications.', url:'https://dify.ai', category:'Platform', icon:'🗄', users:'200K+', featured:true },
@@ -21,12 +22,11 @@ const apps: App[] = [
   { name:'AI Toolkit', description:'Browser extension for ChatGPT, Gemini, Claude with QuantumClaw API support.', url:'https://aitoolkit.com', category:'Tools', icon:'⭐', users:'80K+' },
 ]
 
-const categories = ['All', 'Development', 'Chat', 'Platform', 'Tools']
-const CAT_ICONS: Record<string,string> = { 'All':'⊞', 'Development':'</>', 'Chat':'💬', 'Platform':'🗄', 'Tools':'🔧' }
-
 function AppsPage() {
-  const { t } = useT()
-  const [cat, setCat] = useState('All')
+  const { t, language } = useT()
+  const [cat, setCat] = useState('all')
+  const [prov, setProv] = useState('')
+  const [ctx, setCtx] = useState('')
   const [search, setSearch] = useState('')
   const [hovered, setHovered] = useState(true)
   const expandTimer = useRef<ReturnType<typeof setTimeout>>()
@@ -42,13 +42,13 @@ function AppsPage() {
   }
 
   useEffect(() => {
-    return () => {
-      clearTimeout(expandTimer.current)
-      clearTimeout(collapseTimer.current)
-    }
+    return () => { clearTimeout(expandTimer.current); clearTimeout(collapseTimer.current) }
   }, [])
 
-  const filtered = apps.filter(a => (cat==='All'||a.category===cat) && (!search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase())))
+  const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
+  const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
+
+  const filtered = apps.filter(a => (cat==='all'||a.category===cat||(cat==='chat'&&a.category==='Chat')||(cat==='coding'&&a.category==='Development')) && (!search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase())))
 
   return (
     <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
@@ -57,31 +57,9 @@ function AppsPage() {
           <PromoCarousel pageKey="apps" />
         </div>
         <div className="relative">
-          {/* Sidebar */}
-          <div
-            className="hidden md:block absolute left-0 z-40"
-            style={{ top: '0' }}
-            onMouseEnter={handleSidebarEnter}
-            onMouseLeave={handleSidebarLeave}
-          >
-            <div
-              className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm overflow-hidden transition-[width] duration-200 ease-out"
-              style={{ width: hovered ? '288px' : '56px' }}
-            >
-              <div className="p-4 space-y-1">
-                <div className="mb-2 text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">{t('Categories')}</div>
-                {hovered && categories.map(c=>(
-                  <button key={c} onClick={()=>setCat(c)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-lg font-medium transition-all duration-200 ${cat===c?'bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 shadow-sm':'text-muted-foreground hover:text-foreground hover:bg-muted/40'}`}>
-                    <span className="text-xl w-5 text-center">{CAT_ICONS[c]||'⊞'}</span>
-                    <span>{t(c)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
+          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
+            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          {/* Content */}
           <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-6">
@@ -92,7 +70,7 @@ function AppsPage() {
             </div>
 
             {filtered.length===0?(
-              <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium mb-2">{t('No apps found')}</p><button onClick={()=>{setSearch('');setCat('All')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button></div>
+              <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium mb-2">{t('No apps found')}</p><button onClick={()=>{setSearch('');setCat('all')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button></div>
             ):(
               <>
                 <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('apps')}</p>
