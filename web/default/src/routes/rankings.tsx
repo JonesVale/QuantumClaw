@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useMemo, useEffect, useRef } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { ModelRanking } from '@/lib/api-extended'
 import { PromoCarousel } from '@/components/promo-carousel'
 import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/components/model-filter-sidebar'

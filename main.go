@@ -197,6 +197,7 @@ func main() {
 	go service.TaskPollingLoop()
 	go service.StartSubscriptionQuotaResetTask()
 	go service.StartRssService(context.Background())
+	go service.StartDailyModelSync()
 	service.LoadCustomOAuthProviders()
 
 	// Initialize i18n
