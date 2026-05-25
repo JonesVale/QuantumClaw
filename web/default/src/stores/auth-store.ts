@@ -17,6 +17,7 @@ export interface AuthUser {
   quota?: number
   used_quota?: number
   request_count?: number
+  unread_count?: number
 }
 
 interface AuthState {

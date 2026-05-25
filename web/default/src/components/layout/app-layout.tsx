@@ -46,10 +46,6 @@ import {
 
   LogOut,
 
-  ChevronLeft,
-
-  ChevronRight,
-
   ChevronRight as ChevronRightSmall,
 
   Menu,
@@ -92,8 +88,6 @@ import {
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-
-import { ScrollArea } from '@/components/ui/scroll-area'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 
@@ -284,16 +278,16 @@ const GROUP_LABEL_KEYS: Record<string, string> = {
 
 
 
-function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
-
+function SidebarNav({ mobile }: { mobile?: boolean }) {
   const location = useLocation()
-
   const { t } = useT()
-
   const { auth } = useAuthStore()
-
   const isAdmin = auth.user?.role === 100
   const isLoggedIn = !!auth.user
+  const [hovered, setHovered] = useState(false)
+
+  // collapsed when NOT mobile AND NOT hovered
+  const collapsed = !mobile && !hovered
 
   // Fetch sidebar menus from API
   const { data: apiSidebarItems = [] } = useSidebarMenus()
@@ -373,8 +367,12 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
   }
 
   return (
-    <div className="sticky top-24 bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 w-96">
-
+    <div
+      className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 transition-all duration-200"
+      style={{ width: collapsed ? 'auto' : '24rem' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       {/* Brand Header */}
       <div className="flex h-16 items-center px-4">
         <Link to="/" className="flex items-center gap-2">
@@ -382,13 +380,13 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
             <img src="/logo.webp" alt="QuantumClaw" className="w-8 h-8 object-contain" />
           </div>
           {!collapsed && (
-            <span className="text-lg font-bold tracking-tight">{t('QuantumClaw')}</span>
+            <span className="text-lg font-bold tracking-tight whitespace-nowrap">{t('QuantumClaw')}</span>
           )}
         </Link>
       </div>
 
       {/* Navigation */}
-      <ScrollArea className="flex-1 px-4 py-2">
+      <div className="px-4 py-2">
         <div className="space-y-1">
           {Object.entries(sidebarGroups).map(([group, items]) => {
             if (items.length === 0) return null
@@ -404,25 +402,12 @@ function SidebarNav({ collapsed, onToggle }: { collapsed: boolean; onToggle: () 
                 )}
                 {items.map(renderNavItem)}
                 {/* Separator between groups (except last) */}
-                <div className="my-3 border-t border-border/10" />
+                {!collapsed && <div className="my-3 border-t border-border/10" />}
               </div>
             )
           })}
         </div>
-      </ScrollArea>
-
-      {/* Collapse Toggle */}
-      <div className="border-t border-border/20 p-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="w-full"
-          onClick={onToggle}
-        >
-          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-        </Button>
       </div>
-
     </div>
   )
 
@@ -671,15 +656,14 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
 function AppLayout() {
   const { t } = useT()
   const location = useLocation()
-  const [collapsed, setCollapsed] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
     <div className="flex min-h-screen w-full bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar — hover to expand */}
       <div className="hidden md:block shrink-0 pt-4 pl-4">
-        <SidebarNav collapsed={collapsed} onToggle={() => setCollapsed(!collapsed)} />
+        <SidebarNav />
       </div>
 
       {/* Mobile Sidebar Overlay */}
@@ -695,7 +679,7 @@ function AppLayout() {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <SidebarNav collapsed={false} onToggle={() => setMobileOpen(false)} />
+        <SidebarNav mobile />
       </aside>
 
       {/* Main Content Area */}

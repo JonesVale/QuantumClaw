@@ -85,17 +85,20 @@ func SetupLogin(user *model.User, c *gin.Context) {
 		})
 		return
 	}
-	cleanUser := model.User{
-		Id:          user.Id,
-		Username:    user.Username,
-		DisplayName: user.DisplayName,
-		Role:        user.Role,
-		Status:      user.Status,
-	}
+	// Get unread notification count
+	unreadCount, _ := model.GetUnreadNotificationCount(user.Id)
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "",
 		"success": true,
-		"data":    cleanUser,
+		"data": gin.H{
+			"id":           user.Id,
+			"username":     user.Username,
+			"display_name": user.DisplayName,
+			"role":         user.Role,
+			"status":       user.Status,
+			"unread_count": unreadCount,
+		},
 	})
 }
 

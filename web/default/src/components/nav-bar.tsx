@@ -1,7 +1,5 @@
 ﻿import { Link, useLocation } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useQuery } from '@tanstack/react-query'
-import apiClient from '@/lib/api'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { useNavMenus } from '@/lib/use-menus'
@@ -23,6 +21,9 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+
+  // Unread notification count comes from login response via auth store
+  const unreadCount = auth.user?.unread_count ?? 0
 
   // Fetch nav menus from API
   const { data: navItems = FALLBACK_NAV_ITEMS } = useNavMenus()
