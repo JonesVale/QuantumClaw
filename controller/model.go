@@ -475,7 +475,24 @@ func ListModelRankings(c *gin.Context) {
 		}
 	}
 
-	// 构建结果
+	// from model_metadata, override channel type name
+	var metaList []struct {
+		ModelName string
+		Provider  string
+		UseCase   string
+	}
+	model.DB.Model(&model.ModelMetadata{}).Select("model_name, provider, use_case").Where("languages_type = ?", "English").Find(&metaList)
+	metaProvider := make(map[string]string)
+	for _, mm := range metaList {
+		metaProvider[mm.ModelName] = mm.Provider
+	}
+	for mName, a := range aggMap {
+		if p, ok := metaProvider[mName]; ok && p != "" {
+			a.provider = p
+		}
+	}
+
+	// build result
 	var result []RankingItem
 	for modelName, a := range aggMap {
 		avgSpeed := 0
