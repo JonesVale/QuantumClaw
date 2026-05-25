@@ -51,7 +51,7 @@ function AppsPage() {
   const filtered = apps.filter(a => (cat==='all'||a.category===cat||(cat==='chat'&&a.category==='Chat')||(cat==='coding'&&a.category==='Development')) && (!search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase())))
 
   return (
-    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
         <div className="mb-6">
           <PromoCarousel pageKey="apps" />
@@ -60,7 +60,7 @@ function AppsPage() {
           <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
             useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+          <div className="transition-all duration-200" className='max-w-[100vw] overflow-x-hidden' style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-6">
               <div className="relative flex-1 min-w-[160px] max-w-xs">
@@ -80,7 +80,7 @@ function AppsPage() {
                     <div className="space-y-3">
                       {filtered.filter(a=>a.featured).map((app,i)=>(
                         <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                          className="qc-fade-up group flex items-start gap-4 px-5 py-4 rounded-2xl bg-white/70 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${i*0.08}s`}}>
+                          className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/70 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${i*0.08}s`}}>
                           <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm shrink-0">{app.icon}</div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
@@ -101,7 +101,7 @@ function AppsPage() {
                   )}
                   {filtered.map((app,i)=>!app.featured&&(
                     <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                      className="qc-fade-up group flex items-start gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                      className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shadow-sm shrink-0">{app.icon}</div>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>

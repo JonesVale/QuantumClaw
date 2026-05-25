@@ -78,7 +78,7 @@ function RankingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
         <div className="mb-6">
           <PromoCarousel pageKey="rankings" />
@@ -87,7 +87,7 @@ function RankingsPage() {
           <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
             useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+          <div className="transition-all duration-200" className='max-w-[100vw] overflow-x-hidden' style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
             {/* Sort tabs */}
             <div className="flex items-center gap-2 flex-wrap mb-6">
@@ -108,7 +108,7 @@ function RankingsPage() {
               <>
                 <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{t('Top 50 models')}</p>
                 <div className="space-y-2">
-                  <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                  <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
                     <span className="w-10 text-center">#</span>
                     <span className="flex-[2]">{t('Model')}</span>
                     <span className="flex-1">{t('Provider')}</span>
@@ -117,7 +117,7 @@ function RankingsPage() {
                   {sorted.map((m,i)=>{
                     const rank=i+1
                     return (
-                      <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                      <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
                         <div className="w-10 flex items-center justify-center shrink-0">
                           {rank<=3?<span className={`text-lg font-bold ${rank===1?'text-amber-500':rank===2?'text-slate-400':'text-amber-700'}`}>#{rank}</span>:<span className="text-xs font-semibold text-muted-foreground/40">#{rank}</span>}
                         </div>

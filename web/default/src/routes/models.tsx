@@ -112,7 +112,7 @@ function ModelsPage() {
   }, [groupedByProvider])
 
   return (
-    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       {/* Mobile overlay */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={()=>setMobileOpen(false)}>
@@ -146,7 +146,7 @@ function ModelsPage() {
           />
 
           {/* Main area */}
-          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+          <div className="max-w-[100vw] overflow-x-hidden" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0 space-y-6">
             {/* Search + sort bar */}
             <div className="qc-fade-up flex items-center gap-3 flex-wrap">
@@ -211,9 +211,9 @@ function ModelsPage() {
                     return (
                       <div key={provider} className="qc-fade-up" style={{animationDelay:''+((gi%10)*0.03)+'s'}}>
                         <button onClick={() => setExpandedProvs(prev => ({ ...prev, [provider]: !prev[provider] }))}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/40 hover:bg-white/80 border border-border/10 hover:border-border/30 transition-all duration-200 group">
+                          className="w-full flex items-start gap-2 sm:gap-3 px-3 sm:px-4 py-3 rounded-2xl bg-white/40 hover:bg-white/80 border border-border/10 hover:border-border/30 transition-all duration-200 group flex-wrap">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-orange-600 font-bold text-sm shrink-0 shadow-sm">{provider.charAt(0).toUpperCase()}</div>
-                          <div className="flex-1 text-left"><span className="text-base font-bold tracking-tight text-foreground group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{provider}</span></div>
+                          <div className="flex-1 text-left min-w-0"><span className="text-sm sm:text-base font-bold tracking-tight text-foreground group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{provider}</span></div>
                           <span className="text-xs font-semibold text-muted-foreground/40 mr-3">{models.length} {t('models')}</span>
                           <svg className={'w-4 h-4 text-muted-foreground/40 transition-transform duration-200 '+(isOpen?'rotate-0':'-rotate-90')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
                         </button>
@@ -222,7 +222,7 @@ function ModelsPage() {
                             {models.map((m: any) => {
                               const isSel = sel.has(m.name)
                               return (
-                                <div key={m.name} className={'rounded-2xl p-4 transition-all duration-200 '+(isSel?'bg-amber-50/70 ring-1 ring-amber-200/50':'bg-white/50 hover:bg-white/80 hover:shadow-sm')+' border border-border/10'}>
+                                <div key={m.name} className={'rounded-2xl p-3 sm:p-4 transition-all duration-200 '+(isSel?'bg-amber-50/70 ring-1 ring-amber-200/50':'bg-white/50 hover:bg-white/80 hover:shadow-sm')+' border border-border/10'}>
                                   <div className="flex items-start gap-3">
                                     <div className="flex-1 min-w-0">
                                       <div className="flex items-start justify-between gap-2">
@@ -235,9 +235,9 @@ function ModelsPage() {
                                           </button>
                                         </div>
                                       </div>
-                                      <p className="text-xs text-muted-foreground/60 leading-relaxed mt-1.5 max-w-prose">{m.description || 'No description'}</p>
+                                      <p className="text-xs text-muted-foreground/60 leading-relaxed mt-1.5 max-w-prose break-words overflow-hidden">{m.description || 'No description'}</p>
                                       <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200/40">{Math.round(m.context_window/1000)}K ctx</span>
+                                        <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] max-w-full overflow-hidden font-medium bg-amber-50 text-amber-700 border border-amber-200/40">{Math.round(m.context_window/1000)}K ctx</span>
                                         {m.use_case && useCaseMeta[m.use_case] && (
                                           <span className={'px-2 py-0.5 rounded-lg text-[10px] font-medium text-white bg-gradient-to-r '+useCaseMeta[m.use_case].gradient}>{useCaseMeta[m.use_case].icon} {useCaseMeta[m.use_case].label}</span>
                                         )}

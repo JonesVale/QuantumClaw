@@ -54,7 +54,7 @@ function PricingPage() {
   const shown = useMemo(()=>filtered.slice(0,vis),[filtered,vis])
 
   return (
-    <div className="min-h-screen bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
         <div className="mb-6">
           <PromoCarousel pageKey="pricing" />
@@ -63,7 +63,7 @@ function PricingPage() {
           <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
             useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          <div className="transition-all duration-200" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+          <div className="transition-all duration-200" className='max-w-[100vw] overflow-x-hidden' style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap mb-6">
               <div className="relative flex-1 min-w-[160px] max-w-xs">
@@ -85,7 +85,7 @@ function PricingPage() {
               <>
                 <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('models')}</p>
                 <div className="space-y-2">
-                  <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                  <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
                     <span className="flex-[2]">{t('Model')}</span>
                     <span className="flex-1">{t('Provider')}</span>
                     <span className="flex-1 text-right">{t('Input / 1K tokens')}</span>
@@ -93,7 +93,7 @@ function PricingPage() {
                     <span className="w-12 text-center">{t('Status')}</span>
                   </div>
                   {shown.map((m,i)=>(
-                    <div key={m.name+i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                    <div key={m.name+i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
                       <div className="flex-[2] min-w-0"><span className="text-sm font-semibold text-foreground">{m.name}</span></div>
                       <span className="flex-1 text-sm text-muted-foreground/70">{m.provider}</span>
                       <span className="flex-1 text-sm text-right font-medium tabular-nums text-foreground/80">{m.input_price>0?`$${m.input_price.toFixed(6)}`:<span className="text-emerald-600 font-semibold">{t('Free')}</span>}</span>
