@@ -135,8 +135,9 @@ function SignInPage() {
     <div className="min-h-screen flex items-center justify-center relative"
       style={{
         backgroundImage: 'url(/login-backup.png)',
-        backgroundSize: 'cover',
+        backgroundSize: '100% 100%',
         backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
       }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
         <div className="rounded-2xl bg-black/10 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/20 p-8">
