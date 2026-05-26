@@ -7,17 +7,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/model"
-	"github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
-
-// normalizeModelName converts a display name (e.g. "GPT-4o", "DeepSeek Chat")
-// to a ModelRatio key (e.g. "gpt-4o", "deepseek-chat").
-func normalizeModelName(name string) string {
-	s := strings.ToLower(name)
-	s = strings.ReplaceAll(s, " ", "-")
-	return s
-}
 
 // GetModelCatalog returns all model metadata for the given language,
 // merged with channel pricing/status where available.
@@ -78,16 +69,11 @@ func GetModelCatalog(c *gin.Context) {
 			Status:          0, // unconfigured by default
 		}
 
-		// Official reference price from ModelRatio (1 ratio = $0.002/1K tokens)
-		// ModelRatio keys use lowercase+hyphen format, so we normalize the display name.
-		modelRatio := ratio.GetModelRatio(normalizeModelName(m.ModelName), 0)
-		if modelRatio > 0 {
-			resp.InputPrice = modelRatio * 0.002  // per 1K tokens in USD
-			compRatio := ratio.GetCompletionRatio(normalizeModelName(m.ModelName), 0)
-			resp.OutputPrice = resp.InputPrice * compRatio
-		} else {
-			resp.InputPrice = 0
-			resp.OutputPrice = 0
+		// Official reference price from reference_prices table
+		// Seeded from ModelRatio on startup; updated monthly from official pricing pages.
+		if rp := model.GetReferencePrice(m.ModelName); rp != nil {
+			resp.InputPrice = rp.InputPrice
+			resp.OutputPrice = rp.OutputPrice
 		}
 
 		// Check if any channel has this model (for Group/Status metadata)

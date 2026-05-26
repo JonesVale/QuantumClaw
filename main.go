@@ -104,6 +104,16 @@ func main() {
 	// Initialize promo ads tables
 	model.InitPromoAdsTables()
 
+	// Initialize reference pricing and brand ranking tables
+	model.InitReferencePriceTable()
+	model.InitBrandRankingTable()
+
+	// Seed reference prices from ModelRatio (idempotent: skips existing)
+	service.SeedReferencePrices()
+
+	// Seed brand rankings if empty
+	service.FetchBrandRankings()
+
 	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
 	go func() {
 		time.Sleep(30 * time.Second)
@@ -113,6 +123,14 @@ func main() {
 				logger.SysLog("[CRON] auto settling monthly platform fees...")
 				model.AutoSettleMonthlyFees()
 				logger.SysLog("[CRON] monthly platform fee settlement completed")
+
+				logger.SysLog("[CRON] fetching official reference pricing...")
+				service.FetchOfficialPricing()
+				logger.SysLog("[CRON] official reference pricing update completed")
+
+				logger.SysLog("[CRON] fetching brand rankings...")
+				service.FetchBrandRankings()
+				logger.SysLog("[CRON] brand rankings update completed")
 			}
 			time.Sleep(1 * time.Hour)
 		}

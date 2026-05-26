@@ -26,6 +26,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/models", controller.DashboardListModels)
 		apiRouter.GET("/models/rankings", controller.ListModelRankings)
 		apiRouter.GET("/model-catalog", controller.GetModelCatalog)
+		apiRouter.GET("/brand-rankings", controller.GetBrandRankings)
 		apiRouter.GET("/enterprise-clients", controller.ListEnterpriseClients)
 		apiRouter.GET("/model-catalog/:model_name", controller.GetModelDetail)
 		apiRouter.POST("/models/sync", controller.SyncModelMetadata)
