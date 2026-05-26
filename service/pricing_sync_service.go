@@ -82,7 +82,7 @@ func SeedReferencePrices() {
 			FetchedAt:   now,
 		}
 
-		// Insert only if missing — never overwrite existing (preserves admin edits)
+		// Insert if missing; update if existing was seeded with default pricing (ratio == 30 -> $0.06/1K)
 		var existingPrice model.ReferencePrice
 		if model.DB.Where("model_name = ?", m.ModelName).First(&existingPrice).Error != nil {
 			if err := model.DB.Create(rp).Error; err != nil {
@@ -90,10 +90,18 @@ func SeedReferencePrices() {
 			} else {
 				inserted++
 			}
+		} else if existingPrice.Source == "modelratio" && existingPrice.InputPrice >= 0.0599 && existingPrice.InputPrice <= 0.0601 {
+			// Overwrite default-priced entries (from old GetModelRatio default=30)
+			model.DB.Model(&existingPrice).Updates(map[string]interface{}{
+				"input_price":  inputPrice,
+				"output_price": outputPrice,
+				"fetched_at":   now,
+			})
+			inserted++
 		}
 	}
 
-	logger.SysLog(fmt.Sprintf("SeedReferencePrices: %d inserted (missing rows only, existing preserved)", inserted))
+	logger.SysLog(fmt.Sprintf("SeedReferencePrices: %d inserted/updated (missing rows + default-price fixes)", inserted))
 }
 
 // ── HuggingFace pricing scraper ──

@@ -630,6 +630,21 @@ var CompletionRatio = map[string]float64{
 	// deepseek
 	"deepseek-chat":     0.28 / 0.14,
 	"deepseek-reasoner": 2.19 / 0.55,
+
+	// Seed model base names (for normalizeForRatio matching in SeedReferencePrices)
+	"claude-3.5-sonnet":    1.5,   // $0.003 / 1K tokens
+	"claude-3.5-haiku":     0.4,   // $0.0008 / 1K tokens
+	"claude-opus-4":        7.5,   // $0.015 / 1K tokens
+	"gemini-2.0-pro":       1.0,   // $0.002 / 1K tokens
+	"gemini-3.0-pro":       1.75,  // $0.0035 / 1K tokens
+	"qwen-2.5-vl":          1.0,   // $0.002 / 1K tokens
+	"mistral-large":        1.0,   // $0.002 / 1K tokens
+	"mixtral-8x7b":         0.35,  // $0.0007 / 1K tokens
+	"llama-3.1-70b":        0.3,   // $0.0006 / 1K tokens
+	"llama-3.1-405b":       1.4,   // $0.0028 / 1K tokens
+	"llama-3.2-vision":     0.3,   // $0.0006 / 1K tokens
+	"o3":                   8.0,   // $0.016 / 1K tokens
+	"codestral":            0.25,  // $0.0005 / 1K tokens
 }
 
 var (

@@ -232,7 +232,7 @@ export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDial
               <Sparkles className="h-3.5 w-3.5" />
               {t('Strengths')}
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">{model.strengths}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{t(model.strengths)}</p>
           </div>
         )}
 
@@ -243,7 +243,7 @@ export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDial
               <Star className="h-3.5 w-3.5" />
               {t('Recommended For')}
             </div>
-            <p className="text-sm text-foreground/80 leading-relaxed">{model.recommended_for}</p>
+            <p className="text-sm text-foreground/80 leading-relaxed">{t(model.recommended_for)}</p>
           </div>
         )}
 
