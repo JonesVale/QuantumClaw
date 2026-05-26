@@ -95,12 +95,6 @@ func main() {
 	model.InitDB()
 	model.InitLogDB()
 
-	// Initialize language types
-	model.InitLanguageTypes()
-
-	// Initialize T_Languages translation tables (seed if empty)
-	model.InitLanguageTables()
-
 	// Initialize commission tables
 	model.InitCommissionTables()
 
@@ -211,7 +205,6 @@ func main() {
 	// This will cause SSE not to work!!!
 	//server.Use(gzip.Gzip(gzip.DefaultCompression))
 	server.Use(middleware.RequestId())
-	server.Use(middleware.Language())
 	middleware.SetUpLogger(server)
 	// Initialize session store
 	store := cookie.NewStore([]byte(config.SessionSecret))

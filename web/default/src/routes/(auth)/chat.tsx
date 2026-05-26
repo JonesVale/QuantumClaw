@@ -46,7 +46,6 @@ import { ParameterPanel, defaultParams, type ChatParams } from '@/components/par
 import type { Message } from '@/components/message-types'
 import { getCommonHeaders } from '@/lib/api'
 import { cn } from '@/lib/utils'
-import { codeToType } from '@/lib/tlanguages'
 
 export const Route = createFileRoute('/(auth)/chat')({
   beforeLoad: async ({ location }) => {

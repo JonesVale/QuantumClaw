@@ -38,11 +38,6 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/about", controller.GetAbout)
 		apiRouter.GET("/home_page_content", controller.GetHomePageContent)
 
-		// T_Languages API routes
-		apiRouter.GET("/languages", controller.GetLanguages)
-		apiRouter.GET("/translations", controller.GetTranslations)
-		apiRouter.POST("/languages/seed", middleware.AdminAuth(), controller.SeedTranslations)
-		apiRouter.POST("/languages/seed-public", controller.SeedTranslationsIfEmpty)
 		controller.RegisterFreeChatRoutes(apiRouter)
 
 		apiRouter.Any("/webhook/epay", middleware.WebhookIPWhitelist(), controller.EpayNotify)
@@ -374,14 +369,6 @@ func SetApiRouter(router *gin.Engine) {
 		}
 		// Emergency password reset (requires env token, no session needed)
 		apiRouter.POST("/password/emergency-reset", middleware.CriticalRateLimit(), controller.EmergencyPasswordReset)
-		/*
-		  API routes registered at top of SetApiRouter:
-		    apiRouter.GET("/languages", ...)
-		    apiRouter.GET("/translations", ...)
-		  Seed endpoint:
-		    apiRouter.POST("/languages/seed", ...)
-		*/
-
 		// Distributor routes
 		distributorRoute := apiRouter.Group("/distributor")
 		distributorRoute.Use(middleware.AdminAuth())

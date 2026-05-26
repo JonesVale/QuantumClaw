@@ -156,9 +156,6 @@ func InitDB() {
 		logger.SysLog("database migrated")
 	}
 
-	// Initialize language types
-	InitLanguageTypes()
-
 	// Seed default menu items
 	SeedDefaultMenus()
 
@@ -166,11 +163,7 @@ func InitDB() {
 	SeedModelMetadata()
 	SeedDefaultChannels()
 
-	logger.SysLog("language types initialized")
-
-	// Initialize Chinese language resources
-	InitChineseLanguageResources()
-	logger.SysLog("Chinese language resources initialized")
+	// (language initialization removed; frontend i18n only)
 }
 
 func migrateDB() error {
@@ -221,7 +214,6 @@ func migrateDB() error {
 	attempt("SunoTask", func() error { return DB.AutoMigrate(&SunoTask{}) })
 	attempt("WebAuthnCredential", func() error { return DB.AutoMigrate(&WebAuthnCredential{}) })
 	attempt("MenuItem", func() error { return DB.AutoMigrate(&MenuItem{}) })
-	attempt("LanguageType", func() error { return DB.AutoMigrate(&LanguageType{}) })
 	attempt("RssArticle", func() error { return DB.AutoMigrate(&RssArticle{}) })
 	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
 	attempt("ModelMetadata", func() error { return DB.AutoMigrate(&ModelMetadata{}) })
@@ -232,8 +224,7 @@ func migrateDB() error {
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
 
-		attempt("LanguageResource", func() error { return DB.AutoMigrate(&LanguageResource{}) })
-// ── 结算系统新表 ──
+	// ── 结算系统新表 ──
 
 	// 手动迁移：Ability 表新增 user_id 列
 	if !DB.Migrator().HasColumn(&Ability{}, "user_id") {

@@ -1,83 +1,54 @@
-// useT() — T_Languages-driven translation hook
-// Pure custom implementation, no i18next/CultureInfo
+/**
+ * useT() — i18next 包装器，完全向后兼容
+ *
+ * 保持与旧 useT() 一致的 API：{ t, language, langs, changeLanguage }
+ * 内部委托给 i18next，语言切换使用显示名 ↔ 标准码双向映射
+ *
+ * 零网络请求、零竞态、持久化到 localStorage
+ */
+import './i18n' // 确保 i18n 初始化
 import { useState, useEffect, useCallback } from 'react'
-
-// === Module-level state (shared across all components) ===
-let cachedLangs: string[] = []
-let cachedDict: Record<string, string> = {}
-let currentLang = 'English'
-let version = 0                     // bumped on every language switch
-const listeners = new Set<() => void>()  // all active useT instances
-
-async function fetchLangs(): Promise<string[]> {
-  try {
-    const r = await fetch('/api/languages')
-    const data = await r.json()
-    if (data.success && Array.isArray(data.data)) {
-      return data.data.map((l: any) => l.languages_type)
-    }
-  } catch { /* ignore */ }
-  return ['English', '中文简体']
-}
-
-async function fetchTranslations(lang: string): Promise<Record<string, string>> {
-  try {
-    const r = await fetch(`/api/translations?lang=${encodeURIComponent(lang)}`)
-    const data = await r.json()
-    if (data.success && data.data) {
-      if (typeof data.data === 'object' && !Array.isArray(data.data)) {
-        return data.data
-      }
-      if (Array.isArray(data.data)) {
-        const m: Record<string, string> = {}
-        for (const item of data.data) {
-          m[item.lcode || item.LCode] = item.display || item.Display
-        }
-        return m
-      }
-    }
-  } catch { /* ignore */ }
-  return {}
-}
-
-// Preload once on module load
-fetchLangs().then(l => { cachedLangs = l })
-fetchTranslations(currentLang).then(d => { cachedDict = d })
+import { useTranslation } from 'react-i18next'
+import {
+  DISPLAY_TO_CODE,
+  CODE_TO_DISPLAY,
+  ALL_LANG_DISPLAY_NAMES,
+} from './i18n'
 
 export function useT() {
-  // version in state forces re-render when it changes
-  const [, setVer] = useState(0)
-  const [langs, setLangs] = useState<string[]>(cachedLangs.length > 0 ? cachedLangs : ['English', '中文简体'])
+  const { t: i18nT, i18n } = useTranslation()
 
-  // Register/unregister this instance into the global listener pool
+  // 强制重渲染触发器（监听 i18next languageChanged 事件）
+  const [, setVer] = useState(0)
+
   useEffect(() => {
     const cb = () => setVer(v => v + 1)
-    listeners.add(cb)
-    return () => { listeners.delete(cb) }
-  }, [])
-
-  // Sync available languages (one-time)
-  useEffect(() => {
-    if (cachedLangs.length === 0) {
-      fetchLangs().then(l => { cachedLangs = l; setLangs(l); notifyAll() })
-    }
-  }, [])
+    i18n.on('languageChanged', cb)
+    return () => { i18n.off('languageChanged', cb) }
+  }, [i18n])
 
   const t = useCallback((key: string): string => {
-    return cachedDict[key] ?? key
-  }, [])
+    // i18next 内置回退链：当前语言 → zh-CN → key
+    return i18nT(key)
+  }, [i18nT])
 
-  const changeLanguage = useCallback(async (lang: string) => {
-    if (lang === currentLang) return
-    currentLang = lang
-    cachedDict = await fetchTranslations(lang)
-    notifyAll()
-  }, [])
+  const changeLanguage = useCallback(async (displayName: string) => {
+    const code = DISPLAY_TO_CODE[displayName]
+    if (!code) {
+      console.warn(`[useT] unknown language display name: ${displayName}`)
+      return
+    }
+    const currentCode = i18n.language
+    if (code === currentCode) return
+    await i18n.changeLanguage(code)
+    localStorage.setItem('qc_lang', code)
+  }, [i18n])
 
-  return { t, language: currentLang, langs, changeLanguage }
-}
+  const currentCode = i18n.language
+  const language = CODE_TO_DISPLAY[currentCode] || currentCode
 
-function notifyAll() {
-  version++
-  for (const cb of listeners) cb()
+  // langs 使用 ALL_LANG_DISPLAY_NAMES 替换旧的 DB 驱动列表
+  const langs = ALL_LANG_DISPLAY_NAMES
+
+  return { t, language, langs, changeLanguage }
 }
