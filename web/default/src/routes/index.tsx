@@ -78,7 +78,7 @@ function HomePage() {
           <h1 className="qc-fade-up qc-fade-up-2 qc-title-hero font-bold tracking-tight text-foreground w-full">
             {t('Unified Access to')}<br /><span className="qc-gradient-text">{t('400+ AI Models')}</span>
           </h1>
-          <p className="qc-fade-up qc-fade-up-3 qc-text-body qc-readable-width text-muted-foreground mt-6 leading-relaxed">
+          <p className="qc-fade-up qc-fade-up-3 qc-text-body max-w-3xl mx-auto text-muted-foreground mt-6 leading-relaxed">
             {t('Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.')}
           </p>
           <div className="qc-fade-up qc-fade-up-4 flex flex-wrap items-center justify-center gap-4 mt-10">
