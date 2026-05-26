@@ -161,13 +161,13 @@ function SignInPage() {
           )}
           <div className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-white/60 block mb-2">{t('Username')}</label>
+              <label className="text-base font-medium text-white/60 block mb-2">{t('Username')}</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)}
                 className="w-full h-12 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
                 placeholder="Enter your username" autoComplete="username" />
             </div>
             <div>
-              <label className="text-sm font-medium text-white/60 block mb-2">{t('Password')}</label>
+              <label className="text-base font-medium text-white/60 block mb-2">{t('Password')}</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (mode === 'login' ? doLogin() : doRegister())}
                 className="w-full h-12 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
@@ -175,7 +175,7 @@ function SignInPage() {
             </div>
             {mode === 'register' && (
             <div>
-              <label className="text-sm font-medium text-white/60 block mb-2">{t('Confirm Password')}</label>
+              <label className="text-base font-medium text-white/60 block mb-2">{t('Confirm Password')}</label>
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doRegister()}
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
@@ -192,7 +192,7 @@ function SignInPage() {
             <>
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-                <div className="relative flex justify-center"><span className="bg-transparent px-3 text-xs text-white/50">{t('Or continue with')}</span></div>
+                <div className="relative flex justify-center"><span className="bg-transparent px-3 text-sm text-white/50">{t('Or continue with')}</span></div>
               </div>
               <div className="space-y-3">
                 {providers.map(p => (
