@@ -280,7 +280,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const { auth } = useAuthStore()
   const isAdmin = auth.user?.role === 100
   const isLoggedIn = !!auth.user
-  const [hovered, setHovered] = useState(false)
+  const [hovered, setHovered] = useState(true)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     '': true,           // default group (Dashboard, Chat...) always open
     management: false,  // Management initially closed
