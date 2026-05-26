@@ -39,6 +39,7 @@ export interface SidebarMenuItem {
   icon: string
   labelKey: string
   groupName: string
+  parentKey?: string
 }
 
 // ---------------------------------------------------------------------------
@@ -61,9 +62,9 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/models', icon: 'Box', labelKey: 'Models', groupName: '' },
   { path: '/rankings', icon: 'TrendingUp', labelKey: 'Rankings', groupName: '' },
   { path: '/pricing', icon: 'DollarSign', labelKey: 'Pricing', groupName: '' },
-  { path: '/quantum', icon: 'Atom', labelKey: 'Quantum', groupName: 'quantum' },
-  { path: '/fusion', icon: 'GitCompare', labelKey: 'Fusion', groupName: 'quantum' },
-  { path: '/quantum', icon: 'Dice', labelKey: 'QRNG Generator', groupName: 'quantum' },
+  { path: '/quantum', icon: 'Atom', labelKey: 'Quantum', groupName: '' },
+  { path: '/fusion', icon: 'GitCompare', labelKey: 'Fusion', groupName: '' },
+  { path: '/quantum', icon: 'Atom', labelKey: 'QRNG Generator', groupName: '' },
   { path: '/apps', icon: 'Sparkles', labelKey: 'Apps', groupName: '' },
   { path: '/enterprise', icon: 'Building2', labelKey: 'Enterprise', groupName: '' },
   // Management group
@@ -126,6 +127,8 @@ const FALLBACK_ICON_MAP: Record<string, string> = {
   'BookOpen': 'BookOpen',
   'Info': 'Info',
   'Network': 'Network',
+  'Megaphone': 'Megaphone',
+  'Lock': 'Lock',
 }
 
 // ---------------------------------------------------------------------------
@@ -189,6 +192,7 @@ export function useSidebarMenus() {
           icon: m.icon || 'Box',
           labelKey: m.label_key,
           groupName: m.group_name,
+          parentKey: m.parent_key || undefined,
         }))
       }
       // Fallback to hardcoded defaults (with role-based filtering)

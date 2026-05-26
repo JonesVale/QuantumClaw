@@ -104,6 +104,9 @@ func main() {
 	// Initialize promo ads tables
 	model.InitPromoAdsTables()
 
+	// Seed default menus (upsert by MenuKey, idempotent)
+	model.SeedDefaultMenus()
+
 	// Initialize reference pricing and brand ranking tables
 	model.InitReferencePriceTable()
 	model.InitBrandRankingTable()

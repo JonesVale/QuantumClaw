@@ -84,6 +84,8 @@ import {
   Percent,
   Receipt,
   Store,
+  Megaphone,
+  Lock,
   Link2,
 
 } from 'lucide-react'
@@ -164,6 +166,8 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Store,
   Zap,
   Home,
+  Megaphone,
+  Lock,
 }
 
 function resolveIcon(name: string): React.ElementType {
