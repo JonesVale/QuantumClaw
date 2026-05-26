@@ -708,32 +708,29 @@ function AppLayout() {
   const isNewsPage = location.pathname.startsWith('/news')
 
   return (
-    <div className="min-h-screen w-full bg-background flex" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen w-full bg-background flex">
 
-      {/* Desktop Sidebar — hidden on news page, pushes content when shown */}
-      {!isNewsPage && (
-        <div className="hidden md:block shrink-0 sticky top-0 h-screen pt-4 pl-4">
-          <SidebarNav />
-        </div>
-      )}
+      {/* Desktop Sidebar — hidden on news page via md:!hidden to override md:block */}
+      <div className={`hidden md:block shrink-0 sticky top-0 h-screen pt-4 pl-4 ${isNewsPage ? 'md:!hidden' : ''}`}>
+        <SidebarNav />
+      </div>
 
-      {/* Mobile Sidebar Overlay — hidden on news page */}
-      {!isNewsPage && mobileOpen && (
+      {/* Mobile Sidebar Overlay */}
+      {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          className={`fixed inset-0 z-40 bg-black/50 md:hidden ${isNewsPage ? '!hidden' : ''}`}
           onClick={() => setMobileOpen(false)}
         />
       )}
-      {!isNewsPage && (
-        <aside
-          className={cn(
-            'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 md:hidden',
-            mobileOpen ? 'translate-x-0' : '-translate-x-full'
-          )}
-        >
-          <SidebarNav mobile />
-        </aside>
-      )}
+      <aside
+        className={cn(
+          'fixed inset-y-0 left-0 z-50 w-72 transition-transform duration-200 md:hidden',
+          mobileOpen ? 'translate-x-0' : '-translate-x-full',
+          isNewsPage ? '!hidden' : ''
+        )}
+      >
+        <SidebarNav mobile />
+      </aside>
 
       {/* Main Content Area — flex-1 auto-width, no fixed margin needed */}
       <div className="min-h-screen min-w-0 flex-1">
