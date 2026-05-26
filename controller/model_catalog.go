@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
@@ -69,14 +70,22 @@ func GetModelCatalog(c *gin.Context) {
 			Status:          0, // unconfigured by default
 		}
 
-		// Check if any channel has this model
+		// Official reference price from ModelRatio (1 ratio = $0.002/1K tokens)
+		modelRatio := ratio.GetModelRatio(m.ModelName, 0)
+		if modelRatio > 0 {
+			resp.InputPrice = modelRatio * 0.002  // per 1K tokens in USD
+			compRatio := ratio.GetCompletionRatio(m.ModelName, 0)
+			resp.OutputPrice = resp.InputPrice * compRatio
+		} else {
+			resp.InputPrice = 0
+			resp.OutputPrice = 0
+		}
+
+		// Check if any channel has this model (for Group/Status metadata)
 		key := strings.ToLower(m.ModelName)
 		if ch, ok := channelMap[key]; ok {
 			resp.ChannelID = ch.Id
 			resp.ChannelName = ch.Name
-			perTokenCost := ch.CostPerUnit / 1000.0
-			resp.InputPrice = perTokenCost
-			resp.OutputPrice = perTokenCost * ch.SellPriceRate
 			resp.Status = 1
 			resp.Group = ch.Group
 		}
