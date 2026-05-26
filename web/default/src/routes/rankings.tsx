@@ -19,6 +19,15 @@ const TABS: { key: SortKey; label: string; icon: string }[] = [
   { key: 'price_per_1k', label: 'Price', icon: '$' },
 ]
 
+// Brand ranking from GET /api/brand-rankings
+interface BrandEntry {
+  brand_name: string
+  rank: number
+  score: number
+  metric: string
+  source: string
+}
+
 function formatNum(n: number): string {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M'
   if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K'
@@ -28,6 +37,7 @@ function formatNum(n: number): string {
 function RankingsPage() {
   const { t, language } = useT()
   const [sortKey, setSortKey] = useState<SortKey>('request_count_7d')
+  const [showBrands, setShowBrands] = useState(true) // default to brand rankings
   const [cat, setCat] = useState('all')
   const [prov, setProv] = useState('')
   const [ctx, setCtx] = useState('')
@@ -51,22 +61,34 @@ function RankingsPage() {
   const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
   const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
 
-  const { data, isLoading } = useQuery({
+  // Model rankings query
+  const { data: modelData, isLoading: modelLoading } = useQuery({
     queryKey: ['model-rankings'],
     queryFn: async () => { const r = await fetch('/api/models/rankings'); if (!r.ok) throw Error(); return r.json() },
     staleTime: 60_000,
+    enabled: !showBrands,
   }) as any
-  const rankings: ModelRanking[] = data?.data || []
+  const rankings: ModelRanking[] = modelData?.data || []
 
+  // Brand rankings query
+  const { data: brandData, isLoading: brandLoading } = useQuery({
+    queryKey: ['brand-rankings'],
+    queryFn: async () => { const r = await fetch('/api/brand-rankings'); if (!r.ok) throw Error(); return r.json() },
+    staleTime: 300_000, // 5 min cache
+    enabled: showBrands,
+  }) as any
+  const brands: BrandEntry[] = brandData?.data || []
+
+  // Sort model rankings
   const sorted = useMemo(() => {
+    if (showBrands) return []
     let r = [...rankings]
-    // Use sidebar filters on rankings data (match by model name)
     if (cat !== 'all') r = r.filter(m => (m as any).use_case === cat)
     if (prov) r = r.filter(m => m.provider === prov)
     if (sortKey === 'avg_speed_ms') r.sort((a, b) => (a.avg_speed_ms ?? 999) - (b.avg_speed_ms ?? 999))
     else r.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0))
     return r.slice(0, 50)
-  }, [rankings, sortKey, cat, prov])
+  }, [rankings, sortKey, cat, prov, showBrands])
 
   const statValue = (m: ModelRanking, k: SortKey): string => {
     switch (k) {
@@ -77,6 +99,13 @@ function RankingsPage() {
     }
   }
 
+  const rankLabel = (rank: number) => {
+    if (rank === 1) return { text: '#1', cls: 'text-amber-500' }
+    if (rank === 2) return { text: '#2', cls: 'text-slate-400' }
+    if (rank === 3) return { text: '#3', cls: 'text-amber-700' }
+    return { text: `#${rank}`, cls: 'text-muted-foreground/40' }
+  }
+
   return (
     <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
       <div className="qc-wrap qc-section-pad-sm">
@@ -84,51 +113,101 @@ function RankingsPage() {
           <PromoCarousel pageKey="rankings" />
         </div>
         <div className="relative">
-          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
-            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
+          {!showBrands && (
+            <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
+              useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
+          )}
 
-          <div className="transition-all duration-200" className='max-w-[100vw] overflow-x-hidden' style={{ paddingLeft: hovered ? '304px' : '72px' }}>
+          <div className={`transition-all duration-200 max-w-[100vw] overflow-x-hidden`} style={{ paddingLeft: showBrands ? 0 : hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
-            {/* Sort tabs */}
+            {/* Sort tabs + Brand toggle */}
             <div className="flex items-center gap-2 flex-wrap mb-6">
               {TABS.map(tab=>(
-                <button key={tab.key} onClick={()=>setSortKey(tab.key)}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${sortKey===tab.key?'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
+                <button key={tab.key} onClick={()=>{setShowBrands(false); setSortKey(tab.key)}}
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${!showBrands&&sortKey===tab.key?'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
                   <span className="mr-1.5">{tab.icon}</span>
                   {t(tab.label)}
                 </button>
               ))}
+              <button onClick={()=>setShowBrands(true)}
+                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${showBrands?'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
+                <span className="mr-1.5">🏢</span>
+                {t('Brands')}
+              </button>
             </div>
 
-            {isLoading ? (
+            {/* Loading */}
+            {(showBrands ? brandLoading : modelLoading) && (
               <div className="flex justify-center py-20"><div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin"/></div>
-            ) : sorted.length===0 ? (
-              <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium">{t('No ranking data yet')}</p></div>
-            ) : (
+            )}
+
+            {/* Brand Rankings */}
+            {showBrands && !brandLoading && (
               <>
-                <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{t('Top 50 models')}</p>
+                <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">AI / Quantum Brand Power Rankings</p>
                 <div className="space-y-2">
                   <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
                     <span className="w-10 text-center">#</span>
-                    <span className="flex-[2]">{t('Model')}</span>
-                    <span className="flex-1">{t('Provider')}</span>
-                    <span className="flex-1 text-right">{TABS.find(t=>t.key===sortKey)?.label||t('Value')}</span>
+                    <span className="flex-[2]">{t('Brand')}</span>
+                    <span className="flex-1">{t('Score')}</span>
+                    <span className="flex-1">{t('Source')}</span>
                   </div>
-                  {sorted.map((m,i)=>{
-                    const rank=i+1
+                  {brands.map((b,i)=>{
+                    const rl = rankLabel(b.rank)
                     return (
-                      <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                      <div key={b.brand_name} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
                         <div className="w-10 flex items-center justify-center shrink-0">
-                          {rank<=3?<span className={`text-lg font-bold ${rank===1?'text-amber-500':rank===2?'text-slate-400':'text-amber-700'}`}>#{rank}</span>:<span className="text-xs font-semibold text-muted-foreground/40">#{rank}</span>}
+                          <span className={`text-lg font-bold ${rl.cls}`}>{rl.text}</span>
                         </div>
-                        <div className="flex-[2] min-w-0"><span className="text-sm font-semibold text-foreground">{m.model_name||m.name}</span></div>
-                        <span className="flex-1 text-sm text-muted-foreground/70">{m.provider||'\u2014'}</span>
-                        <span className="flex-1 text-sm text-right font-medium tabular-nums">{statValue(m,sortKey)}</span>
+                        <div className="flex-[2] min-w-0">
+                          <span className="text-sm font-semibold text-foreground">{b.brand_name}</span>
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 rounded-full bg-gradient-to-r from-violet-400 to-indigo-500" style={{width:`${b.score}%`, maxWidth:'120px'}}/>
+                            <span className="text-sm font-medium tabular-nums text-foreground/80">{b.score}</span>
+                          </div>
+                        </div>
+                        <span className="flex-1 text-sm text-muted-foreground/40">{b.source||'\u2014'}</span>
                       </div>
                     )
                   })}
                 </div>
+                <p className="text-xs text-muted-foreground/30 text-center mt-6">Based on industry-wide data • Updated monthly</p>
               </>
+            )}
+
+            {/* Model Rankings */}
+            {!showBrands && !modelLoading && (
+              sorted.length===0 ? (
+                <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium">{t('No ranking data yet')}</p></div>
+              ) : (
+                <>
+                  <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{t('Top 50 models')}</p>
+                  <div className="space-y-2">
+                    <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                      <span className="w-10 text-center">#</span>
+                      <span className="flex-[2]">{t('Model')}</span>
+                      <span className="flex-1">{t('Provider')}</span>
+                      <span className="flex-1 text-right">{TABS.find(t=>t.key===sortKey)?.label||t('Value')}</span>
+                    </div>
+                    {sorted.map((m,i)=>{
+                      const rank=i+1
+                      const rl = rankLabel(rank)
+                      return (
+                        <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                          <div className="w-10 flex items-center justify-center shrink-0">
+                            <span className={`text-lg font-bold ${rl.cls}`}>{rl.text}</span>
+                          </div>
+                          <div className="flex-[2] min-w-0"><span className="text-sm font-semibold text-foreground">{m.model_name||m.name}</span></div>
+                          <span className="flex-1 text-sm text-muted-foreground/70">{m.provider||'\u2014'}</span>
+                          <span className="flex-1 text-sm text-right font-medium tabular-nums">{statValue(m,sortKey)}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )
             )}
             </div>
           </div>
