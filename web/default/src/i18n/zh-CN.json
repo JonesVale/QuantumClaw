@@ -1857,5 +1857,6 @@
   "Model Brands": "模型品牌管理",
   "Quantum Sources": "量子来源管理",
   "Free Chat Providers": "免费聊天提供商",
-  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "免费聊天的 API Key 现已通过渠道管理页面统一配置。在渠道中配置 Groq、DeepSeek、Gemini、SiliconFlow 或 Mistral 后，免费聊天将自动发现可用提供商。"
+  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "免费聊天的 API Key 现已通过渠道管理页面统一配置。在渠道中配置 Groq、DeepSeek、Gemini、SiliconFlow 或 Mistral 后，免费聊天将自动发现可用提供商。",
+  "QuantumClaw - unified AI and quantum API gateway": "QuantumClaw — Unified AI & Quantum API Gateway.一个API Key，无限可能。"
 }

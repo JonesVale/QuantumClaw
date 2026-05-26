@@ -1857,5 +1857,6 @@
   "Model Brands": "Model Brands",
   "Quantum Sources": "Quantum Sources",
   "Free Chat Providers": "Free Chat Providers",
-  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them."
+  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.",
+  "QuantumClaw - unified AI and quantum API gateway": "QuantumClaw — Unified AI & Quantum API Gateway. One API Key, Infinite Possibilities."
 }
