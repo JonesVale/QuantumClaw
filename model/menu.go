@@ -152,20 +152,20 @@ func GetMenuByID(id int) (*MenuItem, error) {
 }
 
 // SeedDefaultMenus inserts default menu items if the table is empty.
+// After initial seed, new menu items are upserted by MenuKey on each restart.
 func SeedDefaultMenus() error {
 	var count int64
 	DB.Model(&MenuItem{}).Count(&count)
-	if count > 0 {
-		return nil
-	}
-
-	menus := []MenuItem{
+	if count == 0 {
+		// First run: batch insert all seed items
+		menus := []MenuItem{
 		// ===== Nav items =====
 		{MenuKey: "nav-models", ParentKey: "", MenuType: "nav", LabelKey: "Models", Icon: "☰", Path: "/models", SortOrder: 10, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-pricing", ParentKey: "", MenuType: "nav", LabelKey: "Pricing", Icon: "¤", Path: "/pricing", SortOrder: 20, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-rankings", ParentKey: "", MenuType: "nav", LabelKey: "Rankings", Icon: "≡", Path: "/rankings", SortOrder: 30, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-apps", ParentKey: "", MenuType: "nav", LabelKey: "Apps", Icon: "⊞", Path: "/apps", SortOrder: 40, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-enterprise", ParentKey: "", MenuType: "nav", LabelKey: "Enterprise", Icon: "◈", Path: "/enterprise", SortOrder: 50, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "nav-news", ParentKey: "", MenuType: "nav", LabelKey: "AI News", Icon: "📰", Path: "/news", SortOrder: 60, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 
 		// ===== Sidebar nav items (group: "default") =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "default", Enabled: true},
@@ -212,8 +212,23 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-password", ParentKey: "", MenuType: "sidebar", LabelKey: "Password & Security", Icon: "Lock", Path: "/password", SortOrder: 96, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},
 	}
 
-	for _, m := range menus {
-		DB.Create(&m)
+		for _, m := range menus {
+			DB.Create(&m)
+		}
+		return nil
+	}
+
+	// Table already has data — upsert seed items that may be missing (e.g. new features)
+	seedMenus := []MenuItem{
+		{MenuKey: "nav-news", MenuType: "nav", LabelKey: "AI News", Icon: "📰", Path: "/news", SortOrder: 60, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
+	}
+	for _, m := range seedMenus {
+		var existing MenuItem
+		result := DB.Where("menu_key = ?", m.MenuKey).First(&existing)
+		if result.Error != nil {
+			// Not found — insert
+			DB.Create(&m)
+		}
 	}
 	return nil
 }
