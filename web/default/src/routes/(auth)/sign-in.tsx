@@ -91,7 +91,24 @@ function SignInPage() {
       }
     } catch { setError(t('Network error')) }
     setLoading(false)
-  }, [username, password, t, navigate, auth])
+  }, [username, password, confirmPassword, t, navigate, auth, refCode])
+
+  const doRegister = useCallback(async () => {
+    if (!username || !password || password !== confirmPassword) return
+    setLoading(true); setError('')
+    try {
+      const body = { username, password }
+      if (refCode) body.aff_code = refCode
+      const res = await fetch('/api/user/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }).then(r=>r.json())
+      if (res.success && res.data) {
+        auth.setUser(res.data)
+        navigate({ to: '/dashboard' })
+      } else {
+        setError(res.message || t('Registration failed'))
+      }
+    } catch { setError(t('Network error')) }
+    setLoading(false)
+  }, [username, password, confirmPassword, t, navigate, auth, refCode])
 
   const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider.id)
@@ -122,7 +139,21 @@ function SignInPage() {
         </div>
 
         <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-border/20 shadow-sm p-8">
-          {error && (
+          <div className="flex mb-6">
+            <button
+              onClick={() => setMode('login')}
+              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {t('Sign In')}
+            </button>
+            <button
+              onClick={() => setMode('register')}
+              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {t('Register')}
+            </button>
+          </div>
+                    {error && (
             <div className="mb-5 px-5 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-200/50">
               {error}
             </div>
@@ -137,13 +168,13 @@ function SignInPage() {
             <div>
               <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Password')}</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && doLogin()}
+                onKeyDown={e => e.key === 'Enter' && (mode === 'login' ? doLogin() : doRegister())}
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
                 placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="current-password" />
             </div>
-            <button onClick={doLogin} disabled={loading || !username || !password}
+            <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && password !== confirmPassword)}
               className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
-              {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Sign In')}
+              {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : mode === 'login' ? t('Sign In') : t('Register')}
             </button>
           </div>
 
@@ -169,12 +200,7 @@ function SignInPage() {
             </>
           )}
 
-          <div className="text-center mt-4">
-            <p className="text-xs text-muted-foreground/60">
-              {t("Don't have an account?")}{' '}
-              <Link to="/setup" className="text-blue-600 hover:underline font-medium">{t('Set up now')}</Link>
-            </p>
-          </div>
+
         </div>
       </div>
     </div>

@@ -28,8 +28,17 @@ function ResellerPortal() {
   const [copied, setCopied] = useState(false)
 
   const userId = auth.user?.id
-  const affiliateLink = typeof window !== 'undefined'
-    ? `${window.location.origin}/sign-in?aff=${userId}`
+  const { data: affCode } = useQuery({
+    queryKey: ['aff-code', userId],
+    queryFn: async () => {
+      const r = await apiClient.get('/api/user/self/aff')
+      return r.data?.data || ''
+    },
+    enabled: !!userId,
+    staleTime: 300_000,
+  })
+  const affiliateLink = typeof window !== 'undefined' && affCode
+    ? `${window.location.origin}/sign-in?ref=${affCode}`
     : ''
 
   const copyLink = () => {
