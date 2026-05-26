@@ -79,7 +79,7 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/admin-tools', icon: 'Wrench', labelKey: 'Admin Tools', groupName: 'management' },
   { path: '/monitoring', icon: 'Activity', labelKey: 'Monitoring', groupName: 'management' },
   { path: '/profit', icon: 'TrendingUp', labelKey: 'Channel Profit', groupName: 'management' },
-  { path: '/news', icon: 'Newspaper', labelKey: 'AI News', groupName: 'management' },
+
   { path: '/reseller-admin', icon: 'Store', labelKey: 'Reseller Management', groupName: 'management' },
   { path: '/settlement', icon: 'Percent', labelKey: 'Settlement Config', groupName: 'management' },
   { path: '/transactions', icon: 'Receipt', labelKey: 'Transactions', groupName: 'management' },

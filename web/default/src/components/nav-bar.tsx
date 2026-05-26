@@ -12,7 +12,6 @@ const FALLBACK_NAV_ITEMS = [
   { to: '/rankings',   label: 'Rankings',   icon: '≡' },
   { to: '/apps',       label: 'Apps',       icon: '?' },
   { to: '/enterprise', label: 'Enterprise', icon: '?' },
-  { to: '/news',       label: 'AI News',    icon: '📰' },
   { to: '/api-docs',   label: 'API Docs',   icon: '📖' },
 ]
 
