@@ -139,20 +139,6 @@ function SignInPage() {
         backgroundPosition: 'center',
       }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
-        <div className="text-center mb-10">
-          <div className="mb-6 px-4 py-3 rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50/90 to-amber-50 border border-amber-200/30 shadow-lg shadow-amber-200/20">
-            <p className="text-sm font-medium text-amber-700">{t('QuantumClaw - unified AI and quantum API gateway')}</p>
-          </div>
-          <div className="flex items-center justify-center gap-3 mb-5">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
-              <img src="/logo.webp" alt="QuantumClaw" className="w-10 h-10 object-contain" />
-            </div>
-            <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">QuantumClaw</span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight mb-2 bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{t('Sign In')}</h1>
-          <p className="text-base text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
-        </div>
-
         <div className="rounded-2xl bg-white/85 backdrop-blur-xl border border-border/[0.08] shadow-xl shadow-black/[0.04] p-8">
           <div className="flex mb-7 gap-2">
             <button
