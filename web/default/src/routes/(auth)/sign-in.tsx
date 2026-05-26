@@ -158,6 +158,20 @@ function SignInPage() {
               {t('Register')}
             </button>
           </div>
+                    <div className="flex mb-6">
+            <button
+              onClick={() => setMode('login')}
+              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {t('Sign In')}
+            </button>
+            <button
+              onClick={() => setMode('register')}
+              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+            >
+              {t('Register')}
+            </button>
+          </div>
                     {error && (
             <div className="mb-5 px-5 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-200/50">
               {error}

@@ -40,7 +40,7 @@ export const Route = createFileRoute('/_authenticated/team')({
 })
 
 function TeamPage() {
-  const t = useT()
+  const { t } = useT()
   const [copied, setCopied] = useState(false)
 
   // Fetch team members
@@ -80,7 +80,7 @@ function TeamPage() {
   const totalQuota = teamMembers.reduce((sum: number, m: any) => sum + (m.quota || 0), 0)
 
   // Copy referral link
-  const referralLink = `${window.location.origin}/register?aff=${affCode}`
+  const referralLink = `${window.location.origin}/sign-in?ref=${affCode}`
   const copyLink = () => {
     navigator.clipboard.writeText(referralLink)
     setCopied(true)
@@ -102,7 +102,7 @@ function TeamPage() {
     <div className="qc-wrapper py-8">
       {/* Header */}
       <div className="flex flex-col gap-1 mb-8">
-        <h1 className="text-2xl font-bold text-qc-amber-400">My Team</h1>
+        <h1 className="text-2xl font-bold text-qc-amber-400">{t("My Team")}</h1>
         <p className="text-qc-warm-400 text-sm max-w-[65ch]">
           Invite others to join QuantumClaw and earn commission from their usage. Share your referral link to grow your team.
         </p>
@@ -115,14 +115,14 @@ function TeamPage() {
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-qc-warm-600 flex items-center gap-2 mb-1">
                 <UserPlus className="w-4 h-4 text-qc-amber-400" />
-                Your Referral Link
+                {t("Your Referral Link")}
               </h3>
               <p className="text-xs text-qc-warm-400 mb-2">
-                Share this link with friends. When they register, they'll automatically join your team.
+                {t("Share this link with friends. When they register, they'll automatically join your team.")}
               </p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 px-3 py-1.5 bg-white/80 rounded-lg border text-sm font-mono text-qc-warm-500 truncate">
-                  {affCode ? referralLink : 'Loading...'}
+                  {affCode ? referralLink : '{t("Loading")}'}
                 </code>
                 <Button
                   variant="outline"
@@ -130,7 +130,7 @@ function TeamPage() {
                   onClick={copyLink}
                   className="shrink-0 gap-1.5"
                 >
-                  {copied ? 'Copied!' : <><Copy className="w-3.5 h-3.5" /> Copy</>}
+                  {copied ? t('Copied') : <><Copy className="w-3.5 h-3.5" /> {t('Copy')}</>}
                 </Button>
               </div>
             </div>
@@ -144,7 +144,7 @@ function TeamPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-qc-warm-400">Team Members</p>
+                <p className="text-xs text-qc-warm-400">{t("Team Members")}</p>
                 <p className="text-2xl font-bold text-qc-warm-600 mt-1">
                   {teamLoading ? <Skeleton className="h-8 w-16" /> : teamMembers.length}
                 </p>
@@ -160,7 +160,7 @@ function TeamPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-qc-warm-400">Total Usage</p>
+                <p className="text-xs text-qc-warm-400">{t("Total Usage")}</p>
                 <p className="text-2xl font-bold text-qc-warm-600 mt-1">
                   {teamLoading ? <Skeleton className="h-8 w-20" /> : `${(totalUsed / 1000000).toFixed(2)}M`}
                 </p>
@@ -176,7 +176,7 @@ function TeamPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-qc-warm-400">Commission</p>
+                <p className="text-xs text-qc-warm-400">{t("Commission")}</p>
                 <p className="text-2xl font-bold text-qc-warm-600 mt-1">
                   {commissionData?.length ? `${commissionData.length} records` : '0'}
                 </p>
@@ -192,7 +192,7 @@ function TeamPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-qc-warm-400">Active Members</p>
+                <p className="text-xs text-qc-warm-400">{t("Active Members")}</p>
                 <p className="text-2xl font-bold text-qc-warm-600 mt-1">
                   {teamLoading ? <Skeleton className="h-8 w-16" /> : teamMembers.filter((m: any) => m.status === 1).length}
                 </p>
@@ -211,10 +211,10 @@ function TeamPage() {
           <div>
             <h3 className="font-semibold text-qc-warm-600 flex items-center gap-2">
               <Shield className="w-4 h-4 text-qc-amber-400" />
-              Upgrade to Channel Partner
+              {t("Upgrade to Channel Partner")}
             </h3>
             <p className="text-xs text-qc-warm-400 mt-1">
-              Become a channel partner to add your own API keys, set pricing, and earn profits. Manage everything from the Distributors dashboard.
+              {t("Become a channel partner to add your own API keys, set pricing, and earn profits. Manage everything from the Distributors dashboard.")}
             </p>
           </div>
           <Button
@@ -223,13 +223,13 @@ function TeamPage() {
               try {
                 const res = await apiClient.post('/api/user/self/upgrade')
                 if (res.data?.success) {
-                  alert('Upgrade successful! You can now manage API channels.')
+                  alert(t('Upgrade successful! You can now manage API channels.'))
                   window.location.reload()
                 } else {
-                  alert(res.data?.message || 'Upgrade failed')
+                  alert(res.data?.message || t('Upgrade failed'))
                 }
               } catch (err) {
-                alert('Failed to upgrade')
+                alert(t('Failed to upgrade'))
               }
             }}
           >
@@ -242,7 +242,7 @@ function TeamPage() {
       {/* Team Members Table */}
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base text-qc-warm-600">Team Members</CardTitle>
+          <CardTitle className="text-base text-qc-warm-600">{t("Team Members")}</CardTitle>
           <CardDescription>
             {hasTeam
               ? `You have ${teamMembers.length} team member${teamMembers.length > 1 ? 's' : ''}`
@@ -261,11 +261,11 @@ function TeamPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Username</TableHead>
-                    <TableHead>Display Name</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Used Quota</TableHead>
-                    <TableHead className="text-right">Requests</TableHead>
+                    <TableHead>{t("Username")}</TableHead>
+                    <TableHead>{t("Display Name")}</TableHead>
+                    <TableHead>{t("Status")}</TableHead>
+                    <TableHead className="text-right">{t("Used Quota")}</TableHead>
+                    <TableHead className="text-right">{t("Requests")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -279,7 +279,7 @@ function TeamPage() {
                             member.status === 1 ? 'bg-green-100 text-green-600' : 'bg-qc-warm-100 text-qc-warm-400'
                           )}
                         >
-                          {member.status === 1 ? 'Active' : 'Disabled'}
+                          {member.status === 1 ? t('Active') : t('Disabled')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">
@@ -298,7 +298,7 @@ function TeamPage() {
               <div className="w-16 h-16 rounded-full bg-qc-amber-50 flex items-center justify-center mb-4">
                 <UserPlus className="w-8 h-8 text-qc-amber-300" />
               </div>
-              <h3 className="text-qc-warm-600 font-medium mb-1">Your Team is Empty</h3>
+              <h3 className="text-qc-warm-600 font-medium mb-1">{t("Your Team is Empty")}</h3>
               <p className="text-qc-warm-400 text-sm max-w-sm">
                 Share your referral link above with friends and colleagues. When they register,
                 they'll automatically appear here.

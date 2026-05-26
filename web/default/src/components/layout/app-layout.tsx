@@ -722,15 +722,9 @@ function AppLayout() {
 
         {/* Footer */}
         <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
-          <div className="flex items-center justify-center gap-3">
-            <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()} {t('AI API Gateway')}</p>
-            <span className="text-muted-foreground/40">|</span>
-            <button
-              onClick={() => { navigator.clipboard.writeText('587600277'); alert('QQ群号已复制: 587600277'); }}
-              className="text-blue-500 hover:text-blue-400 transition-colors"
-            >
-              💰 QQ 群: 587600277
-            </button>
+          <div className="flex items-center justify-center gap-4">
+            <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()}</p>
+            <span className="text-base font-bold text-[oklch(0.72_0.18_52)]">QQ群: 587600277</span>
           </div>
         </footer>
 

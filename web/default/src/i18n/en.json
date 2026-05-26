@@ -1834,5 +1834,17 @@
   "Confirm": "Confirm",
   "Copy to clipboard": "Copy to clipboard",
   "Light": "Light",
-  "Dark": "Dark"
+  "Dark": "Dark",
+  "Invite others to join QuantumClaw and earn commission from their usage. Share your referral link to grow your team.": "Invite others to join QuantumClaw and earn commission from their usage. Share your referral link to grow your team.",
+  "Your Referral Link": "Your Referral Link",
+  "Share this link with friends. When they register, they'll automatically join your team.": "Share this link with friends. When they register, they'll automatically join your team.",
+  "Total Usage": "Total Usage",
+  "Active Members": "Active Members",
+  "Upgrade to Channel Partner": "Upgrade to Channel Partner",
+  "Become a channel partner to add your own API keys, set pricing, and earn profits. Manage everything from the Distributors dashboard.": "Become a channel partner to add your own API keys, set pricing, and earn profits. Manage everything from the Distributors dashboard.",
+  "You have {count} team member(s)": "You have {count} team member(s)",
+  "No team members yet. Share your referral link to grow your team.": "No team members yet. Share your referral link to grow your team.",
+  "Your Team is Empty": "Your Team is Empty",
+  "Share your referral link above with friends and colleagues. When they register, they'll automatically appear here.": "Share your referral link above with friends and colleagues. When they register, they'll automatically appear here.",
+  "Loading": "Loading"
 }
