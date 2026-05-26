@@ -143,13 +143,13 @@ function SignInPage() {
           <div className="flex mb-7 gap-2">
             <button
               onClick={() => setMode('login')}
-              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
+              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-amber-200 hover:text-white')}
             >
               {t('Sign In')}
             </button>
             <button
               onClick={() => setMode('register')}
-              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
+              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-amber-200 hover:text-white')}
             >
               {t('Register')}
             </button>
@@ -161,21 +161,21 @@ function SignInPage() {
           )}
           <div className="space-y-5">
             <div>
-              <label className="text-lg font-medium text-white/70 block mb-3">{t('Username')}</label>
+              <label className="text-lg font-medium text-amber-200 block mb-3">{t('Username')}</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                className="w-full h-14 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
+                className="w-full h-14 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-amber-200/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
                 placeholder="Enter your username" autoComplete="username" />
             </div>
             <div>
-              <label className="text-lg font-medium text-white/70 block mb-3">{t('Password')}</label>
+              <label className="text-lg font-medium text-amber-200 block mb-3">{t('Password')}</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (mode === 'login' ? doLogin() : doRegister())}
-                className="w-full h-14 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
+                className="w-full h-14 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-amber-200/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
                 placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="current-password" />
             </div>
             {mode === 'register' && (
             <div>
-              <label className="text-lg font-medium text-white/70 block mb-3">{t('Confirm Password')}</label>
+              <label className="text-lg font-medium text-amber-200 block mb-3">{t('Confirm Password')}</label>
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doRegister()}
                 className="w-full h-14 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
@@ -192,7 +192,7 @@ function SignInPage() {
             <>
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
-                <div className="relative flex justify-center"><span className="bg-transparent px-4 text-base text-white/50">{t('Or continue with')}</span></div>
+                <div className="relative flex justify-center"><span className="bg-transparent px-4 text-base text-amber-200/70">{t('Or continue with')}</span></div>
               </div>
               <div className="space-y-3">
                 {providers.map(p => (
