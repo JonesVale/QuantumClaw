@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"encoding/json"
@@ -507,6 +507,3 @@ func stringPtr(v string) *string {
 	return &v
 }
 
-func uintPtr(v uint) *uint {
-	return &v
-}
