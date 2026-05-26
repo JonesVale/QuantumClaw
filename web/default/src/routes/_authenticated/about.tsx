@@ -1,6 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { Code, Mail, Globe, Shield, Server } from 'lucide-react'
+import { Code, Mail, Globe, Shield, Server, Atom } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const Route = createFileRoute('/_authenticated/about')({
@@ -27,8 +27,8 @@ function AboutPage() {
       <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader><CardTitle>{t('What is QuantumClaw?')}</CardTitle></CardHeader>
         <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>{t('QuantumClaw is an enterprise-grade AI API gateway that provides unified access to 50+ AI models from providers including OpenAI, Anthropic, Google, DeepSeek, and more.')}</p>
-          <p>{t('Key capabilities include token aggregation and distribution, intelligent load balancing, quota management, multi-key rotation, and elastic billing.')}</p>
+          <p>{t('QuantumClaw is an enterprise-grade AI and quantum computing API gateway that provides unified access to 50+ AI models and quantum processors from providers including OpenAI, Anthropic, Google, DeepSeek, IonQ, IBM, Rigetti, and more.')}</p>
+          <p>{t('Key capabilities include AI/quantum resource aggregation and distribution, intelligent load balancing, quota management, multi-key rotation, and elastic billing.')}</p>
         </CardContent>
       </Card>
 
@@ -40,6 +40,7 @@ function AboutPage() {
             {[
               { icon: Shield, title: t('Token Management'), desc: t('Create, manage, and rotate API keys with granular quotas') },
               { icon: Server, title: t('50+ AI Models'), desc: t('Unified access to OpenAI, Claude, Gemini, DeepSeek and more') },
+              { icon: Atom, title: t('Quantum Resource Relay'), desc: t('Unified access to IonQ, IBM, Rigetti quantum processors via standard quantum APIs') },
               { icon: Globe, title: t('Load Balancing'), desc: t('Intelligent routing with failover across channels') },
               { icon: Code, title: t('OpenAPI Compatible'), desc: t('Drop-in replacement for any OpenAI-compatible client') },
             ].map((f, i) => (

@@ -307,7 +307,6 @@
   "Business": "企业",
   "By Name": "按名称",
   "By Provider": "按供应商",
-  "CPU Cores": "C P U  Cores",
   "CPU cores": "CPU 核心",
   "Cache": "缓存",
   "Cache Billing Ratio": "Cache  Billing  Ratio",
@@ -1809,5 +1808,6 @@
   "gpt-3.5-turbo_recommend": "简单对话、分类、提取",
   "gpt-3.5-turbo_strengths": "快速经济, 适合简单对话任务",
   "gemini-3.0-pro_recommend": "先进推理、多模态分析",
-  "gemini-3.0-pro_strengths": "1M上下文, 增强分析能力"
+  "gemini-3.0-pro_strengths": "1M上下文, 增强分析能力",
+  "Quantum Resource Relay": "量子资源中转"
 }

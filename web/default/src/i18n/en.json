@@ -307,7 +307,6 @@
   "Business": "Business",
   "By Name": "By Name",
   "By Provider": "By Provider",
-  "CPU Cores": "C P U  Cores",
   "CPU cores": "CPU cores",
   "Cache": "Cache",
   "Cache Billing Ratio": "Cache  Billing  Ratio",
@@ -1809,5 +1808,6 @@
   "gpt-3.5-turbo_recommend": "Simple conversation, classification, extraction",
   "gpt-3.5-turbo_strengths": "Fast and economical, suitable for simple conversation tasks",
   "gemini-3.0-pro_recommend": "Advanced reasoning, multimodal analysis",
-  "gemini-3.0-pro_strengths": "1M context, enhanced analysis capabilities"
+  "gemini-3.0-pro_strengths": "1M context, enhanced analysis capabilities",
+  "Quantum Resource Relay": "Quantum Resource Relay"
 }

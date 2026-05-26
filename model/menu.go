@@ -182,9 +182,6 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-apps", ParentKey: "", MenuType: "sidebar", LabelKey: "Apps", Icon: "Sparkles", Path: "/apps", SortOrder: 60, Roles: "[0,1]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-enterprise", ParentKey: "", MenuType: "sidebar", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 70, Roles: "[0,1]", GroupName: "", Enabled: true},
 
-		// ===== Admin default group items (replaces public items for admin roles) =====
-		{MenuKey: "sidebar-admin-model-config", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 75, Roles: "[2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-admin-pricing-config", ParentKey: "", MenuType: "sidebar", LabelKey: "Pricing Settings", Icon: "Settings", Path: "/platform-settings", SortOrder: 80, Roles: "[2,10,100]", GroupName: "", Enabled: true},
 
 // ===== Sidebar items (group: "management") =====
 		{MenuKey: "sidebar-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "API Keys", Icon: "Key", Path: "/keys", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
