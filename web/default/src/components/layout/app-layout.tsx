@@ -468,6 +468,7 @@ const breadcrumbMap: Record<string, string> = {
 
 
 function Breadcrumbs({ pathname }: { pathname: string }) {
+  const { t } = useT()
   const path = breadcrumbMap[pathname]
   if (!path) return null
   return (
