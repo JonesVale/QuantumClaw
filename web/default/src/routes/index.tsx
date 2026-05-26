@@ -46,13 +46,13 @@ function HomePage() {
         <div className="qc-wrap qc-section-pad-lg relative z-10 flex flex-col items-center text-center">
           <div className="qc-fade-up qc-fade-up-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold tracking-wide mb-8">
             <span className="w-2 h-2 rounded-full bg-orange-500" />
-            AI API Gateway · v2.0
+            {t('AI API Gateway')} · v2.0
           </div>
           <h1 className="qc-fade-up qc-fade-up-2 qc-title-hero font-bold tracking-tight text-foreground w-full">
-            Unified Access to<br /><span className="qc-gradient-text">400+ AI Models</span>
+            {t('Unified Access to')}<br /><span className="qc-gradient-text">{t('400+ AI Models')}</span>
           </h1>
           <p className="qc-fade-up qc-fade-up-3 qc-text-body qc-readable-width text-muted-foreground mt-6 leading-relaxed">
-            Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.
+            {t('Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.')}
           </p>
           <div className="qc-fade-up qc-fade-up-4 flex flex-wrap items-center justify-center gap-4 mt-10">
             <Link to="/models"><button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3.5 text-base font-semibold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 transition-all">{t('Browse Models')} {icons.arrowR}</button></Link>
@@ -81,7 +81,7 @@ function HomePage() {
               <div key={s.key} className="text-center qc-fade-up qc-fade-up-2">
                 <div className="qc-stat-number font-bold qc-gradient-text">{s.value}</div>
                 <div className="text-sm font-semibold text-foreground mt-2">{t(s.label)}</div>
-                <div className="text-xs text-muted-foreground mt-1">{s.detail}</div>
+                <div className="text-xs text-muted-foreground mt-1">{t(s.detail)}</div>
               </div>
             )) : (
               <>
@@ -139,7 +139,7 @@ function HomePage() {
             ]).map((p, i) => (
               <Link key={p.name} to="/models" className={`qc-card-hover rounded-xl border border-border/50 bg-background p-6 text-center no-underline qc-fade-up qc-fade-up-${i + 1}`}>
                 <div className="font-semibold text-foreground group-hover:text-orange-600 transition-colors">{p.name}</div>
-                <div className="text-xs text-muted-foreground mt-1.5">{p.models} models</div>
+                <div className="text-xs text-muted-foreground mt-1.5">{p.models} {t('models')}</div>
                 <div className="mt-3 w-10 h-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />
               </Link>
             ))}
@@ -158,7 +158,7 @@ function HomePage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/3 -translate-y-1/3 w-[30vw] h-[30vw] bg-white/5 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               <h2 className="qc-title-section font-bold text-white tracking-tight">{t('Ready to Build?')}</h2>
-              <p className="qc-text-body text-white/80 mt-4 max-w-xl mx-auto leading-relaxed">A single API key unlocks 400+ models. Start building in minutes, scale to millions.</p>
+              <p className="qc-text-body text-white/80 mt-4 max-w-xl mx-auto leading-relaxed">{t('A single API key unlocks 400+ models. Start building in minutes, scale to millions.')}</p>
               <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
                 <Link to={loggedIn ? '/models' : '/sign-in'}>
                   <button className="inline-flex items-center gap-2 rounded-xl bg-white text-orange-600 px-8 py-3.5 text-base font-semibold hover:bg-white/90 hover:shadow-xl hover:shadow-white/10 transition-all">{loggedIn ? t('Browse Models') : t('Create Free Account')} {icons.arrowR}</button>
