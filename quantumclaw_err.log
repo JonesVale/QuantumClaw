@@ -1,0 +1,85 @@
+[ERROR] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/controller/free_chat.go:115 [0] 免费聊天: deepseek 未配置 (设置 DEEPSEEK_API_KEY 环境变量) 
+[ERROR] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/controller/free_chat.go:115 [0] 免费聊天: gemini 未配置 (设置 GEMINI_API_KEY 环境变量) 
+[ERROR] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/controller/free_chat.go:115 [0] 免费聊天: siliconflow 未配置 (设置 SILICONFLOW_API_KEY 环境变量) 
+[ERROR] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/controller/free_chat.go:115 [0] 免费聊天: mistral 未配置 (设置 MISTRAL_API_KEY 环境变量) 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq-aria 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq_aria 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq-forte 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq_forte 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq-harmony 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ionq_harmony 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm-brisbane 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm_brisbane 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm-kyiv 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm_kyiv 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm-sherbrooke 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: ibm_sherbrooke 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: rigetti-aspen 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: rigetti_aspen 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: rigetti-ankaa 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: rigetti_ankaa 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: groq-llama3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: groq_llama3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: groq-mixtral 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: groq_mixtral 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: cohere-command-r 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: cohere_command_r 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: perplexity-sonar 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: perplexity_sonar 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: stability-sd3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: stability_sd3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: amazon-nova 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: amazon_nova 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: microsoft-phi4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: microsoft_phi4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: xai-grok2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: xai_grok2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gpt-4.1 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gpt-4.1 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gpt-4o-audio 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gpt-4o-audio 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: dalle-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: dalle-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: claude-sonnet-4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: claude-sonnet-4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: claude-haiku-35 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: claude-haiku-35 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-25-pro 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-25-pro 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-25-flash 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-25-flash 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-20-flash-lite 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: gemini-20-flash-lite 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: deepseek-coder-v2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: deepseek-coder-v2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: deepseek-v2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: deepseek-v2 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-4-405b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-4-405b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-4-70b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-4-70b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-33-70b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: llama-33-70b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: mistral-small-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: mistral-small-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: mistral-nemo 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: mistral-nemo 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: pixtral-large 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: pixtral-large 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: grok-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: grok-3 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: cohere-command-r07 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: cohere-command-r07 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: qwen-25-72b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: qwen-25-72b 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: qwen-25-coder 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: qwen-25-coder 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: baichuan-4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: baichuan-4 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: yi-lightning 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: yi-lightning 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: yi-large 
+[WARN] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/billing/ratio/model.go:738 [GetModelRatio] model ratio not found: yi-large 
+[ERROR] 2026/05/26 - 22:57:08 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:344 [fetchAndStoreSource] RSS fetch error [Google AI]: Get "https://feeds.feedburner.com/blogspot/gJZg": dial tcp [2607:f8b0:400a:801::200e]:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond. 
+[ERROR] 2026/05/26 - 22:57:40 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:344 [fetchAndStoreSource] RSS fetch error [ArXiv]: context deadline exceeded (Client.Timeout or context cancellation while reading body) 
+[ERROR] 2026/05/26 - 22:58:01 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:344 [fetchAndStoreSource] RSS fetch error [Hugging Face]: Get "https://huggingface.co/blog/feed.xml": dial tcp [2a03:2880:f12a:83:face:b00c:0:25de]:443: connectex: A connection attempt failed because the connected party did not properly respond after a period of time, or established connection failed because connected host has failed to respond. 

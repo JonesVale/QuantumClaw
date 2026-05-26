@@ -64,7 +64,7 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/pricing', icon: 'DollarSign', labelKey: 'Pricing', groupName: '' },
   { path: '/quantum', icon: 'Atom', labelKey: 'Quantum', groupName: '' },
   { path: '/fusion', icon: 'GitCompare', labelKey: 'Fusion', groupName: '' },
-  { path: '/quantum', icon: 'Atom', labelKey: 'QRNG Generator', groupName: '' },
+
   { path: '/apps', icon: 'Sparkles', labelKey: 'Apps', groupName: '' },
   { path: '/enterprise', icon: 'Building2', labelKey: 'Enterprise', groupName: '' },
   // Management group
@@ -94,6 +94,9 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/settings', icon: 'Settings', labelKey: 'Settings', groupName: 'account' },
   { path: '/api-docs', icon: 'BookOpen', labelKey: 'API Docs', groupName: 'account' },
   { path: '/about', icon: 'Info', labelKey: 'About', groupName: 'account' },
+  { path: '/connections', icon: 'Link2', labelKey: 'OAuth Connections', groupName: 'account' },
+  { path: '/notifications', icon: 'Bell', labelKey: 'Notifications', groupName: 'account' },
+  { path: '/password', icon: 'Lock', labelKey: 'Password & Security', groupName: 'account' },
 ]
 
 // Icon name to Lucide component mapping for fallback icons
@@ -129,6 +132,8 @@ const FALLBACK_ICON_MAP: Record<string, string> = {
   'Network': 'Network',
   'Megaphone': 'Megaphone',
   'Lock': 'Lock',
+  'Bell': 'Bell',
+  'Link2': 'Link2',
 }
 
 // ---------------------------------------------------------------------------

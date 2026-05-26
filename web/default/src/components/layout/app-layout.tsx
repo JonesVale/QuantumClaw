@@ -46,7 +46,6 @@ import {
 
   LogOut,
 
-  ChevronDown,
   ChevronRight as ChevronRightSmall,
 
   Menu,
@@ -269,7 +268,6 @@ const GROUP_LABEL_KEYS: Record<string, string> = {
   '': '',
   'management': 'Management',
   'account': 'Account',
-  'quantum': 'Quantum Computing',
 }
 
 // ---------------------------------------------------------------------------
@@ -284,11 +282,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const { auth } = useAuthStore()
   const isAdmin = auth.user?.role !== undefined && auth.user.role >= 10
   const isLoggedIn = !!auth.user
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
-    '': true,           // default group (Dashboard, Chat...) always open
-    management: false,  // Management initially closed
-    account: false,     // Account initially closed
-  })
+  // All groups always expanded — no collapsible groups
   // Always expanded on desktop (flex push layout), collapsed on mobile only
   const collapsed = false
 
@@ -391,41 +385,21 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
         <div className="space-y-1">
           {Object.entries(sidebarGroups).map(([group, items]) => {
             if (items.length === 0) return null
-            const isOpen = openGroups[group] !== false
             const groupLabel = t(GROUP_LABEL_KEYS[group] || group)
             return (
               <div key={group || '__default'}>
-                {/* Group header — clickable for named groups */}
-                {group ? (
-                  !collapsed ? (
-                    <button
-                      onClick={() => setOpenGroups(prev => ({ ...prev, [group]: !prev[group] }))}
-                      className="w-full flex items-center gap-2 px-3 py-2.5 mb-1 rounded-lg hover:bg-muted/30 transition-colors text-left"
-                    >
-                      <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
-                      <ChevronDown
-                        className={`h-3 w-3 text-muted-foreground/40 transition-transform duration-200 ${
-                          isOpen ? '' : '-rotate-90'
-                        }`}
-                      />
-                      <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
-                        {t(groupLabel)}
-                      </span>
-                    </button>
-                  ) : null
-                ) : null}
-                {/* Group items */}
-                <div className={`overflow-hidden transition-all duration-200 ${isOpen || collapsed ? 'max-h-[999px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                {/* Group header — always visible, no toggle */}
+                {group && !collapsed && (
+                  <div className="flex items-center gap-2 px-3 py-2.5 mb-1">
+                    <div className="w-0.5 h-3 rounded-full bg-accent shrink-0" />
+                    <span className="text-xs font-bold text-muted-foreground/60 uppercase tracking-[0.15em]">
+                      {t(groupLabel)}
+                    </span>
+                  </div>
+                )}
+                {/* Group items — always visible */}
+                <div>
                   {items.map(renderNavItem)}
-                  {/* Bottom CTA for named groups */}
-                  {group && !collapsed && isOpen && (
-                    <Link
-                      to={group === 'management' ? '/menu-permissions' : group === 'account' ? '/settings' : '/dashboard'}
-                      className="block px-3 py-2 text-xs text-muted-foreground/50 hover:text-accent transition-colors"
-                    >
-                      {t(group === 'management' ? 'Manage Permissions' : group === 'account' ? 'Account Settings' : 'View All')} →
-                    </Link>
-                  )}
                 </div>
                 {/* Separator between groups */}
                 {!collapsed && group !== '' && <div className="my-3 border-t border-border/10" />}

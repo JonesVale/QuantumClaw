@@ -1,0 +1,88 @@
+[INFO] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/service/channel_upstream.go:81 [1] channel upstream model update service registered 
+[INFO] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:68 [main] QuantumClaw v0.0.0 started 
+[INFO] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:91 [main] quantum random number generator enabled (source: https://qrng.anu.edu.au/API/jsonI.php) 
+[INFO] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/model/main.go:113 [openMySQL] using MySQL as database 
+[INFO] 2026/05/26 - 22:56:39 | H:/AiData/openclaw/workspace/QuantumClaw/model/main.go:152 [InitDB] database migration started 
+[INFO] 2026/05/26 - 22:56:40 | H:/AiData/openclaw/workspace/QuantumClaw/model/main.go:156 [InitDB] database migrated 
+[INFO] 2026/05/26 - 22:56:42 | H:/AiData/openclaw/workspace/QuantumClaw/common/qrng.go:67 [func1] qrng seed initialized (32 bytes) 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/menu.go:253 [SeedDefaultMenus] [SeedDefaultMenus] 0/0 inserted, 46/46 updated 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/pricing_sync_service.go:109 [SeedReferencePrices] SeedReferencePrices: 0 inserted/updated (missing rows + default-price fixes) 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/common/redis.go:27 [InitRedisClient] REDIS_HOST not set, Redis is not enabled 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:174 [main] using theme default 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:180 [main] memory cache enabled 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:181 [main] sync frequency: 60 seconds 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/cache.go:253 [InitChannelCache] channels synced from database 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:197 [main] batch update enabled with interval 5s 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:201 [main] metric enabled, will disable channel if too much request failed 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:207 [main] quantum random number generator enabled (ANU QRNG) 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/adaptor/openai/token.go:23 [InitTokenEncoders] initializing token encoders 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/model_sync_cron.go:18 [StartDailyModelSync] daily model sync scheduled: first run at 00:00:00 (in 1h3m15.1901874s) 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/subscription_reset.go:27 [StartSubscriptionQuotaResetTask] subscription quota reset task started 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:378 [StartRssService] RSS fetch service started 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/main.go:238 [main] server started on http://localhost:3666 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:384 [StartRssService] RSS source [机器之心] is disabled, skipping 
+[INFO] 2026/05/26 - 22:56:44 | H:/AiData/openclaw/workspace/QuantumClaw/relay/adaptor/openai/token.go:49 [InitTokenEncoders] token encoders initialized 
+[GIN] 2026/05/26 - 22:56:45 | 2026052622564514875200091659900 | 200 |      2.1435ms |             ::1 |     GET /api/menus?type=nav
+[INFO] 2026/05/26 - 22:56:45 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:354 [fetchAndStoreSource] RSS [量子位] fetched 10 articles from "量子位" 
+[INFO] 2026/05/26 - 22:56:45 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:371 [fetchAndStoreSource] RSS [量子位] stored 10 new articles 
+[GIN] 2026/05/26 - 22:56:45 | 2026052622564521046780041688882 | 200 |      1.2957ms |             ::1 |     GET /api/menus?type=sidebar
+[INFO] 2026/05/26 - 22:56:45 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:354 [fetchAndStoreSource] RSS [36氪 AI] fetched 30 articles from "36氪" 
+[INFO] 2026/05/26 - 22:56:45 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:371 [fetchAndStoreSource] RSS [36氪 AI] stored 30 new articles 
+[INFO] 2026/05/26 - 22:56:46 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:354 [fetchAndStoreSource] RSS [雷锋网] fetched 20 articles from "雷峰网" 
+[INFO] 2026/05/26 - 22:56:46 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:371 [fetchAndStoreSource] RSS [雷锋网] stored 20 new articles 
+[INFO] 2026/05/26 - 22:56:46 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:384 [StartRssService] RSS source [OpenAI Blog] is disabled, skipping 
+[INFO] 2026/05/26 - 22:56:46 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:384 [StartRssService] RSS source [Anthropic] is disabled, skipping 
+[INFO] 2026/05/26 - 22:56:49 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:56:49 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:56:54 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:56:54 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:56:59 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:56:59 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:56:59 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:56:59 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:57:04 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:04 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:09 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:09 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:10 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:354 [fetchAndStoreSource] RSS [MIT Tech Review] fetched 10 articles from "Artificial intelligence – MIT Technology Review" 
+[INFO] 2026/05/26 - 22:57:10 | H:/AiData/openclaw/workspace/QuantumClaw/service/rss_service.go:371 [fetchAndStoreSource] RSS [MIT Tech Review] stored 10 new articles 
+[GIN] 2026/05/26 - 22:57:12 | 202605262257122450690019225552 | 200 |      1.4769ms |             ::1 |     GET /api/menus?type=sidebar
+[INFO] 2026/05/26 - 22:57:14 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:57:14 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:14 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:14 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:57:19 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:19 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:24 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:24 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:29 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:57:29 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:57:29 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:29 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:34 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:34 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:39 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:39 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/option.go:103 [SyncOptions] syncing options from database 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/cache.go:259 [SyncChannelCache] syncing channels from database 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/cache.go:253 [InitChannelCache] channels synced from database 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:44 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:49 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:49 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:54 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:54 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:57:59 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:57:59 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:57:59 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:57:59 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:58:04 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:58:04 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:58:09 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:58:09 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
+[INFO] 2026/05/26 - 22:58:14 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:58 [TaskPollingLoop] 任务进度轮询开始 
+[INFO] 2026/05/26 - 22:58:14 | H:/AiData/openclaw/workspace/QuantumClaw/service/task_polling.go:61 [TaskPollingLoop] 任务进度轮询完成 
+[INFO] 2026/05/26 - 22:58:14 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:49 [batchUpdate] batch update started 
+[INFO] 2026/05/26 - 22:58:14 | H:/AiData/openclaw/workspace/QuantumClaw/model/utils.go:77 [batchUpdate] batch update finished 
