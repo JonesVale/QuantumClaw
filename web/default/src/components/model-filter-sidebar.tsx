@@ -27,8 +27,9 @@ export function useSidebarData(language?: string) {
     return [...m].sort((a,b)=>b[1]-a[1])
   },[all])
 
-  const aiProviders = useMemo(()=>providers.filter(p=>!['IonQ','IBM','Rigetti'].includes(p[0])),[providers])
-  const quantumProviders = useMemo(()=>providers.filter(p=>['IonQ','IBM','Rigetti'].includes(p[0])),[providers])
+  const quantumProviderNames = ['IonQ','IBM','Rigetti','Azure Quantum','Google Quantum','AWS Braket']
+  const aiProviders = useMemo(()=>providers.filter(p=>!quantumProviderNames.includes(p[0])),[providers])
+  const quantumProviders = useMemo(()=>providers.filter(p=>quantumProviderNames.includes(p[0])),[providers])
 
   const useCases = useMemo(() => {
     const s = new Set(all.map(m => m.use_case).filter(Boolean))

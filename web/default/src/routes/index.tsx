@@ -1,8 +1,9 @@
 ﻿import { createFileRoute, Link } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useT } from '@/lib/use-t'
 import { PromoCarousel } from '@/components/promo-carousel'
 import { useAuthStore } from '@/stores/auth-store'
+import { useSidebarData } from '@/components/model-filter-sidebar'
 export const Route = createFileRoute('/')({ component: HomePage })
 
 const icons = {
@@ -21,7 +22,7 @@ interface SiteContent {
 }
 
 function HomePage() {
-  const { t } = useT()
+  const { t, language } = useT()
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
   const [content, setContent] = useState<SiteContent | null>(null)
@@ -33,6 +34,32 @@ function HomePage() {
   const stats = content?.stats ?? []
   const features = content?.features ?? []
   const providers = content?.providers ?? []
+
+  // Dynamic provider list from API (fallback when CMS providers are empty)
+  const { aiProviders, quantumProviders } = useSidebarData(language)
+  const allProviders = useMemo(() => {
+    if (providers.length > 0) return providers // CMS overrides
+    const merged: typeof providers = []
+    // AI brands first
+    // Brand order from brand rankings + additional providers from catalog
+    const topAI = ['OpenAI','Anthropic','Google','Meta','DeepSeek','Alibaba','Mistral','Baidu','Zhipu AI','Tencent','xAI','Cohere','Together AI','AWS','Groq']
+    const seen = new Set<string>()
+    // Order: top AI brands + quantum brands
+    for (const name of [...topAI, ...['IonQ','IBM','Rigetti','Azure Quantum','Google Quantum']]) {
+      const found = [...aiProviders, ...quantumProviders].find(([p]) => p === name)
+      if (found) {
+        merged.push({ name: found[0], models: found[1] + '+' })
+        seen.add(found[0])
+      }
+    }
+    // Any remaining providers not in the curated list
+    for (const [name, count] of [...aiProviders, ...quantumProviders]) {
+      if (!seen.has(name)) {
+        merged.push({ name, models: count + '+' })
+      }
+    }
+    return merged
+  }, [providers, aiProviders, quantumProviders])
 
   return (
     <div className="min-h-screen bg-background">
@@ -132,12 +159,8 @@ function HomePage() {
             <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">{t('Browse models from the world\'s leading AI companies and research labs.')}</p>
           </div>
           <div className="qc-grid-auto-sm gap-4">
-            {(providers.length > 0 ? providers : [
-              { name: 'OpenAI', models: '20+' }, { name: 'Anthropic', models: '8+' }, { name: 'Google', models: '15+' },
-              { name: 'DeepSeek', models: '12+' }, { name: 'Meta', models: '10+' }, { name: 'Mistral', models: '6+' },
-              { name: 'Cohere', models: '5+' }, { name: 'Groq', models: '4+' },
-            ]).map((p, i) => (
-              <Link key={p.name} to="/models" className={`qc-card-hover rounded-xl border border-border/50 bg-background p-6 text-center no-underline qc-fade-up qc-fade-up-${i + 1}`}>
+            {allProviders.map((p, i) => (
+              <Link key={p.name} to="/models" search={{ provider: p.name }} className={`qc-card-hover rounded-xl border border-border/50 bg-background p-6 text-center no-underline qc-fade-up qc-fade-up-${i + 1}`}>
                 <div className="font-semibold text-foreground group-hover:text-orange-600 transition-colors">{p.name}</div>
                 <div className="text-xs text-muted-foreground mt-1.5">{p.models} {t('models')}</div>
                 <div className="mt-3 w-10 h-0.5 rounded-full bg-gradient-to-r from-amber-400 to-orange-500 mx-auto opacity-0 group-hover:opacity-100 transition-opacity" />

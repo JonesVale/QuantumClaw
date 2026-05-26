@@ -12,8 +12,9 @@ interface ModelPricing { name: string; provider: string; input_price: number; ou
 
 function PricingPage() {
   const { t, language } = useT()
+  // Read initial provider from URL search params (e.g. /pricing?provider=OpenAI)
   const [search, setSearch] = useState('')
-  const [prov, setProv] = useState('')
+  const [prov, setProv] = useState(() => new URLSearchParams(window.location.search).get('provider') || '')
   const [cat, setCat] = useState('all')
   const [ctx, setCtx] = useState('')
   const [activeOnly, setActiveOnly] = useState(true)
