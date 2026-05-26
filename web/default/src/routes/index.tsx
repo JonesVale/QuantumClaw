@@ -59,7 +59,7 @@ function HomePage() {
             {!loggedIn && <Link to="/sign-in"><button className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-8 py-3.5 text-base font-medium text-foreground hover:bg-muted hover:-translate-y-0.5 transition-all">{t('Start Free')}</button></Link>}
           </div>
           <div className="qc-fade-up qc-fade-up-5 flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-muted-foreground">
-            {[{ icon: icons.bolt, text: 'No GPU Required' }, { icon: icons.layers, text: 'Pay Per Token' }, { icon: icons.shield, text: '99.9% Uptime' }, { icon: icons.cpu, text: 'Reseller Ready' }].map(item => (
+            {[{ icon: icons.bolt, text: t('No GPU Required'), key: 'No GPU Required' }, { icon: icons.layers, text: t('Pay Per Token'), key: 'Pay Per Token' }, { icon: icons.shield, text: t('99.9% Uptime'), key: '99.9% Uptime' }, { icon: icons.cpu, text: t('Reseller Ready'), key: 'Reseller Ready' }].map(item => (
               <span key={item.key} className="flex items-center gap-2.5"><span className="text-orange-500">{item.icon}</span>{t(item.key)}</span>
             ))}
           </div>
@@ -85,11 +85,11 @@ function HomePage() {
               </div>
             )) : (
               <>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">400+</div><div className="text-sm font-semibold mt-2">AI Models</div><div className="text-xs text-muted-foreground mt-1">Chat, Code, Vision, Audio</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">60+</div><div className="text-sm font-semibold mt-2">Providers</div><div className="text-xs text-muted-foreground mt-1">Leading AI providers integrated</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">50M+</div><div className="text-sm font-semibold mt-2">Daily Tokens</div><div className="text-xs text-muted-foreground mt-1">Processed daily</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">99.9%</div><div className="text-sm font-semibold mt-2">Uptime SLA</div><div className="text-xs text-muted-foreground mt-1">Enterprise grade</div></div>
-                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">30K+</div><div className="text-sm font-semibold mt-2">Developers</div><div className="text-xs text-muted-foreground mt-1">Active on platform</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">400+</div><div className="text-sm font-semibold mt-2">{t('AI Models')}</div><div className="text-xs text-muted-foreground mt-1">{t('Chat, Code, Vision, Audio')}</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">60+</div><div className="text-sm font-semibold mt-2">{t('Providers')}</div><div className="text-xs text-muted-foreground mt-1">{t('Leading AI providers integrated')}</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">50M+</div><div className="text-sm font-semibold mt-2">{t('Daily Tokens')}</div><div className="text-xs text-muted-foreground mt-1">{t('Processed daily')}</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">99.9%</div><div className="text-sm font-semibold mt-2">{t('Uptime SLA')}</div><div className="text-xs text-muted-foreground mt-1">{t('Enterprise grade')}</div></div>
+                <div className="text-center"><div className="qc-stat-number font-bold qc-gradient-text">30K+</div><div className="text-sm font-semibold mt-2">{t('Developers')}</div><div className="text-xs text-muted-foreground mt-1">{t('Active on platform')}</div></div>
               </>
             )}
           </div>
@@ -100,16 +100,16 @@ function HomePage() {
       <section className="qc-fade-up qc-section-pad-lg">
         <div className="qc-wrap">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">Core Features</div>
-            <h2 className="qc-title-section font-bold tracking-tight text-foreground">QuantumClaw, <span className="qc-gradient-text">Every Model</span></h2>
-            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">Access leading AI models through a single unified API endpoint with intelligent routing and real-time analytics.</p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">{t('Core Features')}</div>
+            <h2 className="qc-title-section font-bold tracking-tight text-foreground">QuantumClaw, <span className="qc-gradient-text">{t('Every Model')}</span></h2>
+            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">{t('Access leading AI models through a single unified API endpoint with intelligent routing and real-time analytics.')}</p>
           </div>
           <div className="qc-grid-auto gap-6">
             {(features.length > 0 ? features : [
-              { key: 'chat', title: 'Chat & Assistant', desc: 'Top-tier chat models for every use case, unified in one API.', icon_name: 'bolt' },
-              { key: 'code', title: 'Code Generation', desc: 'High-performance code models for generation, review, and debugging.', icon_name: 'cpu' },
-              { key: 'reason', title: 'Reasoning & Logic', desc: 'Advanced reasoning models for complex problem-solving and analysis.', icon_name: 'layers' },
-              { key: 'quantum', title: 'Quantum Computing', desc: 'Quantum processors accessible via unified API — trapped-ion, superconducting, and more.', icon_name: 'shield' },
+              { key: 'chat', title: t('Chat & Assistant'), desc: t('Top-tier chat models for every use case, unified in one API.'), icon_name: 'bolt' },
+              { key: 'code', title: t('Code Generation'), desc: t('High-performance code models for generation, review, and debugging.'), icon_name: 'cpu' },
+              { key: 'reason', title: t('Reasoning & Logic'), desc: t('Advanced reasoning models for complex problem-solving and analysis.'), icon_name: 'layers' },
+              { key: 'quantum', title: t('Quantum Computing'), desc: t('Quantum processors accessible via unified API — trapped-ion, superconducting, and more.'), icon_name: 'shield' },
             ]).map((f, i) => (
               <div key={f.key} className={`qc-card-hover rounded-2xl border border-border/50 bg-white p-6 sm:p-8 qc-fade-up qc-fade-up-${i + 1}`}>
                 <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center mb-6 text-white shadow-md shadow-orange-500/10">
@@ -127,9 +127,9 @@ function HomePage() {
       <section className="qc-fade-up qc-section-pad-lg bg-white border-y border-border/30">
         <div className="qc-wrap">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">Ecosystem</div>
-            <h2 className="qc-title-section font-bold tracking-tight text-foreground">Leading <span className="qc-gradient-text">AI Providers</span></h2>
-            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">Browse models from the world's leading AI companies and research labs.</p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">{t('Ecosystem')}</div>
+            <h2 className="qc-title-section font-bold tracking-tight text-foreground">{t('Leading')} <span className="qc-gradient-text">{t('AI Providers')}</span></h2>
+            <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">{t('Browse models from the world\'s leading AI companies and research labs.')}</p>
           </div>
           <div className="qc-grid-auto-sm gap-4">
             {(providers.length > 0 ? providers : [
@@ -178,11 +178,11 @@ function HomePage() {
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"><img src="/logo.webp" alt="QuantumClaw" className="w-6 h-6 object-contain" /></div>
                 <span className="text-base font-bold text-foreground">QuantumClaw</span>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">AI API Gateway & Token Distribution Platform</p>
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{t('AI API Gateway & Token Distribution Platform')}</p>
             </div>
-            {[{ title: 'Platform', links: [{ to: '/models', label: 'Models' }, { to: '/rankings', label: 'Rankings' }, { to: '/pricing', label: 'Pricing' }] },
-              { title: 'Resources', links: [{ to: '/playground', label: 'Playground' }, { to: '/api-docs', label: 'API Docs' }] },
-              { title: 'Company', links: [{ to: '/about', label: 'About' }, { to: '/reseller', label: 'Reseller Program' }] },
+            {[{ title: t('Platform'), links: [{ to: '/models', label: t('Models') }, { to: '/rankings', label: t('Rankings') }, { to: '/pricing', label: t('Pricing') }] },
+              { title: t('Resources'), links: [{ to: '/playground', label: t('Playground') }, { to: '/api-docs', label: t('API Docs') }] },
+              { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }] },
             ].map(group => (
               <div key={group.title}>
                 <h4 className="text-sm font-semibold text-foreground mb-5">{group.title}</h4>
@@ -191,10 +191,10 @@ function HomePage() {
             ))}
           </div>
           <div className="border-t border-border/30 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <span>&copy; {new Date().getFullYear()} QuantumClaw. All rights reserved.</span>
+            <span>&copy; {new Date().getFullYear()} QuantumClaw. {t('All rights reserved.')}</span>
             <div className="flex items-center gap-6">
-              <span className="hover:text-foreground cursor-pointer transition-colors">Privacy</span>
-              <span className="hover:text-foreground cursor-pointer transition-colors">Terms</span>
+              <span className="hover:text-foreground cursor-pointer transition-colors">{t('Privacy')}</span>
+              <span className="hover:text-foreground cursor-pointer transition-colors">{t('Terms')}</span>
             </div>
           </div>
         </div>
