@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { ModelRanking } from '@/lib/api-extended'
 import { PromoCarousel } from '@/components/promo-carousel'
@@ -9,15 +9,6 @@ import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/compo
 export const Route = createFileRoute('/rankings')({
   component: RankingsPage,
 })
-
-type SortKey = 'request_count_7d' | 'tokens_7d' | 'avg_speed_ms' | 'price_per_1k'
-
-const TABS: { key: SortKey; label: string; icon: string }[] = [
-  { key: 'request_count_7d', label: 'Requests', icon: '≡' },
-  { key: 'tokens_7d', label: 'Tokens', icon: '◈' },
-  { key: 'avg_speed_ms', label: 'Speed', icon: '⚡' },
-  { key: 'price_per_1k', label: 'Price', icon: '$' },
-]
 
 // Brand ranking from GET /api/brand-rankings
 interface BrandEntry {
@@ -36,8 +27,6 @@ function formatNum(n: number): string {
 
 function RankingsPage() {
   const { t, language } = useT()
-  const [sortKey, setSortKey] = useState<SortKey>('request_count_7d')
-  const [showBrands, setShowBrands] = useState(true) // default to brand rankings
   const [cat, setCat] = useState('all')
   const [prov, setProv] = useState('')
   const [ctx, setCtx] = useState('')
@@ -61,43 +50,21 @@ function RankingsPage() {
   const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
   const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
 
-  // Model rankings query
+  // Brand rankings
+  const { data: brandData, isLoading: brandLoading } = useQuery({
+    queryKey: ['brand-rankings'],
+    queryFn: async () => { const r = await fetch('/api/brand-rankings'); if (!r.ok) throw Error(); return r.json() },
+    staleTime: 300_000,
+  }) as any
+  const brands: BrandEntry[] = brandData?.data || []
+
+  // Model rankings (platform usage data)
   const { data: modelData, isLoading: modelLoading } = useQuery({
     queryKey: ['model-rankings'],
     queryFn: async () => { const r = await fetch('/api/models/rankings'); if (!r.ok) throw Error(); return r.json() },
     staleTime: 60_000,
-    enabled: !showBrands,
   }) as any
   const rankings: ModelRanking[] = modelData?.data || []
-
-  // Brand rankings query
-  const { data: brandData, isLoading: brandLoading } = useQuery({
-    queryKey: ['brand-rankings'],
-    queryFn: async () => { const r = await fetch('/api/brand-rankings'); if (!r.ok) throw Error(); return r.json() },
-    staleTime: 300_000, // 5 min cache
-    enabled: showBrands,
-  }) as any
-  const brands: BrandEntry[] = brandData?.data || []
-
-  // Sort model rankings
-  const sorted = useMemo(() => {
-    if (showBrands) return []
-    let r = [...rankings]
-    if (cat !== 'all') r = r.filter(m => (m as any).use_case === cat)
-    if (prov) r = r.filter(m => m.provider === prov)
-    if (sortKey === 'avg_speed_ms') r.sort((a, b) => (a.avg_speed_ms ?? 999) - (b.avg_speed_ms ?? 999))
-    else r.sort((a, b) => (b[sortKey] ?? 0) - (a[sortKey] ?? 0))
-    return r.slice(0, 50)
-  }, [rankings, sortKey, cat, prov, showBrands])
-
-  const statValue = (m: ModelRanking, k: SortKey): string => {
-    switch (k) {
-      case 'request_count_7d': return formatNum(m.request_count_7d || 0)
-      case 'tokens_7d': return formatNum(m.tokens_7d || 0)
-      case 'avg_speed_ms': return (m.avg_speed_ms || 0).toFixed(0) + 'ms'
-      case 'price_per_1k': return '$' + (m.price_per_1k || 0).toFixed(6)
-    }
-  }
 
   const rankLabel = (rank: number) => {
     if (rank === 1) return { text: '#1', cls: 'text-amber-500' }
@@ -113,102 +80,94 @@ function RankingsPage() {
           <PromoCarousel pageKey="rankings" />
         </div>
         <div className="relative">
-          {!showBrands && (
-            <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
-              useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
-          )}
+          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
+            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
 
-          <div className={`transition-all duration-200 max-w-[100vw] overflow-x-hidden`} style={{ paddingLeft: showBrands ? 0 : hovered ? '304px' : '72px' }}>
+          <div className="transition-all duration-200 max-w-[100vw] overflow-x-hidden" style={{ paddingLeft: hovered ? '304px' : '72px' }}>
             <div className="flex-1 min-w-0">
-            {/* Sort tabs + Brand toggle */}
-            <div className="flex items-center gap-2 flex-wrap mb-6">
-              {TABS.map(tab=>(
-                <button key={tab.key} onClick={()=>{setShowBrands(false); setSortKey(tab.key)}}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${!showBrands&&sortKey===tab.key?'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
-                  <span className="mr-1.5">{tab.icon}</span>
-                  {t(tab.label)}
-                </button>
-              ))}
-              <button onClick={()=>setShowBrands(true)}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all ${showBrands?'bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-md':'bg-white/70 border border-border/30 text-muted-foreground hover:text-foreground hover:bg-white'}`}>
-                <span className="mr-1.5">🏢</span>
-                {t('Brands')}
-              </button>
-            </div>
 
-            {/* Loading */}
-            {(showBrands ? brandLoading : modelLoading) && (
-              <div className="flex justify-center py-20"><div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin"/></div>
-            )}
+              {/* ── Brand Power Rankings ── */}
+              <section className="mb-12">
+                <h2 className="text-lg font-bold text-foreground mb-1">🏢 {t('Brand Power Rankings')}</h2>
+                <p className="text-xs text-muted-foreground/40 mb-5">AI / Quantum industry-wide brand rankings • Updated monthly</p>
 
-            {/* Brand Rankings */}
-            {showBrands && !brandLoading && (
-              <>
-                <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">AI / Quantum Brand Power Rankings</p>
-                <div className="space-y-2">
-                  <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
-                    <span className="w-10 text-center">#</span>
-                    <span className="flex-[2]">{t('Brand')}</span>
-                    <span className="flex-1">{t('Score')}</span>
-                    <span className="flex-1">{t('Source')}</span>
-                  </div>
-                  {brands.map((b,i)=>{
-                    const rl = rankLabel(b.rank)
-                    return (
-                      <div key={b.brand_name} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
-                        <div className="w-10 flex items-center justify-center shrink-0">
-                          <span className={`text-lg font-bold ${rl.cls}`}>{rl.text}</span>
-                        </div>
-                        <div className="flex-[2] min-w-0">
-                          <span className="text-sm font-semibold text-foreground">{b.brand_name}</span>
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <div className="h-2 rounded-full bg-gradient-to-r from-violet-400 to-indigo-500" style={{width:`${b.score}%`, maxWidth:'120px'}}/>
-                            <span className="text-sm font-medium tabular-nums text-foreground/80">{b.score}</span>
-                          </div>
-                        </div>
-                        <span className="flex-1 text-sm text-muted-foreground/40">{b.source||'\u2014'}</span>
-                      </div>
-                    )
-                  })}
-                </div>
-                <p className="text-xs text-muted-foreground/30 text-center mt-6">Based on industry-wide data • Updated monthly</p>
-              </>
-            )}
-
-            {/* Model Rankings */}
-            {!showBrands && !modelLoading && (
-              sorted.length===0 ? (
-                <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium">{t('No ranking data yet')}</p></div>
-              ) : (
-                <>
-                  <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{t('Top 50 models')}</p>
+                {brandLoading ? (
+                  <div className="flex justify-center py-12"><div className="w-6 h-6 rounded-full border-2 border-violet-500/30 border-t-violet-500 animate-spin"/></div>
+                ) : brands.length===0 ? (
+                  <div className="text-center py-12 text-muted-foreground"><p className="text-sm">{t('No ranking data yet')}</p></div>
+                ) : (
                   <div className="space-y-2">
-                    <div className="hidden md:flex items-center gap-4 px-3 sm:px-5 py-2 sm:py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                    <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
+                      <span className="w-10 text-center">#</span>
+                      <span className="flex-[2]">{t('Brand')}</span>
+                      <span className="flex-1">{t('Score')}</span>
+                      <span className="flex-1">{t('Source')}</span>
+                    </div>
+                    {brands.map((b,i)=>{
+                      const rl = rankLabel(b.rank)
+                      return (
+                        <div key={b.brand_name} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                          <div className="w-10 flex items-center justify-center shrink-0">
+                            <span className={`text-lg font-bold ${rl.cls}`}>{rl.text}</span>
+                          </div>
+                          <div className="flex-[2] min-w-0">
+                            <span className="text-sm font-semibold text-foreground">{b.brand_name}</span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <div className="h-2 rounded-full bg-gradient-to-r from-violet-400 to-indigo-500" style={{width:`${b.score}%`, maxWidth:'120px'}}/>
+                              <span className="text-sm font-medium tabular-nums text-foreground/80">{b.score}</span>
+                            </div>
+                          </div>
+                          <span className="flex-1 text-sm text-muted-foreground/40">{b.source||'\u2014'}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </section>
+
+              {/* ── Model Platform Rankings ── */}
+              <section>
+                <h2 className="text-lg font-bold text-foreground mb-1">📊 {t('Model Platform Rankings')}</h2>
+                <p className="text-xs text-muted-foreground/40 mb-5">{t('Top 50 models')} — {t('Usage stats over the last 7 days')}</p>
+
+                {modelLoading ? (
+                  <div className="flex justify-center py-12"><div className="w-6 h-6 rounded-full border-2 border-amber-500/30 border-t-amber-500 animate-spin"/></div>
+                ) : rankings.length===0 ? (
+                  <div className="text-center py-12 text-muted-foreground"><p className="text-sm">{t('No ranking data yet')}</p></div>
+                ) : (
+                  <div className="space-y-2">
+                    {/* Table header — static, not clickable */}
+                    <div className="hidden md:flex items-center gap-4 px-5 py-3 text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] bg-muted/20 rounded-xl">
                       <span className="w-10 text-center">#</span>
                       <span className="flex-[2]">{t('Model')}</span>
                       <span className="flex-1">{t('Provider')}</span>
-                      <span className="flex-1 text-right">{TABS.find(t=>t.key===sortKey)?.label||t('Value')}</span>
+                      <span className="flex-1 text-right">≡ {t('Requests')}</span>
+                      <span className="flex-1 text-right">◈ {t('Tokens')}</span>
+                      <span className="flex-1 text-right">⚡ {t('Speed')}</span>
+                      <span className="flex-1 text-right">$ {t('Price')}</span>
                     </div>
-                    {sorted.map((m,i)=>{
-                      const rank=i+1
-                      const rl = rankLabel(rank)
+                    {rankings.slice(0, 50).map((m,i)=>{
+                      const rl = rankLabel(i+1)
                       return (
-                        <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                        <div key={m.model_name||i} className="qc-fade-up flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-4 px-5 py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
                           <div className="w-10 flex items-center justify-center shrink-0">
                             <span className={`text-lg font-bold ${rl.cls}`}>{rl.text}</span>
                           </div>
                           <div className="flex-[2] min-w-0"><span className="text-sm font-semibold text-foreground">{m.model_name||m.name}</span></div>
                           <span className="flex-1 text-sm text-muted-foreground/70">{m.provider||'\u2014'}</span>
-                          <span className="flex-1 text-sm text-right font-medium tabular-nums">{statValue(m,sortKey)}</span>
+                          <span className="flex-1 text-sm text-right tabular-nums">{formatNum(m.request_count_7d||0)}</span>
+                          <span className="flex-1 text-sm text-right tabular-nums">{formatNum(m.tokens_7d||0)}</span>
+                          <span className="flex-1 text-sm text-right tabular-nums">{(m.avg_speed_ms||0).toFixed(0)}ms</span>
+                          <span className="flex-1 text-sm text-right tabular-nums">${(m.price_per_1k||0).toFixed(6)}</span>
                         </div>
                       )
                     })}
                   </div>
-                </>
-              )
-            )}
+                )}
+              </section>
+
             </div>
           </div>
         </div>
