@@ -50,11 +50,12 @@ var envSiliconFlowKey = os.Getenv("SILICONFLOW_API_KEY")
 var envMistralKey     = os.Getenv("MISTRAL_API_KEY")
 
 type freeProvider struct {
-	Name     string
-	Endpoint string
-	EnvKey   string
+	Name      string
+	Endpoint  string
+	EnvKey    string
 	ConfigKey string
-	Models   []map[string]string
+	APIKey    string
+	Models    []map[string]string
 }
 
 // resolveProviders 每次调用时从 DB 读取最新的 API key
