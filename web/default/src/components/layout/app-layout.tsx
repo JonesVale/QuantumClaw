@@ -280,7 +280,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const { auth } = useAuthStore()
   const isAdmin = auth.user?.role === 100
   const isLoggedIn = !!auth.user
-  const [hovered, setHovered] = useState(true)
+  const [hovered, setHovered] = useState(false)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     '': true,           // default group (Dashboard, Chat...) always open
     management: false,  // Management initially closed
@@ -391,7 +391,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   return (
     <div
       className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 transition-all duration-200"
-      style={{ width: collapsed ? '4rem' : '24rem' }}
+      style={{ width: collapsed ? '4rem' : '16rem' }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -706,10 +706,10 @@ function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
 
   return (
-    <div className="min-h-screen w-full bg-background" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
+    <div className="min-h-screen w-full bg-background flex" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
-      {/* Desktop Sidebar — fixed position, overlays content when expanded */}
-      <div className="hidden md:block fixed left-0 top-24 z-40 pt-4 pl-4">
+      {/* Desktop Sidebar — pushes content when expanded, sticky on scroll */}
+      <div className="hidden md:block shrink-0 sticky top-0 h-screen pt-4 pl-4">
         <SidebarNav />
       </div>
 
@@ -729,8 +729,8 @@ function AppLayout() {
         <SidebarNav mobile />
       </aside>
 
-      {/* Main Content Area — left margin to avoid fixed sidebar overlap */}
-      <div className="min-h-screen ml-20">
+      {/* Main Content Area — flex-1 auto-width, no fixed margin needed */}
+      <div className="min-h-screen min-w-0 flex-1">
 
         <main className="p-3 sm:p-4 md:p-6">
           <div className="mb-4">
