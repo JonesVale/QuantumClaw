@@ -1,5 +1,8 @@
 {
   "invalid_input": "无效的输入，请检查您的输入",
   "send_email_failed": "发送邮件失败：",
-  "invalid_parameter": "无效的参数"
+  "invalid_parameter": "无效的参数",
+  "username_exists": "该用户名已被注册",
+  "email_exists": "该邮箱已被注册",
+  "registration_failed": "注册失败，请稍后重试"
 }

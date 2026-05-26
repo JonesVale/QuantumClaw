@@ -224,9 +224,17 @@ func Register(c *gin.Context) {
 		cleanUser.Email = user.Email
 	}
 	if err := cleanUser.Insert(ctx, inviterId); err != nil {
+		var msg string
+		if strings.Contains(err.Error(), "Duplicate entry") {
+			msg = i18n.Translate(c, "username_exists")
+		} else if strings.Contains(err.Error(), "uni_users_email") {
+			msg = i18n.Translate(c, "email_exists")
+		} else {
+			msg = i18n.Translate(c, "registration_failed")
+		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": err.Error(),
+			"message": msg,
 		})
 		return
 	}

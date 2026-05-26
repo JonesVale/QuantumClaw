@@ -2,7 +2,6 @@
   "invalid_input": "Invalid input, please check your input",
   "send_email_failed": "Failed to send email: ",
   "invalid_parameter": "Invalid parameter",
-
   "user_not_found": "User not found",
   "username_or_password_error": "Incorrect username or password, or user has been banned",
   "user_disabled": "User has been disabled",
@@ -28,13 +27,11 @@
   "registration_disabled": "Administrator has disabled new user registration",
   "password_registration_disabled": "Administrator has disabled password registration, please use third-party authentication",
   "login_disabled": "Administrator has disabled password login",
-
   "channel_not_found": "Channel not found",
   "channel_test_failed": "Channel test failed",
   "channel_disabled": "Channel has been disabled",
   "channel_balance_low": "Channel balance is low",
   "channel_key_empty": "Channel key cannot be empty",
-
   "token_not_found": "Token not found",
   "token_expired": "Token has expired",
   "token_exhausted": "Token quota has been exhausted",
@@ -42,15 +39,12 @@
   "invalid_subnet": "Invalid subnet",
   "cannot_enable_expired_token": "Cannot enable an expired token, please modify the expiration time first or set it to never expire",
   "cannot_enable_exhausted_token": "Cannot enable a token with zero quota, please modify the remaining quota or set it to unlimited",
-
   "model_not_found": "Model not found",
   "model_mapping_error": "Invalid model mapping configuration",
   "sync_failed": "Model synchronization failed",
   "sync_success": "Model synchronization completed",
-
   "upstream_check_failed": "Upstream update check failed",
   "no_upstream_updates": "No upstream updates detected",
-
   "quota_topup_success": "Quota top-up successful",
   "quota_topup_failed": "Quota top-up failed",
   "quota_insufficient": "Quota insufficient",
@@ -61,7 +55,6 @@
   "payment_webhook_success": "Payment webhook processed successfully",
   "order_not_found": "Order not found",
   "trade_no_duplicate": "Duplicate order number",
-
   "subscription_not_found": "Subscription not found",
   "subscription_plan_not_found": "Subscription plan not found",
   "subscription_already_active": "Subscription is already active",
@@ -74,7 +67,6 @@
   "custom_reset_period_invalid": "Custom reset period must be greater than 0 seconds",
   "purchase_limit_invalid": "Purchase limit cannot be negative",
   "total_quota_invalid": "Total quota cannot be negative",
-
   "2fa_not_enabled": "2FA is not enabled",
   "2fa_already_enabled": "2FA is already enabled",
   "2fa_code_error": "Incorrect verification code",
@@ -87,12 +79,10 @@
   "2fa_disable_failed": "Failed to disable 2FA",
   "2fa_code_required": "Verification code is required to disable 2FA",
   "backup_codes_notice": "2FA enabled. Please safely store the following backup codes",
-
   "checkin_disabled": "Check-in feature is disabled",
   "checkin_success": "Check-in successful",
   "checkin_already_done": "You have already checked in today",
   "checkin_failed": "Check-in failed",
-
   "oauth_provider_not_found": "OAuth provider not found or not enabled",
   "oauth_callback_error": "OAuth callback error",
   "oauth_state_invalid": "OAuth state verification failed or expired, please try again",
@@ -105,10 +95,8 @@
   "oauth_id_already_bound": "This OAuth account is already bound to another user",
   "provider_name_empty": "Provider name cannot be empty",
   "provider_not_editable": "Cannot edit a non-existent provider",
-
   "option_save_success": "Option saved successfully",
   "option_save_failed": "Failed to save option",
-
   "operation_success": "Operation successful",
   "operation_failed": "Operation failed",
   "parameter_error": "Parameter error",
@@ -117,7 +105,6 @@
   "upstream_saturated": "Upstream is saturated, please try again later",
   "invalid_url": "Invalid URL",
   "network_error": "Network error",
-
   "group_not_found": "Group not found",
   "redemption_code_empty": "Redemption code cannot be empty",
   "redemption_code_invalid": "Invalid redemption code",
@@ -125,26 +112,21 @@
   "redemption_code_expired": "Redemption code has expired",
   "redemption_success": "Redemption successful",
   "redemption_failed": "Redemption failed",
-
   "log_not_found": "Log not found",
   "log_clear_success": "Log cleared successfully",
   "log_clear_failed": "Failed to clear logs",
-
   "channel_affinity_cache_cleared": "Channel affinity cache cleared",
   "channel_affinity_rule_invalid": "Invalid affinity rule configuration",
   "channel_affinity_not_enabled": "Channel affinity is not enabled",
-
   "setting_save_success": "Setting saved successfully",
   "setting_save_failed": "Failed to save setting",
   "setting_invalid_value": "Invalid setting value",
   "setting_key_required": "Setting key is required",
-
   "api_not_implemented": "API not implemented",
   "invalid_request": "Invalid request",
   "rate_limit_exceeded": "Rate limit exceeded",
   "unauthorized": "Unauthorized access",
   "forbidden": "Access forbidden",
-
   "confirm_delete": "Are you sure you want to delete this item?",
   "confirm_action": "Are you sure you want to perform this action?",
   "loading": "Loading...",
@@ -198,5 +180,8 @@
   "vip": "VIP",
   "svip": "SVIP",
   "team": "Team",
-  "enterprise": "Enterprise"
+  "enterprise": "Enterprise",
+  "username_exists": "This username is already taken",
+  "email_exists": "This email is already registered",
+  "registration_failed": "Registration failed. Please try again."
 }

@@ -1875,5 +1875,19 @@
   "ibm-kyiv_strengths": "127 qubits; IBM Quantum Network access",
   "ibm-sherbrooke_strengths": "127 qubits; error suppression; Q-CTRL integration",
   "rigetti-aspen_strengths": "80+ qubits; extensible architecture; quantum-classical hybrid",
-  "rigetti-ankaa_strengths": "84 qubits; improved coherence; enhanced gate fidelity"
+  "rigetti-ankaa_strengths": "84 qubits; improved coherence; enhanced gate fidelity",
+  "become_provider": "Become a Provider",
+  "become_provider_desc": "Add your own AI and quantum API keys to the platform resource pool and earn revenue.",
+  "become_provider_btn": "Upgrade to Provider",
+  "become_provider_note": "No credit card required. Start with your own API keys from any supported provider.",
+  "step_configure_key": "Configure Keys",
+  "step_configure_key_desc": "Add your OpenAI, DeepSeek, Anthropic API keys to the pool",
+  "step_quantum": "Quantum Ready",
+  "step_quantum_desc": "Support IonQ, IBM, Rigetti and more quantum providers",
+  "step_earn": "Earn Revenue",
+  "step_earn_desc": "Get paid when users consume your contributed resources",
+  "no_keys_add": "Click the Add Key button above to configure your first provider.",
+  "username_exists": "This username is already taken",
+  "email_exists": "This email is already registered",
+  "registration_failed": "Registration failed. Please try again."
 }

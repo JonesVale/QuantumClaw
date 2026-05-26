@@ -1875,5 +1875,19 @@
   "ibm-kyiv_strengths": "127 qubits; IBM Quantum Network access",
   "ibm-sherbrooke_strengths": "127 qubits; error suppression; Q-CTRL integration",
   "rigetti-aspen_strengths": "80+ qubits; extensible architecture; quantum-classical hybrid",
-  "rigetti-ankaa_strengths": "84 qubits; improved coherence; enhanced gate fidelity"
+  "rigetti-ankaa_strengths": "84 qubits; improved coherence; enhanced gate fidelity",
+  "become_provider": "成为渠道商",
+  "become_provider_desc": "将您自己的 AI 和量子 API Key 添加到平台资源池中，并获得收益。",
+  "become_provider_btn": "升级为渠道商",
+  "become_provider_note": "无需信用卡，从任何支持的提供商添加您自己的 API Key 即可开始。",
+  "step_configure_key": "配置 Key",
+  "step_configure_key_desc": "将 OpenAI、DeepSeek、Anthropic 等 API Key 添加到资源池",
+  "step_quantum": "量子就绪",
+  "step_quantum_desc": "支持 IonQ、IBM、Rigetti 等量子提供商",
+  "step_earn": "获取收益",
+  "step_earn_desc": "用户消耗您贡献的资源时获得分成",
+  "no_keys_add": "点击上方的添加 Key 按钮配置您的第一个提供商。",
+  "username_exists": "该用户名已被注册",
+  "email_exists": "该邮箱已被注册",
+  "registration_failed": "注册失败，请稍后重试"
 }
