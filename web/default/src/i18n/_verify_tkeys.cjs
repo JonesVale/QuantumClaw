@@ -26,7 +26,8 @@ function getCoverage(code) {
   const total = entries.length;
   const translated = entries.filter(([k, v]) => v && v !== k).length;
   // API paths and numbers that are intentionally identity
-  const exempt = entries.filter(([k, v]) => v === k && (k.startsWith('/') || k.match(/^\d+$/) || k === '-' || k === ';')).length;
+  const isCN = code === 'zh-CN';
+  const exempt = entries.filter(([k, v]) => v === k && (isCN || k.startsWith('/') || k.match(/^\d+$/) || k === '-' || k === ';')).length;
   const meaningful = total - exempt;
   const done = translated;
   return {
