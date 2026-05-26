@@ -14,11 +14,11 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
-// ── 免费聊天：从 channels 表读取可用提供商 ───────────────
-// 不再需要环境变量。管理员或代理商在 /channels 配置渠道，
-// 免费聊天自动发现 type 在免费聊天范围内、status=enabled、key 不为空的渠道。
+// ── Free chat: reads from channels table ──
+// No more env vars. Admins/resellers configure channels at /channels.
+// Free chat auto-discovers eligible channels (type in ETypeSet, enabled, key not empty).
 
-// freeChatEligibleTypes — 哪些 channel type 可用于免费聊天
+// freeChatEligibleTypes — which channel types are eligible for free chat
 var freeChatEligibleTypes = map[int]bool{
 	channeltype.Groq:        true,
 	channeltype.DeepSeek:    true,
@@ -28,35 +28,25 @@ var freeChatEligibleTypes = map[int]bool{
 }
 
 type freeChatProvider struct {
-	Type       int                `json:"type"`
-	Name       string             `json:"name"`
-	ChannelID  int                `json:"channel_id"`
-	Endpoint   string             `json:"endpoint"`
-	APIKey     string             `json:"-"`
-	Models     []map[string]string `json:"models"`
+	Type      int                  `json:"type"`
+	Name      string               `json:"name"`
+	ChannelID int                  `json:"channel_id"`
+	Endpoint  string               `json:"endpoint"`
+	APIKey    string               `json:"-"`
+	Models    []map[string]string  `json:"models"`
 }
 
-// resolveFreeChatProviders 从 channels 表读取，过滤出可用的免费聊天 provider
+// resolveFreeChatProviders reads from channels table, filters eligible ones
 func resolveFreeChatProviders() []freeChatProvider {
 	var channels []model.Channel
 	model.DB.Where("status = ? AND key != '' AND key NOT LIKE ? AND type IN (?)",
-		model.ChannelStatusEnabled, "PUT_YOUR%", []int{29, 36, 24, 44, 28}).Find(&channels)
+		model.ChannelStatusEnabled, "PUT_YOUR%", []int{channeltype.Groq, channeltype.DeepSeek, channeltype.Gemini, channeltype.SiliconFlow, channeltype.Mistral}).Find(&channels)
 
 	typeNames := channeltype.ChannelTypeNames
 	providerMap := make(map[int]*freeChatProvider)
 
 	for _, ch := range channels {
-		if !freeChatEligibleTypes[ch.Type] {
-			continue
-		}
-		// Decrypt key
-		key := ch.Key
-		if model.CryptoSecret != "" {
-			if dec, err := decryptWithSecret(key); err == nil {
-				key = dec
-			}
-		}
-		if key == "" {
+		if ch.Key == "" {
 			continue
 		}
 
@@ -70,7 +60,6 @@ func resolveFreeChatProviders() []freeChatProvider {
 			if ch.BaseURL != nil {
 				endpoint = *ch.BaseURL
 			}
-			// Fallback to known endpoints
 			if endpoint == "" {
 				endpoint = getDefaultEndpoint(ch.Type)
 			}
@@ -80,7 +69,7 @@ func resolveFreeChatProviders() []freeChatProvider {
 				Name:      pName,
 				ChannelID: ch.Id,
 				Endpoint:  endpoint,
-				APIKey:    key,
+				APIKey:    ch.Key,
 				Models:    parseModels(ch.Models),
 			}
 		}
@@ -91,13 +80,6 @@ func resolveFreeChatProviders() []freeChatProvider {
 		result = append(result, *p)
 	}
 	return result
-}
-
-func decryptWithSecret(encrypted string) (string, error) {
-	// Reuse the existing encrypt package logic
-	// If CryptoSecret is set, the key was encrypted at insert time
-	// For now, we assume if key starts with a certain prefix or was encrypted
-	return encrypted, nil
 }
 
 func getDefaultEndpoint(chType int) string {
@@ -135,15 +117,15 @@ func parseModels(modelsStr string) []map[string]string {
 	return result
 }
 
-// GetFreeChatProviders 返回当前可用的免费聊天提供商列表
+// GetFreeChatProviders returns available free chat providers
 func GetFreeChatProviders(c *gin.Context) {
 	providers := resolveFreeChatProviders()
 	type providerResp struct {
-		Type       int                `json:"type"`
-		Name       string             `json:"name"`
-		ChannelID  int                `json:"channel_id"`
-		Configured bool               `json:"configured"`
-		Models     []map[string]string `json:"models"`
+		Type       int                  `json:"type"`
+		Name       string               `json:"name"`
+		ChannelID  int                  `json:"channel_id"`
+		Configured bool                 `json:"configured"`
+		Models     []map[string]string  `json:"models"`
 	}
 	resp := make([]providerResp, 0, len(providers))
 	for _, p := range providers {
@@ -161,13 +143,13 @@ func GetFreeChatProviders(c *gin.Context) {
 // Chat handles free chat requests
 func Chat(c *gin.Context) {
 	provider := c.Query("provider")
-	model := c.Query("model")
+	modelId := c.Query("model")
 	content := c.Query("content")
 	if provider == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "provider is required"})
 		return
 	}
-	if model == "" {
+	if modelId == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "model is required"})
 		return
 	}
@@ -179,8 +161,7 @@ func Chat(c *gin.Context) {
 	providers := resolveFreeChatProviders()
 	var fp *freeChatProvider
 	for _, p := range providers {
-		n := strings.ToLower(p.Name)
-		if n == strings.ToLower(provider) {
+		if strings.EqualFold(p.Name, provider) {
 			fp = &p
 			break
 		}
@@ -191,10 +172,10 @@ func Chat(c *gin.Context) {
 	}
 
 	if fp.APIKey == "" {
-		logger.SysError(fmt.Sprintf("免费聊天: %s 未配置 API Key", provider))
+		logger.SysError(fmt.Sprintf("free chat: %s has no API key configured", provider))
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": fmt.Sprintf("免费聊天: %s 未配置 API Key，请管理员在渠道设置中配置", provider),
+			"message": fmt.Sprintf("Free chat: %s not configured. Set up a channel for this provider in Channels page.", provider),
 		})
 		return
 	}
@@ -202,19 +183,19 @@ func Chat(c *gin.Context) {
 	// Validate model
 	validModel := false
 	for _, m := range fp.Models {
-		if m["id"] == model {
+		if m["id"] == modelId {
 			validModel = true
 			break
 		}
 	}
 	if !validModel {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "model '" + model + "' is not available for provider '" + provider + "'"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "model '" + modelId + "' is not available for provider '" + provider + "'"})
 		return
 	}
 
 	// Build OpenAI-compatible request
 	payload := map[string]interface{}{
-		"model": model,
+		"model": modelId,
 		"messages": []map[string]string{
 			{"role": "user", "content": content},
 		},
@@ -233,10 +214,10 @@ func Chat(c *gin.Context) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		logger.SysError(fmt.Sprintf("聊天请求失败: %s %s %v", provider, model, err))
+		logger.SysError(fmt.Sprintf("chat request failed: %s %s %v", provider, modelId, err))
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": fmt.Sprintf("聊天请求失败: %v", err),
+			"message": fmt.Sprintf("Chat request failed: %v", err),
 		})
 		return
 	}
@@ -246,7 +227,7 @@ func Chat(c *gin.Context) {
 	if resp.StatusCode != http.StatusOK {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": fmt.Sprintf("上游返回 %d: %s", resp.StatusCode, string(body)),
+			"message": fmt.Sprintf("Upstream returned %d: %s", resp.StatusCode, string(body)),
 		})
 		return
 	}

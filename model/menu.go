@@ -171,7 +171,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "nav-dashboard", ParentKey: "", MenuType: "nav", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 5, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-api-docs", ParentKey: "", MenuType: "nav", LabelKey: "API Docs", Icon: "BookOpen", Path: "/api-docs", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 
-		// ===== Sidebar items (group: "" ¡ª main sidebar, no collapsible label) =====
+		// ===== Sidebar items (group: "" -- main sidebar, no collapsible label) =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-chat", ParentKey: "", MenuType: "sidebar", LabelKey: "AI Chat", Icon: "MessageSquare", Path: "/chat", SortOrder: 20, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-models", ParentKey: "", MenuType: "sidebar", LabelKey: "Models", Icon: "Box", Path: "/models", SortOrder: 30, Roles: "[0,1]", GroupName: "", Enabled: true},
@@ -226,7 +226,7 @@ func SeedDefaultMenus() error {
 		var existing MenuItem
 		result := DB.Where("menu_key = ?", m.MenuKey).First(&existing)
 		if result.Error != nil {
-			// Not found ¡ª INSERT
+			// Not found -- INSERT
 			m.Id = 0 // ensure zero ID for INSERT
 			if err := DB.Create(&m).Error; err != nil {
 				logger.SysError("[SeedDefaultMenus] insert failed for " + m.MenuKey + ": " + err.Error())
@@ -234,7 +234,7 @@ func SeedDefaultMenus() error {
 				inserted++
 			}
 		} else {
-			// Found ¡ª UPDATE all fields
+			// Found -- UPDATE all fields
 			if err := DB.Model(&existing).Updates(map[string]interface{}{
 				"parent_key": m.ParentKey,
 				"menu_type":  m.MenuType,
