@@ -78,7 +78,7 @@ function HomePage() {
           <h1 className="qc-fade-up qc-fade-up-2 qc-title-hero font-bold tracking-tight text-foreground w-full">
             {t('Unified Access to')}<br /><span className="qc-gradient-text">{t('400+ AI Models')}</span>
           </h1>
-          <p className="qc-fade-up qc-fade-up-3 qc-text-body max-w-3xl mx-auto w-fit text-muted-foreground mt-6 leading-relaxed">
+          <p className="qc-fade-up qc-fade-up-3 qc-text-body inline-block max-w-3xl text-muted-foreground mt-6 leading-relaxed">
             {t('Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.')}
           </p>
           <div className="qc-fade-up qc-fade-up-4 flex flex-wrap items-center justify-center gap-4 mt-10">
@@ -181,7 +181,7 @@ function HomePage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/3 -translate-y-1/3 w-[30vw] h-[30vw] bg-white/5 rounded-full blur-3xl pointer-events-none" />
             <div className="relative z-10">
               <h2 className="qc-title-section font-bold text-white tracking-tight">{t('Ready to Build?')}</h2>
-              <p className="qc-text-body text-white/80 mt-4 max-w-xl mx-auto w-fit leading-relaxed">{t('A single API key unlocks 400+ models. Start building in minutes, scale to millions.')}</p>
+              <p className="qc-text-body text-white/80 mt-4 inline-block max-w-xl leading-relaxed">{t('A single API key unlocks 400+ models. Start building in minutes, scale to millions.')}</p>
               <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
                 <Link to={loggedIn ? '/models' : '/sign-in'}>
                   <button className="inline-flex items-center gap-2 rounded-xl bg-white text-orange-600 px-8 py-3.5 text-base font-semibold hover:bg-white/90 hover:shadow-xl hover:shadow-white/10 transition-all">{loggedIn ? t('Browse Models') : t('Create Free Account')} {icons.arrowR}</button>
