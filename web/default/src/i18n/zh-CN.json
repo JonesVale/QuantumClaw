@@ -1853,5 +1853,9 @@
   "Hide All": "全部隐藏",
   "or set via admin page": "或通过管理页面设置",
   "Env variable": "环境变量",
-  "DB value takes priority": "数据库值优先"
+  "DB value takes priority": "数据库值优先",
+  "Model Brands": "模型品牌管理",
+  "Quantum Sources": "量子来源管理",
+  "Free Chat Providers": "免费聊天提供商",
+  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "免费聊天的 API Key 现已通过渠道管理页面统一配置。在渠道中配置 Groq、DeepSeek、Gemini、SiliconFlow 或 Mistral 后，免费聊天将自动发现可用提供商。"
 }

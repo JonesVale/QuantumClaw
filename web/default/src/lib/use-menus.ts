@@ -1,4 +1,4 @@
-﻿/**
+/**
  * QuantumClaw - Menu Permission Hook
  *
  * Fetches menu items from the backend, filtered by the current user's role.
@@ -47,14 +47,14 @@ export interface SidebarMenuItem {
 // ---------------------------------------------------------------------------
 
 const FALLBACK_NAV: NavMenuItem[] = [
-  { to: '/dashboard',  label: 'Dashboard',  icon: '🏠' },
-  { to: '/models',     label: 'Models',     icon: '☰' },
-  { to: '/pricing',    label: 'Pricing',    icon: '¤' },
-  { to: '/rankings',   label: 'Rankings',   icon: '≡' },
-  { to: '/apps',       label: 'Apps',       icon: '⊞' },
-  { to: '/enterprise', label: 'Enterprise', icon: '◈' },
-  { to: '/news',       label: 'AI News',    icon: '📰' },
-  { to: '/api-docs',   label: 'API Docs',   icon: '📖' },
+  { to: '/dashboard',  label: 'Dashboard',  icon: '??' },
+  { to: '/models',     label: 'Models',     icon: '?' },
+  { to: '/pricing',    label: 'Pricing',    icon: '��' },
+  { to: '/rankings',   label: 'Rankings',   icon: '��' },
+  { to: '/apps',       label: 'Apps',       icon: '?' },
+  { to: '/enterprise', label: 'Enterprise', icon: '?' },
+  { to: '/news',       label: 'AI News',    icon: '??' },
+  { to: '/api-docs',   label: 'API Docs',   icon: '??' },
 ]
 
 
@@ -174,7 +174,7 @@ export function useNavMenus() {
         return data.map(m => ({
           to: m.path,
           label: m.label_key,
-          icon: m.icon || '☰',
+          icon: m.icon || '?',
         }))
       }
       // Fallback to hardcoded defaults

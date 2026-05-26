@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Key, Eye, EyeOff, Check, X } from 'lucide-react'
+import { Save, RefreshCw, Key } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -63,13 +63,7 @@ function PlatformSettingsPage() {
     }
   }
 
-  const freeChatProviders = [
-    { key: 'free_chat_groq_key',        name: 'Groq',        envKey: 'GROQ_API_KEY' },
-    { key: 'free_chat_deepseek_key',    name: 'DeepSeek',    envKey: 'DEEPSEEK_API_KEY' },
-    { key: 'free_chat_gemini_key',      name: 'Gemini',      envKey: 'GEMINI_API_KEY' },
-    { key: 'free_chat_siliconflow_key', name: 'SiliconFlow', envKey: 'SILICONFLOW_API_KEY' },
-    { key: 'free_chat_mistral_key',     name: 'Mistral',     envKey: 'MISTRAL_API_KEY' },
-  ]
+
 
   const promoFields = [
     { key: 'promotion_expire_days', label: t('promotion_expire_days'), hint: t('promotion_expire_days_hint') },
@@ -148,7 +142,7 @@ function PlatformSettingsPage() {
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
                   {t('Env variable')}: <code className="text-xs bg-muted px-1 py-0.5 rounded">{p.envKey}</code>
-                  {' â€” '}{t('DB value takes priority')}
+                  {' â€?'}{t('DB value takes priority')}
                 </p>
               </div>
             )

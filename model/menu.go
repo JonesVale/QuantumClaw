@@ -1,4 +1,4 @@
-ï»¿package model
+package model
 
 import (
 	"fmt"
@@ -171,7 +171,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "nav-dashboard", ParentKey: "", MenuType: "nav", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 5, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-api-docs", ParentKey: "", MenuType: "nav", LabelKey: "API Docs", Icon: "BookOpen", Path: "/api-docs", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 
-		// ===== Sidebar items (group: "" â€” main sidebar, no collapsible label) =====
+		// ===== Sidebar items (group: "" ¡ª main sidebar, no collapsible label) =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-chat", ParentKey: "", MenuType: "sidebar", LabelKey: "AI Chat", Icon: "MessageSquare", Path: "/chat", SortOrder: 20, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-models", ParentKey: "", MenuType: "sidebar", LabelKey: "Models", Icon: "Box", Path: "/models", SortOrder: 30, Roles: "[0,1]", GroupName: "", Enabled: true},
@@ -194,6 +194,8 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 80, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 95, Roles: "[10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-model-brands", ParentKey: "", MenuType: "sidebar", LabelKey: "Model Brands", Icon: "Cpu", Path: "/channels?category=ai", SortOrder: 96, Roles: "[10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-quantum-sources", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum Sources", Icon: "Atom", Path: "/channels?category=quantum", SortOrder: 97, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-reseller-admin", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Management", Icon: "Store", Path: "/reseller-admin", SortOrder: 100, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-settlement", ParentKey: "", MenuType: "sidebar", LabelKey: "Settlement Config", Icon: "Percent", Path: "/settlement", SortOrder: 110, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-transactions", ParentKey: "", MenuType: "sidebar", LabelKey: "Transactions", Icon: "Receipt", Path: "/transactions", SortOrder: 120, Roles: "[10,100]", GroupName: "management", Enabled: true},
@@ -224,7 +226,7 @@ func SeedDefaultMenus() error {
 		var existing MenuItem
 		result := DB.Where("menu_key = ?", m.MenuKey).First(&existing)
 		if result.Error != nil {
-			// Not found â€” INSERT
+			// Not found ¡ª INSERT
 			m.Id = 0 // ensure zero ID for INSERT
 			if err := DB.Create(&m).Error; err != nil {
 				logger.SysError("[SeedDefaultMenus] insert failed for " + m.MenuKey + ": " + err.Error())
@@ -232,7 +234,7 @@ func SeedDefaultMenus() error {
 				inserted++
 			}
 		} else {
-			// Found â€” UPDATE all fields
+			// Found ¡ª UPDATE all fields
 			if err := DB.Model(&existing).Updates(map[string]interface{}{
 				"parent_key": m.ParentKey,
 				"menu_type":  m.MenuType,

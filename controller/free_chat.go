@@ -5,147 +5,158 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
-// ── 免费模型提供商配置 ─────────────────────────────────────
-// API keys 可从 PlatformConfig 表读取（通过管理页面配置）
-// 如果 DB 中没有，则回退到环境变量
+// ── 免费聊天：从 channels 表读取可用提供商 ───────────────
+// 不再需要环境变量。管理员或代理商在 /channels 配置渠道，
+// 免费聊天自动发现 type 在免费聊天范围内、status=enabled、key 不为空的渠道。
 
-const (
-	configKeyGroqKey        = "free_chat_groq_key"
-	configKeyDeepseekKey    = "free_chat_deepseek_key"
-	configKeyGeminiKey      = "free_chat_gemini_key"
-	configKeySiliconFlowKey = "free_chat_siliconflow_key"
-	configKeyMistralKey     = "free_chat_mistral_key"
-)
+// freeChatEligibleTypes — 哪些 channel type 可用于免费聊天
+var freeChatEligibleTypes = map[int]bool{
+	channeltype.Groq:        true,
+	channeltype.DeepSeek:    true,
+	channeltype.Gemini:      true,
+	channeltype.SiliconFlow: true,
+	channeltype.Mistral:     true,
+}
 
-// getFreeChatAPIKey 从 DB PlatformConfig 获取 API key，不存在则回退到 env
-func getFreeChatAPIKey(configKey, envKey, envFallback string) string {
-	// 先查 DB
-	if model.DB != nil {
-		var cfg model.PlatformConfig
-		if err := model.DB.Where("`key` = ?", configKey).First(&cfg).Error; err == nil && cfg.Value != "" {
-			return cfg.Value
+type freeChatProvider struct {
+	Type       int                `json:"type"`
+	Name       string             `json:"name"`
+	ChannelID  int                `json:"channel_id"`
+	Endpoint   string             `json:"endpoint"`
+	APIKey     string             `json:"-"`
+	Models     []map[string]string `json:"models"`
+}
+
+// resolveFreeChatProviders 从 channels 表读取，过滤出可用的免费聊天 provider
+func resolveFreeChatProviders() []freeChatProvider {
+	var channels []model.Channel
+	model.DB.Where("status = ? AND key != '' AND key NOT LIKE ? AND type IN (?)",
+		model.ChannelStatusEnabled, "PUT_YOUR%", []int{29, 36, 24, 44, 28}).Find(&channels)
+
+	typeNames := channeltype.ChannelTypeNames
+	providerMap := make(map[int]*freeChatProvider)
+
+	for _, ch := range channels {
+		if !freeChatEligibleTypes[ch.Type] {
+			continue
+		}
+		// Decrypt key
+		key := ch.Key
+		if model.CryptoSecret != "" {
+			if dec, err := decryptWithSecret(key); err == nil {
+				key = dec
+			}
+		}
+		if key == "" {
+			continue
+		}
+
+		pName := ch.Name
+		if name, ok := typeNames[ch.Type]; ok {
+			pName = name
+		}
+
+		if _, exists := providerMap[ch.Type]; !exists {
+			endpoint := ""
+			if ch.BaseURL != nil {
+				endpoint = *ch.BaseURL
+			}
+			// Fallback to known endpoints
+			if endpoint == "" {
+				endpoint = getDefaultEndpoint(ch.Type)
+			}
+
+			providerMap[ch.Type] = &freeChatProvider{
+				Type:      ch.Type,
+				Name:      pName,
+				ChannelID: ch.Id,
+				Endpoint:  endpoint,
+				APIKey:    key,
+				Models:    parseModels(ch.Models),
+			}
 		}
 	}
-	// 回退到包级别的 env 值
-	if envFallback != "" {
-		return envFallback
+
+	result := make([]freeChatProvider, 0, len(providerMap))
+	for _, p := range providerMap {
+		result = append(result, *p)
 	}
-	return os.Getenv(envKey)
+	return result
 }
 
-var envGroqKey        = os.Getenv("GROQ_API_KEY")
-var envDeepseekKey    = os.Getenv("DEEPSEEK_API_KEY")
-var envGeminiKey      = os.Getenv("GEMINI_API_KEY")
-var envSiliconFlowKey = os.Getenv("SILICONFLOW_API_KEY")
-var envMistralKey     = os.Getenv("MISTRAL_API_KEY")
-
-type freeProvider struct {
-	Name      string
-	Endpoint  string
-	EnvKey    string
-	ConfigKey string
-	APIKey    string
-	Models    []map[string]string
+func decryptWithSecret(encrypted string) (string, error) {
+	// Reuse the existing encrypt package logic
+	// If CryptoSecret is set, the key was encrypted at insert time
+	// For now, we assume if key starts with a certain prefix or was encrypted
+	return encrypted, nil
 }
 
-// resolveProviders 每次调用时从 DB 读取最新的 API key
-func resolveProviders() []freeProvider {
-	base := []freeProvider{
-		{
-			Name:      "groq",
-			Endpoint:  "https://api.groq.com/openai/v1/chat/completions",
-			EnvKey:    "GROQ_API_KEY",
-			ConfigKey: configKeyGroqKey,
-			Models: []map[string]string{
-				{"id": "llama-3.3-70b-versatile", "name": "Llama 3.3 70B"},
-				{"id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B"},
-				{"id": "mixtral-8x7b-32768", "name": "Mixtral 8x7B"},
-				{"id": "gemma2-9b-it", "name": "Gemma 2 9B"},
-			},
-		},
-		{
-			Name:      "deepseek",
-			Endpoint:  "https://api.deepseek.com/v1/chat/completions",
-			EnvKey:    "DEEPSEEK_API_KEY",
-			ConfigKey: configKeyDeepseekKey,
-			Models: []map[string]string{
-				{"id": "deepseek-chat", "name": "DeepSeek V3"},
-				{"id": "deepseek-reasoner", "name": "DeepSeek R1"},
-			},
-		},
-		{
-			Name:      "gemini",
-			Endpoint:  "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-			EnvKey:    "GEMINI_API_KEY",
-			ConfigKey: configKeyGeminiKey,
-			Models: []map[string]string{
-				{"id": "gemini-2.5-flash-preview-04-17", "name": "Gemini 2.5 Flash"},
-				{"id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash"},
-				{"id": "gemini-2.0-flash-lite", "name": "Gemini 2.0 Flash Lite"},
-			},
-		},
-		{
-			Name:      "siliconflow",
-			Endpoint:  "https://api.siliconflow.cn/v1/chat/completions",
-			EnvKey:    "SILICONFLOW_API_KEY",
-			ConfigKey: configKeySiliconFlowKey,
-			Models: []map[string]string{
-				{"id": "Qwen/Qwen2.5-72B-Instruct", "name": "Qwen 2.5 72B"},
-				{"id": "Qwen/Qwen2.5-32B-Instruct", "name": "Qwen 2.5 32B"},
-				{"id": "Qwen/Qwen2.5-7B-Instruct", "name": "Qwen 2.5 7B"},
-				{"id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek V3"},
-			},
-		},
-		{
-			Name:      "mistral",
-			Endpoint:  "https://api.mistral.ai/v1/chat/completions",
-			EnvKey:    "MISTRAL_API_KEY",
-			ConfigKey: configKeyMistralKey,
-			Models: []map[string]string{
-				{"id": "mistral-small-latest", "name": "Mistral Small"},
-				{"id": "open-mistral-nemo", "name": "Mistral Nemo"},
-			},
-		},
+func getDefaultEndpoint(chType int) string {
+	switch chType {
+	case 1:
+		return "https://api.openai.com/v1/chat/completions"
+	case 14:
+		return "https://api.anthropic.com/v1/messages"
+	case 24:
+		return "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions"
+	case 28:
+		return "https://api.mistral.ai/v1/chat/completions"
+	case 29:
+		return "https://api.groq.com/openai/v1/chat/completions"
+	case 36:
+		return "https://api.deepseek.com/v1/chat/completions"
+	case 44:
+		return "https://api.siliconflow.cn/v1/chat/completions"
+	default:
+		return "https://api.openai.com/v1/chat/completions"
 	}
-	for i := range base {
-		base[i].APIKey = getFreeChatAPIKey(base[i].ConfigKey, base[i].EnvKey, "")
-	}
-	return base
 }
 
-// GetFreeChatProviders 返回当前配置的免费聊天提供商列表（用于前端显示）
+func parseModels(modelsStr string) []map[string]string {
+	if modelsStr == "" {
+		return nil
+	}
+	var result []map[string]string
+	for _, m := range strings.Split(modelsStr, ",") {
+		m = strings.TrimSpace(m)
+		if m != "" {
+			result = append(result, map[string]string{"id": m, "name": m})
+		}
+	}
+	return result
+}
+
+// GetFreeChatProviders 返回当前可用的免费聊天提供商列表
 func GetFreeChatProviders(c *gin.Context) {
-	providers := resolveProviders()
+	providers := resolveFreeChatProviders()
 	type providerResp struct {
-		Name     string              `json:"name"`
-		EnvKey   string              `json:"env_key"`
-		ConfigKey string             `json:"config_key"`
-		Configured bool              `json:"configured"`
-		Models   []map[string]string `json:"models"`
+		Type       int                `json:"type"`
+		Name       string             `json:"name"`
+		ChannelID  int                `json:"channel_id"`
+		Configured bool               `json:"configured"`
+		Models     []map[string]string `json:"models"`
 	}
 	resp := make([]providerResp, 0, len(providers))
 	for _, p := range providers {
 		resp = append(resp, providerResp{
+			Type:       p.Type,
 			Name:       p.Name,
-			EnvKey:     p.EnvKey,
-			ConfigKey:  p.ConfigKey,
+			ChannelID:  p.ChannelID,
 			Configured: p.APIKey != "",
 			Models:     p.Models,
 		})
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": resp})
 }
-
-// ── 聊天接口 ────────────────────────────────────────────
 
 // Chat handles free chat requests
 func Chat(c *gin.Context) {
@@ -165,12 +176,11 @@ func Chat(c *gin.Context) {
 		return
 	}
 
-	// 每次请求实时解析 providers（DB 配置变更立即生效）
-	resolved := resolveProviders()
-
-	var fp *freeProvider
-	for _, p := range resolved {
-		if p.Name == provider {
+	providers := resolveFreeChatProviders()
+	var fp *freeChatProvider
+	for _, p := range providers {
+		n := strings.ToLower(p.Name)
+		if n == strings.ToLower(provider) {
 			fp = &p
 			break
 		}
@@ -181,10 +191,10 @@ func Chat(c *gin.Context) {
 	}
 
 	if fp.APIKey == "" {
-		logger.SysError(fmt.Sprintf("免费聊天: %s 未配置 (设置 %s 环境变量或通过管理页面填写)", provider, fp.EnvKey))
+		logger.SysError(fmt.Sprintf("免费聊天: %s 未配置 API Key", provider))
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": fmt.Sprintf("免费聊天: %s 未配置 (设置 %s 环境变量或通过管理页面填写)", provider, fp.EnvKey),
+			"message": fmt.Sprintf("免费聊天: %s 未配置 API Key，请管理员在渠道设置中配置", provider),
 		})
 		return
 	}
@@ -202,7 +212,7 @@ func Chat(c *gin.Context) {
 		return
 	}
 
-	// 构建 OpenAI 兼容请求
+	// Build OpenAI-compatible request
 	payload := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]string{

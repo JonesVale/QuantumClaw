@@ -1,19 +1,22 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
-import { Plus, Trash2, Play, RefreshCw, Key, Wifi, WifiOff } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import { Plus, Trash2, Play, RefreshCw, Key, Wifi, WifiOff, Atom, Cpu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
+import apiClient from '@/lib/api'
 import {
   getChannels,
   createChannel,
   deleteChannel,
   testChannel,
+  getChannelTypes,
   type Channel,
   type ChannelFormData,
 } from '@/lib/api-extended'
@@ -41,15 +44,38 @@ function ResellerKeysPage() {
   const { t } = useT()
   const queryClient = useQueryClient()
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [tab, setTab] = useState('ai')
   const [form, setForm] = useState({ name: '', type: '1', key: '', base_url: '', models: '' })
   const [testing, setTesting] = useState<number | null>(null)
 
-  const { data, isLoading } = useQuery({
+  const { data: channelsData, isLoading } = useQuery({
     queryKey: ['reseller-channels'],
     queryFn: () => getChannels(undefined, {}),
     staleTime: 15_000,
   })
-  const channels = (data?.data as Channel[]) || []
+  const allChannels = (channelsData?.data as Channel[]) || []
+
+  const { data: typeMap } = useQuery({
+    queryKey: ['channelTypes'],
+    queryFn: getChannelTypes,
+    staleTime: 10 * 60 * 1000,
+  })
+
+  const typeGroups = useMemo(() => {
+    const map = (typeMap || {}) as Record<string, string>
+    const ai: { id: number; name: string }[] = []
+    const quantum: { id: number; name: string }[] = []
+    Object.entries(map).forEach(([idStr, name]) => {
+      const id = Number(idStr)
+      if (id <= 0) return
+      if (id >= 100) quantum.push({ id, name })
+      else ai.push({ id, name })
+    })
+    return { ai, quantum }
+  }, [typeMap])
+
+  const aiChannels = useMemo(() => allChannels.filter(ch => ch.type < 100), [allChannels])
+  const quantumChannels = useMemo(() => allChannels.filter(ch => ch.type >= 100), [allChannels])
 
   const createMut = useMutation({
     mutationFn: (data: ChannelFormData) => createChannel(data),
@@ -79,7 +105,7 @@ function ResellerKeysPage() {
     }
   }
 
-  const resetForm = () => setForm({ name: '', type: '1', key: '', base_url: '', models: '' })
+  const resetForm = () => setForm({ name: '', type: tab === 'quantum' ? '100' : '1', key: '', base_url: '', models: '' })
 
   const handleCreate = () => {
     if (!form.name || !form.key) {
@@ -95,72 +121,106 @@ function ResellerKeysPage() {
     } as ChannelFormData)
   }
 
-  const statusMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive' }> = {
-    1: { label: t('enabled'), variant: 'default' },
-    2: { label: t('disabled'), variant: 'secondary' },
-    3: { label: t('auto_disabled'), variant: 'destructive' },
+  const statusMap: Record<number, { label: string; variant: 'default' | 'secondary' | 'destructive'; icon: React.ReactNode }> = {
+    1: { label: t('enabled'), variant: 'default', icon: <Wifi className="w-3 h-3" /> },
+    2: { label: t('disabled'), variant: 'secondary', icon: <WifiOff className="w-3 h-3" /> },
+    3: { label: t('auto_disabled'), variant: 'destructive', icon: <WifiOff className="w-3 h-3" /> },
   }
+
+  const renderChannelTable = (channels: Channel[]) => (
+    <div className="overflow-x-auto">
+      <table className="w-full">
+        <thead>
+          <tr className="border-b bg-muted/30">
+            <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('name')}</th>
+            <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('type')}</th>
+            <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('model')}</th>
+            <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('status')}</th>
+            <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('actions')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {channels.map((ch) => {
+            const st = statusMap[ch.status] || { label: ch.status.toString(), variant: 'secondary' as const, icon: <WifiOff className="w-3 h-3" /> }
+            const typeName = (typeMap as Record<string, string>)?.[String(ch.type)] || `Type ${ch.type}`
+            const isQuantum = ch.type >= 100
+            return (
+              <tr key={ch.id} className="border-b border-muted/50 hover:bg-muted/30">
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    {isQuantum ? <Atom className="h-4 w-4 text-blue-500 shrink-0" /> : <Cpu className="h-4 w-4 text-amber-500 shrink-0" />}
+                    <span className="font-medium text-sm">{ch.name}</span>
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  <Badge variant="outline" className={isQuantum ? 'border-blue-200 text-blue-600' : 'border-amber-200 text-amber-600'}>{typeName}</Badge>
+                </td>
+                <td className="px-4 py-3 text-sm text-muted-foreground max-w-[min(30vw,200px)] truncate">{ch.models || '-'}</td>
+                <td className="px-4 py-3 text-center">
+                  <Badge variant={st.variant} className="text-[10px] flex items-center gap-1 w-fit mx-auto">{st.icon}{st.label}</Badge>
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => testChannelFn(ch.id)} disabled={testing === ch.id}>
+                      {testing === ch.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                    </Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMut.mutate(ch.id)}>
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            )
+          })}
+          {channels.length === 0 && (
+            <tr>
+              <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">
+                <Key className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                {t('no_keys')}
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
 
   return (
     <div className="qc-wrapper py-8 space-y-6">
-      <div className="flex flex-col items-center">
-        <h1 className="text-3xl font-bold mb-2">{t('my_keys')}</h1>
-        <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('my_keys_desc')}</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">{t('my_keys')}</h1>
+          <p className="text-muted-foreground mb-2" style={{maxWidth: 'min(65ch, 100%)'}}>{t('my_keys_desc')}</p>
+        </div>
+        <Button onClick={() => { resetForm(); setDialogOpen(true) }}>
+          <Plus className="w-4 h-4 mr-2" />{t('add_key')}
+        </Button>
       </div>
 
-      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('name')}</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('model')}</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('status')}</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground px-4 py-3 uppercase">{t('actions')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {channels.map((ch) => {
-                  const st = statusMap[ch.status] || { label: ch.status.toString(), variant: 'secondary' }
-                  return (
-                    <tr key={ch.id} className="border-b border-muted/50 hover:bg-muted/30">
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Key className="h-4 w-4 text-muted-foreground shrink-0" />
-                          <span className="font-medium text-sm">{ch.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-muted-foreground max-w-[min(30vw,200px)] truncate">{ch.models || '-'}</td>
-                      <td className="px-4 py-3 text-center">
-                        <Badge variant={st.variant} className="text-[10px]">{st.label}</Badge>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => testChannelFn(ch.id)} disabled={testing === ch.id}>
-                            {testing === ch.id ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
-                          </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteMut.mutate(ch.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                })}
-                {channels.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
-                      <Key className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                      {t('no_keys')}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs value={tab} onValueChange={setTab}>
+        <TabsList>
+          <TabsTrigger value="ai" className="flex items-center gap-1.5">
+            <Cpu className="w-4 h-4" />{t('AI Models')}
+            <Badge variant="secondary" className="ml-1 text-[10px]">{aiChannels.length}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="quantum" className="flex items-center gap-1.5">
+            <Atom className="w-4 h-4" />{t('Quantum Computing')}
+            <Badge variant="secondary" className="ml-1 text-[10px]">{quantumChannels.length}</Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="ai" className="mt-4">
+          <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
+            <CardContent className="p-0">{renderChannelTable(aiChannels)}</CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="quantum" className="mt-4">
+          <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
+            <CardContent className="p-0">{renderChannelTable(quantumChannels)}</CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
@@ -171,25 +231,28 @@ function ResellerKeysPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>{t('name')}</Label>
-                <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder="My OpenAI Key" />
+                <Input value={form.name} onChange={(e) => setForm(f => ({ ...f, name: e.target.value }))} placeholder={tab === 'quantum' ? "My IonQ Key" : "My OpenAI Key"} />
               </div>
               <div className="space-y-2">
                 <Label>{t('type')}</Label>
                 <Select value={form.type} onValueChange={(v) => setForm(f => ({ ...f, type: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">OpenAI</SelectItem>
-                    <SelectItem value="4">Claude</SelectItem>
-                    <SelectItem value="12">DeepSeek</SelectItem>
-                    <SelectItem value="14">Google Gemini</SelectItem>
-                    <SelectItem value="24">Azure OpenAI</SelectItem>
+                    {tab === 'ai' && typeGroups.ai.length > 0 && <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('AI Models')}</div>
+                      {typeGroups.ai.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}
+                    </>}
+                    {tab === 'quantum' && typeGroups.quantum.length > 0 && <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('Quantum Computing')}</div>
+                      {typeGroups.quantum.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}
+                    </>}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-2">
               <Label>API Key</Label>
-              <Input type="password" value={form.key} onChange={(e) => setForm(f => ({ ...f, key: e.target.value }))} placeholder="sk-..." />
+              <Input type="password" value={form.key} onChange={(e) => setForm(f => ({ ...f, key: e.target.value }))} placeholder="sk-... or quantum API token" />
             </div>
             <div className="space-y-2">
               <Label>{t('base_url')}</Label>
@@ -197,7 +260,7 @@ function ResellerKeysPage() {
             </div>
             <div className="space-y-2">
               <Label>{t('models')}</Label>
-              <Input value={form.models} onChange={(e) => setForm(f => ({ ...f, models: e.target.value }))} placeholder="gpt-4o,gpt-4o-mini" />
+              <Input value={form.models} onChange={(e) => setForm(f => ({ ...f, models: e.target.value }))} placeholder={tab === 'quantum' ? "ionq/harmony,ionq/aria-1" : "gpt-4o,gpt-4o-mini"} />
               <p className="text-xs text-muted-foreground">{t('models_hint')}</p>
             </div>
           </div>

@@ -1853,5 +1853,9 @@
   "Hide All": "Hide All",
   "or set via admin page": "or set via admin page",
   "Env variable": "Env variable",
-  "DB value takes priority": "DB value takes priority"
+  "DB value takes priority": "DB value takes priority",
+  "Model Brands": "Model Brands",
+  "Quantum Sources": "Quantum Sources",
+  "Free Chat Providers": "Free Chat Providers",
+  "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them."
 }

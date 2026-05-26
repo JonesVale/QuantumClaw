@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
+import { useSearch } from '@tanstack/react-router'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Play, CheckCircle, XCircle, RefreshCw, Server, Network, ExternalLink, Wallet } from 'lucide-react'
@@ -22,6 +23,9 @@ import { cn } from '@/lib/utils'
 
 export const Route = createFileRoute('/_authenticated/channels')({
   component: ChannelsPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    category: (search.category as string) || 'all',
+  }),
 })
 
 function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
@@ -117,8 +121,9 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
 function ChannelsPage() {
   const { t } = useT()
   const [search, setSearch] = useState('')
+  const search = useSearch({ from: '/_authenticated/channels' })
   const [status, setStatus] = useState<string>('all')
-  const [typeCategory, setTypeCategory] = useState<string>('all')
+  const [typeCategory, setTypeCategory] = useState<string>((search as any).category === 'quantum' ? 'quantum' : (search as any).category === 'ai' ? 'ai' : 'all')
   const [channelCategory, setChannelCategory] = useState<string>('all')
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null)
   const [creatingNew, setCreatingNew] = useState(false)
