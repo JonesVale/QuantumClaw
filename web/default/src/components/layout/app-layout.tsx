@@ -413,7 +413,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
           {Object.entries(sidebarGroups).map(([group, items]) => {
             if (items.length === 0) return null
             const isOpen = openGroups[group] !== false
-            const groupLabel = GROUP_LABEL_KEYS[group] || group
+            const groupLabel = t(GROUP_LABEL_KEYS[group] || group)
             return (
               <div key={group || '__default'}>
                 {/* Group header — clickable for named groups */}

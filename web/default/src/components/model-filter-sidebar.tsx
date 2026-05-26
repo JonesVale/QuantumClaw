@@ -161,7 +161,7 @@ export function ModelFilterSidebar({
               </div>
               {groups.providers && quantumProviders.length>0 && (
                 <div className="mt-4">
-                  <div className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em] px-4 mb-2">量子资源</div>
+                  <div className="text-lg font-bold text-muted-foreground/60 uppercase tracking-[0.15em] px-4 mb-2">{t('量子资源')}</div>
                   {quantumProviders.map(([p,c])=>(
                     <button key={p} onClick={()=>setProv(prov===p?'':p)}
                       className={'w-full flex items-center justify-between px-4 py-2.5 rounded-lg text-xl transition-all '+(prov===p?'bg-amber-50 text-amber-800 font-medium':'text-muted-foreground hover:text-foreground hover:bg-muted/30')}>
