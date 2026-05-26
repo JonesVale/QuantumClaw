@@ -1809,5 +1809,6 @@
   "gpt-3.5-turbo_strengths": "Fast and economical, suitable for simple conversation tasks",
   "gemini-3.0-pro_recommend": "Advanced reasoning, multimodal analysis",
   "gemini-3.0-pro_strengths": "1M context, enhanced analysis capabilities",
-  "Quantum Resource Relay": "Quantum Resource Relay"
+  "Quantum Resource Relay": "Quantum Resource Relay",
+  "Registration failed": "Registration failed"
 }

@@ -22,8 +22,13 @@ function SignInPage() {
   const [oauthLoading, setOauthLoading] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [providers, setProviders] = useState<OAuthProvider[]>([])
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [mode, setMode] = useState<'login' | 'register'>('login')
   const navigate = useNavigate()
   const auth = useAuthStore(s => s.auth)
+  const refCode = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('ref') || ''
+    : ''
 
   useEffect(() => {
     fetch('/api/status').then(r => r.json()).then(data => {
