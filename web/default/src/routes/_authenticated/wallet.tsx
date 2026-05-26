@@ -2,6 +2,11 @@
 import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  getBalance, getTopUpInfo, getTopUpList, getMyWithdrawals, getMyWithdrawable,
+  requestStripeTopUp, requestEpayTopUp, requestCreemTopUp, requestWaffoTopUp, requestBinanceTopUp,
+  submitWithdrawal, getMyCommissionRecords, type BalanceInfo
+} from '@/lib/api-extended'
 import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -37,9 +42,8 @@ function WalletPage() {
   const { data: topupInfo } = useQuery({
     queryKey: ['topup-info'],
     queryFn: async () => {
-      const res = await fetch('/api/user/self/topup/info')
-      if (!res.ok) return { paymentMethods: [] }
-      return res.json()
+      const res = await getTopUpInfo()
+      return res
     },
     retry: false,
     staleTime: 30 * 1000,
@@ -48,9 +52,8 @@ function WalletPage() {
   const { data: topupHistory } = useQuery({
     queryKey: ['topup-history'],
     queryFn: async () => {
-      const res = await fetch('/api/user/self/topup/list')
-      if (!res.ok) return { data: [] }
-      return res.json()
+      const res = await getTopUpList()
+      return res
     },
     retry: false,
     staleTime: 10 * 1000,
@@ -69,44 +72,28 @@ function WalletPage() {
 
   const { data: myCommission } = useQuery({
     queryKey: ['commission'],
-    queryFn: async () => {
-      const res = await fetch('/api/commission/self/records')
-      if (!res.ok) return null
-      return res.json()
-    },
+    queryFn: () => getMyCommissionRecords(),
     retry: false,
     staleTime: 30 * 1000,
   })
 
   const { data: myWithdrawals } = useQuery({
     queryKey: ['withdrawals'],
-    queryFn: async () => {
-      const res = await fetch('/api/user/self/withdraw/list')
-      if (!res.ok) return null
-      return res.json()
-    },
+    queryFn: () => getMyWithdrawals(),
     retry: false,
     staleTime: 30 * 1000,
   })
 
   const { data: balanceData } = useQuery({
     queryKey: ['balance'],
-    queryFn: async () => {
-      const res = await fetch('/api/user/self/balance')
-      if (!res.ok) return null
-      return res.json()
-    },
+    queryFn: () => getBalance(),
     retry: false,
     staleTime: 10 * 1000,
   })
 
   const { data: withdrawableData } = useQuery({
     queryKey: ['withdrawable'],
-    queryFn: async () => {
-      const res = await fetch('/api/user/self/withdraw/available')
-      if (!res.ok) return null
-      return res.json()
-    },
+    queryFn: () => getMyWithdrawable(),
     retry: false,
     staleTime: 10 * 1000,
   })
@@ -115,7 +102,19 @@ function WalletPage() {
   const [withdrawAccount, setWithdrawAccount] = useState('')
   const [withdrawing, setWithdrawing] = useState(false)
 
-  const paymentMethods: string[] = topupInfo?.paymentMethods || []
+  // 后端返回 enable_* 布尔标记 + pay_methods 数组
+  // 将后端格式转成前端支付方法名数组
+  const paymentMethods: string[] = (() => {
+    if (!topupInfo?.success || !topupInfo.data) return []
+    const info = topupInfo.data as Record<string, unknown>
+    const methods: string[] = []
+    if (info.enable_online_topup) methods.push('epay')
+    if (info.enable_stripe_topup) methods.push('stripe')
+    if (info.enable_creem_topup) methods.push('creem')
+    if (info.enable_waffo_topup) methods.push('waffo')
+    if (info.enable_binance_topup) methods.push('binance')
+    return methods
+  })()
   const historyItems: any[] = topupHistory?.data || []
 
   const methodConfig: Record<string, { label: string; icon: any }> = {
@@ -133,14 +132,18 @@ function WalletPage() {
       return
     }
     try {
-      const res = await fetch(`/api/user/self/topup/${method}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: Number(amount) }),
-      })
-      const data = await res.json()
+      const apiMap: Record<string, (amt: number) => Promise<any>> = {
+        stripe: requestStripeTopUp,
+        epay: requestEpayTopUp,
+        creem: requestCreemTopUp,
+        waffo: requestWaffoTopUp,
+        binance: requestBinanceTopUp,
+      }
+      const fn = apiMap[method]
+      if (!fn) { toast.error(t('Unknown payment method')); return }
+      const data = await fn(Number(amount))
       if (data.success) {
-        const paymentUrl = data.payment_url || data.data?.payment_url
+        const paymentUrl = (data.data as any)?.pay_url || (data.data as any)?.checkout_url || (data.data as any)?.url
         if (paymentUrl) {
           window.open(paymentUrl, '_blank')
         }
