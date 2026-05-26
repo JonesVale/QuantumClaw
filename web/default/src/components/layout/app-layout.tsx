@@ -282,7 +282,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const location = useLocation()
   const { t } = useT()
   const { auth } = useAuthStore()
-  const isAdmin = auth.user?.role !== undefined && auth.user.role >= 2
+  const isAdmin = auth.user?.role !== undefined && auth.user.role >= 10
   const isLoggedIn = !!auth.user
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     '': true,           // default group (Dashboard, Chat...) always open
@@ -646,7 +646,7 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
               <span className="hidden text-sm sm:inline-block">
                 {auth.user?.display_name || auth.user?.username || ''}
               </span>
-              {auth.user?.role === 100 && (
+              {auth.user?.role >= 10 && (
                 <Badge variant="secondary" className="ml-1 text-[10px]">
                   Admin
                 </Badge>

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useState } from 'react'
@@ -162,7 +162,7 @@ function UserFormDialog({
 function UsersPage() {
   const { t } = useT()
   const { auth } = useAuthStore();
-  const isAdmin = auth.user?.role === 100 || auth.user?.role === 10;
+  const isAdmin = auth.user?.role >= 10;
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] p-4">

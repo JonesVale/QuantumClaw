@@ -110,8 +110,9 @@ func GetModelCatalog(c *gin.Context) {
 	}
 
 
-	// Hide channel info for unauthenticated users
+	// Derive auth state and role from context
 	var userIsAuthed bool
+	var userRole int
 	if cachedUsername, exists := c.Get("username"); exists {
 		if u, ok := cachedUsername.(string); ok && u != "" {
 			userIsAuthed = true
@@ -123,11 +124,26 @@ func GetModelCatalog(c *gin.Context) {
 			userIsAuthed = true
 		}
 	}
-	if !userIsAuthed {
+	// Read role from context (set by authHelper / UserAuth middleware)
+	if cachedRole, exists := c.Get("role"); exists {
+		if r, ok := cachedRole.(int); ok {
+			userRole = r
+		}
+	}
+
+	// Channel info visibility by auth/role level
+	//   - Unauthenticated: no channel info at all
+	//   - Regular user (role 0/1): see status only (green/gray dot)
+	//   - Admin/root (role 2/10/100): see full channel info
+	hideChannelInfo := !userIsAuthed || userRole < model.RoleAdminUser
+	if hideChannelInfo {
 		for i := range result {
+			if !userIsAuthed {
+				result[i].Status = 0
+			}
 			result[i].ChannelID = 0
 			result[i].ChannelName = ""
-			result[i].Status = 0
+			result[i].Group = ""
 		}
 	}
 

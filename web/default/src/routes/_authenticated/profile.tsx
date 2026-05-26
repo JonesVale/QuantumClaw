@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -125,7 +125,7 @@ function ProfilePage() {
               <div>
                 <p className="font-medium">{user?.display_name || user?.username}</p>
                 <p className="text-sm text-muted-foreground">
-                  {user?.role === 100 ? 'Admin' : `ID: ${user?.id}`}
+                  {user?.role >= 10 ? 'Admin' : `ID: ${user?.id}`}
                 </p>
               </div>
             </div>

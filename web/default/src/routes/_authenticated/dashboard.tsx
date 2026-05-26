@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+﻿import { createFileRoute, Link } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
 import { useQuery } from '@tanstack/react-query'
@@ -236,7 +236,7 @@ function DashboardPage() {
   const hasLogs = logs.length > 0
 
   const userName = auth.user?.display_name || auth.user?.username || ''
-  const isAdmin = auth.user?.role === 100
+  const isAdmin = auth.user?.role >= 10
 
   // ── Stat cards ──
   const cards = [
