@@ -47,8 +47,10 @@ import { Route as AuthenticatedKeysRouteImport } from './routes/_authenticated/k
 import { Route as AuthenticatedDistributorsRouteImport } from './routes/_authenticated/distributors'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConnectionsRouteImport } from './routes/_authenticated/connections'
+import { Route as AuthenticatedCommissionRouteImport } from './routes/_authenticated/commission'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedChannelsRouteImport } from './routes/_authenticated/channels'
+import { Route as AuthenticatedChannelAffinityRouteImport } from './routes/_authenticated/channel-affinity'
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin-tools'
@@ -255,6 +257,11 @@ const AuthenticatedConnectionsRoute =
     path: '/connections',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCommissionRoute = AuthenticatedCommissionRouteImport.update({
+  id: '/commission',
+  path: '/commission',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
   id: '/checkin',
   path: '/checkin',
@@ -265,6 +272,12 @@ const AuthenticatedChannelsRoute = AuthenticatedChannelsRouteImport.update({
   path: '/channels',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChannelAffinityRoute =
+  AuthenticatedChannelAffinityRouteImport.update({
+    id: '/channel-affinity',
+    path: '/channel-affinity',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedBillingRoute = AuthenticatedBillingRouteImport.update({
   id: '/billing',
   path: '/billing',
@@ -319,8 +332,10 @@ export interface FileRoutesByFullPath {
   '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/channel-affinity': typeof AuthenticatedChannelAffinityRoute
   '/channels': typeof AuthenticatedChannelsRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/commission': typeof AuthenticatedCommissionRoute
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
@@ -367,8 +382,10 @@ export interface FileRoutesByTo {
   '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
+  '/channel-affinity': typeof AuthenticatedChannelAffinityRoute
   '/channels': typeof AuthenticatedChannelsRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/commission': typeof AuthenticatedCommissionRoute
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
@@ -417,8 +434,10 @@ export interface FileRoutesById {
   '/_authenticated/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
+  '/_authenticated/channel-affinity': typeof AuthenticatedChannelAffinityRoute
   '/_authenticated/channels': typeof AuthenticatedChannelsRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
+  '/_authenticated/commission': typeof AuthenticatedCommissionRoute
   '/_authenticated/connections': typeof AuthenticatedConnectionsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/distributors': typeof AuthenticatedDistributorsRoute
@@ -467,8 +486,10 @@ export interface FileRouteTypes {
     | '/admin-tools'
     | '/api-docs'
     | '/billing'
+    | '/channel-affinity'
     | '/channels'
     | '/checkin'
+    | '/commission'
     | '/connections'
     | '/dashboard'
     | '/distributors'
@@ -515,8 +536,10 @@ export interface FileRouteTypes {
     | '/admin-tools'
     | '/api-docs'
     | '/billing'
+    | '/channel-affinity'
     | '/channels'
     | '/checkin'
+    | '/commission'
     | '/connections'
     | '/dashboard'
     | '/distributors'
@@ -564,8 +587,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin-tools'
     | '/_authenticated/api-docs'
     | '/_authenticated/billing'
+    | '/_authenticated/channel-affinity'
     | '/_authenticated/channels'
     | '/_authenticated/checkin'
+    | '/_authenticated/commission'
     | '/_authenticated/connections'
     | '/_authenticated/dashboard'
     | '/_authenticated/distributors'
@@ -880,6 +905,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConnectionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/commission': {
+      id: '/_authenticated/commission'
+      path: '/commission'
+      fullPath: '/commission'
+      preLoaderRoute: typeof AuthenticatedCommissionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkin': {
       id: '/_authenticated/checkin'
       path: '/checkin'
@@ -892,6 +924,13 @@ declare module '@tanstack/react-router' {
       path: '/channels'
       fullPath: '/channels'
       preLoaderRoute: typeof AuthenticatedChannelsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/channel-affinity': {
+      id: '/_authenticated/channel-affinity'
+      path: '/channel-affinity'
+      fullPath: '/channel-affinity'
+      preLoaderRoute: typeof AuthenticatedChannelAffinityRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/billing': {
@@ -951,8 +990,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
+  AuthenticatedChannelAffinityRoute: typeof AuthenticatedChannelAffinityRoute
   AuthenticatedChannelsRoute: typeof AuthenticatedChannelsRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedCommissionRoute: typeof AuthenticatedCommissionRoute
   AuthenticatedConnectionsRoute: typeof AuthenticatedConnectionsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDistributorsRoute: typeof AuthenticatedDistributorsRoute
@@ -987,8 +1028,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
+  AuthenticatedChannelAffinityRoute: AuthenticatedChannelAffinityRoute,
   AuthenticatedChannelsRoute: AuthenticatedChannelsRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
+  AuthenticatedCommissionRoute: AuthenticatedCommissionRoute,
   AuthenticatedConnectionsRoute: AuthenticatedConnectionsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDistributorsRoute: AuthenticatedDistributorsRoute,
