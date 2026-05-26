@@ -1,6 +1,7 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useState, memo, useMemo, useEffect, useRef } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink, Newspaper, Loader2, AlertCircle, Cpu, Atom } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,24 +32,6 @@ interface RssApiResponse {
     limit: number
     offset: number
   }
-}
-
-const LANG_TABS = ['all', 'zh', 'en'] as const
-type LangTab = (typeof LANG_TABS)[number]
-
-const CATEGORY_TABS = ['all', 'ai', 'quantum'] as const
-type CategoryTab = (typeof CATEGORY_TABS)[number]
-
-const LANG_LABELS: Record<string, string> = {
-  all: 'All',
-  zh: '\u4e2d\u6587',
-  en: 'EN',
-}
-
-const CATEGORY_LABELS: Record<string, string> = {
-  all: 'All',
-  ai: 'AI',
-  quantum: 'Quantum',
 }
 
 // Build source→category lookup map from newsSources config
@@ -94,7 +77,7 @@ function ArticleCard({ article }: { article: RssArticle }) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 mb-2">
           <Badge variant={LANG_VARIANTS[article.language] || 'outline'} className="shrink-0 text-[10px]">
-            {LANG_LABELS[article.language] || article.language}
+            {article.language === 'zh' ? '中文' : 'EN'}
           </Badge>
           <div className="flex items-center gap-1.5 min-w-0">
             {getArticleCategory(article.source) === 'quantum' ? (
@@ -174,8 +157,18 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 
 function NewsPage() {
   const { t } = useT()
-  const [activeLang, setActiveLang] = useState<LangTab>('all')
-  const [activeCategory, setActiveCategory] = useState<CategoryTab>('all')
+  // Use react-i18next directly to get reactive i18n.language
+  const { i18n } = useTranslation()
+
+  // Derive language filter from current UI language — fully automatic
+  // zh-CN/zh-TW → zh articles, en → en articles, other languages → all
+  const activeLang = useMemo(() => {
+    const code = i18n.language
+    if (code.startsWith('zh')) return 'zh'
+    if (code === 'en') return 'en'
+    return 'all'
+  }, [i18n.language])
+
   const [articles, setArticles] = useState<RssArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -198,63 +191,13 @@ function NewsPage() {
     }
   }
 
+  // Re-fetch when activeLang changes (triggered by UI language switch)
   useEffect(() => {
-    fetchArticles(activeLang === 'all' ? 'all' : activeLang)
+    fetchArticles(activeLang)
   }, [activeLang])
 
-  // Filter articles by category using source→category map
-  const filteredArticles = useMemo(() => {
-    if (activeCategory === 'all') return articles
-    return articles.filter((a) => getArticleCategory(a.source) === activeCategory)
-  }, [articles, activeCategory])
-
   return (
-    <div className="qc-wrapper py-8 space-y-8">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('AI News')}</h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            {t('Latest AI & Quantum Computing articles from top sources')}
-          </p>
-        </div>
-      </div>
-
-      {/* Language filter */}
-      <div className="flex gap-2 flex-wrap">
-        {LANG_TABS.map((lang) => (
-          <Button
-            key={lang}
-            variant={activeLang === lang ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActiveLang(lang)}
-            className="text-xs"
-          >
-            {t(LANG_LABELS[lang])}
-          </Button>
-        ))}
-      </div>
-
-      {/* Category filter */}
-      <div className="flex gap-2 flex-wrap">
-        {CATEGORY_TABS.map((cat) => (
-          <Button
-            key={cat}
-            variant={activeCategory === cat ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setActiveCategory(cat)}
-            className={`text-xs gap-1.5 ${
-              cat === 'quantum' && activeCategory === 'quantum'
-                ? 'bg-gradient-to-r from-purple-500 to-purple-600'
-                : ''
-            }`}
-          >
-            {cat === 'quantum' && <Atom className="h-3 w-3" />}
-            {cat === 'ai' && <Cpu className="h-3 w-3" />}
-            {t(CATEGORY_LABELS[cat])}
-          </Button>
-        ))}
-      </div>
-
+    <div className="qc-wrapper py-8 space-y-6">
       {loading ? (
         <LoadingState />
       ) : error ? (
@@ -262,19 +205,12 @@ function NewsPage() {
       ) : articles.length === 0 ? (
         <EmptyState message={t('No articles yet. RSS feeds are being fetched in the background.')} />
       ) : (
-        <>
-          {filteredArticles.length === 0 ? (
-            <EmptyState message={t('No articles in this category')} />
-          ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filteredArticles.map((article) => (
-                <ArticleCard key={article.id} article={article} />
-              ))}
-            </div>
-          )}
-        </>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {articles.map((article) => (
+            <ArticleCard key={article.id} article={article} />
+          ))}
+        </div>
       )}
     </div>
   )
 }
-
