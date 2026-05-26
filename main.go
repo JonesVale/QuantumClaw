@@ -114,8 +114,7 @@ func main() {
 	// Seed reference prices from ModelRatio (idempotent: skips existing)
 	service.SeedReferencePrices()
 
-	// Seed brand rankings if empty
-	service.FetchBrandRankings()
+	// Brand rankings are seeded via monthly cron only (avoids external API on startup)
 
 	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
 	go func() {

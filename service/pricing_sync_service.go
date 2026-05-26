@@ -49,7 +49,6 @@ func upsertReferencePrice(rp *model.ReferencePrice) error {
 // Changed to full upsert so the monthly cron always has synchronized data.
 func SeedReferencePrices() {
 	now := time.Now().Unix()
-	updated := 0
 	inserted := 0
 
 	var metadata []model.ModelMetadata
@@ -83,23 +82,9 @@ func SeedReferencePrices() {
 			FetchedAt:   now,
 		}
 
-		// Check if exists
-		var existing model.ReferencePrice
-		if model.DB.Where("model_name = ?", m.ModelName).First(&existing).Error == nil {
-			// Update
-			if err := model.DB.Model(&existing).Updates(map[string]interface{}{
-				"input_price":  inputPrice,
-				"output_price": outputPrice,
-				"source":       "modelratio",
-				"fetched_at":   now,
-				"provider":     provider,
-			}).Error; err != nil {
-				logger.SysWarn(fmt.Sprintf("SeedReferencePrices: update failed for %s: %v", m.ModelName, err))
-			} else {
-				updated++
-			}
-		} else {
-			// Insert
+		// Insert only if missing — never overwrite existing (preserves admin edits)
+		var existingPrice model.ReferencePrice
+		if model.DB.Where("model_name = ?", m.ModelName).First(&existingPrice).Error != nil {
 			if err := model.DB.Create(rp).Error; err != nil {
 				logger.SysWarn(fmt.Sprintf("SeedReferencePrices: insert failed for %s: %v", m.ModelName, err))
 			} else {
@@ -108,7 +93,7 @@ func SeedReferencePrices() {
 		}
 	}
 
-	logger.SysLog(fmt.Sprintf("SeedReferencePrices: %d inserted, %d updated", inserted, updated))
+	logger.SysLog(fmt.Sprintf("SeedReferencePrices: %d inserted (missing rows only, existing preserved)", inserted))
 }
 
 // ── HuggingFace pricing scraper ──
