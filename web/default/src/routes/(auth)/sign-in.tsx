@@ -132,8 +132,12 @@ function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center"
-      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%), radial-gradient(ellipse at 80% 80%, oklch(0.85 0.1 180 / 0.12), transparent 50%)' }}>
+    <div className="min-h-screen flex items-center justify-center relative"
+      style={{
+        backgroundImage: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(/login-bg.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
         <div className="text-center mb-10">
           <div className="mb-6 px-4 py-3 rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50/90 to-amber-50 border border-amber-200/30 shadow-lg shadow-amber-200/20">
