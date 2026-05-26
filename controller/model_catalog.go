@@ -11,6 +11,14 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
+// normalizeModelName converts a display name (e.g. "GPT-4o", "DeepSeek Chat")
+// to a ModelRatio key (e.g. "gpt-4o", "deepseek-chat").
+func normalizeModelName(name string) string {
+	s := strings.ToLower(name)
+	s = strings.ReplaceAll(s, " ", "-")
+	return s
+}
+
 // GetModelCatalog returns all model metadata for the given language,
 // merged with channel pricing/status where available.
 // GET /api/model-catalog?lang=English&search=&use_case=&series=
@@ -71,10 +79,11 @@ func GetModelCatalog(c *gin.Context) {
 		}
 
 		// Official reference price from ModelRatio (1 ratio = $0.002/1K tokens)
-		modelRatio := ratio.GetModelRatio(m.ModelName, 0)
+		// ModelRatio keys use lowercase+hyphen format, so we normalize the display name.
+		modelRatio := ratio.GetModelRatio(normalizeModelName(m.ModelName), 0)
 		if modelRatio > 0 {
 			resp.InputPrice = modelRatio * 0.002  // per 1K tokens in USD
-			compRatio := ratio.GetCompletionRatio(m.ModelName, 0)
+			compRatio := ratio.GetCompletionRatio(normalizeModelName(m.ModelName), 0)
 			resp.OutputPrice = resp.InputPrice * compRatio
 		} else {
 			resp.InputPrice = 0
