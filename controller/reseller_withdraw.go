@@ -13,6 +13,15 @@ import (
 func SubmitResellerWithdrawal(c *gin.Context) {
 	userId := c.GetInt("id")
 
+	// 身份认证检查：提现前必须完成实名认证
+	var user model.User
+	if err := model.DB.Where("id = ?", userId).First(&user).Error; err == nil {
+		if !user.IdentityVerified {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "提现前需要先完成身份认证，请联系管理员。"})
+			return
+		}
+	}
+
 	// 查找 reseller
 	var reseller model.Reseller
 	if err := model.DB.Where("user_id = ? AND status = 1", userId).First(&reseller).Error; err != nil {

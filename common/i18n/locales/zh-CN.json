@@ -4,5 +4,11 @@
   "invalid_parameter": "无效的参数",
   "username_exists": "该用户名已被注册",
   "email_exists": "该邮箱已被注册",
-  "registration_failed": "注册失败，请稍后重试"
+  "registration_failed": "注册失败，请稍后重试",
+  "phone_exists": "该手机号已被注册",
+  "qq_exists": "该QQ号已被注册",
+  "identity_required": "请先完成身份认证",
+  "identity_verified": "已实名认证",
+  "identity_not_verified": "未实名认证",
+  "withdraw_identity_required": "提现前需要先完成身份认证，请联系管理员。"
 }

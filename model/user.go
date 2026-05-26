@@ -44,7 +44,7 @@ type User struct {
 	DisplayName      string `json:"display_name" gorm:"index" validate:"max=20"`
 	Role             int    `json:"role" gorm:"type:int;default:1"`   // admin, util
 	Status           int    `json:"status" gorm:"type:int;default:1"` // enabled, disabled
-	Email            string `json:"email" gorm:"index" validate:"max=50"`
+	Email            string `json:"email" gorm:"uniqueIndex" validate:"max=50"`
 	GitHubId         string `json:"github_id" gorm:"column:github_id;index"`
 	WeChatId         string `json:"wechat_id" gorm:"column:wechat_id;index"`
 	LarkId           string `json:"lark_id" gorm:"column:lark_id;index"`
@@ -63,6 +63,13 @@ type User struct {
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
 	InviterId        int    `json:"inviter_id" gorm:"type:int;column:inviter_id;index"`
 	UserType         string `json:"user_type" gorm:"type:varchar(20);default:'consumer'"` // consumer=普通用户 provider=渠道商
+
+
+	Phone            string `json:"phone" gorm:"type:varchar(20);uniqueIndex" validate:"omitempty,max=20"`
+	QQ               string `json:"qq" gorm:"type:varchar(20);uniqueIndex" validate:"omitempty,max=20"`
+	IdentityVerified bool   `json:"identity_verified" gorm:"default:false"`
+	IdentityName     string `json:"identity_name" gorm:"type:varchar(50)"`
+	IdentityNumber   string `json:"identity_number" gorm:"type:varchar(30)"`
 }
 
 func CountUsers() (int64, error) {

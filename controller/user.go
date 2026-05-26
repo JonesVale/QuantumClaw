@@ -207,34 +207,111 @@ func Register(c *gin.Context) {
 			return
 		}
 	}
-	affCode := user.AffCode // this code is the inviter's code, not the user's own code
+	identifier := user.Username
+	if identifier == "" {
+		identifier = user.Email
+	}
+	if identifier == "" {
+		identifier = user.Phone
+	}
+	if identifier == "" {
+		identifier = user.QQ
+	}
+	if identifier == "" {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": i18n.Translate(c, "invalid_parameter"),
+		})
+		return
+	}
+
+	// Auto-detect identifier type
+	isEmail := strings.Contains(identifier, "@")
+	isPhone := false
+	isQQ := false
+	if !isEmail {
+		// Pure digits only
+		digitsOnly := true
+		for _, ch := range identifier {
+			if ch < '0' || ch > '9' {
+				digitsOnly = false
+				break
+			}
+		}
+		if digitsOnly {
+			if len(identifier) == 11 && identifier[0] == '1' {
+				isPhone = true
+			} else if len(identifier) >= 5 && len(identifier) <= 12 {
+				isQQ = true
+			}
+		}
+	}
+
+	// Check uniqueness across all identity fields
+	var existingUser model.User
+	dupField := ""
+	if model.DB.Where("username = ?", identifier).First(&existingUser).Error == nil {
+		dupField = "username"
+	} else if isEmail && model.DB.Where("email = ?", identifier).First(&existingUser).Error == nil {
+		dupField = "email"
+	} else if isPhone && model.DB.Where("phone = ?", identifier).First(&existingUser).Error == nil {
+		dupField = "phone"
+	} else if isQQ && model.DB.Where("qq = ?", identifier).First(&existingUser).Error == nil {
+		dupField = "qq"
+	}
+	if dupField != "" {
+		var msg string
+		switch dupField {
+		case "email":
+			msg = i18n.Translate(c, "email_exists")
+		case "phone":
+			msg = i18n.Translate(c, "phone_exists")
+		case "qq":
+			msg = i18n.Translate(c, "qq_exists")
+		default:
+			msg = i18n.Translate(c, "username_exists")
+		}
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": msg})
+		return
+	}
+
+	affCode := user.AffCode
 	inviterId, _ := model.GetUserIdByAffCode(affCode)
 	cleanUser := model.User{
-		Username:    user.Username,
+		Username:    identifier,
 		Password:    user.Password,
 		DisplayName: user.Username,
 		InviterId:   inviterId,
 		Role:        user.Role,
 	}
+	if isEmail {
+		cleanUser.Email = identifier
+	}
+	if isPhone {
+		cleanUser.Phone = identifier
+	}
+	if isQQ {
+		cleanUser.QQ = identifier
+	}
+	if config.EmailVerificationEnabled && user.Email != "" {
+		cleanUser.Email = user.Email
+	}
+	if user.Phone != "" && user.Phone != identifier {
+		cleanUser.Phone = user.Phone
+	}
+	if user.QQ != "" && user.QQ != identifier {
+		cleanUser.QQ = user.QQ
+	}
+
 	// Enforce role: only valid user types
 	if cleanUser.Role != model.RoleCommonUser && cleanUser.Role != model.RoleSupplier {
 		cleanUser.Role = model.RoleCommonUser
 	}
-	if config.EmailVerificationEnabled {
-		cleanUser.Email = user.Email
-	}
+
 	if err := cleanUser.Insert(ctx, inviterId); err != nil {
-		var msg string
-		if strings.Contains(err.Error(), "Duplicate entry") {
-			msg = i18n.Translate(c, "username_exists")
-		} else if strings.Contains(err.Error(), "uni_users_email") {
-			msg = i18n.Translate(c, "email_exists")
-		} else {
-			msg = i18n.Translate(c, "registration_failed")
-		}
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
-			"message": msg,
+			"message": i18n.Translate(c, "registration_failed"),
 		})
 		return
 	}

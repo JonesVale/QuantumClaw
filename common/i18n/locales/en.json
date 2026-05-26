@@ -183,5 +183,11 @@
   "enterprise": "Enterprise",
   "username_exists": "This username is already taken",
   "email_exists": "This email is already registered",
-  "registration_failed": "Registration failed. Please try again."
+  "registration_failed": "Registration failed. Please try again.",
+  "phone_exists": "This phone number is already registered",
+  "qq_exists": "This QQ ID is already registered",
+  "identity_required": "Please complete identity verification first",
+  "identity_verified": "Identity Verified",
+  "identity_not_verified": "Identity not verified",
+  "withdraw_identity_required": "Identity verification is required before withdrawal. Please contact admin."
 }
