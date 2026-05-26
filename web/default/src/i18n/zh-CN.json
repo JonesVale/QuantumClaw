@@ -1859,5 +1859,21 @@
   "Free Chat Providers": "免费聊天提供商",
   "Free chat API keys are now managed through the Channels page. Configure your Groq, DeepSeek, Gemini, SiliconFlow, or Mistral channels there, and free chat will auto-discover them.": "免费聊天的 API Key 现已通过渠道管理页面统一配置。在渠道中配置 Groq、DeepSeek、Gemini、SiliconFlow 或 Mistral 后，免费聊天将自动发现可用提供商。",
   "QuantumClaw - unified AI and quantum API gateway": "QuantumClaw — Unified AI & Quantum API Gateway.一个API Key，无限可能。",
-  "By continuing, you agree to our Terms of Service": "继续即表示您同意我们的服务条款"
+  "By continuing, you agree to our Terms of Service": "继续即表示您同意我们的服务条款",
+  "ionq-aria_recommend": "Best for variational algorithms and quantum chemistry",
+  "ionq-forte_recommend": "Ideal for quantum machine learning and optimization",
+  "ionq-harmony_recommend": "Perfect for prototyping and educational use",
+  "ibm-brisbane_recommend": "Suited for quantum research and algorithm development",
+  "ibm-kyiv_recommend": "Designed for quantum computing research",
+  "ibm-sherbrooke_recommend": "Excellent for error mitigation research",
+  "rigetti-aspen_recommend": "Suitable for quantum optimization problems",
+  "rigetti-ankaa_recommend": "Ideal for hybrid classical-quantum workloads",
+  "ionq-aria_strengths": "#1 trapped-ion quantum processor; 25 algorithmic qubits; high-fidelity gates",
+  "ionq-forte_strengths": "36 algorithmic qubits; native gate set; fast circuit execution",
+  "ionq-harmony_strengths": "11 qubits; stable operation; educational interface",
+  "ibm-brisbane_strengths": "127 qubits (Eagle processor); dynamic circuits; Qiskit integration",
+  "ibm-kyiv_strengths": "127 qubits; IBM Quantum Network access",
+  "ibm-sherbrooke_strengths": "127 qubits; error suppression; Q-CTRL integration",
+  "rigetti-aspen_strengths": "80+ qubits; extensible architecture; quantum-classical hybrid",
+  "rigetti-ankaa_strengths": "84 qubits; improved coherence; enhanced gate fidelity"
 }

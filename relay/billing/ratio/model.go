@@ -634,6 +634,37 @@ var ModelRatio = map[string]float64{
 	"llama-3.2-vision":     0.3,
 	"o3":                   8.0,
 	"codestral":            0.25,
+
+	// Quantum processors (per-job pricing, token-equivalent for billing)
+	"ionq-aria":      10.0,
+	"ionq-forte":      8.0,
+	"ionq-harmony":    5.0,
+	"ibm-brisbane":    6.0,
+	"ibm-kyiv":        6.0,
+	"ibm-sherbrooke":  6.0,
+	"rigetti-aspen":   4.0,
+	"rigetti-ankaa":   3.0,
+
+	// Misc missing models for normalizeForRatio matching
+	"groq-llama3":       0.05,
+	"groq-mixtral":      0.12,
+	"cohere-command-r":  0.15,
+	"perplexity-sonar":  0.25,
+	"stability-sd3":     0.035,
+	"amazon-nova":       0.5,
+	"microsoft-phi4":    0.07,
+	"xai-grok2":         2.5,
+	"llama-33-70b":      0.15,
+	"mistral-small-3":   0.07,
+	"mistral-nemo":      0.04,
+	"pixtral-large":     3.0,
+	"grok-3":            5.0,
+	"cohere-command-r07": 0.15,
+	"qwen-25-72b":       0.2,
+	"qwen-25-coder":     0.08,
+	"baichuan-4":        2.5,
+	"yi-lightning":      0.2,
+	"yi-large":          1.5,
 }
 
 var CompletionRatio = map[string]float64{

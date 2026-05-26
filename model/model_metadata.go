@@ -539,6 +539,80 @@ func SeedModelMetadata() {
 				"日本語":  "拡張コンテキスト理解を備えたAlibabaアップグレードモデル。",
 			},
 		},
+		// ── Quantum processor metadata ──
+		{
+			DisplayName: "IonQ Aria", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IonQ", Provider: "IonQ",
+			Description: map[string]string{
+				"中文简体":  "IonQ Aria 是领先的离子阱量子处理器，具有 25 个算法量子比特和高保真门操作。",
+				"English":  "IonQ Aria is a leading trapped-ion quantum processor with 25 algorithmic qubits and high-fidelity gates.",
+				"日本語":  "IonQ Ariaは、25のアルゴリズム量子ビットと高忠実度ゲートを備えた最先端のイオントラップ量子プロセッサです。",
+			},
+		},
+		{
+			DisplayName: "IonQ Forte", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IonQ", Provider: "IonQ",
+			Description: map[string]string{
+				"中文简体":  "IonQ Forte 提供 36 个算法量子比特，支持原生门集和快速电路执行。",
+				"English":  "IonQ Forte offers 36 algorithmic qubits with native gate set and fast circuit execution.",
+				"日本語":  "IonQ Forteは、36のアルゴリズム量子ビット、ネイティブゲートセット、高速回路実行を提供します。",
+			},
+		},
+		{
+			DisplayName: "IonQ Harmony", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IonQ", Provider: "IonQ",
+			Description: map[string]string{
+				"中文简体":  "IonQ Harmony 拥有 11 个量子比特，稳定运行，适合教育和原型开发。",
+				"English":  "IonQ Harmony has 11 qubits with stable operation, ideal for education and prototyping.",
+				"日本語":  "IonQ Harmonyは11量子ビット、安定した動作で教育やプロトタイピングに最適です。",
+			},
+		},
+		{
+			DisplayName: "IBM Brisbane", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IBM Quantum", Provider: "IBM",
+			Description: map[string]string{
+				"中文简体":  "IBM Brisbane 基于 127 量子比特 Eagle 处理器，支持动态电路。",
+				"English":  "IBM Brisbane features 127 qubits (Eagle processor) with dynamic circuit support.",
+				"日本語":  "IBM Brisbaneは127量子ビット（Eagleプロセッサ）を搭載し、動的回路をサポートします。",
+			},
+		},
+		{
+			DisplayName: "IBM Kyiv", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IBM Quantum", Provider: "IBM",
+			Description: map[string]string{
+				"中文简体":  "IBM Kyiv 提供 127 个量子比特，接入 IBM Quantum Network。",
+				"English":  "IBM Kyiv provides 127 qubits with IBM Quantum Network access.",
+				"日本語":  "IBM Kyivは127量子ビットを提供し、IBM Quantum Networkにアクセスできます。",
+			},
+		},
+		{
+			DisplayName: "IBM Sherbrooke", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "IBM Quantum", Provider: "IBM",
+			Description: map[string]string{
+				"中文简体":  "IBM Sherbrooke 具备 127 量子比特，集成 Q-CTRL 错误抑制技术。",
+				"English":  "IBM Sherbrooke features 127 qubits with Q-CTRL error suppression integration.",
+				"日本語":  "IBM Sherbrookeは127量子ビットを搭載し、Q-CTRLエラー抑制技術を統合しています。",
+			},
+		},
+		{
+			DisplayName: "Rigetti Aspen", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "Rigetti", Provider: "Rigetti",
+			Description: map[string]string{
+				"中文简体":  "Rigetti Aspen 拥有 80+ 量子比特，可扩展架构，支持量子-经典混合计算。",
+				"English":  "Rigetti Aspen has 80+ qubits with an extensible architecture and quantum-classical hybrid support.",
+				"日本語":  "Rigetti Aspenは80+量子ビット、拡張可能なアーキテクチャ、量子-古典ハイブリッドをサポートします。",
+			},
+		},
+		{
+			DisplayName: "Rigetti Ankaa", UseCase: "quantum", ContextWindow: 0,
+			InputModalities: `["Quantum Circuit"]`, Series: "Rigetti", Provider: "Rigetti",
+			Description: map[string]string{
+				"中文简体":  "Rigetti Ankaa 提供 84 个量子比特，改进的相干时间和门保真度。",
+				"English":  "Rigetti Ankaa delivers 84 qubits with improved coherence times and gate fidelity.",
+				"日本語":  "Rigetti Ankaaは84量子ビット、改善されたコヒーレンス時間とゲート忠実度を提供します。",
+			},
+		},
+
 	}
 
 	// Insert rows for each language
