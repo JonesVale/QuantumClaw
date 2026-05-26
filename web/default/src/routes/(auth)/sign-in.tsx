@@ -133,24 +133,24 @@ function SignInPage() {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center"
-      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)' }}>
+      style={{ backgroundImage: 'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%), radial-gradient(ellipse at 80% 80%, oklch(0.85 0.1 180 / 0.12), transparent 50%)' }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
         <div className="text-center mb-10">
-          <div className="mb-6 px-4 py-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200/60">
+          <div className="mb-6 px-4 py-3 rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50/90 to-amber-50 border border-amber-200/30 shadow-lg shadow-amber-200/20">
             <p className="text-sm font-medium text-amber-700">{t('QuantumClaw - unified AI and quantum API gateway')}</p>
           </div>
           <div className="flex items-center justify-center gap-3 mb-5">
             <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 flex-shrink-0">
               <img src="/logo.webp" alt="QuantumClaw" className="w-10 h-10 object-contain" />
             </div>
-            <span className="text-2xl font-bold tracking-tight text-foreground">QuantumClaw</span>
+            <span className="text-3xl font-bold tracking-tight bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">QuantumClaw</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground mb-2">{t('Sign In')}</h1>
+          <h1 className="text-3xl font-bold tracking-tight mb-2 bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{t('Sign In')}</h1>
           <p className="text-base text-muted-foreground/60">{t('Access your QuantumClaw dashboard')}</p>
         </div>
 
-        <div className="rounded-2xl bg-white/80 backdrop-blur-sm border border-border/20 shadow-sm p-8">
-          <div className="flex mb-6">
+        <div className="rounded-2xl bg-white/85 backdrop-blur-xl border border-border/[0.08] shadow-xl shadow-black/[0.04] p-8">
+          <div className="flex mb-7 gap-2">
             <button
               onClick={() => setMode('login')}
               className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
@@ -173,7 +173,7 @@ function SignInPage() {
             <div>
               <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Username')}</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:ring-2 focus:ring-amber-500/20 transition-all"
                 placeholder="Enter your username" autoComplete="username" />
             </div>
             <div>
@@ -193,14 +193,14 @@ function SignInPage() {
             </div>
             )}
             <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && (!confirmPassword || password !== confirmPassword))}
-              className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+              className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2">
               {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : mode === 'login' ? t('Sign In') : t('Register')}
             </button>
           </div>
 
           {providers.length > 0 && (
             <>
-              <div className="relative my-6">
+              <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/20" /></div>
                 <div className="relative flex justify-center"><span className="bg-white/80 px-3 text-xs text-muted-foreground/60">{t('Or continue with')}</span></div>
               </div>
