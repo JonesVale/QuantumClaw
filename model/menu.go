@@ -168,7 +168,9 @@ func SeedDefaultMenus() error {
 		{MenuKey: "nav-rankings", ParentKey: "", MenuType: "nav", LabelKey: "Rankings", Icon: "TrendingUp", Path: "/rankings", SortOrder: 30, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-apps", ParentKey: "", MenuType: "nav", LabelKey: "Apps", Icon: "Sparkles", Path: "/apps", SortOrder: 40, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-enterprise", ParentKey: "", MenuType: "nav", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 50, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "nav-dashboard", ParentKey: "", MenuType: "nav", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 5, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-news", ParentKey: "", MenuType: "nav", LabelKey: "AI News", Icon: "Newspaper", Path: "/news", SortOrder: 60, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "nav-api-docs", ParentKey: "", MenuType: "nav", LabelKey: "API Docs", Icon: "BookOpen", Path: "/api-docs", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 
 		// ===== Sidebar items (group: "" — main sidebar, no collapsible label) =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},

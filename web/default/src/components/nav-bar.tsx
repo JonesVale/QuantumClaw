@@ -6,11 +6,14 @@ import { useNavMenus } from '@/lib/use-menus'
 
 // Hardcoded fallback nav items (used if API is unavailable)
 const FALLBACK_NAV_ITEMS = [
-  { to: '/dashboard', label: 'Dashboard', icon: '🏠' },
-  { to: '/models',    label: 'Models',    icon: '☰' },
-  { to: '/news',      label: 'AI News',   icon: '📰' },
-  { to: '/pricing',   label: 'Pricing',   icon: '¤' },
-  { to: '/api-docs',  label: 'API Docs',  icon: '📖' },
+  { to: '/dashboard',  label: 'Dashboard',  icon: '🏠' },
+  { to: '/models',     label: 'Models',     icon: '☰' },
+  { to: '/pricing',    label: 'Pricing',    icon: '¤' },
+  { to: '/rankings',   label: 'Rankings',   icon: '≡' },
+  { to: '/apps',       label: 'Apps',       icon: '?' },
+  { to: '/enterprise', label: 'Enterprise', icon: '?' },
+  { to: '/news',       label: 'AI News',    icon: '📰' },
+  { to: '/api-docs',   label: 'API Docs',   icon: '📖' },
 ]
 
 export default function NavBar({ variant = 'default' }: { variant?: 'default' | 'transparent' }) {

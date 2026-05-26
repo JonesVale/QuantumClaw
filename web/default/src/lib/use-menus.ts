@@ -47,13 +47,16 @@ export interface SidebarMenuItem {
 // ---------------------------------------------------------------------------
 
 const FALLBACK_NAV: NavMenuItem[] = [
+  { to: '/dashboard',  label: 'Dashboard',  icon: '🏠' },
   { to: '/models',     label: 'Models',     icon: '☰' },
   { to: '/pricing',    label: 'Pricing',    icon: '¤' },
-  { to: '/news',       label: 'AI News',    icon: '📰' },
   { to: '/rankings',   label: 'Rankings',   icon: '≡' },
   { to: '/apps',       label: 'Apps',       icon: '⊞' },
   { to: '/enterprise', label: 'Enterprise', icon: '◈' },
+  { to: '/news',       label: 'AI News',    icon: '📰' },
+  { to: '/api-docs',   label: 'API Docs',   icon: '📖' },
 ]
+
 
 const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   // Dashboard/management group
@@ -84,6 +87,9 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/platform-settings', icon: 'Settings', labelKey: 'Platform Settings', groupName: 'management' },
   { path: '/reseller', icon: 'Store', labelKey: 'Reseller Portal', groupName: 'management' },
   { path: '/reseller-keys', icon: 'Key', labelKey: 'My Keys', groupName: 'management' },
+  { path: '/team', icon: 'Users', labelKey: 'My Team', groupName: 'management' },
+  { path: '/channels', icon: 'Network', labelKey: 'Channels', groupName: 'management' },
+  { path: '/menu-permissions', icon: 'Settings', labelKey: 'Menu Permissions', groupName: 'management' },
   // Account group
   { path: '/profile', icon: 'User', labelKey: 'Profile', groupName: 'account' },
   { path: '/wallet', icon: 'Wallet', labelKey: 'Wallet', groupName: 'account' },
@@ -219,8 +225,9 @@ function getFallbackSidebar(role: number): SidebarMenuItem[] {
     if (item.groupName === 'management') {
       // Admin-only items
       const adminOnlyPaths = ['/users', '/redemption', '/distributors', '/admin-tools',
-        '/profit', '/reseller-admin', '/settlement', '/transactions', '/platform-settings', '/promo-ads']
-      const loginRequiredPaths = ['/keys', '/logs', '/monitoring', '/reseller', '/reseller-keys']
+        '/profit', '/reseller-admin', '/settlement', '/transactions', '/platform-settings',
+        '/promo-ads', '/channels', '/menu-permissions']
+      const loginRequiredPaths = ['/keys', '/logs', '/monitoring', '/reseller', '/reseller-keys', '/team']
       const publicPaths = ['/news']
 
       if (adminOnlyPaths.includes(item.path)) return isAdmin
@@ -230,7 +237,7 @@ function getFallbackSidebar(role: number): SidebarMenuItem[] {
     }
     if (item.groupName === 'account') {
       const adminOnlyPaths = ['/tasks', '/settings']
-      const loginRequiredPaths = ['/profile', '/wallet', '/billing', '/checkin', '/subscription', '/api-docs']
+      const loginRequiredPaths = ['/profile', '/wallet', '/billing', '/checkin', '/subscription', '/api-docs', '/connections', '/notifications', '/password']
       const publicPaths = ['/about']
 
       if (adminOnlyPaths.includes(item.path)) return isAdmin
