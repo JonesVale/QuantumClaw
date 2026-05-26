@@ -16,7 +16,7 @@ type LanguageType struct {
 type LanguageEntry struct {
 	Id            int    `json:"id" gorm:"primaryKey;autoIncrement"`
 	LanguagesType string `json:"languages_type" gorm:"type:varchar(64);index"`
-	LCode         string `json:"lcode" gorm:"type:varchar(128);index"`
+	LCode         string `json:"lcode" gorm:"type:varchar(512);index"`
 	Display       string `json:"display" gorm:"type:text"`
 }
 
