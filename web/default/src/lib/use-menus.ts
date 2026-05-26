@@ -48,6 +48,7 @@ export interface SidebarMenuItem {
 const FALLBACK_NAV: NavMenuItem[] = [
   { to: '/models',     label: 'Models',     icon: '☰' },
   { to: '/pricing',    label: 'Pricing',    icon: '¤' },
+  { to: '/news',       label: 'AI News',    icon: '📰' },
   { to: '/rankings',   label: 'Rankings',   icon: '≡' },
   { to: '/apps',       label: 'Apps',       icon: '⊞' },
   { to: '/enterprise', label: 'Enterprise', icon: '◈' },

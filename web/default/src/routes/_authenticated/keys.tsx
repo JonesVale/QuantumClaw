@@ -350,44 +350,108 @@ function KeysPage() {
 
       {/* Connection Info Card */}
       <Card className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30 border-amber-200 dark:border-amber-800">
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-4 sm:p-6 space-y-5">
+          {/* Header */}
           <div className="flex items-start gap-3">
             <div className="hidden sm:flex w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 items-center justify-center flex-shrink-0">
               <Globe className="h-5 w-5 text-[oklch(0.72_0.18_52)]" />
             </div>
-            <div className="space-y-2 flex-1 min-w-0">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
                 {t('API Access')}
               </p>
-              <div className="text-xs sm:text-sm text-amber-700 dark:text-amber-400 space-y-1.5">
-                <p>
-                  <span className="font-medium">{t('Base URL')}:</span>{' '}
-                  <code className="px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono break-all">
-                    {window.location.origin}
-                  </code>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="inline-flex h-5 w-5 ml-1 align-middle"
-                    onClick={() => {
-                      navigator.clipboard.writeText(window.location.origin)
-                      toast.success(t('Copied to clipboard'))
-                    }}
-                  >
-                    <Copy className="h-3 w-3" />
-                  </Button>
-                </p>
-                <div className="flex flex-wrap gap-2 mt-2">
-                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
-                    Authorization: Bearer {'{'}sk-...{'}'}
-                  </code>
-                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
-                    POST {window.location.origin}/v1/chat/completions
-                  </code>
-                  <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
-                    POST {window.location.origin}/v1/quantum/run
-                  </code>
-                </div>
+              <p className="text-xs text-amber-600 dark:text-amber-500 mt-0.5">
+                {t('All endpoints use the same API Key — no need to create separate tokens')}
+              </p>
+            </div>
+          </div>
+
+          {/* Base URL */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-medium text-amber-700 dark:text-amber-400">{t('Base URL')}:</span>
+            <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono break-all">
+              {window.location.origin}
+            </code>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => {
+                navigator.clipboard.writeText(window.location.origin)
+                toast.success(t('Copied to clipboard'))
+              }}
+            >
+              <Copy className="h-3 w-3" />
+            </Button>
+            <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
+              Authorization: Bearer {'{'}sk-...{'}'}
+            </code>
+          </div>
+
+          <hr className="border-amber-200 dark:border-amber-800" />
+
+          {/* ── AI Models Section ── */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                AI
+              </div>
+              <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                {t('AI Models')}
+              </span>
+            </div>
+            <p className="text-xs text-amber-600 dark:text-amber-500 ml-8">
+              {t('Call GPT-4, DeepSeek, Claude, Gemini, and all other AI models via OpenAI-compatible API')}
+            </p>
+            <div className="ml-8 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
+                <code className="px-2 py-1 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-mono">
+                  POST {window.location.origin}/v1/chat/completions
+                </code>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
+                <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-[11px] leading-relaxed font-mono text-amber-800 dark:text-amber-300 w-full">
+{`curl {window.location.origin}/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}'`}
+                </pre>
+              </div>
+            </div>
+          </div>
+
+          <hr className="border-amber-200 dark:border-amber-800" />
+
+          {/* ── Quantum Computing Section ── */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-6 h-6 rounded-md bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                Q
+              </div>
+              <span className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                {t('Quantum Computing')}
+              </span>
+            </div>
+            <p className="text-xs text-amber-600 dark:text-amber-500 ml-8">
+              {t('Submit quantum computing tasks to IonQ, IBM Q, Rigetti and other quantum backends')}
+            </p>
+            <div className="ml-8 space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
+                <code className="px-2 py-1 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-mono">
+                  POST {window.location.origin}/v1/quantum/tasks
+                </code>
+              </div>
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
+                <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-[11px] leading-relaxed font-mono text-amber-800 dark:text-amber-300 w-full">
+{`curl -X POST {window.location.origin}/v1/quantum/tasks \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"backend":"ionq-simulator","circuit":{"qubits":2,"gates":[]}}'`}
+                </pre>
               </div>
             </div>
           </div>

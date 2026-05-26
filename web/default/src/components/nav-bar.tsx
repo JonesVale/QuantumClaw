@@ -8,6 +8,7 @@ import { useNavMenus } from '@/lib/use-menus'
 const FALLBACK_NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard', icon: '🏠' },
   { to: '/models',    label: 'Models',    icon: '☰' },
+  { to: '/news',      label: 'AI News',   icon: '📰' },
   { to: '/pricing',   label: 'Pricing',   icon: '¤' },
   { to: '/api-docs',  label: 'API Docs',  icon: '📖' },
 ]
