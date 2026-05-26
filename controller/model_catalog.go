@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 import (
 	"net/http"
@@ -107,6 +107,28 @@ func GetModelCatalog(c *gin.Context) {
 			}
 		}
 		result = filtered
+	}
+
+
+	// Hide channel info for unauthenticated users
+	var userIsAuthed bool
+	if cachedUsername, exists := c.Get("username"); exists {
+		if u, ok := cachedUsername.(string); ok && u != "" {
+			userIsAuthed = true
+		}
+	}
+	if !userIsAuthed {
+		authHeader := c.GetHeader("Authorization")
+		if authHeader != "" && (strings.HasPrefix(authHeader, "sk-") || strings.HasPrefix(authHeader, "Bearer ")) {
+			userIsAuthed = true
+		}
+	}
+	if !userIsAuthed {
+		for i := range result {
+			result[i].ChannelID = 0
+			result[i].ChannelName = ""
+			result[i].Status = 0
+		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{

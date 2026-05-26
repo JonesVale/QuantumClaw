@@ -209,8 +209,14 @@ func backfillModelDetails() {
 
 	updated := 0
 	for _, d := range details {
-		benchJSON, _ := json.Marshal(d.benchmarks)
-		capsJSON, _ := json.Marshal(d.caps)
+		benchJSON, benchErr := json.Marshal(d.benchmarks)
+		if benchErr != nil {
+			benchJSON = []byte("{}")
+		}
+		capsJSON, capsErr := json.Marshal(d.caps)
+		if capsErr != nil {
+			capsJSON = []byte("[]")
+		}
 
 		result := DB.Model(&ModelMetadata{}).
 			Where("model_name = ? AND (knowledge_cutoff = '' OR knowledge_cutoff IS NULL)", d.name).

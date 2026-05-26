@@ -59,14 +59,14 @@ function EnterprisePage() {
               <div className="max-w-4xl w-full text-center">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-amber-200 bg-amber-50 text-amber-700 text-sm font-semibold tracking-wide mb-8">
               <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-              Enterprise Plan
+              {t('Enterprise Plan')}
             </div>
             <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
-              AI Infrastructure<br />
-              <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent">Built for Scale</span>
+              {t('AI Infrastructure')}<br />
+              <span className="bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 bg-clip-text text-transparent">{t('Built for Scale')}</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mt-8 max-w-2xl mx-auto leading-relaxed">
-              Deploy, manage, and govern AI across your entire organization. One API gateway, infinite possibilities.
+              {t('Enterprise Hero Desc')}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
               <a href="mailto:sales@quantumclaw.ai"
@@ -104,11 +104,11 @@ function EnterprisePage() {
         <div className="qc-wrap">
           <div className="text-center mb-16">
             <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-              Everything You Need to<br />
-              <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Scale AI Across Your Organization</span>
+              {t('Everything You Need to')}<br />
+              <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{t('Scale AI Across')}</span>
             </h2>
             <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
-              From startups to Fortune 500, QuantumClaw Enterprise powers AI deployments at any scale.
+              {t('Enterprise Features Desc')}
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -131,10 +131,10 @@ function EnterprisePage() {
           <div className="qc-wrap">
             <div className="text-center mb-12">
               <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-foreground">
-                Trusted by <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Innovative Teams</span>
+                {t('Trusted by')} <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{t('Innovative Teams')}</span>
               </h2>
               <p className="text-lg text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">
-                Leading companies across industries rely on QuantumClaw to power their AI infrastructure.
+                {t('Enterprise Clients Desc')}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -164,10 +164,10 @@ function EnterprisePage() {
         <div className="qc-wrap text-center relative z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-white/10 rounded-full blur-3xl pointer-events-none" />
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white tracking-tight leading-[1.1]">
-            Ready to Build at Scale?
+            {t('Ready to Build at Scale?')}
           </h2>
           <p className="text-lg sm:text-xl text-white/80 mt-6 max-w-2xl mx-auto leading-relaxed">
-            Join 30,000+ developers and enterprises who trust QuantumClaw for their AI infrastructure.
+            {t('Enterprise CTA Desc')}
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-10">
             <a href="mailto:sales@quantumclaw.ai"

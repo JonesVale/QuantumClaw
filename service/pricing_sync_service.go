@@ -167,7 +167,7 @@ func fetchFromHuggingFace() error {
 	if err != nil {
 		return fmt.Errorf("hf request failed: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { io.Copy(io.Discard, resp.Body); resp.Body.Close() }()
 
 	if resp.StatusCode != 200 {
 		return fmt.Errorf("hf status %d", resp.StatusCode)
