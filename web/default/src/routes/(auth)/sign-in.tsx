@@ -134,7 +134,7 @@ function SignInPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(/login-backup.png)',
+        backgroundImage: 'url(/login-backup.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}>
