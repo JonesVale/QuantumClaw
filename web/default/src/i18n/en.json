@@ -1846,5 +1846,12 @@
   "No team members yet. Share your referral link to grow your team.": "No team members yet. Share your referral link to grow your team.",
   "Your Team is Empty": "Your Team is Empty",
   "Share your referral link above with friends and colleagues. When they register, they'll automatically appear here.": "Share your referral link above with friends and colleagues. When they register, they'll automatically appear here.",
-  "Loading": "Loading"
+  "Loading": "Loading",
+  "Free Chat API Keys": "Free Chat API Keys",
+  "Configure API keys for the free chat feature. Keys stored in database take priority over environment variables.": "Configure API keys for the free chat feature. Keys stored in database take priority over environment variables.",
+  "Save All": "Save All",
+  "Hide All": "Hide All",
+  "or set via admin page": "or set via admin page",
+  "Env variable": "Env variable",
+  "DB value takes priority": "DB value takes priority"
 }

@@ -1846,5 +1846,12 @@
   "No team members yet. Share your referral link to grow your team.": "还没有团队成员。分享你的推广链接来壮大团队。",
   "Your Team is Empty": "你的团队为空",
   "Share your referral link above with friends and colleagues. When they register, they'll automatically appear here.": "与朋友和同事分享上面的推广链接。他们注册后将自动出现在这里。",
-  "Loading": "加载中"
+  "Loading": "加载中",
+  "Free Chat API Keys": "免费聊天 API 密钥",
+  "Configure API keys for the free chat feature. Keys stored in database take priority over environment variables.": "配置免费聊天功能的 API 密钥。存储在数据库中的密钥优先于环境变量。",
+  "Save All": "保存全部",
+  "Hide All": "全部隐藏",
+  "or set via admin page": "或通过管理页面设置",
+  "Env variable": "环境变量",
+  "DB value takes priority": "数据库值优先"
 }
