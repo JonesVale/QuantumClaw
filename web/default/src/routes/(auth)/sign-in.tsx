@@ -96,7 +96,7 @@ function SignInPage() {
       }
     } catch { setError(t('Network error')) }
     setLoading(false)
-  }, [username, password, confirmPassword, t, navigate, auth, refCode])
+  }, [username, password, t, navigate, auth, refCode])
 
   const doRegister = useCallback(async () => {
     if (!username || !password || password !== confirmPassword) return
@@ -113,7 +113,7 @@ function SignInPage() {
       }
     } catch { setError(t('Network error')) }
     setLoading(false)
-  }, [username, password, confirmPassword, t, navigate, auth, refCode])
+  }, [username, password, confirmPassword, refCode, t, navigate, auth])
 
   const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider.id)
@@ -158,20 +158,6 @@ function SignInPage() {
               {t('Register')}
             </button>
           </div>
-                    <div className="flex mb-6">
-            <button
-              onClick={() => setMode('login')}
-              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
-            >
-              {t('Sign In')}
-            </button>
-            <button
-              onClick={() => setMode('register')}
-              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
-            >
-              {t('Register')}
-            </button>
-          </div>
                     {error && (
             <div className="mb-5 px-5 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-200/50">
               {error}
@@ -191,7 +177,16 @@ function SignInPage() {
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
                 placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="current-password" />
             </div>
-            <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && password !== confirmPassword)}
+            {mode === 'register' && (
+            <div>
+              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Confirm Password')}</label>
+              <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && doRegister()}
+                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="new-password" />
+            </div>
+            )}
+            <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && (!confirmPassword || password !== confirmPassword))}
               className="w-full py-3.5 rounded-xl text-base font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
               {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : mode === 'login' ? t('Sign In') : t('Register')}
             </button>
