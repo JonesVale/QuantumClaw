@@ -17,10 +17,10 @@ const FEATURES = [
 ]
 
 const METRICS = [
-  { value: '99.99%', label: 'Uptime SLA', sub: 'Multi-region failover' },
-  { value: '400+', label: 'AI Models', sub: 'Single unified API' },
-  { value: '<15min', label: 'Response Time', sub: 'Priority support SLA' },
-  { value: '50M+', label: 'Daily Tokens', sub: 'Processed reliably' },
+  { value: '99.99%', labelKey: 'ent_metric_uptime_label', subKey: 'ent_metric_uptime_sub' },
+  { value: '400+', labelKey: 'ent_metric_models_label', subKey: 'ent_metric_models_sub' },
+  { value: '<15min', labelKey: 'ent_metric_response_label', subKey: 'ent_metric_response_sub' },
+  { value: '50M+', labelKey: 'ent_metric_daily_label', subKey: 'ent_metric_daily_sub' },
 ]
 
 function EnterprisePage() {
@@ -91,8 +91,8 @@ function EnterprisePage() {
             {METRICS.map(m => (
               <div key={m.value} className="text-center">
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">{m.value}</div>
-                <div className="text-base font-semibold text-foreground mt-2">{m.label}</div>
-                <div className="text-sm text-muted-foreground/60 mt-1">{m.sub}</div>
+                <div className="text-base font-semibold text-foreground mt-2">{t(m.labelKey)}</div>
+                <div className="text-sm text-muted-foreground/60 mt-1">{t(m.subKey)}</div>
               </div>
             ))}
           </div>

@@ -7,25 +7,25 @@ export const Route = createFileRoute('/apps')({
   component: AppsPage,
 })
 
-interface App { name: string; description: string; url: string; category: string; icon: string; users: string; featured?: boolean }
+interface App { name: string; descKey: string; url: string; catKey: string; icon: string; users: string; featured?: boolean }
 
 const apps: App[] = [
-  { name:'Cursor', description:'AI-first code editor with multi-model support.', url:'https://cursor.sh', category:'Development', icon:'</>', users:'1.2M+' },
-  { name:'ChatBox', description:'All-in-one AI desktop client supporting all major LLMs.', url:'https://chatbox.app', category:'Chat', icon:'💬', users:'800K+', featured:true },
-  { name:'Continue', description:'Open-source AI code assistant for VS Code & JetBrains.', url:'https://continue.dev', category:'Development', icon:'{ }', users:'500K+' },
-  { name:'LobeChat', description:'Modern chat framework with plugin system and multi-model support.', url:'https://lobehub.com', category:'Chat', icon:'🤖', users:'300K+', featured:true },
-  { name:'Open WebUI', description:'Self-hosted WebUI for LLMs with QuantumClaw API integration.', url:'https://openwebui.com', category:'Chat', icon:'🌐', users:'250K+' },
-  { name:'Dify', description:'Open-source LLM app development platform. Build and deploy AI applications.', url:'https://dify.ai', category:'Platform', icon:'🗄', users:'200K+', featured:true },
-  { name:'FastGPT', description:'Knowledge-based Q&A system built on LLMs and vector databases.', url:'https://fastgpt.in', category:'Platform', icon:'⚡', users:'150K+' },
-  { name:'Cherry Studio', description:'Desktop client for LLMs with support for multiple AI services.', url:'https://cherry-ai.com', category:'Chat', icon:'✨', users:'100K+' },
-  { name:'AI Toolkit', description:'Browser extension for ChatGPT, Gemini, Claude with QuantumClaw API support.', url:'https://aitoolkit.com', category:'Tools', icon:'⭐', users:'80K+' },
+  { name:'Cursor', descKey:'app_cursor_desc', url:'https://cursor.sh', catKey:'app_category_Development', icon:'</>', users:'1.2M+' },
+  { name:'ChatBox', descKey:'app_chatbox_desc', url:'https://chatbox.app', catKey:'app_category_Chat', icon:'💬', users:'800K+', featured:true },
+  { name:'Continue', descKey:'app_continue_desc', url:'https://continue.dev', catKey:'app_category_Development', icon:'{ }', users:'500K+' },
+  { name:'LobeChat', descKey:'app_lobechat_desc', url:'https://lobehub.com', catKey:'app_category_Chat', icon:'🤖', users:'300K+', featured:true },
+  { name:'Open WebUI', descKey:'app_openwebui_desc', url:'https://openwebui.com', catKey:'app_category_Chat', icon:'🌐', users:'250K+' },
+  { name:'Dify', descKey:'app_dify_desc', url:'https://dify.ai', catKey:'app_category_Platform', icon:'🗄', users:'200K+', featured:true },
+  { name:'FastGPT', descKey:'app_fastgpt_desc', url:'https://fastgpt.in', catKey:'app_category_Platform', icon:'⚡', users:'150K+' },
+  { name:'Cherry Studio', descKey:'app_cherry_desc', url:'https://cherry-ai.com', catKey:'app_category_Chat', icon:'✨', users:'100K+' },
+  { name:'AI Toolkit', descKey:'app_aitoolkit_desc', url:'https://aitoolkit.com', catKey:'app_category_Tools', icon:'⭐', users:'80K+' },
 ]
 
 function AppsPage() {
   const { t } = useT()
   const [search, setSearch] = useState('')
 
-  const filtered = apps.filter(a => !search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase()))
+  const filtered = apps.filter(a => !search||a.name.toLowerCase().includes(search.toLowerCase())||t(a.descKey).toLowerCase().includes(search.toLowerCase()))
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
@@ -58,8 +58,8 @@ function AppsPage() {
                           <h3 className="text-base font-bold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h3>
                           <svg className="w-4 h-4 text-muted-foreground/30 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
                         </div>
-                        <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{app.description}</p>
-                        <div className="flex items-center gap-3 mt-2"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
+                        <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{t(app.descKey)}</p>
+                        <div className="flex items-center gap-3 mt-2"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{t(app.catKey)}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
                       </div>
                     </a>
                   ))}
@@ -76,8 +76,8 @@ function AppsPage() {
                   <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shadow-sm shrink-0">{app.icon}</div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>
-                    <p className="text-sm text-muted-foreground/60 mt-0.5 leading-relaxed">{app.description}</p>
-                    <div className="flex items-center gap-3 mt-1.5"><span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-muted/50 text-muted-foreground/70">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users}</span></div>
+                    <p className="text-sm text-muted-foreground/60 mt-0.5 leading-relaxed">{t(app.descKey)}</p>
+                    <div className="flex items-center gap-3 mt-1.5"><span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-muted/50 text-muted-foreground/70">{t(app.catKey)}</span><span className="text-xs text-muted-foreground/50">{app.users}</span></div>
                   </div>
                   <svg className="w-5 h-5 text-muted-foreground/20 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0 mt-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
                 </a>
