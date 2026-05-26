@@ -226,8 +226,8 @@ function getFallbackSidebar(role: number): SidebarMenuItem[] {
       // Admin-only items
       const adminOnlyPaths = ['/users', '/redemption', '/distributors', '/admin-tools',
         '/profit', '/reseller-admin', '/settlement', '/transactions', '/platform-settings',
-        '/promo-ads', '/channels', '/menu-permissions']
-      const loginRequiredPaths = ['/keys', '/logs', '/monitoring', '/reseller', '/reseller-keys', '/team']
+        '/promo-ads', '/channels', '/menu-permissions', '/monitoring']
+      const loginRequiredPaths = ['/keys', '/logs', '/reseller', '/reseller-keys', '/team']
       const publicPaths = ['/news']
 
       if (adminOnlyPaths.includes(item.path)) return isAdmin

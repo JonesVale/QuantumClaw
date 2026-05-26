@@ -192,7 +192,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-redemption", ParentKey: "", MenuType: "sidebar", LabelKey: "Redemption Codes", Icon: "Ticket", Path: "/redemption", SortOrder: 40, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-distributors", ParentKey: "", MenuType: "sidebar", LabelKey: "Distributors", Icon: "Truck", Path: "/distributors", SortOrder: 50, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-admin-tools", ParentKey: "", MenuType: "sidebar", LabelKey: "Admin Tools", Icon: "Wrench", Path: "/admin-tools", SortOrder: 60, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 80, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-news", ParentKey: "", MenuType: "sidebar", LabelKey: "AI News", Icon: "Newspaper", Path: "/news", SortOrder: 90, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 95, Roles: "[10,100]", GroupName: "management", Enabled: true},

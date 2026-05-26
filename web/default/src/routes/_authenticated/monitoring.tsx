@@ -117,9 +117,8 @@ const latencyData = [
 function MonitoringPage() {
   const { t } = useT()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
-  const [error, setError] = useState<string | null>(null)
 
-  const { data: perfData, isLoading: perfLoading, isRefetching: perfRefetching, refetch: refetchPerf } = useQuery({
+  const { data: perfData, isLoading: perfLoading, isError: perfError, isRefetching: perfRefetching, refetch: refetchPerf, error: perfQueryError } = useQuery({
     queryKey: ['monitor-performance'],
     queryFn: async () => {
       const res = await fetch('/api/admin/performance')
@@ -163,7 +162,7 @@ function MonitoringPage() {
     if (perfData) setLastUpdated(new Date())
   }, [perfData])
 
-  const isError = !perfLoading && !perfData
+  const isError = perfError || (!perfLoading && !perfData)
   const isLoading = perfLoading && !perfData
 
   const memoryAlloc = perfData?.memory?.alloc ?? 0
@@ -190,7 +189,7 @@ function MonitoringPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div />
         <div className="flex items-center gap-3">
-          {error && (
+          {isError && (
             <Badge variant="destructive" className="flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               {t('Error')}
@@ -220,7 +219,7 @@ function MonitoringPage() {
               </p>
             </div>
             <button
-              onClick={() => { setError(null); refetchPerf() }}
+              onClick={() => refetchPerf()}
               className="ml-auto px-4 py-2 text-sm font-medium text-red-700 hover:text-red-800 bg-red-100 hover:bg-red-200 rounded-lg transition-colors dark:text-red-400 dark:hover:text-red-300 dark:bg-red-900/30"
             >
               {t('Retry')}
