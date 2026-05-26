@@ -1,10 +1,11 @@
 ﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, memo, useMemo, useEffect, useRef } from 'react'
-import { ExternalLink, Newspaper, Loader2, AlertCircle } from 'lucide-react'
+import { ExternalLink, Newspaper, Loader2, AlertCircle, Cpu, Atom } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { newsSources } from '@/lib/news-sources'
 
 export const Route = createFileRoute('/_authenticated/news')({
   component: NewsPage,
@@ -35,10 +36,29 @@ interface RssApiResponse {
 const LANG_TABS = ['all', 'zh', 'en'] as const
 type LangTab = (typeof LANG_TABS)[number]
 
+const CATEGORY_TABS = ['all', 'ai', 'quantum'] as const
+type CategoryTab = (typeof CATEGORY_TABS)[number]
+
 const LANG_LABELS: Record<string, string> = {
   all: 'All',
   zh: '\u4e2d\u6587',
   en: 'EN',
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  all: 'All',
+  ai: 'AI',
+  quantum: 'Quantum',
+}
+
+// Build source→category lookup map from newsSources config
+const sourceCategoryMap: Record<string, string> = {}
+for (const src of newsSources) {
+  sourceCategoryMap[src.name] = src.category || 'ai'
+}
+
+function getArticleCategory(source: string): string {
+  return sourceCategoryMap[source] || 'ai'
 }
 
 const LANG_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -76,9 +96,16 @@ function ArticleCard({ article }: { article: RssArticle }) {
           <Badge variant={LANG_VARIANTS[article.language] || 'outline'} className="shrink-0 text-[10px]">
             {LANG_LABELS[article.language] || article.language}
           </Badge>
-          <span className="text-[10px] text-muted-foreground truncate" title={article.source}>
-            {article.source}
-          </span>
+          <div className="flex items-center gap-1.5 min-w-0">
+            {getArticleCategory(article.source) === 'quantum' ? (
+              <Atom className="h-3 w-3 text-purple-500 shrink-0" />
+            ) : (
+              <Cpu className="h-3 w-3 text-blue-500 shrink-0" />
+            )}
+            <span className="text-[10px] text-muted-foreground truncate" title={article.source}>
+              {article.source}
+            </span>
+          </div>
         </div>
         <CardTitle className="text-sm leading-snug line-clamp-2" title={article.title}>
           {article.title || t('Untitled')}
@@ -148,6 +175,7 @@ function ErrorState({ message, onRetry }: { message: string; onRetry: () => void
 function NewsPage() {
   const { t } = useT()
   const [activeLang, setActiveLang] = useState<LangTab>('all')
+  const [activeCategory, setActiveCategory] = useState<CategoryTab>('all')
   const [articles, setArticles] = useState<RssArticle[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -174,17 +202,24 @@ function NewsPage() {
     fetchArticles(activeLang === 'all' ? 'all' : activeLang)
   }, [activeLang])
 
+  // Filter articles by category using source→category map
+  const filteredArticles = useMemo(() => {
+    if (activeCategory === 'all') return articles
+    return articles.filter((a) => getArticleCategory(a.source) === activeCategory)
+  }, [articles, activeCategory])
+
   return (
     <div className="qc-wrapper py-8 space-y-8">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t('AI News')}</h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            {t('Latest AI articles from top sources')}
+            {t('Latest AI & Quantum Computing articles from top sources')}
           </p>
         </div>
       </div>
 
+      {/* Language filter */}
       <div className="flex gap-2 flex-wrap">
         {LANG_TABS.map((lang) => (
           <Button
@@ -199,6 +234,27 @@ function NewsPage() {
         ))}
       </div>
 
+      {/* Category filter */}
+      <div className="flex gap-2 flex-wrap">
+        {CATEGORY_TABS.map((cat) => (
+          <Button
+            key={cat}
+            variant={activeCategory === cat ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setActiveCategory(cat)}
+            className={`text-xs gap-1.5 ${
+              cat === 'quantum' && activeCategory === 'quantum'
+                ? 'bg-gradient-to-r from-purple-500 to-purple-600'
+                : ''
+            }`}
+          >
+            {cat === 'quantum' && <Atom className="h-3 w-3" />}
+            {cat === 'ai' && <Cpu className="h-3 w-3" />}
+            {t(CATEGORY_LABELS[cat])}
+          </Button>
+        ))}
+      </div>
+
       {loading ? (
         <LoadingState />
       ) : error ? (
@@ -206,11 +262,17 @@ function NewsPage() {
       ) : articles.length === 0 ? (
         <EmptyState message={t('No articles yet. RSS feeds are being fetched in the background.')} />
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {articles.map((article) => (
-            <ArticleCard key={article.id} article={article} />
-          ))}
-        </div>
+        <>
+          {filteredArticles.length === 0 ? (
+            <EmptyState message={t('No articles in this category')} />
+          ) : (
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredArticles.map((article) => (
+                <ArticleCard key={article.id} article={article} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )

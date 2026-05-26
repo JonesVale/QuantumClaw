@@ -144,6 +144,25 @@ func RssSources() []RssSource {
 			Language: "en",
 			Enabled:  true,
 		},
+		// ── Quantum Computing ──
+		{
+			Name:     "arXiv Quantum Physics",
+			FeedURL:  "https://export.arxiv.org/rss/quant-ph",
+			Language: "en",
+			Enabled:  true,
+		},
+		{
+			Name:     "Google Quantum AI",
+			FeedURL:  "https://blog.research.google/feeds/posts/default/-/quantum",
+			Language: "en",
+			Enabled:  true,
+		},
+		{
+			Name:     "Quanta Magazine",
+			FeedURL:  "https://www.quantamagazine.org/feed",
+			Language: "en",
+			Enabled:  true,
+		},
 	}
 }
 

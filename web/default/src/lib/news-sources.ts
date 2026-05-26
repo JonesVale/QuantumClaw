@@ -86,4 +86,26 @@ export const newsSources: NewsSource[] = [
     description: 'Reddit community discussing AI news, discussions, and emerging trends',
     category: 'community',
   },
+  // ── Quantum Computing ──
+  {
+    name: 'arXiv Quantum Physics',
+    url: 'https://arxiv.org/list/quant-ph/recent',
+    lang: 'en',
+    description: 'Latest preprints in quantum physics, quantum information, and quantum computing from arXiv',
+    category: 'quantum',
+  },
+  {
+    name: 'Google Quantum AI',
+    url: 'https://blog.research.google/',
+    lang: 'en',
+    description: 'Google\'s official research blog covering quantum computing breakthroughs, Willow chip, and quantum error correction',
+    category: 'quantum',
+  },
+  {
+    name: 'Quanta Magazine',
+    url: 'https://www.quantamagazine.org',
+    lang: 'en',
+    description: 'Award-winning science journalism covering quantum physics, computing, and foundational mathematics',
+    category: 'quantum',
+  },
 ]
