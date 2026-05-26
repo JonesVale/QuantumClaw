@@ -369,7 +369,7 @@ function KeysPage() {
           {/* Base URL */}
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-medium text-amber-700 dark:text-amber-400">{t('Base URL')}:</span>
-            <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono break-all">
+            <code className="px-3 py-1.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 font-mono break-all text-sm">
               {window.location.origin}
             </code>
             <Button
@@ -381,9 +381,9 @@ function KeysPage() {
                 toast.success(t('Copied to clipboard'))
               }}
             >
-              <Copy className="h-3 w-3" />
+              <Copy className="h-3.5 w-3.5" />
             </Button>
-            <code className="px-2 py-1 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 text-xs font-mono">
+            <code className="px-3 py-1.5 rounded bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-300 font-mono text-sm">
               Authorization: Bearer {'{'}sk-...{'}'}
             </code>
           </div>
@@ -405,19 +405,36 @@ function KeysPage() {
             </p>
             <div className="ml-8 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
-                <code className="px-2 py-1 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-mono">
+                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
+                <code className="px-3 py-1.5 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-mono text-sm">
                   POST {window.location.origin}/v1/chat/completions
                 </code>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
-                <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-[11px] leading-relaxed font-mono text-amber-800 dark:text-amber-300 w-full">
+                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
+                <div className="relative w-full group">
+                  <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-sm leading-relaxed font-mono text-amber-800 dark:text-amber-300">
 {`curl {window.location.origin}/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
   -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}'`}
                 </pre>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 h-7 gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-700"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`curl ${window.location.origin}/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"Hello"}]}'`)
+                      toast.success(t('Copied to clipboard'))
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    <span className="text-xs">{t('Copy')}</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -439,19 +456,36 @@ function KeysPage() {
             </p>
             <div className="ml-8 space-y-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
-                <code className="px-2 py-1 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 text-xs font-mono">
+                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14">{t('Endpoint')}</span>
+                <code className="px-3 py-1.5 rounded bg-amber-100/70 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300 font-mono text-sm">
                   POST {window.location.origin}/v1/quantum/tasks
                 </code>
               </div>
               <div className="flex items-start gap-2">
-                <span className="text-[10px] font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
-                <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-[11px] leading-relaxed font-mono text-amber-800 dark:text-amber-300 w-full">
+                <span className="text-xs font-semibold text-amber-500 uppercase tracking-wider shrink-0 w-14 pt-1">{t('Example')}</span>
+                <div className="relative w-full group">
+                  <pre className="bg-amber-950/10 dark:bg-amber-950/40 rounded-lg p-3 overflow-x-auto text-sm leading-relaxed font-mono text-amber-800 dark:text-amber-300">
 {`curl -X POST {window.location.origin}/v1/quantum/tasks \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
   -d '{"backend":"ionq-simulator","circuit":{"qubits":2,"gates":[]}}'`}
                 </pre>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="absolute top-2 right-2 h-7 gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-amber-50 dark:bg-amber-950 border-amber-300 dark:border-amber-700"
+                    onClick={() => {
+                      navigator.clipboard.writeText(`curl -X POST ${window.location.origin}/v1/quantum/tasks \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"backend":"ionq-simulator","circuit":{"qubits":2,"gates":[]}}'`)
+                      toast.success(t('Copied to clipboard'))
+                    }}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                    <span className="text-xs">{t('Copy')}</span>
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -461,13 +495,13 @@ function KeysPage() {
       {/* Action Bar */}
       <div className="flex flex-col sm:flex-row gap-3 items-start">
         <div className="relative w-full sm:max-w-sm">
-          <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
           <Input
-            className="pl-12 py-6 text-lg"
+            className="pr-12 py-6 text-lg"
             placeholder={t('Search tokens...')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <Search className="absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         </div>
         <Button
           onClick={() => {
