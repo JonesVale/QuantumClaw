@@ -110,42 +110,8 @@ func GetModelCatalog(c *gin.Context) {
 	}
 
 
-	// Derive auth state and role from context
-	var userIsAuthed bool
-	var userRole int
-	if cachedUsername, exists := c.Get("username"); exists {
-		if u, ok := cachedUsername.(string); ok && u != "" {
-			userIsAuthed = true
-		}
-	}
-	if !userIsAuthed {
-		authHeader := c.GetHeader("Authorization")
-		if authHeader != "" && (strings.HasPrefix(authHeader, "sk-") || strings.HasPrefix(authHeader, "Bearer ")) {
-			userIsAuthed = true
-		}
-	}
-	// Read role from context (set by authHelper / UserAuth middleware)
-	if cachedRole, exists := c.Get("role"); exists {
-		if r, ok := cachedRole.(int); ok {
-			userRole = r
-		}
-	}
-
-	// Channel info visibility by auth/role level
-	//   - Unauthenticated: no channel info at all
-	//   - Regular user (role 0/1): see status only (green/gray dot)
-	//   - Admin/root (role 2/10/100): see full channel info
-	hideChannelInfo := !userIsAuthed || userRole < model.RoleAdminUser
-	if hideChannelInfo {
-		for i := range result {
-			if !userIsAuthed {
-				result[i].Status = 0
-			}
-			result[i].ChannelID = 0
-			result[i].ChannelName = ""
-			result[i].Group = ""
-		}
-	}
+	// Channel info is public — model catalog is a public listing
+	// Resellers use this info to configure their API keys per model
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
