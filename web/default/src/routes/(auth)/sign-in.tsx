@@ -139,11 +139,11 @@ function SignInPage() {
         backgroundPosition: 'center',
       }}>
       <div className="qc-fade-up w-full max-w-md mx-auto px-6">
-        <div className="rounded-2xl bg-white/85 backdrop-blur-xl border border-border/[0.08] shadow-xl shadow-black/[0.04] p-8">
+        <div className="rounded-2xl bg-black/10 backdrop-blur-lg border border-white/10 shadow-2xl shadow-black/20 p-8">
           <div className="flex mb-7 gap-2">
             <button
               onClick={() => setMode('login')}
-              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-muted-foreground hover:text-foreground')}
+              className={'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
             >
               {t('Sign In')}
             </button>
@@ -155,27 +155,27 @@ function SignInPage() {
             </button>
           </div>
                     {error && (
-            <div className="mb-5 px-5 py-3 rounded-xl bg-red-50 text-red-700 text-sm font-medium border border-red-200/50">
+            <div className="mb-5 px-5 py-3 rounded-xl bg-red-500/15 backdrop-blur-sm text-red-200 text-sm font-medium border border-red-400/20">
               {error}
             </div>
           )}
           <div className="space-y-5">
             <div>
-              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Username')}</label>
+              <label className="text-sm font-medium text-white/60 block mb-2">{t('Username')}</label>
               <input type="text" value={username} onChange={e => setUsername(e.target.value)}
-                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:ring-2 focus:ring-amber-500/20 transition-all"
+                className="w-full h-12 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
                 placeholder="Enter your username" autoComplete="username" />
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Password')}</label>
+              <label className="text-sm font-medium text-white/60 block mb-2">{t('Password')}</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && (mode === 'login' ? doLogin() : doRegister())}
-                className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
+                className="w-full h-12 rounded-xl border border-white/20 bg-white/10 backdrop-blur-sm px-5 text-base text-white outline-none placeholder:text-white/40 focus:border-white/40 focus:ring-2 focus:ring-amber-400/30 transition-all"
                 placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="current-password" />
             </div>
             {mode === 'register' && (
             <div>
-              <label className="text-sm font-medium text-muted-foreground/70 block mb-2">{t('Confirm Password')}</label>
+              <label className="text-sm font-medium text-white/60 block mb-2">{t('Confirm Password')}</label>
               <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doRegister()}
                 className="w-full h-12 rounded-xl border border-border/30 bg-white px-5 text-base outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all"
@@ -191,13 +191,13 @@ function SignInPage() {
           {providers.length > 0 && (
             <>
               <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-border/20" /></div>
-                <div className="relative flex justify-center"><span className="bg-white/80 px-3 text-xs text-muted-foreground/60">{t('Or continue with')}</span></div>
+                <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
+                <div className="relative flex justify-center"><span className="bg-transparent px-3 text-xs text-white/50">{t('Or continue with')}</span></div>
               </div>
               <div className="space-y-3">
                 {providers.map(p => (
                   <button key={p.id} onClick={() => handleOAuthLogin(p)} disabled={oauthLoading === p.id}
-                    className="w-full py-2.5 rounded-xl text-sm font-medium border border-border/20 bg-white hover:bg-gray-50 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                    className="w-full py-2.5 rounded-xl text-sm font-medium border border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
                     {oauthLoading === p.id ? (
                       <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
                     ) : (
