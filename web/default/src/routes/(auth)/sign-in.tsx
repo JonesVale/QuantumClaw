@@ -134,7 +134,7 @@ function SignInPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative"
       style={{
-        backgroundImage: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(/login-bg.png)',
+        backgroundImage: 'linear-gradient(rgba(0,0,0,0.35), rgba(0,0,0,0.35)), url(/login-backup.png)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}>
@@ -143,13 +143,13 @@ function SignInPage() {
           <div className="flex mb-7 gap-2">
             <button
               onClick={() => setMode('login')}
-              className={'flex-1 py-3 text-base font-medium rounded-xl transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
+              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ' + (mode === 'login' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
             >
               {t('Sign In')}
             </button>
             <button
               onClick={() => setMode('register')}
-              className={'flex-1 py-3 text-base font-medium rounded-xl transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
+              className={'flex-1 py-4 text-lg font-medium rounded-xl transition-all ml-2 ' + (mode === 'register' ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm' : 'text-white/60 hover:text-white')}
             >
               {t('Register')}
             </button>
@@ -183,7 +183,7 @@ function SignInPage() {
             </div>
             )}
             <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && (!confirmPassword || password !== confirmPassword))}
-              className="w-full py-4 rounded-xl text-lg font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2">
+              className="w-full py-5 rounded-xl text-xl font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2">
               {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : mode === 'login' ? t('Sign In') : t('Register')}
             </button>
           </div>
@@ -197,7 +197,7 @@ function SignInPage() {
               <div className="space-y-3">
                 {providers.map(p => (
                   <button key={p.id} onClick={() => handleOAuthLogin(p)} disabled={oauthLoading === p.id}
-                    className="w-full py-3 rounded-xl text-base font-medium border border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                    className="w-full py-4 rounded-xl text-lg font-medium border border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 disabled:opacity-50 transition-all flex items-center justify-center gap-3">
                     {oauthLoading === p.id ? (
                       <div className="w-4 h-4 rounded-full border-2 border-gray-300 border-t-gray-600 animate-spin" />
                     ) : (
