@@ -173,16 +173,20 @@ func SeedDefaultMenus() error {
 		// ===== Sidebar items (group: "" — main sidebar, no collapsible label) =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "sidebar-chat", ParentKey: "", MenuType: "sidebar", LabelKey: "AI Chat", Icon: "MessageSquare", Path: "/chat", SortOrder: 20, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-models", ParentKey: "", MenuType: "sidebar", LabelKey: "Models", Icon: "Box", Path: "/models", SortOrder: 30, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-rankings", ParentKey: "", MenuType: "sidebar", LabelKey: "Rankings", Icon: "TrendingUp", Path: "/rankings", SortOrder: 40, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-pricing", ParentKey: "", MenuType: "sidebar", LabelKey: "Pricing", Icon: "DollarSign", Path: "/pricing", SortOrder: 50, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-quantum", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum", Icon: "Atom", Path: "/quantum", SortOrder: 55, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-fusion", ParentKey: "", MenuType: "sidebar", LabelKey: "Fusion", Icon: "GitCompare", Path: "/fusion", SortOrder: 57, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-qrng", ParentKey: "", MenuType: "sidebar", LabelKey: "QRNG Generator", Icon: "Atom", Path: "/quantum", SortOrder: 58, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-apps", ParentKey: "", MenuType: "sidebar", LabelKey: "Apps", Icon: "Sparkles", Path: "/apps", SortOrder: 60, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-enterprise", ParentKey: "", MenuType: "sidebar", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 70, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-models", ParentKey: "", MenuType: "sidebar", LabelKey: "Models", Icon: "Box", Path: "/models", SortOrder: 30, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-rankings", ParentKey: "", MenuType: "sidebar", LabelKey: "Rankings", Icon: "TrendingUp", Path: "/rankings", SortOrder: 40, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-pricing", ParentKey: "", MenuType: "sidebar", LabelKey: "Pricing", Icon: "DollarSign", Path: "/pricing", SortOrder: 50, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-quantum", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum", Icon: "Atom", Path: "/quantum", SortOrder: 55, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-fusion", ParentKey: "", MenuType: "sidebar", LabelKey: "Fusion", Icon: "GitCompare", Path: "/fusion", SortOrder: 57, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-qrng", ParentKey: "", MenuType: "sidebar", LabelKey: "QRNG Generator", Icon: "Atom", Path: "/quantum", SortOrder: 58, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-apps", ParentKey: "", MenuType: "sidebar", LabelKey: "Apps", Icon: "Sparkles", Path: "/apps", SortOrder: 60, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-enterprise", ParentKey: "", MenuType: "sidebar", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 70, Roles: "[0,1]", GroupName: "", Enabled: true},
 
-		// ===== Sidebar items (group: "management") =====
+		// ===== Admin default group items (replaces public items for admin roles) =====
+		{MenuKey: "sidebar-admin-model-config", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 75, Roles: "[2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-admin-pricing-config", ParentKey: "", MenuType: "sidebar", LabelKey: "Pricing Settings", Icon: "Settings", Path: "/platform-settings", SortOrder: 80, Roles: "[2,10,100]", GroupName: "", Enabled: true},
+
+// ===== Sidebar items (group: "management") =====
 		{MenuKey: "sidebar-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "API Keys", Icon: "Key", Path: "/keys", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-users", ParentKey: "", MenuType: "sidebar", LabelKey: "Users", Icon: "Users", Path: "/users", SortOrder: 20, Roles: "[2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-logs", ParentKey: "", MenuType: "sidebar", LabelKey: "Usage Logs", Icon: "ScrollText", Path: "/logs", SortOrder: 30, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
@@ -191,7 +195,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-admin-tools", ParentKey: "", MenuType: "sidebar", LabelKey: "Admin Tools", Icon: "Wrench", Path: "/admin-tools", SortOrder: 60, Roles: "[2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 80, Roles: "[2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-news", ParentKey: "", MenuType: "sidebar", LabelKey: "AI News", Icon: "Newspaper", Path: "/news", SortOrder: 90, Roles: "[0,1,2,10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-news", ParentKey: "", MenuType: "sidebar", LabelKey: "AI News", Icon: "Newspaper", Path: "/news", SortOrder: 90, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 95, Roles: "[2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-reseller-admin", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Management", Icon: "Store", Path: "/reseller-admin", SortOrder: 100, Roles: "[2,10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-settlement", ParentKey: "", MenuType: "sidebar", LabelKey: "Settlement Config", Icon: "Percent", Path: "/settlement", SortOrder: 110, Roles: "[2,10,100]", GroupName: "management", Enabled: true},

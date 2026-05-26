@@ -618,7 +618,22 @@ var ModelRatio = map[string]float64{
 	"x-ai/grok-2-vision-1212":                         5.0,
 	"x-ai/grok-beta":                                  7.5,
 	"x-ai/grok-vision-beta":                           7.5,
-	"xwin-lm/xwin-lm-70b":                             1.875,
+		"xwin-lm/xwin-lm-70b":                             1.875,
+
+	// Seed model base names (for normalizeForRatio matching)
+	"claude-3.5-sonnet":    1.5,
+	"claude-3.5-haiku":     0.4,
+	"claude-opus-4":        7.5,
+	"gemini-2.0-pro":       1.0,
+	"gemini-3.0-pro":       1.75,
+	"qwen-2.5-vl":          1.0,
+	"mistral-large":        1.0,
+	"mixtral-8x7b":         0.35,
+	"llama-3.1-70b":        0.3,
+	"llama-3.1-405b":       1.4,
+	"llama-3.2-vision":     0.3,
+	"o3":                   8.0,
+	"codestral":            0.25,
 }
 
 var CompletionRatio = map[string]float64{

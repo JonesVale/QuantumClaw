@@ -1,4 +1,4 @@
-/**
+﻿/**
  * QuantumClaw - Menu Permission Hook
  *
  * Fetches menu items from the backend, filtered by the current user's role.

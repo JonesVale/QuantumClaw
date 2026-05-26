@@ -12,7 +12,7 @@
 
 
 
-import { Suspense, useCallback, useMemo, useState, useEffect, useRef } from 'react'
+import { Suspense, useCallback, useMemo, useState } from 'react'
 
 import { Link, Outlet, useLocation, useRouter } from '@tanstack/react-router'
 
@@ -284,36 +284,13 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const { auth } = useAuthStore()
   const isAdmin = auth.user?.role === 100
   const isLoggedIn = !!auth.user
-  const [hovered, setHovered] = useState(true)
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     '': true,           // default group (Dashboard, Chat...) always open
     management: false,  // Management initially closed
     account: false,     // Account initially closed
   })
-  const expandTimer = useRef<ReturnType<typeof setTimeout>>()
-  const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
-
-  // Cleanup timers on unmount
-  useEffect(() => {
-    return () => {
-      clearTimeout(expandTimer.current)
-      clearTimeout(collapseTimer.current)
-    }
-  }, [])
-
-  // Hover debounce: 200ms to expand, 150ms to collapse
-  const handleMouseEnter = () => {
-    clearTimeout(collapseTimer.current)
-    expandTimer.current = setTimeout(() => setHovered(true), 200)
-  }
-
-  const handleMouseLeave = () => {
-    clearTimeout(expandTimer.current)
-    collapseTimer.current = setTimeout(() => setHovered(false), 150)
-  }
-
-  // collapsed when NOT mobile AND NOT hovered
-  const collapsed = !mobile && !hovered
+  // Always expanded on desktop (flex push layout), collapsed on mobile only
+  const collapsed = false
 
   // Fetch sidebar menus from API
   const { data: apiSidebarItems = [] } = useSidebarMenus()
@@ -395,9 +372,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   return (
     <div
       className="bg-white/60 backdrop-blur-xl rounded-2xl border border-border/20 shadow-sm p-5 transition-all duration-200"
-      style={{ width: collapsed ? '4rem' : '16rem' }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      style={{ width: '16rem' }}
     >
       {/* Brand Header */}
       <div className="flex h-16 items-center px-4">
