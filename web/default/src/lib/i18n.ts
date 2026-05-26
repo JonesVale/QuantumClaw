@@ -105,40 +105,30 @@ export const ALL_LANG_DISPLAY_NAMES: string[] = [
 
 /**
  * 构建策略：
- *  - zh-CN: 完整导入（含 identity 键，用作终极回退）
- *  - 其他语言: 只保留 value !== key 的已翻译条目
- *    这样未翻译的键会走 fallbackLng 回退到 zh-CN
+ *  所有语言: 完整导入所有条目（含 identity 键，不过滤）
+ *  英文 identity 条目是正确英文原文，过滤后回退到 zh-CN 会导致显示中文
+ *  回退链: 当前语言 → zh-CN → 键名
  */
 const resources: Record<string, { translation: Resource }> = {
   'zh-CN': { translation: zhCN as Resource },
+  'en':     { translation: en as Resource },
+  'zh-TW':  { translation: zhTW as Resource },
+  'ja':     { translation: ja as Resource },
+  'ko':     { translation: ko as Resource },
+  'ru':     { translation: ru as Resource },
+  'vi':     { translation: vi as Resource },
+  'ar':     { translation: ar as Resource },
+  'hi':     { translation: hi as Resource },
+  'de':     { translation: de as Resource },
+  'es':     { translation: es as Resource },
+  'fr':     { translation: fr as Resource },
+  'it':     { translation: it as Resource },
+  'nl':     { translation: nl as Resource },
+  'pt':     { translation: pt as Resource },
+  'tr':     { translation: tr as Resource },
+  'th':     { translation: th as Resource },
+  'id':     { translation: id as Resource },
 }
-
-function addLang(code: string, data: Resource) {
-  const translated = Object.fromEntries(
-    Object.entries(data).filter(([k, v]) => v !== k && v !== '')
-  )
-  if (Object.keys(translated).length > 0) {
-    resources[code] = { translation: translated }
-  }
-}
-
-addLang('en', en as Resource)
-addLang('zh-TW', zhTW as Resource)
-addLang('ja', ja as Resource)
-addLang('ko', ko as Resource)
-addLang('ru', ru as Resource)
-addLang('vi', vi as Resource)
-addLang('ar', ar as Resource)
-addLang('hi', hi as Resource)
-addLang('de', de as Resource)
-addLang('es', es as Resource)
-addLang('fr', fr as Resource)
-addLang('it', it as Resource)
-addLang('nl', nl as Resource)
-addLang('pt', pt as Resource)
-addLang('tr', tr as Resource)
-addLang('th', th as Resource)
-addLang('id', id as Resource)
 
 // ========== 初始化 ==========
 
