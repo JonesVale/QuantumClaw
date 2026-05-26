@@ -282,7 +282,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
   const location = useLocation()
   const { t } = useT()
   const { auth } = useAuthStore()
-  const isAdmin = auth.user?.role === 100
+  const isAdmin = auth.user?.role !== undefined && auth.user.role >= 2
   const isLoggedIn = !!auth.user
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
     '': true,           // default group (Dashboard, Chat...) always open

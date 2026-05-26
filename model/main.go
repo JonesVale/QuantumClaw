@@ -156,8 +156,6 @@ func InitDB() {
 		logger.SysLog("database migrated")
 	}
 
-	// Seed default menu items
-	SeedDefaultMenus()
 
 	// 预设默认渠道(检测为空时自动插入)
 	SeedModelMetadata()

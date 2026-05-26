@@ -206,7 +206,7 @@ export function useSidebarMenus() {
 // ---------------------------------------------------------------------------
 
 function getFallbackSidebar(role: number): SidebarMenuItem[] {
-  const isAdmin = role >= 10
+  const isAdmin = role >= 2
   const isLoggedIn = role >= 1
 
   return FALLBACK_SIDEBAR.filter(item => {

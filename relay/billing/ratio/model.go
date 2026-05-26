@@ -735,8 +735,8 @@ func GetModelRatio(name string, channelType int) float64 {
 	if ratio, ok := DefaultModelRatio[name]; ok {
 		return ratio
 	}
-	logger.SysError("model ratio not found: " + name)
-	return 30
+	logger.SysWarn("model ratio not found: " + name)
+	return 0
 }
 
 func CompletionRatio2JSONString() string {

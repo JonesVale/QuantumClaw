@@ -1,4 +1,4 @@
-package service
+﻿package service
 
 import (
 	"encoding/json"
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"gorm.io/gorm/clause"
@@ -55,7 +56,7 @@ func SeedReferencePrices() {
 	model.DB.Where("languages_type = ?", "English").Find(&metadata)
 
 	for _, m := range metadata {
-		normName := normalizeForRatio(m.ModelName)
+		normName := common.NormalizeModelName(m.ModelName)
 		modelRatioVal := ratio.GetModelRatio(normName, 0)
 		compRatio := ratio.GetCompletionRatio(normName, 0)
 
@@ -82,6 +83,10 @@ func SeedReferencePrices() {
 			FetchedAt:   now,
 		}
 
+		// Skip zero-price models (no ModelRatio entry available)
+		if inputPrice <= 0 {
+			continue
+		}
 		// Insert if missing; update if existing was seeded with default pricing (ratio == 30 -> $0.06/1K)
 		var existingPrice model.ReferencePrice
 		if model.DB.Where("model_name = ?", m.ModelName).First(&existingPrice).Error != nil {
@@ -375,18 +380,3 @@ func FetchOfficialPricing() time.Duration {
 	return elapsed
 }
 
-// normalizeForRatio converts a display name to ModelRatio key format.
-func normalizeForRatio(name string) string {
-	b := []byte(name)
-	var out []byte
-	for _, c := range b {
-		if c >= 'A' && c <= 'Z' {
-			out = append(out, c+'a'-'A')
-		} else if c == ' ' {
-			out = append(out, '-')
-		} else {
-			out = append(out, c)
-		}
-	}
-	return string(out)
-}
