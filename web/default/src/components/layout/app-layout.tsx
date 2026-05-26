@@ -423,43 +423,46 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
 
 // ── Breadcrumbs ──────────────
 const breadcrumbMap: Record<string, string> = {
-
   '/dashboard': 'Dashboard',
-
   '/channels': 'Channels',
-
   '/keys': 'API Keys',
-
   '/models': 'Models',
   '/rankings': 'Rankings',
   '/pricing': 'Pricing',
-
   '/users': 'Users',
-
   '/logs': 'Usage Logs',
-
   '/redemption': 'Redemption Codes',
-
   '/chat': 'AI Chat',
   '/monitoring': 'Monitoring',
   '/news': 'AI News',
-
   '/profile': 'Profile',
-
   '/wallet': 'Wallet',
-
   '/billing': 'Billing',
-
   '/checkin': 'Daily Check-in',
-
   '/subscription': 'Subscriptions',
-
   '/tasks': 'Task Logs',
-
   '/settings': 'Settings',
   '/menu-permissions': 'Menu Permissions',
   '/connections': 'OAuth Connections',
-
+  '/notifications': 'Notifications',
+  '/password': 'Password & Security',
+  '/api-docs': 'API Docs',
+  '/about': 'About',
+  '/enterprise': 'Enterprise',
+  '/apps': 'Apps',
+  '/quantum': 'Quantum',
+  '/fusion': 'Fusion',
+  '/distributors': 'Distributors',
+  '/admin-tools': 'Admin Tools',
+  '/profit': 'Channel Profit',
+  '/reseller-admin': 'Reseller Management',
+  '/reseller': 'Reseller Portal',
+  '/reseller-keys': 'My Keys',
+  '/team': 'My Team',
+  '/platform-settings': 'Platform Settings',
+  '/promo-ads': 'Promo Ads',
+  '/settlement': 'Settlement Config',
+  '/transactions': 'Transactions',
 }
 
 
@@ -473,7 +476,7 @@ function Breadcrumbs({ pathname }: { pathname: string }) {
         <Home className="h-3.5 w-3.5" />
       </Link>
       <ChevronRightSmall className="h-3 w-3 mx-0.5" />
-      <span className="font-medium text-foreground">{path}</span>
+      <span className="font-medium text-foreground">{t(path)}</span>
     </nav>
   )
 }
