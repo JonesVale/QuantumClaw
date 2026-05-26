@@ -1,4 +1,5 @@
 {
+  "0": "0",
   "587600277": "587600277",
   "/": "/",
   "/api/admin/model-sync": "/api/admin/model-sync",
@@ -1516,5 +1517,6 @@
   "Minimum withdrawal: \\u00a51. Platform fee (5%) will be deducted automatically on settlement.": "Minimum withdrawal: \\u00a51. Platform fee (5%) will be deducted automatically on settlement.",
   "link": "link",
   "Settlement": "结算",
-  "Cache": "缓存"
+  "Cache": "缓存",
+  "-": "-"
 }
