@@ -120,7 +120,7 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
 
 function ChannelsPage() {
   const { t } = useT()
-  const [search, setSearch] = useState('')
+  const [searchText, setSearchText] = useState('')
   const search = useSearch({ from: '/_authenticated/channels' })
   const [status, setStatus] = useState<string>('all')
   const [typeCategory, setTypeCategory] = useState<string>((search as any).category === 'quantum' ? 'quantum' : (search as any).category === 'ai' ? 'ai' : 'all')
@@ -160,7 +160,7 @@ function ChannelsPage() {
       <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative w-full sm:flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder={t('Search channels...')} value={search} onChange={(e) => setSearch(e.target.value)} /></div>
+            <div className="relative w-full sm:flex-1"><Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" /><Input className="pl-9" placeholder={t('Search channels...')} value={searchText} onChange={(e) => setSearchText(e.target.value)} /></div>
             <Select value={typeCategory} onValueChange={setTypeCategory}>
               <SelectTrigger className="w-full sm:w-32"><SelectValue placeholder={t('All Types')} /></SelectTrigger>
               <SelectContent><SelectItem value="all">{t('All Types')}</SelectItem><SelectItem value="ai">{t('AI Models')}</SelectItem><SelectItem value="quantum">{t('Quantum')}</SelectItem></SelectContent>
