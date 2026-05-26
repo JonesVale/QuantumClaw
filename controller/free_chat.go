@@ -11,7 +11,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/middleware"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
