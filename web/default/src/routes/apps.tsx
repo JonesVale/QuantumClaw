@@ -1,8 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { PromoCarousel } from '@/components/promo-carousel'
-import { ModelFilterSidebar, useSidebarData, type SidebarFilters } from '@/components/model-filter-sidebar'
 
 export const Route = createFileRoute('/apps')({
   component: AppsPage,
@@ -23,32 +22,10 @@ const apps: App[] = [
 ]
 
 function AppsPage() {
-  const { t, language } = useT()
-  const [cat, setCat] = useState('all')
-  const [prov, setProv] = useState('')
-  const [ctx, setCtx] = useState('')
+  const { t } = useT()
   const [search, setSearch] = useState('')
-  const [hovered, setHovered] = useState(true)
-  const expandTimer = useRef<ReturnType<typeof setTimeout>>()
-  const collapseTimer = useRef<ReturnType<typeof setTimeout>>()
 
-  const handleSidebarEnter = () => {
-    clearTimeout(collapseTimer.current)
-    expandTimer.current = setTimeout(() => setHovered(true), 200)
-  }
-  const handleSidebarLeave = () => {
-    clearTimeout(expandTimer.current)
-    collapseTimer.current = setTimeout(() => setHovered(false), 150)
-  }
-
-  useEffect(() => {
-    return () => { clearTimeout(expandTimer.current); clearTimeout(collapseTimer.current) }
-  }, [])
-
-  const filters: SidebarFilters = { cat, setCat, prov, setProv, ctx, setCtx }
-  const { all, aiProviders, quantumProviders, useCases, contextBuckets } = useSidebarData(language)
-
-  const filtered = apps.filter(a => (cat==='all'||a.category===cat||(cat==='chat'&&a.category==='Chat')||(cat==='coding'&&a.category==='Development')) && (!search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase())))
+  const filtered = apps.filter(a => !search||a.name.toLowerCase().includes(search.toLowerCase())||a.description.toLowerCase().includes(search.toLowerCase()))
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
@@ -56,67 +33,58 @@ function AppsPage() {
         <div className="mb-6">
           <PromoCarousel pageKey="apps" />
         </div>
-        <div className="relative">
-          <ModelFilterSidebar filters={filters} hovered={hovered} onEnter={handleSidebarEnter} onLeave={handleSidebarLeave}
-            useCases={useCases} aiProviders={aiProviders} quantumProviders={quantumProviders} contextBuckets={contextBuckets} />
+        <div className="flex items-center gap-3 flex-wrap mb-6">
+          <div className="relative flex-1 min-w-[160px] max-w-xs">
+            <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all" placeholder={t('Search apps...')} />
+          </div>
+        </div>
 
-          <div className="transition-all duration-200" className='max-w-[100vw] overflow-x-hidden' style={{ paddingLeft: hovered ? '304px' : '72px' }}>
-            <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-3 flex-wrap mb-6">
-              <div className="relative flex-1 min-w-[160px] max-w-xs">
-                <svg className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                <input value={search} onChange={e=>setSearch(e.target.value)} className="w-full h-10 rounded-xl border border-border/30 bg-white/70 px-10 text-sm placeholder:text-muted-foreground/40 outline-none focus:border-[oklch(0.72_0.18_52)]/40 focus:bg-white transition-all" placeholder={t('Search apps...')} />
-              </div>
-            </div>
-
-            {filtered.length===0?(
-              <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium mb-2">{t('No apps found')}</p><button onClick={()=>{setSearch('');setCat('all')}} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button></div>
-            ):(
-              <>
-                <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('apps')}</p>
-                {filtered.filter(a=>a.featured).length>0&&(
-                  <div className="mb-6">
-                    <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('Featured')}</p>
-                    <div className="space-y-3">
-                      {filtered.filter(a=>a.featured).map((app,i)=>(
-                        <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                          className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/70 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${i*0.08}s`}}>
-                          <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm shrink-0">{app.icon}</div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h3 className="text-base font-bold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h3>
-                              <svg className="w-4 h-4 text-muted-foreground/30 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
-                            </div>
-                            <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{app.description}</p>
-                            <div className="flex items-center gap-3 mt-2"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                <div className="space-y-2">
-                  {filtered.filter(a=>!a.featured).length>0&&(
-                    <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('All Apps')}</p>
-                  )}
-                  {filtered.map((app,i)=>!app.featured&&(
+        {filtered.length===0?(
+          <div className="text-center py-20 text-muted-foreground"><p className="text-lg font-medium mb-2">{t('No apps found')}</p><button onClick={()=>setSearch('')} className="mt-4 px-5 py-2.5 rounded-xl border border-border/30 bg-white hover:bg-muted/40 text-sm font-medium transition-all">{t('Reset filters')}</button></div>
+        ):(
+          <>
+            <p className="text-xs text-muted-foreground/40 font-medium tracking-wide mb-4">{filtered.length} {t('apps')}</p>
+            {filtered.filter(a=>a.featured).length>0&&(
+              <div className="mb-6">
+                <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('Featured')}</p>
+                <div className="space-y-3">
+                  {filtered.filter(a=>a.featured).map((app,i)=>(
                     <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
-                      className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
-                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shadow-sm shrink-0">{app.icon}</div>
+                      className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/70 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${i*0.08}s`}}>
+                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-lg shadow-sm shrink-0">{app.icon}</div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>
-                        <p className="text-sm text-muted-foreground/60 mt-0.5 leading-relaxed">{app.description}</p>
-                        <div className="flex items-center gap-3 mt-1.5"><span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-muted/50 text-muted-foreground/70">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users}</span></div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-base font-bold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h3>
+                          <svg className="w-4 h-4 text-muted-foreground/30 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
+                        </div>
+                        <p className="text-sm text-muted-foreground/60 mt-1 leading-relaxed">{app.description}</p>
+                        <div className="flex items-center gap-3 mt-2"><span className="text-xs font-medium px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users} {t('users')}</span></div>
                       </div>
-                      <svg className="w-5 h-5 text-muted-foreground/20 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0 mt-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
                     </a>
                   ))}
                 </div>
-              </>
+              </div>
             )}
+            <div className="space-y-2">
+              {filtered.filter(a=>!a.featured).length>0&&(
+                <p className="text-xs font-semibold text-muted-foreground/40 uppercase tracking-[0.1em] mb-3 px-1">{t('All Apps')}</p>
+              )}
+              {filtered.map((app,i)=>!app.featured&&(
+                <a key={app.name} href={app.url} target="_blank" rel="noopener noreferrer"
+                  className="qc-fade-up group flex items-start gap-4 px-3 sm:px-5 py-3 sm:py-4 rounded-2xl bg-white/60 hover:bg-white/90 transition-all border border-border/10 hover:shadow-sm" style={{animationDelay:`${(i%10)*0.04}s`}}>
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center text-base shadow-sm shrink-0">{app.icon}</div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-sm font-semibold tracking-tight group-hover:text-[oklch(0.72_0.18_52)] transition-colors">{app.name}</h4>
+                    <p className="text-sm text-muted-foreground/60 mt-0.5 leading-relaxed">{app.description}</p>
+                    <div className="flex items-center gap-3 mt-1.5"><span className="text-xs font-medium px-2.5 py-0.5 rounded-lg bg-muted/50 text-muted-foreground/70">{app.category}</span><span className="text-xs text-muted-foreground/50">{app.users}</span></div>
+                  </div>
+                  <svg className="w-5 h-5 text-muted-foreground/20 group-hover:text-[oklch(0.72_0.18_52)] transition-colors shrink-0 mt-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 7h10v10M7 17L17 7"/></svg>
+                </a>
+              ))}
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </div>
     </div>
   )
