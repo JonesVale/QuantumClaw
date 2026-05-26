@@ -77,8 +77,8 @@ export async function getChannels(
   }
 ): Promise<ApiResponse<Channel[]>> {
   const params: Record<string, unknown> = extractParams<typeof arg2>(arg1, arg2) || {}
-  // Fetch all channels (no pagination)
-  params.scope = 'all'
+  // Don't force scope — let caller determine. Backend defaults to 'limited' (key omitted).
+  // Admin pages should pass { scope: 'all' } for full channel data.
   const res = await apiClient.get('/api/channel', { params })
   return res.data
 }

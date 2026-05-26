@@ -49,8 +49,8 @@ export interface SidebarMenuItem {
 const FALLBACK_NAV: NavMenuItem[] = [
   { to: '/dashboard',  label: 'Dashboard',  icon: '??' },
   { to: '/models',     label: 'Models',     icon: '?' },
-  { to: '/pricing',    label: 'Pricing',    icon: '¡è' },
-  { to: '/rankings',   label: 'Rankings',   icon: '¡Ô' },
+  { to: '/pricing',    label: 'Pricing',    icon: 'ï¿½ï¿½' },
+  { to: '/rankings',   label: 'Rankings',   icon: 'ï¿½ï¿½' },
   { to: '/apps',       label: 'Apps',       icon: '?' },
   { to: '/enterprise', label: 'Enterprise', icon: '?' },
   { to: '/news',       label: 'AI News',    icon: '??' },
@@ -70,6 +70,8 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
 
   { path: '/apps', icon: 'Sparkles', labelKey: 'Apps', groupName: '' },
   { path: '/enterprise', icon: 'Building2', labelKey: 'Enterprise', groupName: '' },
+  { path: '/channels?category=ai', icon: 'Box', labelKey: 'Model Brands', groupName: 'supplier' },
+  { path: '/channels?category=quantum', icon: 'Atom', labelKey: 'Quantum Sources', groupName: 'supplier' },
   // Management group
   { path: '/keys', icon: 'Key', labelKey: 'API Keys', groupName: 'management' },
   { path: '/users', icon: 'Users', labelKey: 'Users', groupName: 'management' },
@@ -234,6 +236,11 @@ function getFallbackSidebar(role: number): SidebarMenuItem[] {
       if (loginRequiredPaths.includes(item.path)) return isLoggedIn
       if (publicPaths.includes(item.path)) return true
       return true // default management items visible to all
+    }
+    if (item.groupName === 'supplier') {
+      // Supplier items: visible to suppliers (role>=2) and admins
+      const isSupplier = role >= 2
+      return isSupplier
     }
     if (item.groupName === 'account') {
       const adminOnlyPaths = ['/tasks', '/settings']

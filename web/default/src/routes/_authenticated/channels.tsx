@@ -131,7 +131,7 @@ function ChannelsPage() {
 
   const { data: selfInfo } = useQuery({ queryKey: ['self'], queryFn: async () => { const res = await fetch('/api/user/self'); if (!res.ok) return null; return res.json() }, retry: false, staleTime: 30 * 1000 })
   const isProvider = selfInfo?.data?.user_type === 'provider' || (selfInfo?.data?.role ?? 0) >= 10
-  const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ['channels'], queryFn: () => getChannels(), staleTime: 30 * 1000 })
+  const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ['channels'], queryFn: () => getChannels(undefined, { scope: 'all' }), staleTime: 30 * 1000 })
   const { data: typeMap } = useQuery({ queryKey: ['channelTypes'], queryFn: getChannelTypes, staleTime: 10 * 60 * 1000 })
   const deleteMutation = useMutation({ mutationFn: deleteChannel, onSuccess: () => { toast.success(t('Channel deleted')); queryClient.invalidateQueries({ queryKey: ['channels'] }) }, onError: () => toast.error(t('Failed to delete channel')) })
   const testMutation = useMutation({ mutationFn: testChannel, onSuccess: (res) => { if (res?.data?.status === 'success') toast.success(t('Channel test successful')); else toast.error(res?.data?.error || t('Channel test failed')) }, onError: () => toast.error(t('Failed to test channel')) })
