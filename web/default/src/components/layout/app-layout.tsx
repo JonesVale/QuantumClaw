@@ -708,7 +708,7 @@ function AppLayout() {
   const isNewsPage = location.pathname.startsWith('/news')
 
   return (
-    <div className="min-h-screen w-full bg-background flex">
+    <div className="min-h-screen w-full bg-background flex" style={{backgroundImage:'radial-gradient(ellipse at 50% -20%, oklch(0.92 0.03 52 / 0.3), transparent 60%)'}}>
 
       {/* Desktop Sidebar — hidden on news page via md:!hidden to override md:block */}
       <div className={`hidden md:block shrink-0 sticky top-0 h-screen pt-4 pl-4 ${isNewsPage ? 'md:!hidden' : ''}`}>
