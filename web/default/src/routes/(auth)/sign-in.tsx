@@ -1,4 +1,4 @@
-﻿import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
@@ -26,34 +26,52 @@ function SignInPage() {
   const auth = useAuthStore(s => s.auth)
 
   useEffect(() => {
-    // Detect enabled OAuth providers from /api/status
     fetch('/api/status').then(r => r.json()).then(data => {
       if (!data.success) return
       const s = data.data
+      const sv = s.server_address || window.location.origin
       const list: OAuthProvider[] = []
-      
-      if (s.github_oauth) {
+
+      if (s.github_oauth && s.github_client_id) {
         list.push({
           id: 'github', name: 'GitHub', enabled: true,
-          loginUrl: `https://github.com/login/oauth/authorize?client_id=${s.github_client_id}&redirect_uri=${window.location.origin}/api/oauth/github&state=`,
+          loginUrl: `https://github.com/login/oauth/authorize?client_id=${s.github_client_id}&redirect_uri=${sv}/api/oauth/github&state=`,
+        })
+      }
+      if (s.discord_oauth && s.discord_client_id) {
+        list.push({
+          id: 'discord', name: 'Discord', enabled: true,
+          loginUrl: `https://discord.com/api/oauth2/authorize?client_id=${s.discord_client_id}&redirect_uri=${sv}/api/oauth/discord&response_type=code&scope=identify+email&state=`,
+        })
+      }
+      if (s.linuxdo_oauth && s.linuxdo_client_id) {
+        list.push({
+          id: 'linuxdo', name: 'Linux Do', enabled: true,
+          loginUrl: `https://connect.linux.do/oauth/authorize?client_id=${s.linuxdo_client_id}&redirect_uri=${sv}/api/oauth/linuxdo&response_type=code&scope=read&state=`,
         })
       }
       if (s.wechat_login) {
         list.push({
           id: 'wechat', name: 'WeChat', enabled: true,
-          loginUrl: `/api/oauth/wechat?state=`,
-        })
-      }
-      if (s.oidc) {
-        list.push({
-          id: 'oidc', name: 'OIDC', enabled: true,
-          loginUrl: `/api/oauth/oidc?state=`,
+          loginUrl: `${sv}/api/oauth/wechat?state=`,
         })
       }
       if (s.lark_client_id) {
         list.push({
           id: 'lark', name: 'Lark', enabled: true,
-          loginUrl: `${window.location.origin}/api/oauth/lark?state=`,
+          loginUrl: `${sv}/api/oauth/lark?state=`,
+        })
+      }
+      if (s.oidc && s.oidc_authorization_endpoint && s.oidc_client_id) {
+        list.push({
+          id: 'oidc', name: 'OIDC', enabled: true,
+          loginUrl: `${s.oidc_authorization_endpoint}?client_id=${s.oidc_client_id}&redirect_uri=${sv}/api/oauth/oidc&response_type=code&scope=openid+profile+email&state=`,
+        })
+      }
+      if (s.telegram_oauth && s.telegram_bot_username) {
+        list.push({
+          id: 'telegram', name: 'Telegram', enabled: true,
+          loginUrl: `https://t.me/${s.telegram_bot_username}?start=auth_`,
         })
       }
       setProviders(list)
@@ -78,14 +96,12 @@ function SignInPage() {
   const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider.id)
     try {
-      // Get OAuth state from backend
       const res = await fetch('/api/oauth/state').then(r => r.json())
       if (!res.success || !res.data) {
         setError(t('Failed to initiate OAuth login'))
         setOauthLoading(null)
         return
       }
-      // Redirect to provider login URL with state
       window.location.href = provider.loginUrl + res.data
     } catch {
       setError(t('Failed to connect to auth service'))
@@ -173,6 +189,16 @@ function OAuthIcon({ provider }: { provider: string }) {
       </svg>
     )
   }
+  if (provider === 'discord') {
+    return (
+      <svg className="w-4 h-4 text-indigo-500" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189z"/>
+      </svg>
+    )
+  }
+  if (provider === 'linuxdo') {
+    return <span className="w-4 h-4 flex items-center justify-center text-green-600 text-[9px] font-bold">LD</span>
+  }
   if (provider === 'wechat') {
     return (
       <svg className="w-4 h-4 text-green-600" viewBox="0 0 24 24" fill="currentColor">
@@ -180,11 +206,18 @@ function OAuthIcon({ provider }: { provider: string }) {
       </svg>
     )
   }
+  if (provider === 'lark') {
+    return <span className="w-4 h-4 flex items-center justify-center text-blue-600 text-[9px] font-bold">飞</span>
+  }
   if (provider === 'oidc') {
     return <span className="w-4 h-4 flex items-center justify-center text-purple-600 text-[10px] font-bold rounded-full border border-purple-300">O</span>
   }
-  if (provider === 'lark') {
-    return <span className="w-4 h-4 flex items-center justify-center text-blue-600 text-[10px] font-bold rounded-full border border-blue-300">L</span>
+  if (provider === 'telegram') {
+    return (
+      <svg className="w-4 h-4 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+      </svg>
+    )
   }
   return null
 }

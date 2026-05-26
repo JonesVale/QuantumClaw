@@ -44,6 +44,12 @@ func GetStatus(c *gin.Context) {
 			"oidc_authorization_endpoint": config.OidcAuthorizationEndpoint,
 			"oidc_token_endpoint":         config.OidcTokenEndpoint,
 			"oidc_userinfo_endpoint":      config.OidcUserinfoEndpoint,
+			"discord_oauth":               config.DiscordOAuthEnabled,
+			"discord_client_id":           config.DiscordClientId,
+			"linuxdo_oauth":               config.LinuxDOOAuthEnabled,
+			"linuxdo_client_id":           config.LinuxDOClientId,
+			"telegram_oauth":              config.TelegramOAuthEnabled,
+			"telegram_bot_username":       config.TelegramBotUsername,
 		},
 	})
 	return
