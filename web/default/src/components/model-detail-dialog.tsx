@@ -1,6 +1,6 @@
 import { useT } from '@/lib/use-t'
 import { useNavigate } from '@tanstack/react-router'
-import { MessageSquare, Cpu, DollarSign, Box, Layers } from 'lucide-react'
+import { MessageSquare, Cpu, DollarSign, Box, Layers, Star, Shield, Sparkles } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -28,6 +28,15 @@ export interface CatalogItem {
   output_price: number
   status: number
   group: string
+
+  // ── 新增详情字段 ──
+  knowledge_cutoff?: string
+  benchmark_scores?: Record<string, number>
+  capabilities?: string[]
+  recommended_for?: string
+  open_source?: boolean
+  license?: string
+  strengths?: string
 }
 
 export interface ModelDetailDialogProps {
@@ -151,6 +160,92 @@ export function ModelDetailDialog({ open, onOpenChange, model }: ModelDetailDial
             </div>
           </div>
         </div>
+
+        {/* ── 新增详情卡片 ── */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Knowledge Cutoff */}
+          {model.knowledge_cutoff && (
+            <div className="rounded-xl border bg-muted/30 p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <Cpu className="h-3.5 w-3.5" />
+                {t('Knowledge Cutoff')}
+              </div>
+              <div className="text-sm font-semibold">
+                {model.knowledge_cutoff}
+              </div>
+            </div>
+          )}
+
+          {/* Open Source / License */}
+          {(model.open_source !== undefined || model.license) && (
+            <div className="rounded-xl border bg-muted/30 p-3.5 space-y-1">
+              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <Shield className="h-3.5 w-3.5" />
+                {t('License')}
+              </div>
+              <div className="text-sm font-semibold">
+                {model.open_source ? (model.license || t('Open Source')) : t('Proprietary')}
+              </div>
+            </div>
+          )}
+
+          {/* Capabilities */}
+          {model.capabilities && model.capabilities.length > 0 && (
+            <div className="rounded-xl border bg-muted/30 p-3.5 space-y-1.5 col-span-2">
+              <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <Star className="h-3.5 w-3.5" />
+                {t('Capabilities')}
+              </div>
+              <div className="flex flex-wrap gap-1">
+                {model.capabilities.map(cap => (
+                  <span key={cap} className="px-2 py-0.5 rounded text-[10px] font-medium bg-gradient-to-r from-amber-50 to-orange-50 text-amber-700 border border-amber-200/30">
+                    {t(cap)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Benchmarks */}
+        {model.benchmark_scores && Object.keys(model.benchmark_scores).length > 0 && (
+          <div>
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground mb-2">
+              <Sparkles className="h-3.5 w-3.5" />
+              {t('Benchmarks')}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(model.benchmark_scores).map(([name, score]) => (
+                <div key={name} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/30 border border-border/10">
+                  <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">{name}</span>
+                  <span className="text-sm font-bold tabular-nums">{(score * 100).toFixed(1)}%</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Strengths */}
+        {model.strengths && (
+          <div className="rounded-xl border bg-gradient-to-r from-amber-50/50 to-orange-50/50 p-3.5">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+              <Sparkles className="h-3.5 w-3.5" />
+              {t('Strengths')}
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">{model.strengths}</p>
+          </div>
+        )}
+
+        {/* Recommended For */}
+        {model.recommended_for && (
+          <div className="rounded-xl border bg-muted/30 p-3.5">
+            <div className="flex items-center gap-1.5 text-[11px] uppercase tracking-wider text-muted-foreground mb-1">
+              <Star className="h-3.5 w-3.5" />
+              {t('Recommended For')}
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed">{model.recommended_for}</p>
+          </div>
+        )}
 
         {/* Use Case Badge */}
         {useCaseInfo && (

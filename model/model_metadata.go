@@ -2,6 +2,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -20,6 +21,15 @@ type ModelMetadata struct {
 	InputModalities string `gorm:"type:text" json:"input_modalities"`
 	Series          string `gorm:"type:varchar(100)" json:"series"`
 	Provider        string `gorm:"type:varchar(100)" json:"provider"`
+	// ── 详情字段（可为空）──
+	KnowledgeCutoff  string `gorm:"type:varchar(50)" json:"knowledge_cutoff"`
+	BenchmarkScores  string `gorm:"type:text" json:"benchmark_scores"`
+	Capabilities     string `gorm:"type:text" json:"capabilities"`
+	RecommendedFor   string `gorm:"type:varchar(500)" json:"recommended_for"`
+	OpenSource       bool   `gorm:"default:false" json:"open_source"`
+	License          string `gorm:"type:varchar(100)" json:"license"`
+	Strengths        string `gorm:"type:varchar(500)" json:"strengths"`
+
 	CreatedTime     int64  `json:"created_time"`
 	UpdatedTime     int64  `json:"updated_time"`
 }
@@ -31,6 +41,24 @@ func (m *ModelMetadata) Modalities() []string {
 		_ = json.Unmarshal([]byte(m.InputModalities), &mods)
 	}
 	return mods
+}
+
+// ParsedBenchmarks returns the parsed benchmark scores map.
+func (m *ModelMetadata) ParsedBenchmarks() map[string]float64 {
+	result := make(map[string]float64)
+	if m.BenchmarkScores != "" {
+		_ = json.Unmarshal([]byte(m.BenchmarkScores), &result)
+	}
+	return result
+}
+
+// ParsedCapabilities returns the parsed capabilities list.
+func (m *ModelMetadata) ParsedCapabilities() []string {
+	var caps []string
+	if m.Capabilities != "" {
+		_ = json.Unmarshal([]byte(m.Capabilities), &caps)
+	}
+	return caps
 }
 
 // ── Response DTO for GET /api/model-catalog ──
@@ -46,6 +74,15 @@ type CatalogModelResponse struct {
 	Series          string   `json:"series"`
 	Provider        string   `json:"provider"`
 
+	// ── 新增详情字段 ──
+	KnowledgeCutoff string             `json:"knowledge_cutoff"`
+	BenchmarkScores map[string]float64 `json:"benchmark_scores"`
+	Capabilities    []string           `json:"capabilities"`
+	RecommendedFor  string             `json:"recommended_for"`
+	OpenSource      bool               `json:"open_source"`
+	License         string             `json:"license"`
+	Strengths       string             `json:"strengths"`
+
 	// Channel-backed fields (nullable when no channel is configured)
 	ChannelID   int     `json:"channel_id"`
 	ChannelName string  `json:"channel_name"`
@@ -55,6 +92,148 @@ type CatalogModelResponse struct {
 	Group       string  `json:"group"`
 }
 
+// backfillModelDetails fills in knowledge_cutoff, benchmark_scores, capabilities etc.
+// for models that already exist in the DB but have empty new detail fields.
+func backfillModelDetails() {
+	now := time.Now().Unix()
+
+	type modelDetail struct {
+		name      string
+		cutoff    string
+		benchmarks map[string]float64
+		caps      []string
+		recommend string
+		openSrc   bool
+		license   string
+		strengths string
+	}
+
+	details := []modelDetail{
+		{"GPT-4o", "2025-04", map[string]float64{"mmlu": 0.887, "human_eval": 0.901, "gsm8k": 0.953},
+			[]string{"Chat", "Vision", "Code Generation", "Reasoning", "Function Calling"},
+			"通用对话、编程辅助、数据分析、多模态任务", false, "",
+			"最快响应速度, 全模态输入(文本/图像/音频), 128K上下文, 性价比极高"},
+		{"GPT-4o-mini", "2025-04", map[string]float64{"mmlu": 0.821, "human_eval": 0.872, "gsm8k": 0.877},
+			[]string{"Chat", "Vision", "Code Generation", "Function Calling"},
+			"轻量级对话、分类、提取、摘要", false, "",
+			"极低成本, 快速响应, 适合大规模部署"},
+		{"Claude 3.5 Sonnet", "2025-01", map[string]float64{"mmlu": 0.884, "human_eval": 0.896, "gsm8k": 0.942},
+			[]string{"Chat", "Vision", "Code Generation", "Reasoning", "File Analysis"},
+			"文档分析、代码审查、研究报告、复杂推理", false, "",
+			"200K超长上下文, 文件输入支持, 出色的代码和文档理解能力"},
+		{"Claude 3.5 Haiku", "2025-01", map[string]float64{"mmlu": 0.829, "gsm8k": 0.886},
+			[]string{"Chat", "Vision", "Code Generation", "File Analysis"},
+			"日常对话、内容生成、翻译、摘要", false, "",
+			"快速响应, 低成本, 200K上下文"},
+		{"Claude Opus 4", "2025-04", map[string]float64{"mmlu": 0.899, "human_eval": 0.927, "gsm8k": 0.958},
+			[]string{"Chat", "Vision", "Code Generation", "Reasoning", "File Analysis", "Tool Use"},
+			"复杂分析、企业应用、研究级推理", false, "",
+			"Anthropic最强大模型, 顶级推理能力, 工具调用"},
+		{"Gemini 2.0 Flash", "2025-05", map[string]float64{"mmlu": 0.886, "human_eval": 0.848, "gsm8k": 0.941},
+			[]string{"Chat", "Vision", "Code Generation", "Audio/Video Understanding"},
+			"视频分析、音频处理、多模态内容理解", false, "",
+			"100万上下文窗口(业界最长), 原生多模态, 极速响应"},
+		{"Gemini 2.0 Pro", "2025-05", map[string]float64{"mmlu": 0.907, "human_eval": 0.892, "gsm8k": 0.954},
+			[]string{"Chat", "Vision", "Code Generation", "Reasoning", "Audio/Video Understanding"},
+			"多模态研究、大规模数据分析、复杂推理", false, "",
+			"顶级多模态理解, 1M上下文, 全模态输入"},
+		{"DeepSeek Chat", "2025-03", map[string]float64{"mmlu": 0.843, "human_eval": 0.819, "gsm8k": 0.887},
+			[]string{"Chat", "Code Generation", "Reasoning"},
+			"通用对话、编程辅助、知识问答", true, "MIT",
+			"极高性价比, 开源可自部署, 中英双语能力优秀"},
+		{"DeepSeek R1", "2025-03", map[string]float64{"mmlu": 0.901, "human_eval": 0.967, "gsm8k": 0.959, "math": 0.976},
+			[]string{"Reasoning", "Code Generation", "Math", "Problem Solving"},
+			"数学推理、编程竞赛、逻辑分析、科学计算", true, "MIT",
+			"开源中最强推理能力, 逐步思考链, 数学和代码表现领先"},
+		{"DeepSeek V3", "2025-03", map[string]float64{"mmlu": 0.878, "human_eval": 0.893, "gsm8k": 0.925},
+			[]string{"Chat", "Code Generation", "Reasoning"},
+			"代码生成、编程辅助、复杂推理", true, "MIT",
+			"最新代码优化模型, 64K上下文"},
+		{"Qwen Max", "2025-03", map[string]float64{"mmlu": 0.861, "human_eval": 0.783, "gsm8k": 0.878},
+			[]string{"Chat", "Code Generation", "Multilingual"},
+			"中文对话、客户服务、内容创作", false, "",
+			"中文理解能力优秀, 阿里生态集成"},
+		{"Qwen Plus", "2025-03", map[string]float64{"mmlu": 0.845, "gsm8k": 0.872},
+			[]string{"Chat", "Code Generation", "Multilingual"},
+			"中文对话、内容生成", false, "",
+			"128K上下文, 增强上下文理解"},
+		{"Qwen 2.5 VL", "2025-03", map[string]float64{"mmlu": 0.847, "gsm8k": 0.892},
+			[]string{"Vision", "Chat", "OCRs"},
+			"图像理解、文档处理、多模态对话", true, "Apache 2.0",
+			"中文图像理解领先, 文档OCR能力强"},
+		{"Mistral Large", "2025-02", map[string]float64{"mmlu": 0.853, "human_eval": 0.835, "gsm8k": 0.872},
+			[]string{"Chat", "Code Generation", "Multilingual", "Reasoning"},
+			"多语言内容生成、结构化输出", false, "",
+			"多语言支持出色, 原生函数调用, 128K上下文"},
+		{"Mixtral 8x7B", "2024-10", map[string]float64{"mmlu": 0.826, "human_eval": 0.751, "gsm8k": 0.851},
+			[]string{"Chat", "Multilingual"},
+			"多语言对话、内容生成", true, "Apache 2.0",
+			"MoE架构性价比高, 开源"},
+		{"Llama 3.1 70B", "2024-12", map[string]float64{"mmlu": 0.858, "human_eval": 0.801, "gsm8k": 0.901},
+			[]string{"Chat", "Code Generation", "Reasoning", "Tool Use"},
+			"私有部署、定制微调、企业自托管", true, "Llama 3.1 License",
+			"领先的开源模型, 128K上下文, 支持工具调用"},
+		{"Llama 3.1 405B", "2024-12", map[string]float64{"mmlu": 0.874, "human_eval": 0.841, "gsm8k": 0.921},
+			[]string{"Chat", "Code Generation", "Reasoning", "Tool Use"},
+			"最高质量开源模型, 研究、企业部署", true, "Llama 3.1 License",
+			"接近GPT-4水平, 最大开源模型"},
+		{"Llama 3.2 Vision", "2024-12", map[string]float64{"mmlu": 0.832, "gsm8k": 0.879},
+			[]string{"Vision", "Chat", "Code Generation"},
+			"图像理解、文档OCR、视觉问答", true, "Llama 3.2 License",
+			"开源多模态视觉模型, 可定制微调"},
+		{"o1", "2025-04", map[string]float64{"mmlu": 0.921, "human_eval": 0.924, "gsm8k": 0.968, "math": 0.942},
+			[]string{"Reasoning", "Code Generation", "Math", "Problem Solving", "Vision"},
+			"高难度推理、科学研究、数学证明", false, "",
+			"深度推理能力, 200K上下文, 思考链推理"},
+		{"o3", "2025-04", map[string]float64{"mmlu": 0.933, "human_eval": 0.971, "gsm8k": 0.989, "math": 0.967, "arc": 0.957},
+			[]string{"Reasoning", "Code Generation", "Math", "Problem Solving", "Vision", "Scientific Research"},
+			"前沿AI研究、代码竞赛、科学发现", false, "",
+			"OpenAI最强推理能力, 领先所有基准"},
+		{"Codestral", "2025-01", map[string]float64{"human_eval": 0.882, "mbpp": 0.856},
+			[]string{"Code Generation", "Code Completion", "Code Review"},
+			"代码补全、代码生成、代码审查", false, "",
+			"专注代码任务, 支持80+编程语言"},
+		{"GPT-4 Turbo", "2024-12", map[string]float64{"mmlu": 0.864, "human_eval": 0.832, "gsm8k": 0.915},
+			[]string{"Chat", "Vision", "Code Generation"},
+			"复杂任务、长文档分析", false, "",
+			"支持视觉输入, 128K上下文"},
+		{"GPT-3.5 Turbo", "2024-09", map[string]float64{"mmlu": 0.813, "gsm8k": 0.832},
+			[]string{"Chat"},
+			"简单对话、分类、提取", false, "",
+			"快速经济, 适合简单对话任务"},
+		{"Gemini 3.0 Pro", "2025-05", map[string]float64{"mmlu": 0.915, "human_eval": 0.903, "gsm8k": 0.962},
+			[]string{"Chat", "Vision", "Code Generation", "Reasoning", "Audio/Video Understanding"},
+			"先进推理、多模态分析", false, "",
+			"1M上下文, 增强分析能力"},
+	}
+
+	updated := 0
+	for _, d := range details {
+		benchJSON, _ := json.Marshal(d.benchmarks)
+		capsJSON, _ := json.Marshal(d.caps)
+
+		result := DB.Model(&ModelMetadata{}).
+			Where("model_name = ? AND (knowledge_cutoff = '' OR knowledge_cutoff IS NULL)", d.name).
+			Updates(map[string]interface{}{
+				"knowledge_cutoff": d.cutoff,
+				"benchmark_scores": string(benchJSON),
+				"capabilities":     string(capsJSON),
+				"recommended_for":  d.recommend,
+				"open_source":      d.openSrc,
+				"license":          d.license,
+				"strengths":        d.strengths,
+				"updated_time":     now,
+			})
+		if result.Error == nil {
+			updated += int(result.RowsAffected)
+		}
+	}
+
+	if updated > 0 {
+		logger.SysLog(fmt.Sprintf("backfillModelDetails: %d rows updated with model details", updated))
+	}
+}
+
 // SeedModelMetadata ensures the table exists and seeds initial data.
 func SeedModelMetadata() {
 	// Ensure table exists first
@@ -62,6 +241,9 @@ func SeedModelMetadata() {
 		logger.SysError("SeedModelMetadata AutoMigrate failed: " + err.Error())
 		return
 	}
+
+	// Backfill details for existing models (new fields added by migration)
+	backfillModelDetails()
 
 	var count int64
 	DB.Model(&ModelMetadata{}).Count(&count)

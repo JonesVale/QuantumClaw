@@ -66,6 +66,13 @@ func GetModelCatalog(c *gin.Context) {
 			InputModalities: m.Modalities(),
 			Series:          m.Series,
 			Provider:        m.Provider,
+			KnowledgeCutoff: m.KnowledgeCutoff,
+			BenchmarkScores: m.ParsedBenchmarks(),
+			Capabilities:    m.ParsedCapabilities(),
+			RecommendedFor:  m.RecommendedFor,
+			OpenSource:      m.OpenSource,
+			License:         m.License,
+			Strengths:       m.Strengths,
 			Status:          0, // unconfigured by default
 		}
 
