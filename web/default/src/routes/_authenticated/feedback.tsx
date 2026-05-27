@@ -146,7 +146,7 @@ function FeedbackPage() {
       {totalPages > 1 && (
         <div className="flex justify-center gap-2 mt-6">
           <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1}
-            className="px-3 py-1 text-sm rounded border disabled:opacity-50">Prev</button>
+            className="px-3 py-1 text-sm rounded border disabled:opacity-50">{t("Prev")}</button>
           <span className="px-3 py-1 text-sm">{page}/{totalPages}</span>
           <button onClick={() => setPage(p => Math.min(totalPages, p+1))} disabled={page===totalPages}
             className="px-3 py-1 text-sm rounded border disabled:opacity-50">Next</button>

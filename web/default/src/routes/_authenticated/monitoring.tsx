@@ -118,7 +118,7 @@ function RecentLogFeed() {
   const { data: logs } = useQuery({
     queryKey: ['monitor-logs'],
     queryFn: async () => {
-      const res = await fetch('/api/log/self/stat?page=1&page_size=20')
+      const res = await fetch('/api/log/self?p=0')
       if (!res.ok) return []
       const json = await res.json()
       return json.data || []

@@ -191,7 +191,7 @@ function SchemaEditor({ schema, onClose, onSaved }: { schema?: Schema | null, on
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="sse">SSE</SelectItem>
-                  <SelectItem value="websocket">WebSocket</SelectItem>
+                  <SelectItem value="websocket">{t("WebSocket")}</SelectItem>
                   <SelectItem value="poll">Poll</SelectItem>
                   <SelectItem value="none">None</SelectItem>
                 </SelectContent>

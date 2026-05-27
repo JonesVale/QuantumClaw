@@ -2,7 +2,7 @@
  * Application-wide constants for QuantumClaw.
  */
 
-export const DEFAULT_SYSTEM_NAME = 'QuantumClaw'
+export const DEFAULT_SYSTEM_NAME = 'Quantum Spirit Claw'
 export const DEFAULT_LOGO = '/logo.png'
 
 export const STORAGE_KEYS = {

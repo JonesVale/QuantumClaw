@@ -173,7 +173,7 @@ function OAuthCallbackPage() {
         {/* Branding */}
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground/50">
-            QuantumClaw AI API Gateway
+            Quantum Spirit Claw AI API Gateway
           </p>
         </div>
       </div>

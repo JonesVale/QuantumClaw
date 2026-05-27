@@ -122,7 +122,7 @@ function TeamPage() {
               </p>
               <div className="flex items-center gap-2">
                 <code className="flex-1 px-3 py-1.5 bg-white/80 rounded-lg border text-sm font-mono text-qc-warm-500 truncate">
-                  {affCode ? referralLink : '{t("Loading")}'}
+                  {affCode ? referralLink : t("Loading")}
                 </code>
                 <Button
                   variant="outline"

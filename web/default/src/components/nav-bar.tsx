@@ -58,7 +58,7 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
             </div>
             <div className="flex flex-col">
               <span className="text-lg font-bold tracking-tight text-foreground leading-tight">
-                Quantum<span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Claw</span>
+                Quantum Spirit <span className="bg-gradient-to-r from-amber-500 to-orange-500 bg-clip-text text-transparent">Claw</span>
               </span>
             </div>
           </Link>

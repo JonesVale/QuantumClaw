@@ -169,12 +169,12 @@ function PromoAdsPage() {
                   className="w-full h-10 rounded-xl border border-border/30 bg-white px-3 text-sm outline-none"
                 >
                   <option value="all">All Pages</option>
-                  <option value="home">Home</option>
+                  <option value="home">{t("Home")}</option>
                   <option value="models">Models</option>
                   <option value="pricing">Pricing</option>
                   <option value="rankings">Rankings</option>
-                  <option value="apps">Apps</option>
-                  <option value="enterprise">Enterprise</option>
+                  <option value="apps">{t("Apps")}</option>
+                  <option value="enterprise">{t("Enterprise")}</option>
                   <option value="dashboard">Dashboard</option>
                 </select>
               </div>

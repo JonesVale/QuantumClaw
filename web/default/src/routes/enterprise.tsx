@@ -189,9 +189,9 @@ function EnterprisePage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <img src="/logo.webp" alt="QuantumClaw" className="w-6 h-6 object-contain" />
+                <img src="/logo.webp" alt="Quantum Spirit Claw" className="w-6 h-6 object-contain" />
               </div>
-              <span className="font-bold text-foreground">QuantumClaw Enterprise</span>
+              <span className="font-bold text-foreground">Quantum Spirit Claw Enterprise</span>
             </div>
             <div className="flex items-center gap-6">
               <a href="mailto:sales@quantumclaw.ai" className="hover:text-foreground transition-colors">sales@quantumclaw.ai</a>

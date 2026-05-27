@@ -294,7 +294,7 @@ function ApiDocsPage() {
       <Card>
         <CardContent className="py-4 text-center text-sm text-muted-foreground">
           {t('This documentation is OpenAPI-compatible. Generate clients using')}{' '}
-          <a href="https://openapi-generator.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">OpenAPI Generator</a>.
+          <a href="https://openapi-generator.tech" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{t("OpenAPI Generator")}</a>.
         </CardContent>
       </Card>
     </div>

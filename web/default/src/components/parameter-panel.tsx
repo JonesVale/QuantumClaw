@@ -63,7 +63,7 @@ export function ParameterPanel({ params, onParamsChange, onClose }: ParameterPan
         <p className="text-[10px] text-muted-foreground leading-tight">{t('What sampling temperature to use')}</p>
       </div>
 
-      {/* Top P */}
+      {/* {t('Top P')} */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-xs font-medium">Top P</Label>

@@ -17,7 +17,7 @@ function AboutPage() {
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 text-white shadow-lg" />
         </div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
-          QuantumClaw
+          Quantum Spirit Claw
         </h1>
         <p className="text-muted-foreground mt-2">{t('AI API Gateway & Token Distribution Platform')}</p>
         <p className="text-sm text-muted-foreground mt-1">{t('Version 1.0.0')}</p>

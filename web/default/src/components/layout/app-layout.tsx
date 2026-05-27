@@ -372,7 +372,7 @@ function SidebarNav({ mobile }: { mobile?: boolean }) {
       <div className="flex h-16 items-center px-4">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shrink-0">
-            <img src="/logo.webp" alt="QuantumClaw" className="w-8 h-8 object-contain" />
+            <img src="/logo.webp" alt="Quantum Spirit Claw" className="w-8 h-8 object-contain" />
           </div>
           {!collapsed && (
             <span className="text-lg font-bold tracking-tight whitespace-nowrap">{t('QuantumClaw')}</span>

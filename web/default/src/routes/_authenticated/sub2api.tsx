@@ -330,7 +330,7 @@ function Sub2APIPage() {
             </ol>
           </div>
           <div className="space-y-2">
-            <h4 className="font-medium">Claude</h4>
+            <h4 className="font-medium">{t("Claude")}</h4>
             <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
               <li>{t('Log in to claude.ai')}</li>
               <li>{t('Open DevTools (F12) → Application → Cookies')}</li>

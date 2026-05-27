@@ -64,11 +64,11 @@ function QuantumPage() {
                     <span className="text-xs font-semibold text-muted-foreground/50 w-8">q{q.id}</span>
                     <select value={q.gate} onChange={e => setQubits(p => p.map(x => x.id === q.id ? { ...x, gate: e.target.value } : x))}
                       className="flex-1 h-9 rounded-lg border border-border/30 bg-white px-3 text-xs outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all">
-                      <option value="H">Hadamard (H)</option>
+                      <option value="H">{t("Hadamard (H)")}</option>
                       <option value="X">Pauli-X (X)</option>
                       <option value="Y">Pauli-Y (Y)</option>
                       <option value="Z">Pauli-Z (Z)</option>
-                      <option value="CNOT">CNOT</option>
+                      <option value="CNOT">{t("CNOT")}</option>
                     </select>
                     {qubits.length > 1 && (
                       <button onClick={() => removeQubit(q.id)}
