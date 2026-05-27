@@ -1,6 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
-import { useSearch } from '@tanstack/react-router'
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search, MoreHorizontal, Pencil, Trash2, Play, CheckCircle, XCircle, RefreshCw, Server, Network, ExternalLink, Wallet } from 'lucide-react'
@@ -121,9 +120,8 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
 function ChannelsPage() {
   const { t } = useT()
   const [searchText, setSearchText] = useState('')
-  const search = useSearch({ from: '/_authenticated/channels' })
   const [status, setStatus] = useState<string>('all')
-  const [typeCategory, setTypeCategory] = useState<string>((search as any).category === 'quantum' ? 'quantum' : (search as any).category === 'ai' ? 'ai' : 'all')
+  const [typeCategory, setTypeCategory] = useState<string>('all')
   const [channelCategory, setChannelCategory] = useState<string>('all')
   const [editingChannel, setEditingChannel] = useState<Channel | null>(null)
   const [creatingNew, setCreatingNew] = useState(false)
@@ -134,16 +132,16 @@ function ChannelsPage() {
   const { data, isLoading, refetch, isFetching } = useQuery({ queryKey: ['channels'], queryFn: () => getChannels(undefined, { scope: 'all' }), staleTime: 30 * 1000 })
   const { data: typeMap } = useQuery({ queryKey: ['channelTypes'], queryFn: getChannelTypes, staleTime: 10 * 60 * 1000 })
   const deleteMutation = useMutation({ mutationFn: deleteChannel, onSuccess: () => { toast.success(t('Channel deleted')); queryClient.invalidateQueries({ queryKey: ['channels'] }) }, onError: () => toast.error(t('Failed to delete channel')) })
-  const testMutation = useMutation({ mutationFn: testChannel, onSuccess: (res) => { if (res?.data?.status === 'success') toast.success(t('Channel test successful')); else toast.error(res?.data?.error || t('Channel test failed')) }, onError: () => toast.error(t('Failed to test channel')) })
+  const testMutation = useMutation({ mutationFn: testChannel, onSuccess: (res) => { if (res?.data?.success) toast.success(t('Channel test successful')); else toast.error(res?.data?.message || t('Channel test failed')) }, onError: () => toast.error(t('Failed to test channel')) })
 
   const channels: Channel[] = data?.data || []
   const filtered = useMemo(() => channels.filter((ch) => {
-    const matchesSearch = !search || ch.name.toLowerCase().includes(search.toLowerCase()) || ch.group.toLowerCase().includes(search.toLowerCase())
+    const matchesSearch = !searchText || ch.name.toLowerCase().includes(searchText.toLowerCase()) || ch.group.toLowerCase().includes(searchText.toLowerCase())
     const matchesStatus = status === 'all' || (status === 'enabled' && ch.status === 1) || (status === 'disabled' && ch.status === 2)
     const matchesCategory = typeCategory === 'all' || (typeCategory === 'ai' && Number(ch.type) < 100) || (typeCategory === 'quantum' && Number(ch.type) >= 100)
     const matchesChannelCat = channelCategory === 'all' || (channelCategory === ch.category) || (channelCategory === 'configured' && ch.key && !ch.key.startsWith('PUT_YOUR'))
     return matchesSearch && matchesStatus && matchesCategory && matchesChannelCat
-  }), [channels, search, status, typeCategory, channelCategory])
+  }), [channels, searchText, status, typeCategory, channelCategory])
 
   const getTypeBadge = (type: number) => {
     const typeName = typeMap?.[String(type)]; const isQuantum = type >= 100

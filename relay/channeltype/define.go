@@ -1,4 +1,4 @@
-package channeltype
+﻿package channeltype
 
 const (
 	Unknown = iota
@@ -63,6 +63,13 @@ const (
 	Xinference
 	ZhipuV4
 	Dummy
+)
+
+// ==================== 网页模型渠道 (type >= 200) ====================
+const (
+	Sub2API = 200
+	VLLM = 201
+	SGLang = 202 // virtual channel type for schema-driven web model providers
 )
 
 // ==================== 量子算力渠道 (type >= 100) ====================

@@ -194,7 +194,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 80, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 95, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-model-brands", ParentKey: "", MenuType: "sidebar", LabelKey: "Model Brands", Icon: "Cpu", Path: "/channels?category=ai", SortOrder: 96, Roles: "[10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-model-brands", ParentKey: "", MenuType: "sidebar", LabelKey: "Model Brands", Icon: "Cpu", Path: "/model-brands", SortOrder: 96, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-quantum-sources", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum Sources", Icon: "Atom", Path: "/channels?category=quantum", SortOrder: 97, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-reseller-admin", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Management", Icon: "Store", Path: "/reseller-admin", SortOrder: 100, Roles: "[10,100]", GroupName: "management", Enabled: true},
 		{MenuKey: "sidebar-settlement", ParentKey: "", MenuType: "sidebar", LabelKey: "Settlement Config", Icon: "Percent", Path: "/settlement", SortOrder: 110, Roles: "[10,100]", GroupName: "management", Enabled: true},

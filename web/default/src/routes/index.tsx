@@ -82,8 +82,8 @@ function HomePage() {
             {t('Access 400+ AI models and quantum computing resources through a single, unified endpoint. SDK compatible, real-time billing, transparent settlement.')}
           </p>
           <div className="qc-fade-up qc-fade-up-4 flex flex-wrap items-center justify-center gap-4 mt-10">
-            <Link to="/models"><button className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3.5 text-base font-semibold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 transition-all">{t('Browse Models')} {icons.arrowR}</button></Link>
-            {!loggedIn && <Link to="/sign-in"><button className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-8 py-3.5 text-base font-medium text-foreground hover:bg-muted hover:-translate-y-0.5 transition-all">{t('Start Free')}</button></Link>}
+            <Link to="/models" className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white px-8 py-3.5 text-base font-semibold shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/30 hover:-translate-y-0.5 transition-all">{t('Browse Models')} {icons.arrowR}</Link>
+            {!loggedIn && <Link to="/sign-in" className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-8 py-3.5 text-base font-medium text-foreground hover:bg-muted hover:-translate-y-0.5 transition-all">{t('Start Free')}</Link>}
           </div>
           <div className="qc-fade-up qc-fade-up-5 flex flex-wrap items-center justify-center gap-8 mt-16 text-sm text-muted-foreground">
             {[{ icon: icons.bolt, text: t('No GPU Required'), key: 'No GPU Required' }, { icon: icons.layers, text: t('Pay Per Token'), key: 'Pay Per Token' }, { icon: icons.shield, text: t('99.9% Uptime'), key: '99.9% Uptime' }, { icon: icons.cpu, text: t('Reseller Ready'), key: 'Reseller Ready' }].map(item => (
@@ -183,9 +183,7 @@ function HomePage() {
               <h2 className="qc-title-section font-bold text-white tracking-tight">{t('Ready to Build?')}</h2>
               <p className="qc-text-body text-white/80 mt-4 inline-block max-w-xl leading-relaxed">{t('A single API key unlocks 400+ models. Start building in minutes, scale to millions.')}</p>
               <div className="flex flex-wrap items-center justify-center gap-4 mt-10">
-                <Link to={loggedIn ? '/models' : '/sign-in'}>
-                  <button className="inline-flex items-center gap-2 rounded-xl bg-white text-orange-600 px-8 py-3.5 text-base font-semibold hover:bg-white/90 hover:shadow-xl hover:shadow-white/10 transition-all">{loggedIn ? t('Browse Models') : t('Create Free Account')} {icons.arrowR}</button>
-                </Link>
+                <Link to={loggedIn ? '/models' : '/sign-in'} className="inline-flex items-center gap-2 rounded-xl bg-white text-orange-600 px-8 py-3.5 text-base font-semibold hover:bg-white/90 hover:shadow-xl hover:shadow-white/10 transition-all">{loggedIn ? t('Browse Models') : t('Create Free Account')} {icons.arrowR}</Link>
               </div>
             </div>
           </div>

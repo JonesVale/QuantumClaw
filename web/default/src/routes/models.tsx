@@ -49,6 +49,16 @@ function ModelsPage() {
     collapseTimer.current = setTimeout(() => setHovered(false), 150)
   }
 
+  // 导航到模型页面时，自动触发后台模型同步（仅管理员）
+  useEffect(() => {
+    if (auth?.user?.role >= 10) {
+      fetch('/api/admin/model-brands/sync-all', { method: 'POST', credentials: 'include' })
+        .then(r => r.json())
+        .then(d => { if (d.success && d.synced > 0) console.log('Models sync:', d.synced, 'channels updated') })
+        .catch(() => {})
+    }
+  }, [])
+
   useEffect(() => {
     return () => {
       clearTimeout(expandTimer.current)

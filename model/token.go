@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"errors"
@@ -31,6 +31,7 @@ type Token struct {
 	CreatedTime    int64   `json:"created_time" gorm:"bigint"`
 	AccessedTime   int64   `json:"accessed_time" gorm:"bigint"`
 	ExpiredTime    int64   `json:"expired_time" gorm:"bigint;default:-1"`
+	UpdatedTime    int64   `json:"updated_time" gorm:"bigint"`
 	RemainQuota    int64   `json:"remain_quota" gorm:"bigint;default:0"`
 	UnlimitedQuota bool    `json:"unlimited_quota" gorm:"default:false"`
 	UsedQuota      int64   `json:"used_quota" gorm:"bigint;default:0"`

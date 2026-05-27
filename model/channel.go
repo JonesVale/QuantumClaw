@@ -1,8 +1,9 @@
-﻿package model
+package model
 
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/encrypt"
@@ -44,6 +45,11 @@ type Channel struct {
 	Category           string  `json:"category" gorm:"default:''"`  // paid / free / custom
 	UserId             int     `json:"user_id" gorm:"type:int;default:0;index"` // 渠道归属：0=平台，>0=供应商
 	CostPrice          float64 `json:"cost_price" gorm:"type:decimal(10,6);default:0"` // Key 贡献者实际成本
+
+	// 余额预警与自动禁用阈值（单位为 USD）
+	BalanceAlertThreshold   float64 `json:"balance_alert_threshold" gorm:"type:decimal(10,2);default:0"`
+	BalanceDisableThreshold float64 `json:"balance_disable_threshold" gorm:"type:decimal(10,2);default:0"`
+	ChannelMarkup          float64 `json:"channel_markup" gorm:"type:decimal(5,2);default:1.0"`      // 渠道加价倍率（1.0=原价, 1.2=+20%）
 }
 
 type ChannelConfig struct {
@@ -74,6 +80,20 @@ func GetAllChannels(startIdx int, num int, scope string) ([]*Channel, error) {
 	switch scope {
 	case "all":
 		err = DB.Order("id desc").Find(&channels).Error
+		// Decrypt API keys if CRYPTO_SECRET is configured
+		if err == nil && config.CryptoSecret != "" {
+			for i := range channels {
+				if channels[i].Key != "" {
+					// Check if key is encrypted (starts with non-plaintext pattern)
+					decrypted, e := encrypt.Decrypt(channels[i].Key, encrypt.DeriveKey(config.CryptoSecret))
+					if e == nil {
+						channels[i].Key = string(decrypted)
+					} else {
+						// Not encrypted yet (plaintext), leave as-is
+					}
+				}
+			}
+		}
 	case "disabled":
 		err = DB.Order("id desc").Where("status = ? or status = ?", ChannelStatusAutoDisabled, ChannelStatusManuallyDisabled).Find(&channels).Error
 	default:
@@ -160,6 +180,47 @@ func (channel *Channel) GetModelMapping() map[string]string {
 	return modelMapping
 }
 
+
+// EncryptExistingChannelKeys encrypts all plaintext channel API keys.
+// Safe to call on startup: skips already-encrypted keys.
+// Requires config.CryptoSecret to be set.
+func EncryptExistingChannelKeys() error {
+	if config.CryptoSecret == "" {
+		return fmt.Errorf("CRYPTO_SECRET not set, cannot encrypt")
+	}
+	var channels []*Channel
+	if err := DB.Where("key != ''").Find(&channels).Error; err != nil {
+		return err
+	}
+	key := encrypt.DeriveKey(config.CryptoSecret)
+	count := 0
+	for _, ch := range channels {
+		// Check: is this key already encrypted? Try decrypt first
+		_, decErr := encrypt.Decrypt(ch.Key, key)
+		if decErr == nil {
+			continue // Already encrypted
+		}
+		// Key is plaintext (sk-..., gsk_..., or any non-base64-encrypted string)
+		// Only proceed if the key looks like a real API key (not a placeholder)
+		if strings.HasPrefix(ch.Key, "PUT_YOUR") || ch.Key == "" {
+			continue
+		}
+		// Encrypt the plaintext key
+		encrypted, err := encrypt.Encrypt([]byte(ch.Key), key)
+		if err != nil {
+			logger.SysError("encrypt key for channel " + fmt.Sprint(ch.Id) + ": " + err.Error())
+			continue
+		}
+		if err := DB.Model(ch).Update("key", encrypted).Error; err != nil {
+			logger.SysError("update encrypted key for channel " + fmt.Sprint(ch.Id) + ": " + err.Error())
+			continue
+		}
+		count++
+		logger.SysLog(fmt.Sprintf("Encrypted key for ch#%d (%s)", ch.Id, ch.Name))
+	}
+	logger.SysLog(fmt.Sprintf("Encrypted %d channel keys", count))
+	return nil
+}
 func (channel *Channel) Insert() error {
 	var err error
 	// 加密 API Key
@@ -221,6 +282,18 @@ func (channel *Channel) UpdateBalance(balance float64) {
 	}).Error
 	if err != nil {
 		logger.SysError("failed to update balance: " + err.Error())
+		return
+	}
+
+	// Check balance thresholds (logged; actual disable handled by caller)
+	if channel.BalanceDisableThreshold > 0 && balance < channel.BalanceDisableThreshold {
+		if channel.Status != ChannelStatusAutoDisabled {
+			logger.SysLog(fmt.Sprintf("channel #%d [%s] balance %.2f below disable threshold %.2f",
+				channel.Id, channel.Name, balance, channel.BalanceDisableThreshold))
+		}
+	} else if channel.BalanceAlertThreshold > 0 && balance < channel.BalanceAlertThreshold {
+		logger.SysLog(fmt.Sprintf("channel #%d [%s] balance %.2f below alert threshold %.2f",
+			channel.Id, channel.Name, balance, channel.BalanceAlertThreshold))
 	}
 }
 

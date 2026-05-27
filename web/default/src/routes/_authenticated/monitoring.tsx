@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import {
   Activity, Clock, Server, Cpu, HardDrive, Zap,
   TrendingUp, TrendingDown, RefreshCw, AlertCircle, CheckCircle2,
-  BarChart3, Gauge,
+  BarChart3, Gauge, Users, Key, Radio, List,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -114,11 +114,53 @@ const latencyData = [
   { time: '00:45', value: 287 }, { time: '00:50', value: 254 }, { time: '00:55', value: 301 },
 ]
 
+function RecentLogFeed() {
+  const { data: logs } = useQuery({
+    queryKey: ['monitor-logs'],
+    queryFn: async () => {
+      const res = await fetch('/api/log/self/stat?page=1&page_size=20')
+      if (!res.ok) return []
+      const json = await res.json()
+      return json.data || []
+    },
+    refetchInterval: 15_000,
+    retry: 1,
+  })
+
+  if (!logs || logs.length === 0) return null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-sm">
+          <List className="h-4 w-4 text-blue-500" />
+          Recent Activity
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="max-h-64 overflow-y-auto space-y-1">
+        {logs.slice(0, 15).map((log: any, i: number) => (
+          <div key={i} className="flex items-center gap-2 py-1.5 border-b border-border/40 last:border-0 text-xs">
+            <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono">
+              {log.model_name?.substring(0, 18) || '-'}
+            </Badge>
+            <span className="text-muted-foreground flex-1 truncate">
+              {log.prompt_tokens + log.completion_tokens || 0} tokens
+            </span>
+            <span className="text-muted-foreground/60 font-mono">
+              {new Date((log.created_at || 0) * 1000).toLocaleTimeString()}
+            </span>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  )
+}
+
 function MonitoringPage() {
   const { t } = useT()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
-  const { data: perfData, isLoading: perfLoading, isError: perfError, isRefetching: perfRefetching, refetch: refetchPerf, error: perfQueryError } = useQuery({
+  const { data: perfData, isLoading: perfLoading, isError: perfError, isRefetching: perfRefetching, refetch: refetchPerf } = useQuery({
     queryKey: ['monitor-performance'],
     queryFn: async () => {
       const res = await fetch('/api/admin/performance')
@@ -158,6 +200,19 @@ function MonitoringPage() {
     staleTime: 60_000,
   })
 
+  const { data: monitorData, isLoading: monitorLoading } = useQuery({
+    queryKey: ['admin-monitor'],
+    queryFn: async () => {
+      const res = await fetch('/api/admin/monitor')
+      if (!res.ok) throw new Error('Failed to fetch admin monitor data')
+      const json = await res.json()
+      return json.data
+    },
+    retry: 2,
+    retryDelay: 1000,
+    refetchInterval: 15_000,
+  })
+
   useEffect(() => {
     if (perfData) setLastUpdated(new Date())
   }, [perfData])
@@ -179,6 +234,22 @@ function MonitoringPage() {
   const modelCount = dashData?.model_count ?? 0
   const systemName = statusData?.system_name ?? 'QuantumClaw'
   const version = statusData?.version ?? '-'
+  
+  // Channel health from admin monitor
+  const channels = monitorData?.channels ?? {}
+  const requests = monitorData?.requests ?? {}
+  const platform = monitorData?.platform ?? {}
+  const channelTotal = channels?.total ?? 0
+  const channelActive = channels?.active ?? 0
+  const channelAutoDisabled = channels?.auto_disabled ?? 0
+  const channelBalanceLow = channels?.balance_low ?? 0
+  const todayReqCount = requests?.today_total ?? 0
+  const todayTokens = requests?.today_tokens ?? 0
+  const successRate = requests?.success_rate ?? 0
+  const avgLatency = requests?.avg_latency_ms ?? 0
+  const totalUsers = platform?.total_users ?? 0
+  const activeTokens = platform?.active_tokens ?? 0
+  const activeToday = platform?.active_today ?? 0
 
   return (
     <div className="qc-wrapper py-8 space-y-6">
@@ -195,7 +266,7 @@ function MonitoringPage() {
               {t('Error')}
             </Badge>
           )}
-          {perfData && !error && (
+          {perfData && (
             <Badge variant="outline" className="flex items-center gap-1 text-green-600 border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800">
               <CheckCircle2 className="h-3 w-3" />
               {t('Live')}
@@ -234,6 +305,36 @@ function MonitoringPage() {
         </div>
       )}
 
+      {/* ── Platform Overview ── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <Radio className="h-5 w-5 text-indigo-600" />
+          {t('Platform Overview')}
+        </h2>
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard title={t('Total Users')} value={totalUsers.toLocaleString()} subtitle={t('Registered accounts')} icon={Users} color="purple" loading={monitorLoading} />
+          <StatCard title={t('Active Today')} value={activeToday.toLocaleString()} subtitle={t('Users with requests today')} icon={Activity} color="green" status={activeToday > 0 ? 'success' : 'info'} loading={monitorLoading} />
+          <StatCard title={t('Active Tokens')} value={activeTokens.toLocaleString()} subtitle={t('API keys issued')} icon={Key} color="blue" loading={monitorLoading} />
+          <StatCard title={t('Total Channels')} value={channelTotal.toLocaleString()} subtitle={t('AI & Quantum providers')} icon={Radio} color="cyan" loading={monitorLoading}
+            status={channelActive === channelTotal ? 'success' : channelAutoDisabled > 0 ? 'warning' : 'info'} />
+        </div>
+      </div>
+
+      {/* ── Channel Health ── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+          <Activity className="h-5 w-5 text-green-600" />
+          {t('Channel Health')}
+        </h2>
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard title={t('Active Channels')} value={channelActive.toLocaleString()} subtitle={`${channelTotal > 0 ? Math.round(channelActive / channelTotal * 100) : 0}% of total`} icon={CheckCircle2} color="green" status={channelActive > 0 ? 'success' : 'error'} loading={monitorLoading} />
+          <StatCard title={t('Auto Disabled')} value={channelAutoDisabled.toLocaleString()} subtitle={t('Auto-disabled channels')} icon={AlertCircle} color={channelAutoDisabled > 0 ? 'red' : 'green'} status={channelAutoDisabled > 0 ? 'error' : 'success'} loading={monitorLoading} />
+          <StatCard title={t('Balance Low')} value={channelBalanceLow.toLocaleString()} subtitle={t('Balance < $10')} icon={AlertCircle} color={channelBalanceLow > 0 ? 'amber' : 'green'} status={channelBalanceLow > 0 ? 'warning' : 'success'} loading={monitorLoading} />
+          <StatCard title={t('Today Requests')} value={todayReqCount.toLocaleString()} subtitle={`${(todayTokens / 1000).toFixed(0)}K tokens`} icon={Zap} color="orange" loading={monitorLoading} />
+        </div>
+      </div>
+
+      {/* ── System Status ── */}
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
           <Server className="h-5 w-5 text-blue-600" />
@@ -248,22 +349,25 @@ function MonitoringPage() {
         </div>
       </div>
 
+      {/* ── Request Metrics ── */}
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <Activity className="h-5 w-5 text-green-600" />
+          <BarChart3 className="h-5 w-5 text-green-600" />
           {t('Request Metrics')}
         </h2>
         <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard title={t('Total Requests')} value={totalRequests.toLocaleString()} subtitle={t('All time')} icon={BarChart3} color="green" loading={dashLoading} />
-          <StatCard title={t('Active Today')} value={todayRequests.toLocaleString()} subtitle={t('Last 24 hours')} icon={Zap} color="orange" loading={dashLoading} />
-          <StatCard title={t('Total Cost')} value={`$${parseFloat(totalCost || '0').toFixed(2)}`} subtitle={t('All time')} icon={Server} color="pink" loading={dashLoading} />
+          <StatCard title={t('Success Rate')} value={successRate > 0 ? `${successRate.toFixed(1)}%` : '-'} subtitle={t('Last 24h')} icon={CheckCircle2} color={successRate >= 99 ? 'green' : successRate >= 95 ? 'amber' : 'red'} status={successRate >= 99 ? 'success' : successRate >= 95 ? 'warning' : 'error'} loading={monitorLoading} />
+          <StatCard title={t('Avg Latency')} value={avgLatency > 0 ? `${avgLatency}ms` : '-'} subtitle={t('Last 24h average')} icon={Clock} color="orange" loading={monitorLoading}
+            status={avgLatency > 0 && avgLatency < 500 ? 'success' : avgLatency < 2000 ? 'warning' : 'error'} />
           <StatCard title={t('Models Used')} value={modelCount.toLocaleString()} subtitle={t('Unique AI models')} icon={Gauge} color="amber" loading={dashLoading} />
         </div>
       </div>
 
+      {/* ── Charts ── */}
       <div>
         <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-purple-600" />
+          <TrendingUp className="h-5 w-5 text-purple-600" />
           {t('Performance')}
         </h2>
         <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
@@ -327,34 +431,46 @@ function MonitoringPage() {
         </div>
       </div>
 
-      <Card className="border-dashed">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-            <Server className="h-4 w-4" />
-            {t('System Information')}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground block">{t('System')}</span>
+      {/* ── Recent Activity ── */}
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <RecentLogFeed />
+        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-sm">
+              <Server className="h-4 w-4" />
+              {t('System Information')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('System')}</span>
               <span className="font-medium">{systemName}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground block">{t('Version')}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('Version')}</span>
               <span className="font-medium">v{version}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground block">{t('CPU Cores')}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('CPU Cores')}</span>
               <span className="font-medium">{numCPU}</span>
             </div>
-            <div>
-              <span className="text-muted-foreground block">{t('Memory Sys')}</span>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('Memory Sys')}</span>
               <span className="font-medium">{totalMemoryMB}</span>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('Channels')}</span>
+              <span className="font-medium">{channelActive}/{channelTotal}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">{t('Users')}</span>
+              <span className="font-medium">{totalUsers.toLocaleString()}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

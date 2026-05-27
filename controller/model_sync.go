@@ -226,7 +226,8 @@ func GetModelSyncStatus(c *gin.Context) {
 	})
 }
 
-// 定时同步任务（由 main.go 的 cron 调用）
+// DEPRECATED: 曾被设计为由 main.go 的 cron 调用，但从未实际接入。
+// 未来如需开启，请在 main.go 中添加调用。当前为死代码。
 func StartModelSyncCron() {
 	if !modelSyncSetting.Enabled || modelSyncSetting.SyncInterval <= 0 {
 		return

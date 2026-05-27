@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"net/http"
@@ -28,7 +28,7 @@ func SetRelayRouter(router *gin.Engine) {
 		modelsRouter.GET("/:model", controller.RetrieveModel)
 	}
 	relayV1Router := router.Group("/v1")
-	relayV1Router.Use(middleware.RelayPanicRecover(), middleware.TokenAuth(), middleware.ModelRateLimit(), middleware.Distribute())
+	relayV1Router.Use(middleware.RelayPanicRecover(), middleware.TokenAuth(), middleware.SearchMiddleware(), middleware.GeoMiddleware(), middleware.PromptOptimizerMiddleware(), middleware.ParamValidatorMiddleware(), middleware.IntelligentRouterContext(), middleware.Sub2APIRouter(), middleware.ModelRateLimit(), middleware.Distribute())
 	{
 		relayV1Router.Any("/proxy/:channelid/*target", controller.Relay)
 		relayV1Router.POST("/responses", controller.Relay)

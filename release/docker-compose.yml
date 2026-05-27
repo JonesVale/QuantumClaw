@@ -1,0 +1,192 @@
+# ============================================================
+# QuantumClaw - AI API Gateway & Token Distribution Platform
+# ============================================================
+
+services:
+  # -----------------------
+  # QuantumClaw Application
+  # -----------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VERSION: ${IMAGE_TAG:-latest}
+    container_name: quantumclaw
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3666}:3666"
+    environment:
+      # Database
+      SQL_DSN: "${SQL_DSN:-root:quantumclaw@tcp(mysql:3306)/quantumclaw?charset=utf8mb4&parseTime=True&loc=Local}"
+      # Separate log DB (optional)
+      # LOG_SQL_DSN: "user:pass@tcp(log-mysql:3306)/quantumclaw_logs?charset=utf8mb4&parseTime=True&loc=Local"
+      # Redis
+      REDIS: "${REDIS:-redis:6379}"
+      # App settings
+      PORT: "${PORT:-3666}"
+      GIN_MODE: "${GIN_MODE:-release}"
+      DEBUG: "${DEBUG:-false}"
+      DEBUG_SQL: "${DEBUG_SQL:-false}"
+      # Free Chat (Groq)
+      GROQ_API_KEY: "${GROQ_API_KEY:-}"
+      DEEPSEEK_API_KEY: "${DEEPSEEK_API_KEY:-}"
+      SESSION_SECRET: "${SESSION_SECRET:-}"
+      THEME: "${THEME:-default}"
+      # Initial root token
+      INITIAL_ROOT_TOKEN: "${INITIAL_ROOT_TOKEN:-}"
+      INITIAL_ROOT_ACCESS_TOKEN: "${INITIAL_ROOT_ACCESS_TOKEN:-}"
+      # Feature flags
+      MEMORY_CACHE_ENABLED: "${MEMORY_CACHE_ENABLED:-true}"
+      SYNC_FREQUENCY: "${SYNC_FREQUENCY:-600}"
+      ENABLE_METRIC: "${ENABLE_METRIC:-false}"
+      CHANNEL_TEST_FREQUENCY: "${CHANNEL_TEST_FREQUENCY:-300}"
+      BATCH_UPDATE_ENABLED: "${BATCH_UPDATE_ENABLED:-false}"
+      # OAuth providers
+      GITHUB_CLIENT_ID: "${GITHUB_CLIENT_ID:-}"
+      GITHUB_CLIENT_SECRET: "${GITHUB_CLIENT_SECRET:-}"
+      LARK_CLIENT_ID: "${LARK_CLIENT_ID:-}"
+      LARK_CLIENT_SECRET: "${LARK_CLIENT_SECRET:-}"
+      OIDC_CLIENT_ID: "${OIDC_CLIENT_ID:-}"
+      OIDC_CLIENT_SECRET: "${OIDC_CLIENT_SECRET:-}"
+      OIDC_WELL_KNOWN: "${OIDC_WELL_KNOWN:-}"
+      # SMTP
+      SMTP_SERVER: "${SMTP_SERVER:-}"
+      SMTP_PORT: "${SMTP_PORT:-587}"
+      SMTP_ACCOUNT: "${SMTP_ACCOUNT:-}"
+      SMTP_FROM: "${SMTP_FROM:-}"
+      SMTP_TOKEN: "${SMTP_TOKEN:-}"
+      # Turnstile
+      TURNSTILE_SITE_KEY: "${TURNSTILE_SITE_KEY:-}"
+      TURNSTILE_SECRET_KEY: "${TURNSTILE_SECRET_KEY:-}"
+      # Payment - Stripe
+      STRIPE_ENABLED: "${STRIPE_ENABLED:-false}"
+      STRIPE_API_SECRET: "${STRIPE_API_SECRET:-}"
+      STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET:-}"
+      # Payment - 易支付
+      EPAY_ENABLED: "${EPAY_ENABLED:-false}"
+      EPAY_ID: "${EPAY_ID:-}"
+      EPAY_KEY: "${EPAY_KEY:-}"
+      EPAY_ADDRESS: "${EPAY_ADDRESS:-}"
+      # Payment - Creem
+      CREEM_ENABLED: "${CREEM_ENABLED:-false}"
+      CREEM_API_KEY: "${CREEM_API_KEY:-}"
+      CREEM_WEBHOOK_SECRET: "${CREEM_WEBHOOK_SECRET:-}"
+      # Payment - Waffo
+      WAFFO_ENABLED: "${WAFFO_ENABLED:-false}"
+      WAFFO_API_KEY: "${WAFFO_API_KEY:-}"
+      WAFFO_CURRENCY: "${WAFFO_CURRENCY:-USD}"
+      # Security
+      PAYMENT_SIGNATURE_SECRET: "${PAYMENT_SIGNATURE_SECRET:-}"
+      ALLOWED_REDIRECT_DOMAINS: "${ALLOWED_REDIRECT_DOMAINS:-}"
+      # Network
+      HTTPS_PROXY: "${HTTPS_PROXY:-}"
+      RELAY_PROXY: "${RELAY_PROXY:-}"
+      # Advanced
+      NODE_TYPE: "${NODE_TYPE:-master}"
+      # WebAuthn/Passkey
+      WEBAUTHN_ENABLED: "${WEBAUTHN_ENABLED:-false}"
+      WEBAUTHN_RP_DISPLAY_NAME: "${WEBAUTHN_RP_DISPLAY_NAME:-QuantumClaw}"
+      WEBAUTHN_RP_ID: "${WEBAUTHN_RP_ID:-}"
+      WEBAUTHN_ORIGIN: "${WEBAUTHN_ORIGIN:-}"
+      # Security Headers
+      CSP_ENABLED: "${CSP_ENABLED:-true}"
+      CSP_REPORT_ONLY: "${CSP_REPORT_ONLY:-false}"
+      HSTS_ENABLED: "${HSTS_ENABLED:-true}"
+      HSTS_MAX_AGE: "${HSTS_MAX_AGE:-31536000}"
+      HSTS_INCLUDE_SUBDOMAINS: "${HSTS_INCLUDE_SUBDOMAINS:-true}"
+      HSTS_PRELOAD: "${HSTS_PRELOAD:-false}"
+      X_FRAME_OPTIONS: "${X_FRAME_OPTIONS:-DENY}"
+      X_CONTENT_TYPE_OPTIONS: "${X_CONTENT_TYPE_OPTIONS:-nosniff}"
+      X_XSS_PROTECTION: "${X_XSS_PROTECTION:-1; mode=block}"
+      REFERRER_POLICY: "${REFERRER_POLICY:-strict-origin-when-cross-origin}"
+      PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-geolocation=(), camera=(), microphone=()}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
+    volumes:
+      # Mount for data persistence (SQLite) or logs
+      - quantumclaw_data:/app/data
+      - ${LOG_DIR:-./logs}:/app/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3666/api/status"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - quantumclaw-net
+
+  # -----------------------
+  # MySQL Database
+  # -----------------------
+  mysql:
+    image: mysql:8.0
+    container_name: quantumclaw-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-quantumclaw}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-quantumclaw}"
+      MYSQL_USER: "${MYSQL_USER:-quantumclaw}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-quantumclaw}"
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      # Init script for QuantumClaw tables
+      # - ./docker/mysql-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=1000
+      --innodb-buffer-pool-size=256M
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-quantumclaw}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - quantumclaw-net
+
+  # -----------------------
+  # Redis Cache
+  # -----------------------
+  redis:
+    image: redis:7-alpine
+    container_name: quantumclaw-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-redis-daae3a223e4e40f3907d}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quantumclaw-net
+
+# ============================================================
+# Volumes
+# ============================================================
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+  quantumclaw_data:
+    driver: local
+
+# ============================================================
+# Networks
+# ============================================================
+networks:
+  quantumclaw-net:
+    driver: bridge

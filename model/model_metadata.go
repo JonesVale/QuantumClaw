@@ -1,12 +1,15 @@
 package model
 
 import (
-	"encoding/json"
 	"fmt"
+	"strings"
+	"sort"
+	"encoding/json"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common/logger"
-)
+
+	relay_billing_ratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio")
 
 // ModelMetadata stores model descriptions and capabilities per language.
 // model_name + languages_type is unique: each model has one row per language.
@@ -643,3 +646,170 @@ func SeedModelMetadata() {
 
 	logger.SysLog("model_metadata seeded: " + formatInt(len(defs)) + " models × 7 languages")
 }
+func AutoPopulateModelMetadataFromRatio() {
+	// Additive-only: auto-populate ModelMetadata for ALL models in the ratio map
+	// that don't already have metadata entries. Never deletes existing entries.
+	// This ensures the homepage catalog shows all available models with pricing.
+	//
+	// ⚠️ DANGER: Do NOT add DELETE/TRUNCATE here. EVER.
+	// If you need to reset, ask the user. This comment is the last line of defense.
+	
+	if err := DB.AutoMigrate(&ModelMetadata{}); err != nil {
+		logger.SysError("AutoPopulateModelMetadataFromRatio AutoMigrate failed: " + err.Error())
+		return
+	}
+	
+	now := time.Now().Unix()
+	
+	// Collect all existing model names
+	type nameOnly struct {
+		ModelName string
+	}
+	var existing []nameOnly
+	DB.Model(&ModelMetadata{}).Select("model_name").Group("model_name").Find(&existing)
+	existingMap := make(map[string]bool)
+	for _, n := range existing {
+		existingMap[n.ModelName] = true
+	}
+	
+	// Normalize model name to display name (e.g. "gpt-4o" → "GPT-4o", "claude-3-5-sonnet" → "Claude 3.5 Sonnet")
+	normalizeDisplay := func(key string) string {
+		if key == "" {
+			return key
+		}
+		s := strings.ReplaceAll(key, "-", " ")
+		s = strings.ReplaceAll(s, "_", " ")
+		parts := strings.Fields(s)
+		result := make([]string, len(parts))
+		for i, p := range parts {
+			if len(p) > 0 {
+				result[i] = strings.ToUpper(p[:1]) + p[1:]
+			} else {
+				result[i] = p
+			}
+		}
+		return strings.Join(result, " ")
+	}
+	
+	// Derive provider from model name patterns
+	deriveProvider := func(name string) string {
+		lower := strings.ToLower(name)
+		if strings.Contains(lower, "gpt") || strings.Contains(lower, "o1") || strings.Contains(lower, "o3") || strings.Contains(lower, "dall") || strings.Contains(lower, "tts") || strings.Contains(lower, "whisper") || strings.Contains(lower, "text-embedding") {
+			return "OpenAI"
+		}
+		if strings.Contains(lower, "claude") {
+			return "Anthropic"
+		}
+		if strings.Contains(lower, "gemini") {
+			return "Google"
+		}
+		if strings.Contains(lower, "deepseek") {
+			return "DeepSeek"
+		}
+		if strings.Contains(lower, "qwen") {
+			return "Alibaba"
+		}
+		if strings.Contains(lower, "mistral") || strings.Contains(lower, "mixtral") || strings.Contains(lower, "le-chat") || strings.Contains(lower, "codestral") {
+			return "Mistral"
+		}
+		if strings.Contains(lower, "llama") || strings.Contains(lower, "codellama") {
+			return "Meta"
+		}
+		if strings.Contains(lower, "ionq") {
+			return "IonQ"
+		}
+		if strings.Contains(lower, "ibm") || strings.Contains(lower, "brisbane") || strings.Contains(lower, "kyiv") || strings.Contains(lower, "sherbrooke") {
+			return "IBM"
+		}
+		if strings.Contains(lower, "rigetti") || strings.Contains(lower, "ankaa") || strings.Contains(lower, "aspen") {
+			return "Rigetti"
+		}
+		if strings.Contains(lower, "azure") || strings.Contains(lower, "braket") {
+			return "Azure/AWS"
+		}
+		if strings.Contains(lower, "glm") || strings.Contains(lower, "chatglm") {
+			return "Zhipu"
+		}
+		if strings.Contains(lower, "ernie") || strings.Contains(lower, "baidu") {
+			return "Baidu"
+		}
+		if strings.Contains(lower, "moonshot") || strings.Contains(lower, "kimi") {
+			return "Moonshot"
+		}
+		if strings.Contains(lower, "hunyuan") {
+			return "Tencent"
+		}
+		return "Other"
+	}
+	
+	// Get all ratio model names
+	ratioKeys := make([]string, 0, len(relay_billing_ratio.ModelRatio))
+	for k := range relay_billing_ratio.ModelRatio {
+		ratioKeys = append(ratioKeys, k)
+	}
+	sort.Strings(ratioKeys)
+	
+	// Skip model names that include date stamps after a dash for the base display name
+	baseModelNames := make(map[string]string) // base_name → best_example
+	for _, k := range ratioKeys {
+		if existingMap[k] {
+			continue
+		}
+		// Try to derive a clean base name
+		baseName := normalizeDisplay(k)
+		// If a shorter name exists for the same prefix, prefer it
+		if prev, ok := baseModelNames[k]; !ok || len(baseName) < len(prev) {
+			baseModelNames[k] = baseName
+		}
+	}
+	
+	// Languages that have human descriptions in the existing seed
+	languages := []string{"中文简体", "中文繁体", "English", "Français", "日本語", "Русский", "Tiếng Việt"}
+	
+	added := 0
+	// Sort to ensure deterministic output
+	modelNames := make([]string, 0, len(baseModelNames))
+	for k := range baseModelNames {
+		modelNames = append(modelNames, k)
+	}
+	sort.Strings(modelNames)
+	
+	for _, modelName := range modelNames {
+		displayName := baseModelNames[modelName]
+		provider := deriveProvider(modelName)
+		
+		for _, lang := range languages {
+			m := &ModelMetadata{
+				ModelName:       modelName,
+				LanguagesType:   lang,
+				DisplayName:     displayName,
+				Provider:        provider,
+				Description:     displayName + " - " + provider,
+				UseCase:         "chat",
+				InputModalities: `["Text"]`,
+				CreatedTime:     now,
+				UpdatedTime:     now,
+			}
+			if lang == "English" {
+				m.Description = displayName + " by " + provider + " - " + formatInt(len(modelName)) + "-token model"
+			}
+			if strings.Contains(strings.ToLower(modelName), "image") || strings.Contains(strings.ToLower(modelName), "vision") {
+				m.InputModalities = `["Text","Image"]`
+			}
+			if strings.Contains(strings.ToLower(modelName), "embedding") {
+				m.UseCase = "embedding"
+			}
+			
+			if err := DB.Create(m).Error; err != nil {
+				// If duplicate, just skip (additive-only)
+				continue
+			}
+			added++
+		}
+	}
+	
+	if added > 0 {
+		logger.SysLog(fmt.Sprintf("AutoPopulateModelMetadataFromRatio: added %d model metadata entries from ratio map (%d unique models)", added, len(modelNames)))
+	}
+}
+

@@ -1,0 +1,385 @@
+/* ============================================================
+ * QuantumClaw Design System v2
+ * AI/Quantum Tech Style · Light Base · Orange Accent
+ * ============================================================ */
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── Design Tokens ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --font-sans: "DM Sans", "Sora", ui-sans-serif, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ── Light Theme (default) ── */
+:root {
+  /* Core background - warm white */
+  --background: oklch(0.985 0.002 55);
+  --foreground: oklch(0.12 0.01 55);
+
+  /* Cards - clean white with subtle warmth */
+  --card: oklch(0.995 0.003 55);
+  --card-foreground: oklch(0.12 0.01 55);
+  --popover: oklch(0.995 0.003 55);
+  --popover-foreground: oklch(0.12 0.01 55);
+
+  /* Primary - deep warm gray (text/headings) */
+  --primary: oklch(0.15 0.012 55);
+  --primary-foreground: oklch(0.99 0.002 55);
+
+  /* Secondary + Muted - warm off-whites */
+  --secondary: oklch(0.965 0.006 55);
+  --secondary-foreground: oklch(0.12 0.01 55);
+  --muted: oklch(0.96 0.005 55);
+  --muted-foreground: oklch(0.55 0.015 55);
+
+  /* Accent - vibrant orange (量子橙色) */
+  --accent: oklch(0.72 0.18 52);
+  --accent-foreground: oklch(0.99 0.002 55);
+
+  /* Destructive */
+  --destructive: oklch(0.58 0.24 25);
+  --destructive-foreground: oklch(0.99 0.002 55);
+
+  /* Borders + Inputs - warm lines */
+  --border: oklch(0.90 0.008 55);
+  --input: oklch(0.90 0.008 55);
+  --ring: oklch(0.72 0.18 52);
+
+  /* Radii */
+  --radius: 0.75rem;
+
+  /* Sidebar - slightly cooler to differentiate */
+  --sidebar: oklch(0.975 0.004 60);
+  --sidebar-foreground: oklch(0.12 0.01 55);
+  --sidebar-border: oklch(0.90 0.008 55);
+  --sidebar-accent: oklch(0.965 0.006 55);
+  --sidebar-accent-foreground: oklch(0.12 0.01 55);
+
+  /* Charts - orange-forward palette */
+  --chart-1: oklch(0.72 0.18 52);       /* Orange */
+  --chart-2: oklch(0.65 0.15 220);      /* Blue */
+  --chart-3: oklch(0.75 0.14 160);      /* Teal */
+  --chart-4: oklch(0.60 0.12 290);      /* Purple */
+  --chart-5: oklch(0.80 0.16 80);       /* Yellow-green */
+}
+
+/* ── Dark Theme ── */
+.dark {
+  --background: oklch(0.10 0.008 60);
+  --foreground: oklch(0.95 0.005 55);
+  --card: oklch(0.13 0.01 55);
+  --card-foreground: oklch(0.95 0.005 55);
+  --popover: oklch(0.13 0.01 55);
+  --popover-foreground: oklch(0.95 0.005 55);
+  --primary: oklch(0.95 0.005 55);
+  --primary-foreground: oklch(0.10 0.008 60);
+  --secondary: oklch(0.18 0.008 55);
+  --secondary-foreground: oklch(0.95 0.005 55);
+  --muted: oklch(0.18 0.008 55);
+  --muted-foreground: oklch(0.65 0.01 55);
+  --accent: oklch(0.72 0.18 52);
+  --accent-foreground: oklch(0.95 0.005 55);
+  --destructive: oklch(0.58 0.24 25);
+  --destructive-foreground: oklch(0.95 0.005 55);
+  --border: oklch(0.22 0.01 55);
+  --input: oklch(0.22 0.01 55);
+  --ring: oklch(0.72 0.18 52);
+  --sidebar: oklch(0.12 0.008 55);
+  --sidebar-foreground: oklch(0.90 0.005 55);
+  --sidebar-border: oklch(0.20 0.01 55);
+  --sidebar-accent: oklch(0.18 0.008 55);
+  --sidebar-accent-foreground: oklch(0.95 0.005 55);
+  --chart-1: oklch(0.72 0.18 52);
+  --chart-2: oklch(0.65 0.15 220);
+  --chart-3: oklch(0.75 0.14 160);
+  --chart-4: oklch(0.60 0.12 290);
+  --chart-5: oklch(0.80 0.16 80);
+}
+
+/* ── Reset & Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  font-size: 16px;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+#root {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Quantum Tech Components ── */
+
+/* Quantum gradient text */
+.qc-gradient-text {
+  background: linear-gradient(135deg,
+    oklch(0.72 0.18 52) 0%,
+    oklch(0.62 0.20 40) 50%,
+    oklch(0.72 0.18 52) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Quantum glow card */
+.qc-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.qc-card:hover {
+  border-color: oklch(0.72 0.18 52 / 0.3);
+  box-shadow: 0 4px 24px oklch(0.72 0.18 52 / 0.08);
+  transform: translateY(-2px);
+}
+
+/* Quantum button */
+.qc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+}
+.qc-btn-primary {
+  background: linear-gradient(135deg, oklch(0.72 0.18 52), oklch(0.62 0.20 40));
+  color: white;
+}
+.qc-btn-primary:hover {
+  box-shadow: 0 4px 20px oklch(0.72 0.18 52 / 0.3);
+  transform: translateY(-1px);
+}
+.qc-btn-ghost {
+  background: transparent;
+  color: var(--foreground);
+  border: 1px solid var(--border);
+}
+.qc-btn-ghost:hover {
+  background: var(--muted);
+  border-color: oklch(0.72 0.18 52 / 0.3);
+}
+
+/* Tech badge */
+.qc-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: oklch(0.72 0.18 52 / 0.1);
+  color: oklch(0.62 0.20 40);
+  border: 1px solid oklch(0.72 0.18 52 / 0.15);
+}
+
+/* Glow effects */
+.qc-glow-orange {
+  background: radial-gradient(circle at center,
+    oklch(0.72 0.18 52 / 0.12) 0%,
+    transparent 70%
+  );
+}
+.qc-glow-blue {
+  background: radial-gradient(circle at center,
+    oklch(0.65 0.15 220 / 0.08) 0%,
+    transparent 70%
+  );
+}
+
+/* Quantum grid background */
+.qc-grid-bg {
+  background-image:
+    linear-gradient(oklch(0.90 0.008 55 / 0.3) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.90 0.008 55 / 0.3) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Section container */
+.qc-section {
+  width: 100%;
+  padding: 0 5vw;
+}
+@media (min-width: 768px) {
+  .qc-section { padding: 0 6vw; }
+}
+@media (min-width: 1280px) {
+  .qc-section { padding: 0 8vw; }
+}
+
+/* Responsive grid system */
+.qc-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+.qc-grid-2 { grid-template-columns: repeat(2, 1fr); }
+.qc-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.qc-grid-4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1024px) {
+  .qc-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .qc-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .qc-grid-2, .qc-grid-3, .qc-grid-4 { grid-template-columns: 1fr; }
+}
+
+/* Page layout */
+.qc-page {
+  width: 100%;
+  min-height: 100vh;
+  padding-top: 4rem;
+}
+.qc-page-header {
+  padding: 2rem 5vw;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+}
+.qc-page-body {
+  padding: 2rem 5vw;
+}
+
+/* Status dot */
+.qc-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.qc-dot-online {
+  background: oklch(0.72 0.18 160);
+  box-shadow: 0 0 6px oklch(0.72 0.18 160 / 0.5);
+}
+.qc-dot-offline {
+  background: var(--muted-foreground);
+}
+
+/* Particle dot for hero */
+.qc-particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: oklch(0.72 0.18 52 / 0.4);
+  animation: qc-float 6s ease-in-out infinite;
+}
+.qc-particle:nth-child(2n) {
+  width: 6px; height: 6px;
+  animation-delay: -2s;
+  background: oklch(0.72 0.18 52 / 0.2);
+}
+.qc-particle:nth-child(3n) {
+  animation-delay: -4s;
+}
+
+@keyframes qc-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.4; }
+  50% { transform: translateY(-20px) scale(1.5); opacity: 0.8; }
+}
+
+/* Page enter animation */
+@keyframes qc-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.qc-fade-in {
+  animation: qc-fade-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.qc-fade-in-1 { animation-delay: 0.05s; }
+.qc-fade-in-2 { animation-delay: 0.1s; }
+.qc-fade-in-3 { animation-delay: 0.15s; }
+.qc-fade-in-4 { animation-delay: 0.2s; }
+.qc-fade-in-5 { animation-delay: 0.25s; }
+.qc-fade-in-6 { animation-delay: 0.3s; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ring); }
+
+/* ── Table refinement ── */
+th, td { padding: 12px 20px !important; }
+
+/* ── Dropdown popover spacing ── */
+[data-radix-popper-content-wrapper] { padding: 8px !important; }
+[role="tabpanel"] { padding-top: 1.5rem !important; }
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

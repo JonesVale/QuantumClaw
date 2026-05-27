@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"math/rand"
@@ -173,6 +174,31 @@ func InitChannelCache() {
 	newChannelId2channel := make(map[int]*Channel)
 	var channels []*Channel
 	DB.Where("status = ?", ChannelStatusEnabled).Find(&channels)
+
+	// Decrypt API keys for relay usage
+	// Keys in DB are AES-256-GCM encrypted if CRYPTO_SECRET is set
+	if config.CryptoSecret != "" {
+		decryptCount := 0
+		for i := range channels {
+			if channels[i].Key != "" {
+				decrypted, err := encrypt.Decrypt(channels[i].Key, encrypt.DeriveKey(config.CryptoSecret))
+				if err == nil {
+					channels[i].Key = string(decrypted)
+					decryptCount++
+				} else if strings.HasPrefix(channels[i].Key, "sk-") || strings.HasPrefix(channels[i].Key, "gsk_") {
+					// Plaintext key that starts with expected pattern - already plaintext
+					logger.SysLog("InitChannelCache: ch#" + fmt.Sprint(channels[i].Id) + " key is already plaintext")
+				} else if strings.Contains(channels[i].Key, "PUT_YOUR") {
+					// Placeholder - skip
+				} else {
+					logger.SysWarn("InitChannelCache: decrypt failed for ch#" + fmt.Sprint(channels[i].Id) + ": " + err.Error())
+				}
+			}
+		}
+		logger.SysLog(fmt.Sprintf("InitChannelCache: decrypted %d keys", decryptCount))
+	} else {
+		logger.SysWarn("InitChannelCache: CRYPTO_SECRET is empty, keys will not be decrypted")
+	}
 
 	// 过滤掉未配置 API Key 的渠道（占位符或空 key）
 	var activeChannels []*Channel

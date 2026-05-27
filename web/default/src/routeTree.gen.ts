@@ -16,7 +16,9 @@ import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as ModelsRouteImport } from './routes/models'
 import { Route as FusionRouteImport } from './routes/fusion'
+import { Route as FaqRouteImport } from './routes/faq'
 import { Route as EnterpriseRouteImport } from './routes/enterprise'
+import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -26,6 +28,8 @@ import { Route as AuthenticatedTransactionsRouteImport } from './routes/_authent
 import { Route as AuthenticatedTeamRouteImport } from './routes/_authenticated/team'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSubscriptionRouteImport } from './routes/_authenticated/subscription'
+import { Route as AuthenticatedSub2apiAdminRouteImport } from './routes/_authenticated/sub2api-admin'
+import { Route as AuthenticatedSub2apiRouteImport } from './routes/_authenticated/sub2api'
 import { Route as AuthenticatedSettlementRouteImport } from './routes/_authenticated/settlement'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedResellerKeysRouteImport } from './routes/_authenticated/reseller-keys'
@@ -41,9 +45,12 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
+import { Route as AuthenticatedModelHostingRouteImport } from './routes/_authenticated/model-hosting'
+import { Route as AuthenticatedModelBrandsRouteImport } from './routes/_authenticated/model-brands'
 import { Route as AuthenticatedMenuPermissionsRouteImport } from './routes/_authenticated/menu-permissions'
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedKeysRouteImport } from './routes/_authenticated/keys'
+import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
 import { Route as AuthenticatedDistributorsRouteImport } from './routes/_authenticated/distributors'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConnectionsRouteImport } from './routes/_authenticated/connections'
@@ -94,9 +101,19 @@ const FusionRoute = FusionRouteImport.update({
   path: '/fusion',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EnterpriseRoute = EnterpriseRouteImport.update({
   id: '/enterprise',
   path: '/enterprise',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeveloperRoute = DeveloperRouteImport.update({
+  id: '/developer',
+  path: '/developer',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppsRoute = AppsRouteImport.update({
@@ -145,6 +162,17 @@ const AuthenticatedSubscriptionRoute =
     path: '/subscription',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedSub2apiAdminRoute =
+  AuthenticatedSub2apiAdminRouteImport.update({
+    id: '/sub2api-admin',
+    path: '/sub2api-admin',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSub2apiRoute = AuthenticatedSub2apiRouteImport.update({
+  id: '/sub2api',
+  path: '/sub2api',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedSettlementRoute = AuthenticatedSettlementRouteImport.update({
   id: '/settlement',
   path: '/settlement',
@@ -224,6 +252,18 @@ const AuthenticatedMonitoringRoute = AuthenticatedMonitoringRouteImport.update({
   path: '/monitoring',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedModelHostingRoute =
+  AuthenticatedModelHostingRouteImport.update({
+    id: '/model-hosting',
+    path: '/model-hosting',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedModelBrandsRoute =
+  AuthenticatedModelBrandsRouteImport.update({
+    id: '/model-brands',
+    path: '/model-brands',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMenuPermissionsRoute =
   AuthenticatedMenuPermissionsRouteImport.update({
     id: '/menu-permissions',
@@ -238,6 +278,11 @@ const AuthenticatedLogsRoute = AuthenticatedLogsRouteImport.update({
 const AuthenticatedKeysRoute = AuthenticatedKeysRouteImport.update({
   id: '/keys',
   path: '/keys',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDistributorsRoute =
@@ -317,7 +362,9 @@ const authChatRoute = authChatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/apps': typeof AppsRoute
+  '/developer': typeof DeveloperRoute
   '/enterprise': typeof EnterpriseRoute
+  '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
@@ -339,9 +386,12 @@ export interface FileRoutesByFullPath {
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
+  '/model-brands': typeof AuthenticatedModelBrandsRoute
+  '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -357,6 +407,8 @@ export interface FileRoutesByFullPath {
   '/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/settlement': typeof AuthenticatedSettlementRoute
+  '/sub2api': typeof AuthenticatedSub2apiRoute
+  '/sub2api-admin': typeof AuthenticatedSub2apiAdminRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -367,7 +419,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/apps': typeof AppsRoute
+  '/developer': typeof DeveloperRoute
   '/enterprise': typeof EnterpriseRoute
+  '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
@@ -389,9 +443,12 @@ export interface FileRoutesByTo {
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
+  '/feedback': typeof AuthenticatedFeedbackRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
   '/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
+  '/model-brands': typeof AuthenticatedModelBrandsRoute
+  '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -407,6 +464,8 @@ export interface FileRoutesByTo {
   '/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/settlement': typeof AuthenticatedSettlementRoute
+  '/sub2api': typeof AuthenticatedSub2apiRoute
+  '/sub2api-admin': typeof AuthenticatedSub2apiAdminRoute
   '/subscription': typeof AuthenticatedSubscriptionRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/team': typeof AuthenticatedTeamRoute
@@ -419,7 +478,9 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/apps': typeof AppsRoute
+  '/developer': typeof DeveloperRoute
   '/enterprise': typeof EnterpriseRoute
+  '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
@@ -441,9 +502,12 @@ export interface FileRoutesById {
   '/_authenticated/connections': typeof AuthenticatedConnectionsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/distributors': typeof AuthenticatedDistributorsRoute
+  '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/keys': typeof AuthenticatedKeysRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
   '/_authenticated/menu-permissions': typeof AuthenticatedMenuPermissionsRoute
+  '/_authenticated/model-brands': typeof AuthenticatedModelBrandsRoute
+  '/_authenticated/model-hosting': typeof AuthenticatedModelHostingRoute
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
@@ -459,6 +523,8 @@ export interface FileRoutesById {
   '/_authenticated/reseller-keys': typeof AuthenticatedResellerKeysRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/settlement': typeof AuthenticatedSettlementRoute
+  '/_authenticated/sub2api': typeof AuthenticatedSub2apiRoute
+  '/_authenticated/sub2api-admin': typeof AuthenticatedSub2apiAdminRoute
   '/_authenticated/subscription': typeof AuthenticatedSubscriptionRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/team': typeof AuthenticatedTeamRoute
@@ -471,7 +537,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/apps'
+    | '/developer'
     | '/enterprise'
+    | '/faq'
     | '/fusion'
     | '/models'
     | '/oauth-callback'
@@ -493,9 +561,12 @@ export interface FileRouteTypes {
     | '/connections'
     | '/dashboard'
     | '/distributors'
+    | '/feedback'
     | '/keys'
     | '/logs'
     | '/menu-permissions'
+    | '/model-brands'
+    | '/model-hosting'
     | '/monitoring'
     | '/news'
     | '/not-found'
@@ -511,6 +582,8 @@ export interface FileRouteTypes {
     | '/reseller-keys'
     | '/settings'
     | '/settlement'
+    | '/sub2api'
+    | '/sub2api-admin'
     | '/subscription'
     | '/tasks'
     | '/team'
@@ -521,7 +594,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/apps'
+    | '/developer'
     | '/enterprise'
+    | '/faq'
     | '/fusion'
     | '/models'
     | '/oauth-callback'
@@ -543,9 +618,12 @@ export interface FileRouteTypes {
     | '/connections'
     | '/dashboard'
     | '/distributors'
+    | '/feedback'
     | '/keys'
     | '/logs'
     | '/menu-permissions'
+    | '/model-brands'
+    | '/model-hosting'
     | '/monitoring'
     | '/news'
     | '/not-found'
@@ -561,6 +639,8 @@ export interface FileRouteTypes {
     | '/reseller-keys'
     | '/settings'
     | '/settlement'
+    | '/sub2api'
+    | '/sub2api-admin'
     | '/subscription'
     | '/tasks'
     | '/team'
@@ -572,7 +652,9 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/apps'
+    | '/developer'
     | '/enterprise'
+    | '/faq'
     | '/fusion'
     | '/models'
     | '/oauth-callback'
@@ -594,9 +676,12 @@ export interface FileRouteTypes {
     | '/_authenticated/connections'
     | '/_authenticated/dashboard'
     | '/_authenticated/distributors'
+    | '/_authenticated/feedback'
     | '/_authenticated/keys'
     | '/_authenticated/logs'
     | '/_authenticated/menu-permissions'
+    | '/_authenticated/model-brands'
+    | '/_authenticated/model-hosting'
     | '/_authenticated/monitoring'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
@@ -612,6 +697,8 @@ export interface FileRouteTypes {
     | '/_authenticated/reseller-keys'
     | '/_authenticated/settings'
     | '/_authenticated/settlement'
+    | '/_authenticated/sub2api'
+    | '/_authenticated/sub2api-admin'
     | '/_authenticated/subscription'
     | '/_authenticated/tasks'
     | '/_authenticated/team'
@@ -624,7 +711,9 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AppsRoute: typeof AppsRoute
+  DeveloperRoute: typeof DeveloperRoute
   EnterpriseRoute: typeof EnterpriseRoute
+  FaqRoute: typeof FaqRoute
   FusionRoute: typeof FusionRoute
   ModelsRoute: typeof ModelsRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
@@ -688,11 +777,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FusionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/enterprise': {
       id: '/enterprise'
       path: '/enterprise'
       fullPath: '/enterprise'
       preLoaderRoute: typeof EnterpriseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/developer': {
+      id: '/developer'
+      path: '/developer'
+      fullPath: '/developer'
+      preLoaderRoute: typeof DeveloperRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apps': {
@@ -756,6 +859,20 @@ declare module '@tanstack/react-router' {
       path: '/subscription'
       fullPath: '/subscription'
       preLoaderRoute: typeof AuthenticatedSubscriptionRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sub2api-admin': {
+      id: '/_authenticated/sub2api-admin'
+      path: '/sub2api-admin'
+      fullPath: '/sub2api-admin'
+      preLoaderRoute: typeof AuthenticatedSub2apiAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/sub2api': {
+      id: '/_authenticated/sub2api'
+      path: '/sub2api'
+      fullPath: '/sub2api'
+      preLoaderRoute: typeof AuthenticatedSub2apiRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/settlement': {
@@ -863,6 +980,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMonitoringRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/model-hosting': {
+      id: '/_authenticated/model-hosting'
+      path: '/model-hosting'
+      fullPath: '/model-hosting'
+      preLoaderRoute: typeof AuthenticatedModelHostingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/model-brands': {
+      id: '/_authenticated/model-brands'
+      path: '/model-brands'
+      fullPath: '/model-brands'
+      preLoaderRoute: typeof AuthenticatedModelBrandsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/menu-permissions': {
       id: '/_authenticated/menu-permissions'
       path: '/menu-permissions'
@@ -882,6 +1013,13 @@ declare module '@tanstack/react-router' {
       path: '/keys'
       fullPath: '/keys'
       preLoaderRoute: typeof AuthenticatedKeysRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/feedback': {
+      id: '/_authenticated/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/distributors': {
@@ -997,9 +1135,12 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConnectionsRoute: typeof AuthenticatedConnectionsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDistributorsRoute: typeof AuthenticatedDistributorsRoute
+  AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedKeysRoute: typeof AuthenticatedKeysRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
   AuthenticatedMenuPermissionsRoute: typeof AuthenticatedMenuPermissionsRoute
+  AuthenticatedModelBrandsRoute: typeof AuthenticatedModelBrandsRoute
+  AuthenticatedModelHostingRoute: typeof AuthenticatedModelHostingRoute
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
@@ -1015,6 +1156,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedResellerKeysRoute: typeof AuthenticatedResellerKeysRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedSettlementRoute: typeof AuthenticatedSettlementRoute
+  AuthenticatedSub2apiRoute: typeof AuthenticatedSub2apiRoute
+  AuthenticatedSub2apiAdminRoute: typeof AuthenticatedSub2apiAdminRoute
   AuthenticatedSubscriptionRoute: typeof AuthenticatedSubscriptionRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTeamRoute: typeof AuthenticatedTeamRoute
@@ -1035,9 +1178,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConnectionsRoute: AuthenticatedConnectionsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDistributorsRoute: AuthenticatedDistributorsRoute,
+  AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedKeysRoute: AuthenticatedKeysRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
   AuthenticatedMenuPermissionsRoute: AuthenticatedMenuPermissionsRoute,
+  AuthenticatedModelBrandsRoute: AuthenticatedModelBrandsRoute,
+  AuthenticatedModelHostingRoute: AuthenticatedModelHostingRoute,
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
@@ -1053,6 +1199,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedResellerKeysRoute: AuthenticatedResellerKeysRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedSettlementRoute: AuthenticatedSettlementRoute,
+  AuthenticatedSub2apiRoute: AuthenticatedSub2apiRoute,
+  AuthenticatedSub2apiAdminRoute: AuthenticatedSub2apiAdminRoute,
   AuthenticatedSubscriptionRoute: AuthenticatedSubscriptionRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTeamRoute: AuthenticatedTeamRoute,
@@ -1068,7 +1216,9 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AppsRoute: AppsRoute,
+  DeveloperRoute: DeveloperRoute,
   EnterpriseRoute: EnterpriseRoute,
+  FaqRoute: FaqRoute,
   FusionRoute: FusionRoute,
   ModelsRoute: ModelsRoute,
   OauthCallbackRoute: OauthCallbackRoute,

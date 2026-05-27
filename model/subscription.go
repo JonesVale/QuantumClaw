@@ -111,6 +111,10 @@ type SubscriptionPlan struct {
 	QuotaResetPeriod        string `json:"quota_reset_period" gorm:"type:varchar(16);default:'never'"`
 	QuotaResetCustomSeconds int64  `json:"quota_reset_custom_seconds" gorm:"type:bigint;default:0"`
 
+	// 阶梯定价：JSON 数组，格式 [{"from":0,"to":100000,"rate":1.0},{"from":100000,"to":0,"rate":0.8}]
+	// from=0开始，to=0无穷大，rate=倍率（1.0=原价）
+	TiersJSON string `json:"tiers_json" gorm:"type:text"`
+
 	CreatedAt int64 `json:"created_at" gorm:"bigint"`
 	UpdatedAt int64 `json:"updated_at" gorm:"bigint"`
 }

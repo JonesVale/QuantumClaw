@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Key } from 'lucide-react'
+import { Save, RefreshCw, Key, EyeOff, Eye, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -49,6 +49,16 @@ function PlatformSettingsPage() {
       })
     }
   }, [data])
+
+  const freeChatProviders = [
+    { key: 'groq_api_key', name: 'Groq', envKey: 'GROQ_API_KEY' },
+    { key: 'deepseek_api_key', name: 'DeepSeek', envKey: 'DEEPSEEK_API_KEY' },
+    { key: 'gemini_api_key', name: 'Google Gemini', envKey: 'GEMINI_API_KEY' },
+    { key: 'siliconflow_api_key', name: 'SiliconFlow', envKey: 'SILICONFLOW_API_KEY' },
+    { key: 'mistral_api_key', name: 'Mistral AI', envKey: 'MISTRAL_API_KEY' },
+    { key: 'openrouter_api_key', name: 'OpenRouter', envKey: 'OPENROUTER_API_KEY' },
+    { key: 'together_api_key', name: 'Together AI', envKey: 'TOGETHER_API_KEY' },
+  ]
 
   const saveAll = async () => {
     setSaving(true)
@@ -142,7 +152,7 @@ function PlatformSettingsPage() {
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
                   {t('Env variable')}: <code className="text-xs bg-muted px-1 py-0.5 rounded">{p.envKey}</code>
-                  {' â€?'}{t('DB value takes priority')}
+                  {' ï¿½?'}{t('DB value takes priority')}
                 </p>
               </div>
             )

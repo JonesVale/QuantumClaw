@@ -332,11 +332,9 @@ function DashboardPage() {
                 )}
               </div>
             </div>
-            <Link to="/wallet">
-              <button className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium bg-[oklch(0.72_0.18_52)] text-white hover:bg-[oklch(0.66_0.18_52)] transition-all gap-2">
+            <Link to="/wallet" className="inline-flex items-center justify-center rounded-lg px-5 py-2.5 text-sm font-medium bg-[oklch(0.72_0.18_52)] text-white hover:bg-[oklch(0.66_0.18_52)] transition-all gap-2">
                 <Plus className="h-4 w-4" />
                 {t('Recharge')}
-              </button>
             </Link>
           </div>
         </div>

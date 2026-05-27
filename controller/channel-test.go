@@ -86,6 +86,7 @@ func testChannel(ctx context.Context, channel *model.Channel, request *relaymode
 		Body:   nil,
 		Header: make(http.Header),
 	}
+	c.Request = c.Request.WithContext(ctx)
 	c.Request.Header.Set("Authorization", "Bearer "+channel.Key)
 	c.Request.Header.Set("Content-Type", "application/json")
 	c.Set(ctxkey.Channel, channel.Type)
@@ -104,8 +105,13 @@ func testChannel(ctx context.Context, channel *model.Channel, request *relaymode
 	modelMap := channel.GetModelMapping()
 	if modelName == "" || !strings.Contains(channel.Models, modelName) {
 		modelNames := strings.Split(channel.Models, ",")
-		if len(modelNames) > 0 {
+		if len(modelNames) > 0 && modelNames[0] != "" {
 			modelName = modelNames[0]
+		} else {
+			// 渠道没有配置模型，使用 buildTestRequest 传入的默认模型
+			if modelName == "" {
+				modelName = "gpt-3.5-turbo"
+			}
 		}
 	}
 	if modelMap != nil && modelMap[modelName] != "" {
@@ -211,8 +217,13 @@ func TestChannel(c *gin.Context) {
 
 	modelName := c.Query("model")
 	testRequest := buildTestRequest(modelName)
+
+	// 测试连接设置 30 秒超时上下文，防止挂起
+	testCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+	defer cancel()
+
 	tik := time.Now()
-	responseMessage, err, _ := testChannel(ctx, channel, testRequest)
+	responseMessage, err, _ := testChannel(testCtx, channel, testRequest)
 	tok := time.Now()
 	milliseconds := tok.Sub(tik).Milliseconds()
 	if err != nil {

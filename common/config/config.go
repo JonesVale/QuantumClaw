@@ -1,4 +1,4 @@
-﻿package config
+package config
 
 import (
 	"os"
@@ -131,6 +131,20 @@ var RetryTimes = 2
 var RootUserEmail = ""
 
 var IsMasterNode = os.Getenv("NODE_TYPE") != "slave"
+
+// Cascade config (used when NODE_TYPE=slave)
+var CascadeMasterURL = os.Getenv("CASCADE_MASTER_URL")
+var CascadeNodeName = os.Getenv("CASCADE_NODE_NAME")
+var CascadeRegion = os.Getenv("CASCADE_REGION")
+
+// Web search API keys
+var BingSearchAPIKey = os.Getenv("BING_SEARCH_API_KEY")
+var SerpAPIKey = os.Getenv("SERPAPI_API_KEY")
+
+// Geo service API keys
+var AmapAPIKey = os.Getenv("AMAP_API_KEY")
+var AmapGeoCodeKey = os.Getenv("AMAP_GEOCODE_KEY")
+var GoogleMapsAPIKey = os.Getenv("GOOGLE_MAPS_API_KEY")
 
 // ForceHTTPS when true, HTTP requests are redirected to HTTPS
 var ForceHTTPS = strings.ToLower(os.Getenv("FORCE_HTTPS")) == "true"

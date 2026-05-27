@@ -1,0 +1,76 @@
+# ============================================================
+# QuantumClaw Slave Node - Deploy with Redis only (no DB)
+# Connects to master via CASCADE_MASTER_URL
+# ============================================================
+
+services:
+  # -----------------------
+  # Slave QuantumClaw
+  # -----------------------
+  app:
+    build:
+      context: ../../
+      dockerfile: deploy/slave/Dockerfile
+      args:
+        VERSION: ${IMAGE_TAG:-latest}
+    container_name: qc-slave-${NODE_NAME:-default}
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3666}:3666"
+    environment:
+      # ── Node identity ──
+      NODE_TYPE: "slave"
+      NODE_NAME: "${NODE_NAME:-slave-default}"
+      CASCADE_MASTER_URL: "${CASCADE_MASTER_URL:?CASCADE_MASTER_URL required}"
+      CASCADE_NODE_NAME: "${CASCADE_NODE_NAME:?CASCADE_NODE_NAME required}"
+      CASCADE_REGION: "${CASCADE_REGION:?CASCADE_REGION required}"
+      # ── Redis (local) ──
+      REDIS_HOST: "${REDIS_HOST:-redis}"
+      REDIS_PORT: "${REDIS_PORT:-6379}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-qc-redis}"
+      # ── App ──
+      PORT: "${PORT:-3666}"
+      GIN_MODE: "${GIN_MODE:-release}"
+      DEBUG: "${DEBUG:-false}"
+      SESSION_SECRET: "${SESSION_SECRET:-change-me-to-match-master}"
+    volumes:
+      - ${LOG_DIR:-./logs}:/app/logs
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3666/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - qc-slave-net
+
+  # -----------------------
+  # Redis (token cache + billing queue)
+  # -----------------------
+  redis:
+    image: redis:7-alpine
+    container_name: qc-slave-redis-${NODE_NAME:-default}
+    restart: unless-stopped
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-qc-redis}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - qc-slave-net
+
+volumes:
+  redis_data:
+    driver: local
+
+networks:
+  qc-slave-net:
+    driver: bridge

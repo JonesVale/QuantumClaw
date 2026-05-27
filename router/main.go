@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"embed"
@@ -15,6 +15,16 @@ import (
 
 func SetRouter(router *gin.Engine, buildFS embed.FS) {
 	router.Use(middleware.HTTPSRedirect())
+
+	// Slave node: only relay routes + health check
+	if !config.IsMasterNode {
+		SetRelayRouter(router)
+		router.GET("/health", func(c *gin.Context) {
+			c.JSON(http.StatusOK, gin.H{"status": "ok", "mode": "slave"})
+		})
+		return
+	}
+
 	SetApiRouter(router)
 	SetDashboardRouter(router)
 	SetRelayRouter(router)

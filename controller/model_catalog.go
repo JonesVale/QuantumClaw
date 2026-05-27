@@ -54,7 +54,45 @@ func GetModelCatalog(c *gin.Context) {
 		}
 	}
 
-	// 3. Build response
+	// 3. Deduplicate: prefer API-format (lowercase/hyphenated) names over
+	//    human-readable names (spaces + capitals) from old SeedModelMetadata().
+	//    e.g. "deepseek-chat" (matches Ability table) over "DeepSeek Chat" (old seed)
+	//    and "gpt-4o" over "GPT-4o" (case-only differences).
+	normalize := func(s string) string {
+		return strings.ToLower(strings.ReplaceAll(s, " ", "-"))
+	}
+	isAPIName := func(s string) bool {
+		return strings.ToLower(s) == s && !strings.Contains(s, " ")
+	}
+	seen := make(map[string]bool) // normalized name → already kept
+	var best []model.ModelMetadata
+	for i := range metadata {
+		key := normalize(metadata[i].ModelName)
+		if seen[key] {
+			continue // already have a (better) entry for this model
+		}
+		// Check if there's a better (API-format) variant elsewhere in the slice
+		if !isAPIName(metadata[i].ModelName) {
+			hasBetter := false
+			for j := range metadata {
+				if i == j {
+					continue
+				}
+				if normalize(metadata[j].ModelName) == key && isAPIName(metadata[j].ModelName) {
+					hasBetter = true
+					break
+				}
+			}
+			if hasBetter {
+				continue // skip this human-readable name; API-format will be added when we reach it
+			}
+		}
+		seen[key] = true
+		best = append(best, metadata[i])
+	}
+	metadata = best
+
+	// 4. Build response
 	var result []model.CatalogModelResponse
 	for _, m := range metadata {
 		resp := model.CatalogModelResponse{

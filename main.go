@@ -2,12 +2,15 @@ package main
 
 import (
 	"context"
+	"crypto/rand"
 	"embed"
+	"encoding/hex"
 	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -19,6 +22,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/client"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/i18n"
@@ -30,6 +34,78 @@ import (
 	"github.com/quantumclaw/quantumclaw/router"
 	"github.com/quantumclaw/quantumclaw/service"
 )
+
+// Known API key environment variables for QC! migration
+var knownApiEnvVars = map[string]bool{
+	"DEEPSEEK_API_KEY":   true,
+	"GROQ_API_KEY":       true,
+	"OPENAI_API_KEY":     true,
+	"ANTHROPIC_API_KEY":  true,
+	"GEMINI_API_KEY":     true,
+	"SILICONFLOW_API_KEY": true,
+	"MISTRAL_API_KEY":    true,
+	"MOONSHOT_API_KEY":   true,
+	"BAIDU_API_KEY":      true,
+	"ZHIPU_API_KEY":      true,
+	"TENCENT_API_KEY":    true,
+	"ALIBABA_API_KEY":    true,
+}
+
+// migrateEnvKeysToEncrypted scans .env for plaintext API keys and encrypts them to QC! format.
+// Adds defense-in-depth: even if .env is stolen, keys need decryption + Qsc suffix removal.
+func migrateEnvKeysToEncrypted() int {
+	if config.CryptoSecret == "" {
+		return 0
+	}
+	envPath := ".env"
+	envData, err := os.ReadFile(envPath)
+	if err != nil {
+		logger.SysWarn("migrateEnvKeys: cannot read .env: " + err.Error())
+		return 0
+	}
+	lines := strings.Split(string(envData), "\n")
+	changed := 0
+
+	for i, line := range lines {
+		lineTrim := strings.TrimSpace(line)
+		if lineTrim == "" || strings.HasPrefix(lineTrim, "#") {
+			continue
+		}
+		parts := strings.SplitN(lineTrim, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		key := parts[0]
+		value := parts[1]
+
+		if !knownApiEnvVars[key] {
+			continue
+		}
+		if value == "" || strings.HasPrefix(value, encrypt.EnvKeyPrefix) {
+			continue // already encrypted or empty
+		}
+		if strings.Contains(value, "PUT_YOUR") {
+			continue // placeholder, no need to encrypt
+		}
+
+		encrypted, err := encrypt.EncryptEnvKey(value, config.CryptoSecret)
+		if err != nil {
+			logger.SysWarn("migrateEnvKeys: encrypt " + key + " failed: " + err.Error())
+			continue
+		}
+		lines[i] = key + "=" + encrypted
+		changed++
+	}
+
+	if changed > 0 {
+		if err := os.WriteFile(envPath, []byte(strings.Join(lines, "\n")), 0644); err != nil {
+			logger.SysError("migrateEnvKeys: write .env failed: " + err.Error())
+			return 0
+		}
+		logger.SysLogf("migrateEnvKeys: encrypted %d env var(s) to QC! format", changed)
+	}
+	return changed
+}
 
 //go:embed web/default/dist
 var buildFS embed.FS
@@ -116,6 +192,69 @@ func main() {
 
 	// Brand rankings are seeded via monthly cron only (avoids external API on startup)
 
+	// Also try reading CRYPTO_SECRET from .env directly (godotenv/autoload fallback)
+	if config.CryptoSecret == "" {
+		envData, _ := os.ReadFile(".env")
+		if envData != nil {
+			for _, line := range strings.Split(string(envData), "\n") {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "CRYPTO_SECRET=") {
+					config.CryptoSecret = strings.TrimPrefix(line, "CRYPTO_SECRET=")
+					break
+				}
+			}
+		}
+	}
+
+	// Ensure CRYPTO_SECRET is set: if not, generate from QRNG and persist to .env
+	if config.CryptoSecret == "" {
+		var keyBytes []byte
+		var err error
+		keyBytes, err = common.GetQuantumRandomBytes(32)
+		if err != nil {
+			logger.SysWarn("QRNG unavailable, using crypto/rand for CRYPTO_SECRET")
+			b := make([]byte, 32)
+			_, _ = rand.Reader.Read(b)
+			keyBytes = b
+		}
+		config.CryptoSecret = hex.EncodeToString(keyBytes)
+		// Persist to .env so restarts use the same key (required for decryption)
+		envPath := ".env"
+		data, readErr := os.ReadFile(envPath)
+		if readErr == nil {
+			content := string(data)
+			if !strings.Contains(content, "CRYPTO_SECRET") {
+				f, openErr := os.OpenFile(envPath, os.O_APPEND|os.O_WRONLY, 0644)
+				if openErr == nil {
+					f.WriteString("\n# AES-256-GCM master key for channel API key encryption (32 bytes hex)\nCRYPTO_SECRET=" + config.CryptoSecret + "\n")
+					f.Close()
+					logger.SysLog("CRYPTO_SECRET persisted to .env")
+				} else {
+					logger.SysWarn("Could not write CRYPTO_SECRET to .env: " + openErr.Error())
+				}
+			}
+		}
+	}
+
+	// Migrate plaintext API keys in .env to encrypted QC! format
+	if config.CryptoSecret != "" {
+		migrateCount := migrateEnvKeysToEncrypted()
+		if migrateCount > 0 {
+			logger.SysLogf("migrated %d plaintext env keys to QC! encrypted format", migrateCount)
+		}
+	}
+
+	// Auto-configure channel API keys from environment variables FIRST (before encryption)
+	// Must run BEFORE EncryptExistingChannelKeys so it can match plaintext PUT_YOUR patterns
+	results := controller.AutoConfigureAllFromEnv()
+	for _, r := range results {
+		logger.SysLog("auto-configure: " + r)
+	}
+
+	// Encrypt any existing plaintext API keys in the DB (including newly injected real keys)
+	if err := model.EncryptExistingChannelKeys(); err != nil {
+		logger.SysError("encrypt existing channel keys: " + err.Error())
+	}
 	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
 	go func() {
 		time.Sleep(30 * time.Second)
@@ -169,9 +308,30 @@ func main() {
 		logger.FatalLog("failed to initialize Redis: " + err.Error())
 	}
 
+	// ── If slave node, start cascade client ──
+	if !config.IsMasterNode {
+		if config.CascadeMasterURL == "" {
+			logger.FatalLog("slave node requires CASCADE_MASTER_URL")
+		}
+		if config.CascadeNodeName == "" {
+			logger.FatalLog("slave node requires CASCADE_NODE_NAME")
+		}
+		if config.CascadeRegion == "" {
+			logger.FatalLog("slave node requires CASCADE_REGION")
+		}
+		go service.StartCascadeClient(service.CascadeConfig{
+			MasterURL: config.CascadeMasterURL,
+			NodeName:  config.CascadeNodeName,
+			Region:    config.CascadeRegion,
+		})
+		logger.SysLog("quantumclaw running in SLAVE mode (cascade client started)")
+		goto AFTER_SLAVE_SETUP
+	}
+
 	// Initialize options
 	model.InitOptionMap()
 	logger.SysLog(fmt.Sprintf("using theme %s", config.Theme))
+
 	if common.RedisEnabled {
 		// for compatibility with old versions
 		config.MemoryCacheEnabled = true
@@ -214,9 +374,13 @@ func main() {
 	go service.StartDailyModelSync()
 	service.LoadCustomOAuthProviders()
 
-	// Initialize i18n
-	if err := i18n.Init(); err != nil {
-		logger.FatalLog("failed to initialize i18n: " + err.Error())
+AFTER_SLAVE_SETUP:
+
+	// Initialize i18n (only on master; slave has no web UI)
+	if config.IsMasterNode {
+		if err := i18n.Init(); err != nil {
+			logger.FatalLog("failed to initialize i18n: " + err.Error())
+		}
 	}
 
 	// Initialize HTTP server

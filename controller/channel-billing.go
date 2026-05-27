@@ -462,6 +462,8 @@ func UpdateAllChannelsBalance(c *gin.Context) {
 	return
 }
 
+// DEPRECATED: 从未被任何代码调用。如需要周期性更新渠道余额，
+// 请在 main.go 的启动逻辑中添加调用。当前为死代码。
 func AutomaticallyUpdateChannels(frequency int) {
 	for {
 		time.Sleep(time.Duration(frequency) * time.Minute)

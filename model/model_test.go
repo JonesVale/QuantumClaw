@@ -372,7 +372,7 @@ func TestChannelJSONRoundTrip(t *testing.T) {
 		Key:                "sk-test",
 		Status:             ChannelStatusEnabled,
 		Name:               "Test Channel",
-		Weight:             uintPtr(10),
+		Weight:             UintPtr(10),
 		CreatedTime:        1234567890,
 		TestTime:           1234567891,
 		ResponseTime:       200,

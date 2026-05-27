@@ -120,6 +120,11 @@ func openMySQL(dsn string) (*gorm.DB, error) {
 func openSQLite() (*gorm.DB, error) {
 	logger.SysLog("SQL_DSN not set, using SQLite as database")
 	common.UsingSQLite = true
+	// 运行时重新读取 SQLITE_PATH 环境变量（确保 godotenv 已加载 .env）
+	if envPath := os.Getenv("SQLITE_PATH"); envPath != "" {
+		common.SQLitePath = envPath
+	}
+	logger.SysLog("SQLite path: " + common.SQLitePath)
 	dsn := fmt.Sprintf("%s?_busy_timeout=%d", common.SQLitePath, common.SQLiteBusyTimeout)
 	return gorm.Open(sqlite.Open(dsn), &gorm.Config{
 		PrepareStmt: true,
@@ -158,7 +163,11 @@ func InitDB() {
 
 
 	// 预设默认渠道(检测为空时自动插入)
+	// ⚠️ 以下函数只增不删。不要在此处加任何 DELETE/TRUNCATE/DROP 逻辑。
+	// 不要删除 SQLite DB 文件来触发重新播种——AutoPopulateModelMetadataFromRatio
+	// 每次启动自动增量填充，不需要清库。
 	SeedModelMetadata()
+	AutoPopulateModelMetadataFromRatio()
 	SeedDefaultChannels()
 
 	// (language initialization removed; frontend i18n only)
@@ -222,6 +231,35 @@ func migrateDB() error {
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
 
+	// ── 级联架构表 ──
+	attempt("CascadeNode", func() error { return DB.AutoMigrate(&CascadeNode{}) })
+	attempt("CascadeBillingBatch", func() error { return DB.AutoMigrate(&CascadeBillingBatch{}) })
+
+	// ── Sub2API 订阅凭证 ──
+	attempt("Sub2APICredential", func() error { return DB.AutoMigrate(&Sub2APICredential{}) })
+	attempt("Sub2APIUsage", func() error { return DB.AutoMigrate(&Sub2APIUsage{}) })
+	attempt("Sub2APISchema", func() error { return DB.AutoMigrate(&Sub2APISchema{}) })
+
+	// ── Seed built-in Sub2API schemas ──
+	attempt("SeedSub2APISchemas", func() error {
+
+	attempt("Feedback", func() error { return DB.AutoMigrate(&Feedback{}) })
+	attempt("FAQ", func() error { return DB.AutoMigrate(&FAQ{}) })
+	attempt("AppMarket", func() error { return DB.AutoMigrate(&AppMarket{}) })
+	attempt("InferenceNode", func() error { return DB.AutoMigrate(&InferenceNode{}) })
+		var count int64
+		DB.Model(&Sub2APISchema{}).Where("is_builtin = ?", true).Count(&count)
+		if count > 0 {
+			return nil // already seeded
+		}
+		for _, s := range SeedSub2APISchemas() {
+			if err := DB.Create(&s).Error; err != nil {
+				logger.SysLog("seed sub2api schema: " + s.Provider + ": " + err.Error())
+			}
+		}
+		return nil
+	})
+
 	// ── 结算系统新表 ──
 
 	// 手动迁移：Ability 表新增 user_id 列
@@ -235,6 +273,39 @@ func migrateDB() error {
 	if !DB.Migrator().HasColumn(&Channel{}, "cost_price") {
 		if addErr := DB.Migrator().AddColumn(&Channel{}, "cost_price"); addErr != nil {
 			logger.SysLog("add channel.cost_price column note: " + addErr.Error())
+		}
+	}
+
+	// 级联架构：Token 表新增 updated_time 列
+	if !DB.Migrator().HasColumn(&Token{}, "updated_time") {
+		if addErr := DB.Migrator().AddColumn(&Token{}, "updated_time"); addErr != nil {
+			logger.SysLog("add token.updated_time column note: " + addErr.Error())
+		}
+	}
+
+	// 渠道余额预警阈值
+	if !DB.Migrator().HasColumn(&Channel{}, "balance_alert_threshold") {
+		if addErr := DB.Migrator().AddColumn(&Channel{}, "balance_alert_threshold"); addErr != nil {
+			logger.SysLog("add balance_alert_threshold column note: " + addErr.Error())
+		}
+	}
+	if !DB.Migrator().HasColumn(&Channel{}, "balance_disable_threshold") {
+		if addErr := DB.Migrator().AddColumn(&Channel{}, "balance_disable_threshold"); addErr != nil {
+			logger.SysLog("add balance_disable_threshold column note: " + addErr.Error())
+		}
+	}
+
+	// Pricing: channel_markup column
+	if !DB.Migrator().HasColumn(&Channel{}, "channel_markup") {
+		if addErr := DB.Migrator().AddColumn(&Channel{}, "channel_markup"); addErr != nil {
+			logger.SysLog("add channel_markup column note: " + addErr.Error())
+		}
+	}
+
+	// Pricing: tiers_json on SubscriptionPlan
+	if !DB.Migrator().HasColumn(&SubscriptionPlan{}, "tiers_json") {
+		if addErr := DB.Migrator().AddColumn(&SubscriptionPlan{}, "tiers_json"); addErr != nil {
+			logger.SysLog("add tiers_json column note: " + addErr.Error())
 		}
 	}
 

@@ -1,0 +1,373 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "QuantumClaw API",
+    "description": "AI API Gateway & Token Distribution Platform",
+    "version": "1.0.0",
+    "contact": { "email": "support@quantumclaw.com" }
+  },
+  "host": "localhost:3666",
+  "basePath": "/api",
+  "schemes": ["http", "https"],
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Bearer token authentication. Format: Bearer <your_token>"
+    }
+  },
+  "paths": {
+    "/api/user/self": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get current user info",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "User info" } }
+      }
+    },
+    "/api/token": {
+      "get": {
+        "tags": ["Token"],
+        "summary": "List user tokens",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "startIdx", "in": "query", "type": "integer", "default": 0},
+          {"name": "num", "in": "query", "type": "integer", "default": 10}
+        ],
+        "responses": { "200": { "description": "Token list" } }
+      },
+      "post": {
+        "tags": ["Token"],
+        "summary": "Create a new token",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{
+          "name": "body", "in": "body", "required": true, "schema": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "remain_quota": {"type": "integer", "default": 0},
+              "unlimited_quota": {"type": "boolean", "default": false},
+              "expired_time": {"type": "integer", "default": -1}
+            }
+          }
+        }],
+        "responses": { "200": { "description": "Created token" } }
+      }
+    },
+    "/api/token/{id}": {
+      "put": {
+        "tags": ["Token"],
+        "summary": "Update token settings",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "type": "integer", "required": true}],
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Token"],
+        "summary": "Delete a token",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "type": "integer", "required": true}],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/api/channel": {
+      "get": {
+        "tags": ["Channel"],
+        "summary": "List all channels (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Channel list" } }
+      },
+      "post": {
+        "tags": ["Channel"],
+        "summary": "Create a new channel (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Created" } }
+      }
+    },
+    "/api/channel/{id}": {
+      "put": {
+        "tags": ["Channel"],
+        "summary": "Update channel (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Updated" } }
+      },
+      "delete": {
+        "tags": ["Channel"],
+        "summary": "Delete channel (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/api/option": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get system settings",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Options" } }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update system settings",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Updated" } }
+      }
+    },
+    "/api/log": {
+      "get": {
+        "tags": ["Log"],
+        "summary": "Query request logs",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "model", "in": "query", "type": "string"},
+          {"name": "startIdx", "in": "query", "type": "integer", "default": 0},
+          {"name": "num", "in": "query", "type": "integer", "default": 10}
+        ],
+        "responses": { "200": { "description": "Log list" } }
+      }
+    },
+    "/api/user/topup": {
+      "post": {
+        "tags": ["TopUp"],
+        "summary": "Top up user quota (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object",
+          "properties": {
+            "user_id": {"type": "integer"},
+            "quota": {"type": "integer"},
+            "remark": {"type": "string"}
+          }
+        }}],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/user/self/topup": {
+      "post": {
+        "tags": ["TopUp"],
+        "summary": "Recharge via redemption code",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object", "properties": {"key": {"type": "string"}}
+        }}],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/user/search": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Search users (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "keyword", "in": "query", "type": "string"}],
+        "responses": { "200": { "description": "User list" } }
+      }
+    },
+    "/api/redemption": {
+      "get": {
+        "tags": ["Redemption"],
+        "summary": "List redemption codes (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Redemption list" } }
+      },
+      "post": {
+        "tags": ["Redemption"],
+        "summary": "Create redemption codes (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Created" } }
+      }
+    },
+    "/api/search/config": {
+      "get": {
+        "tags": ["Search"],
+        "summary": "Get web search configuration (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Search config" } }
+      },
+      "put": {
+        "tags": ["Search"],
+        "summary": "Update web search configuration (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "provider": {"type": "string", "enum": ["bing", "searxng", "serpapi"]},
+            "api_key": {"type": "string"},
+            "endpoint": {"type": "string"},
+            "max_results": {"type": "integer"},
+            "auto_search": {"type": "boolean"}
+          }
+        }}],
+        "responses": { "200": { "description": "Updated" } }
+      }
+    },
+    "/api/search/test": {
+      "post": {
+        "tags": ["Search"],
+        "summary": "Test web search (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object", "properties": {"query": {"type": "string"}}
+        }}],
+        "responses": { "200": { "description": "Search results" } }
+      }
+    },
+    "/api/search/providers": {
+      "get": {
+        "tags": ["Search"],
+        "summary": "List available search providers",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Provider list" } }
+      }
+    },
+    "/api/status": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Get system status",
+        "responses": { "200": { "description": "Status info" } }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": ["System"],
+        "summary": "Health check (for load balancers)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/cascade/node/register": {
+      "post": {
+        "tags": ["Cascade"],
+        "summary": "Register a new cascade slave node",
+        "description": "Used by slave nodes on startup to register with the master",
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object",
+          "properties": {
+            "name": {"type": "string"},
+            "region": {"type": "string"},
+            "version": {"type": "string"}
+          }
+        }}],
+        "responses": { "200": { "description": "Node ID + API Key" } }
+      }
+    },
+    "/api/cascade/nodes": {
+      "get": {
+        "tags": ["Cascade"],
+        "summary": "List all cascade nodes (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Node list" } }
+      }
+    },
+    "/api/cascade/nodes/{id}": {
+      "delete": {
+        "tags": ["Cascade"],
+        "summary": "Delete a cascade node (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "id", "in": "path", "type": "integer", "required": true}],
+        "responses": { "200": { "description": "Deleted" } }
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "tags": ["Relay"],
+        "summary": "Chat completions (OpenAI-compatible)",
+        "description": "Forward chat completion requests to configured AI models.\nSupports all OpenAI-compatible parameters.\nAuthentication: Bearer token.",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object",
+          "properties": {
+            "model": {"type": "string", "example": "gpt-4o"},
+            "messages": {"type": "array", "items": {"type": "object"}},
+            "temperature": {"type": "number", "default": 1},
+            "max_tokens": {"type": "integer"},
+            "stream": {"type": "boolean", "default": false}
+          }
+        }}],
+        "responses": {
+          "200": { "description": "Chat completion response" },
+          "400": { "description": "Bad request" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "tags": ["Relay"],
+        "summary": "List available models (OpenAI-compatible)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Model list" } }
+      }
+    },
+    "/v1/images/generations": {
+      "post": {
+        "tags": ["Relay"],
+        "summary": "Image generation (OpenAI-compatible)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Generated images" } }
+      }
+    },
+    "/api/platform/config": {
+      "get": {
+        "tags": ["Admin"],
+        "summary": "Get platform configuration (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Platform config" } }
+      },
+      "put": {
+        "tags": ["Admin"],
+        "summary": "Update platform configuration (admin)",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Updated" } }
+      }
+    },
+    "/api/user/balance": {
+      "post": {
+        "tags": ["TopUp"],
+        "summary": "Adjust user balance (admin)",
+        "security": [{"BearerAuth": []}],
+        "parameters": [{"name": "body", "in": "body", "required": true, "schema": {
+          "type": "object",
+          "properties": {
+            "user_id": {"type": "integer"},
+            "amount": {"type": "integer"},
+            "remark": {"type": "string"}
+          }
+        }}],
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/user/self/balance": {
+      "get": {
+        "tags": ["User"],
+        "summary": "Get own balance info",
+        "security": [{"BearerAuth": []}],
+        "responses": { "200": { "description": "Balance info" } }
+      }
+    },
+    "/api/transaction": {
+      "get": {
+        "tags": ["Log"],
+        "summary": "Get user transaction logs",
+        "security": [{"BearerAuth": []}],
+        "parameters": [
+          {"name": "page", "in": "query", "type": "integer", "default": 1},
+          {"name": "pageSize", "in": "query", "type": "integer", "default": 10}
+        ],
+        "responses": { "200": { "description": "Transaction log list" } }
+      }
+    }
+  },
+  "tags": [
+    {"name": "Relay", "description": "AI model relay endpoints (OpenAI-compatible)"},
+    {"name": "User", "description": "User account management"},
+    {"name": "Token", "description": "API token management"},
+    {"name": "Channel", "description": "AI channel management (admin)"},
+    {"name": "Admin", "description": "System administration"},
+    {"name": "Log", "description": "Request and transaction logs"},
+    {"name": "TopUp", "description": "Quota top-up and balance management"},
+    {"name": "Redemption", "description": "Redemption code management"},
+    {"name": "Search", "description": "Web search configuration"},
+    {"name": "Cascade", "description": "Multi-node cascade deployment"},
+    {"name": "System", "description": "System health and status"}
+  ]
+}

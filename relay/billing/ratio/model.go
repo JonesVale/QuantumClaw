@@ -23,7 +23,7 @@ var modelRatioLock sync.RWMutex
 // https://cloud.baidu.com/doc/WENXINWORKSHOP/s/Blfmc9dlf
 // https://openai.com/pricing
 // 1 === $0.002 / 1K tokens
-// 1 === ￥0.014 / 1k tokens
+// 1 === 锟?.014 / 1k tokens
 var ModelRatio = map[string]float64{
 	// https://openai.com/pricing
 	"gpt-4":                   15,
@@ -232,7 +232,7 @@ var ModelRatio = map[string]float64{
 	"qwen2.5-coder-3b-instruct":     0.001 * RMB,
 	"qwen2.5-coder-1.5b-instruct":   0.001 * RMB,
 	"qwen2.5-coder-0.5b-instruct":   0.001 * RMB,
-	"text-embedding-v1":             0.0007 * RMB, // ￥0.0007 / 1k tokens
+	"text-embedding-v1":             0.0007 * RMB, // 锟?.0007 / 1k tokens
 	"text-embedding-v3":             0.0007 * RMB,
 	"text-embedding-v2":             0.0007 * RMB,
 	"text-embedding-async-v2":       0.0007 * RMB,
@@ -248,18 +248,18 @@ var ModelRatio = map[string]float64{
 	"deepseek-r1-distill-qwen-32b":  0.002 * RMB,
 	"deepseek-r1-distill-llama-8b":  0.0005 * RMB,
 	"deepseek-r1-distill-llama-70b": 0.004 * RMB,
-	"SparkDesk":                     1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v1.1":                1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v2.1":                1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v3.1":                1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v3.1-128K":           1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v3.5":                1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v3.5-32K":            1.2858, // ￥0.018 / 1k tokens
-	"SparkDesk-v4.0":                1.2858, // ￥0.018 / 1k tokens
-	"360GPT_S2_V9":                  0.8572, // ¥0.012 / 1k tokens
-	"embedding-bert-512-v1":         0.0715, // ¥0.001 / 1k tokens
-	"embedding_s1_v1":               0.0715, // ¥0.001 / 1k tokens
-	"semantic_similarity_s1_v1":     0.0715, // ¥0.001 / 1k tokens
+	"SparkDesk":                     1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v1.1":                1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v2.1":                1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v3.1":                1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v3.1-128K":           1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v3.5":                1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v3.5-32K":            1.2858, // 锟?.018 / 1k tokens
+	"SparkDesk-v4.0":                1.2858, // 锟?.018 / 1k tokens
+	"360GPT_S2_V9":                  0.8572, // 楼0.012 / 1k tokens
+	"embedding-bert-512-v1":         0.0715, // 楼0.001 / 1k tokens
+	"embedding_s1_v1":               0.0715, // 楼0.001 / 1k tokens
+	"semantic_similarity_s1_v1":     0.0715, // 楼0.001 / 1k tokens
 	// https://cloud.tencent.com/document/product/1729/97731#e0e6be58-60c8-469f-bdeb-6c264ce3b4d0
 	"hunyuan-turbo":             0.015 * RMB,
 	"hunyuan-large":             0.004 * RMB,
@@ -311,7 +311,7 @@ var ModelRatio = map[string]float64{
 	"llama3-groq-8b-8192-tool-use-preview":  0.19 / 1000000 * USD,
 	"mixtral-8x7b-32768":                    0.24 / 1000000 * USD,
 
-	// https://platform.lingyiwanwu.com/docs#-计费单元
+	// https://platform.lingyiwanwu.com/docs#-璁¤垂鍗曞厓
 	"yi-34b-chat-0205": 2.5 / 1000 * RMB,
 	"yi-34b-chat-200k": 12.0 / 1000 * RMB,
 	"yi-vl-plus":       6.0 / 1000 * RMB,
@@ -665,6 +665,16 @@ var ModelRatio = map[string]float64{
 	"baichuan-4":        2.5,
 	"yi-lightning":      0.2,
 	"yi-large":          1.5,
+	// === New Models (added 2026-05-27) ===
+	"gpt-4.1":                      30,     // $0.10 / 1K tokens
+	"gpt-4.1-mini":                 9,      // $0.04 / 1K tokens
+	"gpt-4.1-nano":                 1,      // $0.002 / 1K tokens
+	"claude-sonnet-4-20250514":     24,     // $0.15 / 1K tokens
+	"claude-sonnet-4":              24,     // $0.15 / 1K tokens
+	"gemini-2.5-pro-preview-05-07": 8,      // $0.05 / 1K tokens
+	"gemini-2.5-pro":               8,      // $0.05 / 1K tokens
+	"deepseek-v3-0324":             2,      // $0.002 / 1K tokens
+	"deepseek-r1-0528":             4,      // $0.004 / 1K tokens
 }
 
 var CompletionRatio = map[string]float64{
@@ -691,6 +701,16 @@ var CompletionRatio = map[string]float64{
 	"llama-3.2-vision":     0.3,   // $0.0006 / 1K tokens
 	"o3":                   8.0,   // $0.016 / 1K tokens
 	"codestral":            0.25,  // $0.0005 / 1K tokens
+	// === New Models (added 2026-05-27) ===
+	"gpt-4.1":                      40,     // $0.40 / 1K tokens
+	"gpt-4.1-mini":                 18,     // $0.16 / 1K tokens
+	"gpt-4.1-nano":                 2,      // $0.004 / 1K tokens
+	"claude-sonnet-4-20250514":     48,     // $0.75 / 1K tokens
+	"claude-sonnet-4":              48,     // $0.75 / 1K tokens
+	"gemini-2.5-pro-preview-05-07": 32,     // $0.20 / 1K tokens
+	"gemini-2.5-pro":               32,     // $0.20 / 1K tokens
+	"deepseek-v3-0324":             2,      // $0.002 / 1K tokens
+	"deepseek-r1-0528":             4,      // $0.004 / 1K tokens
 }
 
 var (
@@ -882,14 +902,14 @@ func GetCompletionRatio(name string, channelType int) float64 {
 		"meta/llama-2-70b-chat",
 		"meta/meta-llama-3-70b",
 		"meta/meta-llama-3-70b-instruct":
-		return 2.750 / 0.650 // ≈4.230769
+		return 2.750 / 0.650 // 鈮?.230769
 	case "meta/meta-llama-3.1-405b-instruct":
 		return 1
 	case "mistralai/mistral-7b-instruct-v0.2",
 		"mistralai/mistral-7b-v0.1":
 		return 5
 	case "mistralai/mixtral-8x7b-instruct-v0.1":
-		return 1.000 / 0.300 // ≈3.333333
+		return 1.000 / 0.300 // 鈮?.333333
 	}
 
 	return 1

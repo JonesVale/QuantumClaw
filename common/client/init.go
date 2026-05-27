@@ -42,15 +42,14 @@ func Init() {
 		}
 	}
 
-	if config.RelayTimeout == 0 {
-		HTTPClient = &http.Client{
-			Transport: transport,
-		}
-	} else {
-		HTTPClient = &http.Client{
-			Timeout:   time.Duration(config.RelayTimeout) * time.Second,
-			Transport: transport,
-		}
+	// 默认超时 60 秒，零值被视为未配置
+	relayTimeout := config.RelayTimeout
+	if relayTimeout == 0 {
+		relayTimeout = 60
+	}
+	HTTPClient = &http.Client{
+		Timeout:   time.Duration(relayTimeout) * time.Second,
+		Transport: transport,
 	}
 
 	ImpatientHTTPClient = &http.Client{

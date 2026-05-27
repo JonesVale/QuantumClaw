@@ -1,0 +1,24 @@
+{
+  "name": "quantumclaw",
+  "version": "0.1.0",
+  "description": "QuantumClaw AI API Gateway - Node.js SDK",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["ai", "api", "gateway", "llm", "quantumclaw"],
+  "author": "QuantumClaw Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/quantumclaw/quantumclaw"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  }
+}

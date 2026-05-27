@@ -22,16 +22,12 @@ import ko from '@/i18n/ko.json'
 import ru from '@/i18n/ru.json'
 import vi from '@/i18n/vi.json'
 import ar from '@/i18n/ar.json'
-import hi from '@/i18n/hi.json'
 import de from '@/i18n/de.json'
 import es from '@/i18n/es.json'
 import fr from '@/i18n/fr.json'
 import it from '@/i18n/it.json'
 import nl from '@/i18n/nl.json'
 import pt from '@/i18n/pt.json'
-import tr from '@/i18n/tr.json'
-import th from '@/i18n/th.json'
-import id from '@/i18n/id.json'
 
 // ========== 语言显示名 ↔ 标准码双向映射 ==========
 
@@ -51,11 +47,7 @@ export const DISPLAY_TO_CODE: Record<string, string> = {
   Italiano: 'it',
   Português: 'pt',
   Nederlands: 'nl',
-  Türkçe: 'tr',
-  ไทย: 'th',
   العربية: 'ar',
-  हिन्दी: 'hi',
-  'Bahasa Indonesia': 'id',
 }
 
 export const CODE_TO_DISPLAY: Record<string, string> = {
@@ -72,11 +64,7 @@ export const CODE_TO_DISPLAY: Record<string, string> = {
   it: 'Italiano',
   pt: 'Português',
   nl: 'Nederlands',
-  tr: 'Türkçe',
-  th: 'ไทย',
   ar: 'العربية',
-  hi: 'हिन्दी',
-  id: 'Bahasa Indonesia',
 }
 
 /** 所有语言的显示名列表（固定排序，用于语言选择下拉） */
@@ -94,11 +82,7 @@ export const ALL_LANG_DISPLAY_NAMES: string[] = [
   'Italiano',
   'Português',
   'Nederlands',
-  'Türkçe',
-  'ไทย',
   'العربية',
-  'हिन्दी',
-  'Bahasa Indonesia',
 ]
 
 // ========== 构建 i18next resources ==========
@@ -118,16 +102,12 @@ const resources: Record<string, { translation: Resource }> = {
   'ru':     { translation: ru as Resource },
   'vi':     { translation: vi as Resource },
   'ar':     { translation: ar as Resource },
-  'hi':     { translation: hi as Resource },
   'de':     { translation: de as Resource },
   'es':     { translation: es as Resource },
   'fr':     { translation: fr as Resource },
   'it':     { translation: it as Resource },
   'nl':     { translation: nl as Resource },
   'pt':     { translation: pt as Resource },
-  'tr':     { translation: tr as Resource },
-  'th':     { translation: th as Resource },
-  'id':     { translation: id as Resource },
 }
 
 // ========== 初始化 ==========

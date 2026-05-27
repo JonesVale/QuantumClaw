@@ -32,4 +32,7 @@ const (
 	AZURE_QUANTUM
 	GOOGLE_QUANTUM
 	QUANTUM_DUMMY
+
+	// ==================== 网页模型 API 类型 ====================
+	Sub2API = iota + 200
 )

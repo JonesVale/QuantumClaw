@@ -1,0 +1,120 @@
+2FA Enabled! Backup codes:
+50+ models including GPT-4o, Claude 3.5, Gemini 2.0, DeepSeek V3, Qwen3.6 and more.
+DeepSeek V3
+Email Notifications
+Enable Affinity
+Enable Binance Pay
+Enable Cloudflare Turnstile captcha during registration
+Enable Commission
+Enable Creem
+Enable Epay
+Enable Metrics
+Enable Stripe
+Enable Waffo
+Enter 6-digit TOTP code
+Enter your TOTP code to disable 2FA
+Epay Gateway Address
+Epay ID
+Epay Key
+GC Cycles
+General Billing
+General Settings
+Global Web Rate Limit (RPM)
+Go Routines
+Go to Wallet
+Go to Wallet page to choose a payment method (Stripe, Epay, Binance, etc.).
+IP Blacklist
+IP Rate Limit (RPM)
+IP Whitelist
+Latest AI articles from top sources
+Legacy Quota
+MM-DD HH:mm:ss
+Max requests per minute per IP address
+Memory (Heap)
+Memory Cache
+Memory Sys
+Min Withdrawal Quota
+Minimum Password Length
+Minimum Top-up Amount
+Most Cost-Effective
+No articles yet. RSS feeds are being fetched in the background.
+Notification Events
+Notification Settings
+One API
+One IP or CIDR per line.
+One IP or CIDR per line. Whitelist takes precedence.
+One domain per line. Leave empty to allow all domains.
+Passkeys (WebAuthn)
+Password Policy
+Performance Settings
+QQ群号已复制: 587600277
+QuantumClaw Assistant
+Quick Help
+Rate Limit
+Rate Limit Settings
+Recent Commissions
+Register Passkey
+Register Reward Quota
+Registration Settings
+Request Metrics
+Request Rate (last 60 min)
+Require Special Characters
+SMTP From Address
+SMTP Host
+SMTP Password
+SMTP Port
+SMTP Settings
+SMTP Username
+Save Commission
+Scan QR code, enter the 6-digit code, then click Verify & Enable
+Scan the QR code with your authenticator app
+Sell Rate
+Session Timeout (minutes)
+Setup Key
+Shown at the bottom of the homepage. Supports HTML — use it for ICP record number, legal links, etc.
+Shown on Wallet page for B2B transfers
+Stripe Min Top-up
+Stripe Public Key
+Sync Now
+System Information
+System Monitoring
+Tax ID
+Test Email
+Token 聚合分发 · AI + 量子计算基础设施
+Top Up
+Top-up History
+Total Revenue
+Turnstile Secret Key
+Turnstile Site Key
+Two-Factor Authentication
+Unique AI models
+Upstream Update
+Usage Threshold
+Verify & Enable
+Waffo Sandbox Mode
+Webhook URL
+Weight Boost
+YYYY-MM-DD
+ibm-brisbane_recommend
+ibm-brisbane_strengths
+ibm-kyiv_recommend
+ibm-kyiv_strengths
+ibm-sherbrooke_recommend
+ibm-sherbrooke_strengths
+ionq-aria_recommend
+ionq-aria_strengths
+ionq-forte_recommend
+ionq-forte_strengths
+ionq-harmony_recommend
+ionq-harmony_strengths
+negative
+profitable
+requests_per_window
+response_time_ms
+rigetti-ankaa_recommend
+rigetti-ankaa_strengths
+rigetti-aspen_recommend
+rigetti-aspen_strengths
+settlement_cycle_hint
+span
+统一管理 AI 密钥、量子算力、配额、计费

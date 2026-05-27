@@ -17,7 +17,9 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/palm"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/proxy"
+	"github.com/quantumclaw/quantumclaw/relay/adaptor/quantum_relay"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/replicate"
+	"github.com/quantumclaw/quantumclaw/relay/adaptor/sub2api"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/tencent"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/vertexai"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/xunfei"
@@ -67,6 +69,13 @@ func GetAdaptor(apiType int) adaptor.Adaptor {
 		return &replicate.Adaptor{}
 	case apitype.Dify:
 		return &dify.Adaptor{}
+	// ==================== 量子算力 ====================
+	// ==================== 量子算力 ====================
+	case apitype.IONQ, apitype.IBMQ, apitype.RIGETTI, apitype.AWS_BRAKET, apitype.AZURE_QUANTUM, apitype.GOOGLE_QUANTUM:
+		return &quantumrelay.Adaptor{}
+
+	case apitype.Sub2API:
+		return &sub2api.Adaptor{}
 	}
 	return nil
 }

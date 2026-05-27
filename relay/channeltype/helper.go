@@ -56,6 +56,12 @@ func ToAPIType(channelType int) int {
 	case Dify:
 		apiType = apitype.Dify
 
+	case Sub2API:
+		apiType = apitype.Sub2API
+
+	case VLLM, SGLang:
+		apiType = apitype.OpenAI
+
 	// ==================== 量子算力渠道映射 ====================
 	case IonQ:
 		apiType = apitype.IONQ

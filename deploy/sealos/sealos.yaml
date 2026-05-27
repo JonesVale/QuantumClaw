@@ -1,0 +1,44 @@
+# QuantumClaw SealOS Deployment Template
+
+# This template deploys QuantumClaw as a multi-service app on SealOS.
+# Requirements: MySQL + Redis services must be created first.
+
+apiVersion: app.sealos.io/v1
+kind: App
+metadata:
+  name: quantumclaw
+spec:
+  icon: https://raw.githubusercontent.com/QuantumClaw/QuantumClaw/main/web/logo.svg
+  displayName: QuantumClaw
+  description: AI Gateway - Token aggregation, unified billing, multi-model support
+  category: ai
+  services:
+    - name: quantumclaw
+      image: ghcr.io/quantumclaw/quantumclaw:latest
+      ports:
+        - containerPort: 3000
+          expose: true
+      env:
+        - name: SESSION_SECRET
+          value: "change-me-to-a-random-string"
+        - name: SQL_DSN
+          valueFrom:
+            secretKeyRef:
+              name: mysql-conn
+              key: dsn
+        - name: REDIS_CONN_STRING
+          valueFrom:
+            secretKeyRef:
+              name: redis-conn
+              key: url
+        - name: NODE_TYPE
+          value: "master"
+        - name: BING_SEARCH_API_KEY
+          value: ""
+        - name: AMAP_API_KEY
+          value: ""
+  resources:
+    cpu: 1
+    memory: 2Gi
+  replicas: 1
+  updateStrategy: RollingUpdate
