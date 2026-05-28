@@ -14,6 +14,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 )
 
@@ -98,11 +99,80 @@ func GetPaymentSetting() *PaymentSetting {
 
 		// 从环境变量加载配置
 		loadPaymentConfigFromEnv(paymentSetting)
+		// 从 system_options 覆盖加载（支持后台动态修改）
+		loadPaymentConfigFromOptions(paymentSetting)
 
 		logger.SysLog("支付配置加载完成")
 	})
 
 	return paymentSetting
+}
+
+// loadPaymentConfigFromOptions 从 system_options 加载支付配置（支持后台动态修改）
+func loadPaymentConfigFromOptions(settings *PaymentSetting) {
+	getOpt := func(key string) string {
+		config.OptionMapRWMutex.RLock()
+		defer config.OptionMapRWMutex.RUnlock()
+		return config.OptionMap[key]
+	}
+
+	if getOpt("EpayEnabled") == "true" {
+		settings.EpayEnabled = true
+		if v := getOpt("EpayId"); v != "" {
+			settings.EpayId = v
+		}
+		if v := getOpt("EpayKey"); v != "" {
+			settings.EpayKey = v
+		}
+		if v := getOpt("EpayAddress"); v != "" {
+			settings.EpayAddress = v
+		}
+	}
+	if getOpt("StripeEnabled") == "true" {
+		settings.StripeEnabled = true
+		if v := getOpt("StripeApiSecret"); v != "" {
+			settings.StripeApiSecret = v
+		}
+		if v := getOpt("StripeMinTopUp"); v != "" {
+			if min, err := strconv.Atoi(v); err == nil {
+				settings.StripeMinTopUp = min
+			}
+		}
+	}
+	if getOpt("CreemEnabled") == "true" {
+		settings.CreemEnabled = true
+		if v := getOpt("CreemApiKey"); v != "" {
+			settings.CreemApiKey = v
+		}
+	}
+	if getOpt("WaffoEnabled") == "true" {
+		settings.WaffoEnabled = true
+		if v := getOpt("WaffoApiKey"); v != "" {
+			settings.WaffoApiKey = v
+		}
+		if getOpt("WaffoSandbox") == "true" {
+			settings.WaffoSandbox = true
+		}
+	}
+	if getOpt("BinanceEnabled") == "true" {
+		settings.BinanceEnabled = true
+		if v := getOpt("BinanceApiKey"); v != "" {
+			settings.BinanceApiKey = v
+		}
+		if v := getOpt("BinanceSecretKey"); v != "" {
+			settings.BinanceSecretKey = v
+		}
+		if v := getOpt("BinanceMerchantId"); v != "" {
+			settings.BinanceMerchantId = v
+		}
+	}
+}
+
+// ReloadPaymentSettings 重新加载支付配置（管理员修改后调用）
+func ReloadPaymentSettings() {
+	paymentSettingOnce = sync.Once{}
+	GetPaymentSetting()
+	logger.SysLog("支付配置已重新加载")
 }
 
 // loadPaymentConfigFromEnv 从环境变量加载支付配置

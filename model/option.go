@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"github.com/quantumclaw/quantumclaw/common"
@@ -51,6 +51,23 @@ func InitOptionMap() {
 	config.OptionMap["SMTPPort"] = strconv.Itoa(config.SMTPPort)
 	config.OptionMap["SMTPAccount"] = ""
 	config.OptionMap["SMTPToken"] = ""
+	// 支付商户配置
+	config.OptionMap["EpayEnabled"] = "false"
+	config.OptionMap["EpayId"] = ""
+	config.OptionMap["EpayKey"] = ""
+	config.OptionMap["EpayAddress"] = ""
+	config.OptionMap["StripeEnabled"] = "false"
+	config.OptionMap["StripeApiSecret"] = ""
+	config.OptionMap["StripeMinTopUp"] = "1"
+	config.OptionMap["CreemEnabled"] = "false"
+	config.OptionMap["CreemApiKey"] = ""
+	config.OptionMap["WaffoEnabled"] = "false"
+	config.OptionMap["WaffoApiKey"] = ""
+	config.OptionMap["WaffoSandbox"] = "false"
+	config.OptionMap["BinanceEnabled"] = "false"
+	config.OptionMap["BinanceApiKey"] = ""
+	config.OptionMap["BinanceSecretKey"] = ""
+	config.OptionMap["BinanceMerchantId"] = ""
 	config.OptionMap["Notice"] = ""
 	config.OptionMap["About"] = ""
 	config.OptionMap["HomePageContent"] = ""

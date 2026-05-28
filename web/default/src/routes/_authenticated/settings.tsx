@@ -692,6 +692,109 @@ function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="billing">
+          <Card>
+            <CardHeader><CardTitle className="flex items-center gap-2"><DollarSign className="h-4 w-4" />{t('Payment Merchant')}</CardTitle><CardDescription>{t('Configure payment providers for user top-up')}</CardDescription></CardHeader>
+            <CardContent className="space-y-6">
+
+              {/* Epay */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Epay')}</Label>
+                  <Switch checked={epayEnabled} onCheckedChange={setEpayEnabled} />
+                </div>
+                {epayEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-amber-200">
+                    <div><Label>{t('Merchant ID')}</Label><Input value={epayId} onChange={e => setEpayId(e.target.value)} placeholder="1001" /></div>
+                    <div><Label>{t('Merchant Key')}</Label><Input value={epayKey} onChange={e => setEpayKey(e.target.value)} placeholder="xxxxxxxx" type="password" /></div>
+                    <div><Label>{t('Gateway URL')}</Label><Input value={epayAddress} onChange={e => setEpayAddress(e.target.value)} placeholder="https://epay.example.com" /></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Stripe */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Stripe')}</Label>
+                  <Switch checked={stripeEnabled} onCheckedChange={setStripeEnabled} />
+                </div>
+                {stripeEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-blue-200">
+                    <div><Label>{t('API Secret')}</Label><Input value={stripeApiSecret} onChange={e => setStripeApiSecret(e.target.value)} placeholder="sk_test_..." type="password" /></div>
+                    <div><Label>{t('Min Top-up')}</Label><Input value={stripeMinTopUp} onChange={e => setStripeMinTopUp(e.target.value)} placeholder="1" type="number" /></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Creem */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Creem')}</Label>
+                  <Switch checked={creemEnabled} onCheckedChange={setCreemEnabled} />
+                </div>
+                {creemEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-green-200">
+                    <div><Label>{t('API Key')}</Label><Input value={creemApiKey} onChange={e => setCreemApiKey(e.target.value)} placeholder="creem_..." type="password" /></div>
+                  </div>
+                )}
+              </div>
+
+              {/* Waffo */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Waffo')}</Label>
+                  <Switch checked={waffoEnabled} onCheckedChange={setWaffoEnabled} />
+                </div>
+                {waffoEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-purple-200">
+                    <div><Label>{t('API Key')}</Label><Input value={waffoApiKey} onChange={e => setWaffoApiKey(e.target.value)} placeholder="waffo_..." type="password" /></div>
+                    <div className="flex items-center justify-between">
+                      <Label>{t('Sandbox Mode')}</Label>
+                      <Switch checked={waffoSandbox} onCheckedChange={setWaffoSandbox} />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Binance */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Binance Pay')}</Label>
+                  <Switch checked={binanceEnabled} onCheckedChange={setBinanceEnabled} />
+                </div>
+                {binanceEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-yellow-200">
+                    <div><Label>{t('API Key')}</Label><Input value={binanceApiKey} onChange={e => setBinanceApiKey(e.target.value)} placeholder="binance_..." type="password" /></div>
+                    <div><Label>{t('Secret Key')}</Label><Input value={binanceSecretKey} onChange={e => setBinanceSecretKey(e.target.value)} placeholder="..." type="password" /></div>
+                    <div><Label>{t('Merchant ID')}</Label><Input value={binanceMerchantId} onChange={e => setBinanceMerchantId(e.target.value)} placeholder="..." /></div>
+                  </div>
+                )}
+              </div>
+
+              <Button onClick={() => handleSave({
+                EpayEnabled: epayEnabled ? 'true' : 'false',
+                EpayId: epayId,
+                EpayKey: epayKey,
+                EpayAddress: epayAddress,
+                StripeEnabled: stripeEnabled ? 'true' : 'false',
+                StripeApiSecret: stripeApiSecret,
+                StripeMinTopUp: stripeMinTopUp || '1',
+                CreemEnabled: creemEnabled ? 'true' : 'false',
+                CreemApiKey: creemApiKey,
+                WaffoEnabled: waffoEnabled ? 'true' : 'false',
+                WaffoApiKey: waffoApiKey,
+                WaffoSandbox: waffoSandbox ? 'true' : 'false',
+                BinanceEnabled: binanceEnabled ? 'true' : 'false',
+                BinanceApiKey: binanceApiKey,
+                BinanceSecretKey: binanceSecretKey,
+                BinanceMerchantId: binanceMerchantId,
+              })} disabled={saveMutation.isPending}>
+                <Save className="mr-2 h-4 w-4" />{saveMutation.isPending ? t('Saving...') : t('Save Payment Settings')}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   )
