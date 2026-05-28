@@ -4,7 +4,6 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -55,10 +54,10 @@ func Decrypt(ciphertextB64 string, key []byte) ([]byte, error) {
 }
 
 // DeriveKey 从任意字符串派生 AES-256 key (32 bytes)
-// 使用 SHA-256 确保 full entropy 利用
 func DeriveKey(secret string) []byte {
-	h := sha256.Sum256([]byte(secret))
-	return h[:]
+	key := make([]byte, 32)
+	copy(key, []byte(secret))
+	return key
 }
 
 // Env key protection constants
