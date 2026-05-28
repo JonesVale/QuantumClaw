@@ -191,9 +191,10 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 		}
 	}
 	// 赠送新用户试用金
-	if config.NewUserTrialBalance > 0 {
-		user.CashBalance = config.NewUserTrialBalance
-		RecordLog(ctx, user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送试用金 %d 分", config.NewUserTrialBalance))
+	trialBalance := GetTrialBalanceFromConfig()
+	if trialBalance > 0 {
+		user.CashBalance = trialBalance
+		RecordLog(ctx, user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送试用金 %d 分", trialBalance))
 	}
 	// create default token (有限额度，不再 Unlimited)
 	cleanToken := Token{

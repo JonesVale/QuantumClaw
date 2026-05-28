@@ -97,6 +97,17 @@ func GetUserTotalCommission(userId int) (int64, error) {
 }
 
 func CreateWithdrawal(w *WithdrawalRequest) error {
+	// 计算交易手续费
+	domesticPct, _, _ := GetTransactionFeeRate()
+	fee := int64(float64(w.Amount) * domesticPct / 100.0)
+	if fee > w.Amount {
+		fee = w.Amount
+	}
+	w.PlatformFeeAmount = fee
+	w.NetAmount = w.Amount - fee
+	if w.NetAmount < 0 {
+		w.NetAmount = 0
+	}
 	return DB.Create(w).Error
 }
 

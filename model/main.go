@@ -265,9 +265,10 @@ func migrateDB() error {
 	// ── 交易手续费默认值 ──
 	attempt("TransactionFeeDefaults", func() error {
 		defaults := map[string]string{
-			"transaction_fee_domestic":    "1.0",
-			"transaction_fee_foreign":     "3.0",
-			"transaction_fee_foreign_min": "5.00",
+			"transaction_fee_domestic":     "1.0",
+			"transaction_fee_foreign":       "3.0",
+			"transaction_fee_foreign_min":   "5.00",
+			"new_user_trial_balance_cents": "100",
 		}
 		now := helper.GetTimestamp()
 		for k, v := range defaults {

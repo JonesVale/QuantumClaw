@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"os"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common"
@@ -141,9 +142,10 @@ func (t *TopUp) BeforeCreate(tx *gorm.DB) error {
 		t.Status = TopUpStatusPending
 	}
 	
-	// 生成签名（使用服务器配置的签名密钥）
-	signatureSecret := common.GetEnvOrDefault("PAYMENT_SIGNATURE_SECRET", "quantumclaw-default-secret")
-	t.Signature = t.CalculateSignature(signatureSecret)
+	// 生成签名（使用服务器配置的签名密钥，未配置则不签名）
+	if sigSecret := os.Getenv("PAYMENT_SIGNATURE_SECRET"); sigSecret != "" {
+		t.Signature = t.CalculateSignature(sigSecret)
+	}
 	
 	return nil
 }

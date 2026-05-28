@@ -4,10 +4,14 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // Encrypt AES-GCM 加密
@@ -51,10 +55,10 @@ func Decrypt(ciphertextB64 string, key []byte) ([]byte, error) {
 }
 
 // DeriveKey 从任意字符串派生 AES-256 key (32 bytes)
+// 使用 SHA-256 确保 full entropy 利用
 func DeriveKey(secret string) []byte {
-	key := make([]byte, 32)
-	copy(key, []byte(secret))
-	return key
+	h := sha256.Sum256([]byte(secret))
+	return h[:]
 }
 
 // Env key protection constants
@@ -101,4 +105,70 @@ func DecryptEnvKey(encrypted string, secret string) (string, error) {
 // IsEnvKeyEncrypted 判断环境变量 key 是否已加密
 func IsEnvKeyEncrypted(value string) bool {
 	return strings.HasPrefix(value, EnvKeyPrefix)
+}
+
+// Password suffix for DB password encryption
+// Even with CRYPTO_SECRET exposed, attacker doesn't know the Qpw suffix convention
+const PasswordSuffix = "Qpw"
+
+// EncryptPassword bcrypt 哈希后 AES-GCM 加密
+// 先 bcrypt（单向不可逆）→ 追加 Qpw 后缀 → AES-GCM 加密 → base64
+// 两层防护：泄露 DB 看不到明文 bcrypt 哈希，泄露 CryptoSecret 不知道 Qpw 约定
+func EncryptPassword(password string, cryptoSecret string) (string, error) {
+	// Step 1: bcrypt hash (one-way, defends against CryptoSecret-only compromise)
+	hashBytes, err := bcryptFromPassword(password)
+	if err != nil {
+		fmt.Printf("[DBG-EP] bcryptFromPassword FAILED: %v\n", err)
+		return "", err
+	}
+	fmt.Printf("[DBG-EP] bcrypt hash: %s (len=%d)\n", string(hashBytes), len(hashBytes))
+	// Step 2: append Qpw suffix
+	withSuffix := append(hashBytes, []byte(PasswordSuffix)...)
+	fmt.Printf("[DBG-EP] withSuffix len=%d\n", len(withSuffix))
+	// Step 3: AES-256-GCM encrypt
+	key := DeriveKey(cryptoSecret)
+	fmt.Printf("[DBG-EP] cryptoSecret len=%d, key len=%d, key hex=%.32s\n", len(cryptoSecret), len(key), fmt.Sprintf("%x", key))
+	encrypted, err := Encrypt(withSuffix, key)
+	if err != nil {
+		fmt.Printf("[DBG-EP] Encrypt FAILED: %v\n", err)
+		return "", err
+	}
+	fmt.Printf("[DBG-EP] encrypted len=%d prefix=%.20s\n", len(encrypted), encrypted)
+	return encrypted, nil
+}
+
+// EncryptPasswordFromHash 加密已有 bcrypt 哈希（用于迁移旧数据）
+// 直接取 bcrypt hash 追加 Qpw 后缀 → AES-GCM 加密
+func EncryptPasswordFromHash(bcryptHash []byte, cryptoSecret string) (string, error) {
+	withSuffix := append(bcryptHash, []byte(PasswordSuffix)...)
+	encrypted, err := Encrypt(withSuffix, DeriveKey(cryptoSecret))
+	if err != nil {
+		return "", err
+	}
+	return encrypted, nil
+}
+
+// DecryptPassword 解密密码：base64 解码 → AES-GCM 解密 → 验证并去除 Qpw → 返回 bcrypt 哈希
+func DecryptPassword(encryptedB64 string, cryptoSecret string) ([]byte, error) {
+	decrypted, err := Decrypt(encryptedB64, DeriveKey(cryptoSecret))
+	if err != nil {
+		return nil, err
+	}
+	// Verify and strip Qpw suffix
+	if len(decrypted) < len(PasswordSuffix) || string(decrypted[len(decrypted)-len(PasswordSuffix):]) != PasswordSuffix {
+		return nil, errors.New("decrypted password missing Qpw suffix - key may be corrupted")
+	}
+	return decrypted[:len(decrypted)-len(PasswordSuffix)], nil
+}
+
+// bcryptFromPassword generates bcrypt hash (extracted for reuse, avoids import cycle)
+func bcryptFromPassword(password string) ([]byte, error) {
+	passwordBytes := []byte(password)
+	hashedPassword, err := bcrypt.GenerateFromPassword(passwordBytes, bcrypt.DefaultCost)
+	return hashedPassword, err
+}
+
+// isBcryptHash checks if a string looks like a bcrypt hash (for migration detection)
+func IsBcryptHash(s string) bool {
+	return strings.HasPrefix(s, "$2a$") || strings.HasPrefix(s, "$2b$") || strings.HasPrefix(s, "$2y$")
 }

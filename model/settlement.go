@@ -3,6 +3,8 @@ package model
 import (
 	"strconv"
 	"time"
+
+	"github.com/quantumclaw/quantumclaw/common/config"
 )
 
 // PlatformConfig 全局配置键值对
@@ -141,6 +143,16 @@ type SettlementAmounts struct {
 // domestic: 国内模型费率
 // foreign: 国外模型费率
 // foreignMinUsd: 国外最低 $ 手续费
+func GetTrialBalanceFromConfig() int64 {
+	var cfg PlatformConfig
+	if DB.Where("`key` = ?", "new_user_trial_balance_cents").First(&cfg).Error == nil {
+		if v, err := strconv.ParseInt(cfg.Value, 10, 64); err == nil && v >= 0 {
+			return v
+		}
+	}
+	return int64(config.NewUserTrialBalance)
+}
+
 func GetTransactionFeeRate() (domesticPct, foreignPct, foreignMinUsd float64) {
 	domesticPct = 1.0
 	foreignPct = 3.0

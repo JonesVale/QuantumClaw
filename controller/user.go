@@ -1,4 +1,4 @@
-﻿package controller
+package controller
 
 import (
 	"encoding/json"
@@ -366,7 +366,7 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	trialBalance := config.NewUserTrialBalance
+	trialBalance := model.GetTrialBalanceFromConfig()
 	if trialBalance > 0 {
 		c.JSON(http.StatusOK, gin.H{
 			"success":       true,
