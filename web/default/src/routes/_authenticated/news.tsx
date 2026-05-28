@@ -77,7 +77,7 @@ function ArticleCard({ article }: { article: RssArticle }) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-2 mb-2">
           <Badge variant={LANG_VARIANTS[article.language] || 'outline'} className="shrink-0 text-[10px]">
-            {article.language === 'zh' ? '中文' : 'EN'}
+            {article.language === 'zh' ? t('Chinese') : 'EN'}
           </Badge>
           <div className="flex items-center gap-1.5 min-w-0">
             {getArticleCategory(article.source) === 'quantum' ? (

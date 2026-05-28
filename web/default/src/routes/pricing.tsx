@@ -104,7 +104,7 @@ function PricingPage() {
                   ))}
                 </div>
                 {vis<filtered.length&&<div className="flex justify-center mt-8"><button onClick={()=>setVis(v=>v+STEP)} className="px-8 py-3 rounded-xl border border-border/30 bg-white/70 hover:bg-white hover:shadow-sm text-sm font-medium transition-all hover:-translate-y-0.5">{t('Show more')} <span className="text-muted-foreground/60">({filtered.length-vis})</span></button></div>}
-                <p className="text-xs text-muted-foreground/40 text-center mt-6 max-w-xl mx-auto leading-relaxed">此价格为官方指导价，详情请联系您的渠道商。</p>
+                <p className="text-xs text-muted-foreground/40 text-center mt-6 max-w-xl mx-auto leading-relaxed">{t('This is the official reference price. Contact your channel partner for details.')}</p>
               </>
             )}
             </div>
