@@ -203,11 +203,11 @@ function HomePage() {
             </div>
             {[{ title: t('Platform'), links: [{ to: '/models', label: t('Models') }, { to: '/rankings', label: t('Rankings') }, { to: '/pricing', label: t('Pricing') }] },
               { title: t('Resources'), links: [{ to: '/playground', label: t('Playground') }, { to: '/api-docs', label: t('API Docs') }] },
-              { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }] },
+              { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }, { to: 'https://quantumclaw.ai', label: t('Official Website'), external: true }] },
             ].map(group => (
               <div key={group.title}>
                 <h4 className="text-sm font-semibold text-foreground mb-5">{group.title}</h4>
-                <div className="space-y-3.5">{group.links.map(l => (<Link key={l.to} to={l.to} className="block text-sm text-muted-foreground hover:text-orange-600 transition-colors no-underline">{l.label}</Link>))}</div>
+                <div className="space-y-3.5">{group.links.map(l => (l.external ? <a key={l.to} href={l.to} target="_blank" rel="noopener noreferrer" className="block text-sm text-muted-foreground hover:text-orange-600 transition-colors no-underline">{l.label}</a> : <Link key={l.to} to={l.to} className="block text-sm text-muted-foreground hover:text-orange-600 transition-colors no-underline">{l.label}</Link>))}</div>
               </div>
             ))}
           </div>
