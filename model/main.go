@@ -269,6 +269,7 @@ func migrateDB() error {
 			"transaction_fee_foreign":       "3.0",
 			"transaction_fee_foreign_min":   "5.00",
 			"new_user_trial_balance_cents": "100",
+			"platform_fee_rate_percent":     "5.0",
 		}
 		now := helper.GetTimestamp()
 		for k, v := range defaults {

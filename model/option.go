@@ -79,6 +79,7 @@ func InitOptionMap() {
 	config.OptionMap["WorldFirstSecretKey"] = ""
 	config.OptionMap["WorldFirstWebhookKey"] = ""
 	config.OptionMap["WorldFirstMinTopUp"] = "1"
+	config.OptionMap["PlatformFeeRatePercent"] = "5.0"
 	config.OptionMap["Notice"] = ""
 	config.OptionMap["About"] = ""
 	config.OptionMap["HomePageContent"] = ""

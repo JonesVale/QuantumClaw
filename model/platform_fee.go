@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common/helper"
@@ -97,13 +98,25 @@ func CalculateMonthlyPlatformFee(userId int, year int, month time.Month) (bool, 
 		return false, err
 	}
 
-	// 入驻费 = 总营业额 × 5%
-	feeAmount := int64(float64(totalRevenue) * 5.0 / 100.0)
-	err = CreatePlatformFeeRecord(userId, period, totalRevenue, 5.0, feeAmount, PlatformFeeStatusPending)
+	// 入驻费 = 总营业额 × 配置费率
+	feeRate := getPlatformFeeRate()
+	feeAmount := int64(float64(totalRevenue) * feeRate / 100.0)
+	err = CreatePlatformFeeRecord(userId, period, totalRevenue, feeRate, feeAmount, PlatformFeeStatusPending)
 	return true, err
 }
 
 // AutoSettleMonthlyFees 自动结算所有供应商上月入驻费（定时任务调用）
+// getPlatformFeeRate 从 platform_config 读取入驻费率（默认 5%）
+func getPlatformFeeRate() float64 {
+	var cfg PlatformConfig
+	if DB.Where("`key` = ?", "platform_fee_rate_percent").First(&cfg).Error == nil {
+		if v, err := strconv.ParseFloat(cfg.Value, 64); err == nil && v > 0 {
+			return v
+		}
+	}
+	return 5.0
+}
+
 func AutoSettleMonthlyFees() {
 	now := time.Now()
 	prevMonth := now.AddDate(0, -1, 0)

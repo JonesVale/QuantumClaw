@@ -97,18 +97,25 @@ func GetUserTotalCommission(userId int) (int64, error) {
 }
 
 func CreateWithdrawal(w *WithdrawalRequest) error {
-	// 计算交易手续费
-	domesticPct, _, _ := GetTransactionFeeRate()
-	fee := int64(float64(w.Amount) * domesticPct / 100.0)
-	if fee > w.Amount {
-		fee = w.Amount
+	// 扣除 pending 入驻费
+	pendingFees, _ := GetPendingPlatformFees(w.UserId)
+	var totalPending int64
+	for _, f := range pendingFees {
+		totalPending += f.FeeAmount
 	}
-	w.PlatformFeeAmount = fee
-	w.NetAmount = w.Amount - fee
+	w.PlatformFeeAmount = totalPending
+	w.NetAmount = w.Amount - totalPending
 	if w.NetAmount < 0 {
 		w.NetAmount = 0
 	}
-	return DB.Create(w).Error
+	if err := DB.Create(w).Error; err != nil {
+		return err
+	}
+	// 标记入驻费为已扣除
+	for _, f := range pendingFees {
+		_ = DeductPlatformFee(f.Id)
+	}
+	return nil
 }
 
 func GetWithdrawalById(id int) (*WithdrawalRequest, error) {

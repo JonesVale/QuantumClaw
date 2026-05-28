@@ -425,6 +425,23 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 	})
 	
 	if err == nil && topUpUserId > 0 {
+		// 自动抵扣挂账债务
+		var debtor User
+		if DB.Where("id = ?", topUpUserId).First(&debtor).Error == nil && debtor.Debt > 0 {
+			debt := debtor.Debt
+			deduct := debt
+			if debtor.CashBalance < deduct {
+				deduct = debtor.CashBalance
+			}
+			if deduct > 0 {
+				DB.Model(&User{}).Where("id = ?", topUpUserId).Updates(map[string]interface{}{
+					"cash_balance": gorm.Expr("cash_balance - ?", deduct),
+					"debt":         gorm.Expr("debt - ?", deduct),
+				})
+				_ = CreateBalanceLog(topUpUserId, "debt_deduct", -deduct, debtor.CashBalance-deduct, 0, "充值自动抵扣欠费")
+			}
+		}
+		
 		// 创建应用内通知
 		notifData := fmt.Sprintf(`{"trade_no":"%s","quota":%d}`, tradeNo, quota)
 		if createErr := CreateNotification(topUpUserId, "topup", "充值成功", fmt.Sprintf("您的账户已成功充值 %s", common.LogQuota(quota)), notifData); createErr != nil {

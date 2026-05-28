@@ -119,7 +119,6 @@ var QuotaForNewUser int64 = 0
 var QuotaForInviter int64 = 0
 var QuotaForInvitee int64 = 0
 var NewUserTrialBalance int64 = 100 // 新用户注册赠送试用金（分），默认 ¥1
-var PlatformCommissionRate = 1.0   // 平台交易抽成（%），默认 1%
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false
@@ -221,6 +220,8 @@ var MetricFailChanSize = env.Int("METRIC_FAIL_CHAN_SIZE", 128)
 var InitialRootToken = os.Getenv("INITIAL_ROOT_TOKEN")
 
 var InitialRootAccessToken = os.Getenv("INITIAL_ROOT_ACCESS_TOKEN")
+
+var InitialRootPassword = os.Getenv("INITIAL_ROOT_PASSWORD")
 
 var GeminiVersion = env.String("GEMINI_VERSION", "v1")
 
