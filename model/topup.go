@@ -365,11 +365,30 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 		if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).Update("quota", gorm.Expr("quota + ?", quota)).Error; err != nil {
 			return err
 		}
-		// 同步加现金余额（Money 转分）
+		// 同步加现金余额（Money 转分）扣除交易手续费
 		cashAmount := int64(math.Ceil(topUp.Money * 100.0))
 		if cashAmount > 0 {
+			feePctDomestic, feePctForeign, feeMinUsd := GetTransactionFeeRate()
+			var fee int64
+			// 国内支付: Epay → 扣国内手续费
+			// 国外支付: Stripe/Creem/Waffo/Binance → 扣国外手续费, 最低 $5
+			switch topUp.PaymentProvider {
+			case PaymentProviderEpay:
+				fee = int64(math.Ceil(float64(cashAmount) * feePctDomestic / 100.0))
+			case PaymentProviderStripe, PaymentProviderCreem,
+				PaymentProviderWaffo, PaymentProviderWaffoPancake, PaymentProviderBinance:
+				fee = int64(math.Ceil(float64(cashAmount) * feePctForeign / 100.0))
+				minFee := int64(math.Ceil(feeMinUsd * 100.0)) // $5 = 500 分
+				if fee < minFee {
+					fee = minFee
+				}
+			}
+			if fee > cashAmount {
+				fee = cashAmount
+			}
+			finalCashAmount := cashAmount - fee
 			if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).
-				Update("cash_balance", gorm.Expr("cash_balance + ?", cashAmount)).Error; err != nil {
+				Update("cash_balance", gorm.Expr("cash_balance + ?", finalCashAmount)).Error; err != nil {
 				return err
 			}
 		}

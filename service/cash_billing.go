@@ -98,8 +98,7 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 
 	// 6. 分账
 	if channel.UserId > 0 {
-		commission := int64(math.Ceil(float64(priceCents) * config.PlatformCommissionRate / 100.0))
-		netAmount := priceCents - commission
+		netAmount := priceCents
 		if netAmount < 0 {
 			netAmount = 0
 		}
@@ -108,7 +107,7 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 			int64(meta.ChannelId),
 			int64(meta.UserId),
 			priceCents,
-			commission,
+			0,
 			netAmount,
 			helper.GetCurrentMonth(),
 			model.EarningStatusSettled,
@@ -221,13 +220,12 @@ func PostConsumeQuantumDeduct(userId, channelId int, costQuota int64) error {
 	_ = model.CreateBalanceLog(userId, model.BalanceLogTypeConsume, -priceCents, newBalance, channelId, "quantum task")
 	// 分账
 	if channel.UserId > 0 {
-		commission := int64(math.Ceil(float64(priceCents) * config.PlatformCommissionRate / 100.0))
-		netAmount := priceCents - commission
+		netAmount := priceCents
 		if netAmount < 0 {
 			netAmount = 0
 		}
 		_ = model.CreateProviderEarning(int64(channel.UserId), int64(channelId), int64(userId),
-			priceCents, commission, netAmount, helper.GetCurrentMonth(), model.EarningStatusSettled)
+			priceCents, 0, netAmount, helper.GetCurrentMonth(), model.EarningStatusSettled)
 	}
 	return nil
 }

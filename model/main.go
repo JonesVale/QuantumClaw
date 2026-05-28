@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"time"
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/common/env"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
@@ -23,6 +24,12 @@ var DB *gorm.DB
 var LOG_DB *gorm.DB
 
 func CreateRootAccountIfNeed() error {
+	// Determine root password from config (fallback: hardcoded 123456)
+	rootPassword := config.InitialRootPassword
+	if rootPassword == "" {
+		rootPassword = "123456"
+	}
+
 	// Ensure at least one admin/root user exists (role >= 10)
 	var rootUser User
 	adminExists := DB.Where("role >= ?", RoleAdminUser).First(&rootUser).Error == nil
@@ -31,8 +38,8 @@ func CreateRootAccountIfNeed() error {
 	DB.Model(&User{}).Where("role >= ? AND cash_balance = 0", RoleAdminUser).Update("cash_balance", 500000000000000)
 
 	if !adminExists {
-		logger.SysLog("no root user exists, creating a root user for you: username is root, password is 123456")
-		hashedPassword, err := common.Password2Hash("123456")
+		logger.SysLog("no root user exists, creating a root user for you: username is root")
+		hashedPassword, err := common.Password2Hash(rootPassword)
 		if err != nil {
 			return err
 		}
@@ -49,6 +56,7 @@ func CreateRootAccountIfNeed() error {
 			AccessToken: common.SHA256Hash(accessToken),
 			Quota:       500000000000000,
 			CashBalance: 500000000000000,
+			AffCode:     random.GetRandomString(4),
 		}
 		DB.Create(&rootUser)
 		if config.InitialRootToken != "" {
@@ -67,7 +75,29 @@ func CreateRootAccountIfNeed() error {
 			}
 			DB.Create(&token)
 		}
+	} else {
+		// Self-healing: verify existing root password hash matches .env, update if stale
+		var firstAdmin User
+		if DB.Where("role >= ?", RoleAdminUser).Order("id asc").First(&firstAdmin).Error == nil {
+			if !common.ValidatePasswordAndHash(rootPassword, firstAdmin.Password) {
+				newHash, hashErr := common.Password2Hash(rootPassword)
+				if hashErr == nil {
+					DB.Model(&firstAdmin).Update("password", newHash)
+					logger.SysLogf("root password self-healed: updated hash to match .env (username: %s)", firstAdmin.Username)
+				}
+			}
+			// Self-healing: generate aff_code if missing
+			if firstAdmin.AffCode == "" {
+				newAffCode := random.GetRandomString(4)
+				DB.Model(&firstAdmin).Update("aff_code", newAffCode)
+				logger.SysLogf("root aff_code self-healed: generated %s for %s", newAffCode, firstAdmin.Username)
+			}
+		}
 	}
+
+	// Migrate existing plaintext bcrypt password hashes to AES-GCM encrypted format + Qpw suffix
+	MigratePlaintextPasswords()
+
 	return nil
 }
 
@@ -231,6 +261,23 @@ func migrateDB() error {
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
 
+	// ── 交易手续费默认值 ──
+	attempt("TransactionFeeDefaults", func() error {
+		defaults := map[string]string{
+			"transaction_fee_domestic":    "1.0",
+			"transaction_fee_foreign":     "3.0",
+			"transaction_fee_foreign_min": "5.00",
+		}
+		now := helper.GetTimestamp()
+		for k, v := range defaults {
+			var existing PlatformConfig
+			if DB.Where("`key` = ?", k).First(&existing).Error != nil {
+				DB.Create(&PlatformConfig{Key: k, Value: v, UpdatedTime: now})
+			}
+		}
+		return nil
+	})
+
 	// ── 级联架构表 ──
 	attempt("CascadeNode", func() error { return DB.AutoMigrate(&CascadeNode{}) })
 	attempt("CascadeBillingBatch", func() error { return DB.AutoMigrate(&CascadeBillingBatch{}) })
@@ -373,6 +420,69 @@ func closeDB(db *gorm.DB) error {
 	}
 	err = sqlDB.Close()
 	return err
+}
+
+// MigratePlaintextPasswords 加密所有明文 bcrypt 密码为 AES-GCM 格式
+// 旧格式: $2a$10$... (bcrypt 哈希)
+// 新格式: base64(AES-GCM(bcrypt_hash + Qpw))
+func MigratePlaintextPasswords() {
+	var plaintextUsers []User
+	// 使用 Raw SQL 查找所有密码以 $2 开头的用户（GORM 的 Where LIKE 可能转义 $）
+	if err := DB.Raw("SELECT * FROM users WHERE password LIKE '$2%'").Scan(&plaintextUsers).Error; err != nil {
+		logger.SysWarnf("password migration query failed: %v", err)
+		return
+	}
+	if len(plaintextUsers) == 0 {
+		logger.SysLog("password migration: no plaintext bcrypt hashes found (already encrypted or no users)")
+		return
+	}
+	count := 0
+	for _, u := range plaintextUsers {
+		if config.CryptoSecret == "" {
+			logger.SysError("MigratePlaintextPasswords: CRYPTO_SECRET is empty, cannot encrypt passwords")
+			return
+		}
+		encrypted, err := encrypt.EncryptPasswordFromHash([]byte(u.Password), config.CryptoSecret)
+		if err != nil {
+			logger.SysErrorf("MigratePlaintextPasswords: failed to encrypt password for user %d: %v", u.Id, err)
+			continue
+		}
+		DB.Model(&u).Update("password", encrypted)
+		count++
+	}
+	if count > 0 {
+		logger.SysLogf("password migration: encrypted %d plaintext bcrypt hashes (+Qpw suffix)", count)
+	}
+	// Also migrate cascade_node APIKeyHash
+	MigrateCascadeNodeKeys()
+}
+
+// MigrateCascadeNodeKeys 加密级联节点的明文 bcrypt 密钥哈希
+func MigrateCascadeNodeKeys() {
+	var plainNodes []CascadeNode
+	if err := DB.Raw("SELECT * FROM cascade_nodes WHERE api_key_hash LIKE '$2%'").Scan(&plainNodes).Error; err != nil {
+		logger.SysWarnf("cascade node key migration query failed: %v", err)
+		return
+	}
+	if len(plainNodes) == 0 {
+		return
+	}
+	count := 0
+	for _, n := range plainNodes {
+		if config.CryptoSecret == "" {
+			return
+		}
+		encrypted, err := encrypt.EncryptPasswordFromHash([]byte(n.APIKeyHash), config.CryptoSecret)
+		if err != nil {
+			logger.SysErrorf("MigrateCascadeNodeKeys: failed for node %d: %v", n.Id, err)
+			continue
+		}
+		DB.Model(&n).Update("api_key_hash", encrypted)
+		count++
+	}
+	if count > 0 {
+		logger.SysLogf("cascade node key migration: encrypted %d api_key_hash values (+Qpw suffix)", count)
+	}
 }
 
 func CloseDB() error {

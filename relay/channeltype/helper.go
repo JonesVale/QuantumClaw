@@ -1,4 +1,4 @@
-﻿package channeltype
+package channeltype
 
 import "github.com/quantumclaw/quantumclaw/relay/apitype"
 
@@ -78,4 +78,22 @@ func ToAPIType(channelType int) int {
 	}
 
 	return apiType
+}
+
+// IsDomesticModel 判断渠道类型是否为国内模型
+// 国内: Baidu, Ali, Zhipu, Xunfei, Tencent, DeepSeek, Moonshot, Baichuan, Minimax,
+//       LingYiWanWu, StepFun, Doubao, SiliconFlow, MokaAI, VolcEngine, ZhipuV4,
+//       Jimeng, Xinference, Dify, 360, Submodel
+// 国外/其他: 剩余所有（OpenAI, Anthropic, Gemini, AWS, Groq, Mistral, Cohere 等）
+func IsDomesticModel(channelType int) bool {
+	switch channelType {
+	case Baidu, Zhipu, Ali, Xunfei, Tencent, DeepSeek,
+		Moonshot, Baichuan, Minimax, LingYiWanWu, StepFun,
+		Doubao, SiliconFlow, BaiduV2, XunfeiV2, AliBailian,
+		ZhipuV4, MokaAI, VolcEngine, Xinference,
+		AI360, Jimeng, Submodel, Dify:
+		return true
+	default:
+		return false
+	}
 }

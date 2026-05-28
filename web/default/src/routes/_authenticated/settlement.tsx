@@ -2,13 +2,15 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { Plus, RefreshCw, Pencil, Trash2, DollarSign } from 'lucide-react'
+import { Plus, RefreshCw, Pencil, Trash2, DollarSign, Percent, Globe, Banknote, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
+import apiClient from '@/lib/api'
 import {
   getSettlementConfigs,
   createSettlementConfig,
@@ -88,12 +90,132 @@ function SettlementPage() {
     }
   }
 
+  // 交易手续费状态
+  const [feeForm, setFeeForm] = useState({ domestic: '1.0', foreign: '3.0', foreignMin: '5.00' })
+  const [feeSaving, setFeeSaving] = useState(false)
+
+  const { data: platformCfg } = useQuery({
+    queryKey: ['platform-configs'],
+    queryFn: async () => {
+      const res = await apiClient.get('/api/platform/config')
+      return res.data?.data || {}
+    },
+    staleTime: 30_000,
+  })
+
+  // Sync fee form when platform config loads
+  useState(() => {
+    if (platformCfg) {
+      setFeeForm({
+        domestic: platformCfg['transaction_fee_domestic'] || '1.0',
+        foreign: platformCfg['transaction_fee_foreign'] || '3.0',
+        foreignMin: platformCfg['transaction_fee_foreign_min'] || '5.00',
+      })
+    }
+  })
+
+  const saveFees = async () => {
+    setFeeSaving(true)
+    try {
+      await apiClient.put('/api/platform/config', {
+        'transaction_fee_domestic': feeForm.domestic,
+        'transaction_fee_foreign': feeForm.foreign,
+        'transaction_fee_foreign_min': feeForm.foreignMin,
+      })
+      queryClient.invalidateQueries({ queryKey: ['platform-configs'] })
+      toast.success(t('saved'))
+    } catch {
+      toast.error(t('save_failed'))
+    } finally {
+      setFeeSaving(false)
+    }
+  }
+
   return (
     <div className="qc-wrapper py-8 space-y-6">
       <div className="flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-2">{t('settlement_config')}</h1>
         <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('settlement_config_desc')}</p>
       </div>
+
+      {/* 交易手续费配置 */}
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Percent className="w-4 h-4 text-amber-500" />
+              {t('Transaction Fee')}
+            </CardTitle>
+            <CardDescription>{t('Transaction fee deducted from each API call. Domestic (China) vs Foreign models use different rates.')}</CardDescription>
+          </div>
+          <Button onClick={saveFees} disabled={feeSaving} size="sm">
+            <Save className="w-4 h-4 mr-2" />
+            {t('Save')}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Banknote className="w-4 h-4 text-green-500" />
+                {t('Domestic Models')}
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={feeForm.domestic}
+                  onChange={(e) => setFeeForm(f => ({ ...f, domestic: e.target.value }))}
+                  className="w-24"
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              <p className="text-xs text-muted-foreground">Baidu, Ali, DeepSeek, Zhipu, Tencent...</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Globe className="w-4 h-4 text-blue-500" />
+                {t('Foreign Models')}
+              </Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="100"
+                  value={feeForm.foreign}
+                  onChange={(e) => setFeeForm(f => ({ ...f, foreign: e.target.value }))}
+                  className="w-24"
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+              <p className="text-xs text-muted-foreground">OpenAI, Anthropic, Gemini, Groq...</p>
+            </div>
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <DollarSign className="w-4 h-4 text-amber-500" />
+                {t('Foreign Min Fee')}
+              </Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">$</span>
+                <Input
+                  type="number"
+                  step="0.5"
+                  min="0"
+                  value={feeForm.foreignMin}
+                  onChange={(e) => setFeeForm(f => ({ ...f, foreignMin: e.target.value }))}
+                  className="w-24"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">{t('Minimum fee per transaction for foreign models')}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Separator />
 
       <Card className="bg-white/80 backdrop-blur-xl rounded-xl border overflow-hidden">
         <CardContent className="p-0">

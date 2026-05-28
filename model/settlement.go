@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strconv"
 	"time"
 )
 
@@ -134,6 +135,34 @@ type SettlementAmounts struct {
 	UnifiedCost     float64 // 统一成本
 	CommissionAmount float64 // 推广佣金
 	PlatformFee     float64 // 平台抽佣
+}
+
+// GetTransactionFeeRate 获取交易手续费率
+// domestic: 国内模型费率
+// foreign: 国外模型费率
+// foreignMinUsd: 国外最低 $ 手续费
+func GetTransactionFeeRate() (domesticPct, foreignPct, foreignMinUsd float64) {
+	domesticPct = 1.0
+	foreignPct = 3.0
+	foreignMinUsd = 5.0
+
+	var cfg PlatformConfig
+	if DB.Where("`key` = ?", "transaction_fee_domestic").First(&cfg).Error == nil {
+		if v, err := strconv.ParseFloat(cfg.Value, 64); err == nil && v > 0 {
+			domesticPct = v
+		}
+	}
+	if DB.Where("`key` = ?", "transaction_fee_foreign").First(&cfg).Error == nil {
+		if v, err := strconv.ParseFloat(cfg.Value, 64); err == nil && v > 0 {
+			foreignPct = v
+		}
+	}
+	if DB.Where("`key` = ?", "transaction_fee_foreign_min").First(&cfg).Error == nil {
+		if v, err := strconv.ParseFloat(cfg.Value, 64); err == nil && v > 0 {
+			foreignMinUsd = v
+		}
+	}
+	return
 }
 
 func CalculateSettlement(unitPrice float64, totalTokens int, modelName string) *SettlementAmounts {
