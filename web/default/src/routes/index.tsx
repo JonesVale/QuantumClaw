@@ -128,7 +128,7 @@ function HomePage() {
         <div className="qc-wrap">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-xs font-semibold mb-5">{t('Core Features')}</div>
-            <h2 className="qc-title-section font-bold tracking-tight text-foreground">Quantum Spirit Claw, <span className="qc-gradient-text">{t('Every Model')}</span></h2>
+            <h2 className="qc-title-section font-bold tracking-tight text-foreground">{t("Quantum Spirit Claw")}, <span className="qc-gradient-text">{t('Every Model')}</span></h2>
             <p className="qc-text-body text-muted-foreground mt-4 max-w-2xl mx-auto leading-relaxed">{t('Access leading AI models through a single unified API endpoint with intelligent routing and real-time analytics.')}</p>
           </div>
           <div className="qc-grid-auto gap-6">
@@ -196,8 +196,8 @@ function HomePage() {
           <div className="qc-grid-auto gap-10">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"><img src="/logo.webp" alt="Quantum Spirit Claw" className="w-6 h-6 object-contain" /></div>
-                <span className="text-base font-bold text-foreground">Quantum Spirit Claw</span>
+                <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center"><img src="/logo.webp" alt={t("Quantum Spirit Claw")} className="w-6 h-6 object-contain" /></div>
+                <span className="text-base font-bold text-foreground">{t("Quantum Spirit Claw")}</span>
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{t('AI API Gateway & Token Distribution Platform')}</p>
             </div>
@@ -215,7 +215,7 @@ function HomePage() {
             <div className="flex flex-col sm:flex-row items-center gap-2">
               <a href="https://www.ctji.cn" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground/40 hover:text-foreground/70 transition-colors">{t('Company Website')}</a>
               <span className="hidden sm:inline text-muted-foreground/20">|</span>
-              <span>&copy; {new Date().getFullYear()} Quantum Spirit Claw. {t('All rights reserved.')}</span>
+              <span>&copy; {new Date().getFullYear()} {t("Quantum Spirit Claw")}. {t('All rights reserved.')}</span>
             </div>
             <div className="flex items-center gap-6">
               <span className="hover:text-foreground cursor-pointer transition-colors">{t('Privacy')}</span>
@@ -227,3 +227,4 @@ function HomePage() {
     </div>
   )
 }
+

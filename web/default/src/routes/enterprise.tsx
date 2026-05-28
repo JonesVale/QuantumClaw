@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
@@ -8,12 +8,12 @@ export const Route = createFileRoute('/enterprise')({
 })
 
 const FEATURES = [
-  { icon: '🛡', title: 'SLA 99.99%', desc: 'Enterprise-grade reliability with multi-region failover and guaranteed uptime. Your AI infrastructure never goes dark.' },
-  { icon: '🔐', title: 'Private Deployment', desc: 'Deploy on your infrastructure — VPC, on-premises, or air-gapped. Complete data isolation for regulated industries.' },
-  { icon: '📊', title: 'Real-time Analytics', desc: 'Granular dashboards tracking every token, user, and cost center. Alerts, anomaly detection, and export to your BI tools.' },
-  { icon: '👥', title: 'Team & RBAC', desc: 'Multi-team access control with API key rotation, usage quotas, per-model permissions, and full audit logging.' },
-  { icon: '🔗', title: 'Custom Integration', desc: 'SDKs for every language, webhook event streams, and dedicated middleware. Drop into your existing stack in hours.' },
-  { icon: '💬', title: 'Priority Support', desc: 'Dedicated engineer with 15-minute response SLA. 24/7 coverage including on-call escalation and incident management.' },
+  { icon: '馃洝', title: 'SLA 99.99%', desc: 'Enterprise-grade reliability with multi-region failover and guaranteed uptime. Your AI infrastructure never goes dark.' },
+  { icon: '馃攼', title: 'Private Deployment', desc: 'Deploy on your infrastructure 鈥?VPC, on-premises, or air-gapped. Complete data isolation for regulated industries.' },
+  { icon: '馃搳', title: 'Real-time Analytics', desc: 'Granular dashboards tracking every token, user, and cost center. Alerts, anomaly detection, and export to your BI tools.' },
+  { icon: '馃懃', title: 'Team & RBAC', desc: 'Multi-team access control with API key rotation, usage quotas, per-model permissions, and full audit logging.' },
+  { icon: '馃敆', title: 'Custom Integration', desc: 'SDKs for every language, webhook event streams, and dedicated middleware. Drop into your existing stack in hours.' },
+  { icon: '馃挰', title: 'Priority Support', desc: 'Dedicated engineer with 15-minute response SLA. 24/7 coverage including on-call escalation and incident management.' },
 ]
 
 const METRICS = [
@@ -33,7 +33,7 @@ function EnterprisePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ═══ HERO ═══ */}
+      {/* 鈺愨晲鈺?HERO 鈺愨晲鈺?*/}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-amber-50/60 via-white to-orange-50/40" />
         <div className="qc-wrap qc-section-pad-lg">
@@ -84,7 +84,7 @@ function EnterprisePage() {
           </div>
       </section>
 
-      {/* ═══ METRICS ═══ */}
+      {/* 鈺愨晲鈺?METRICS 鈺愨晲鈺?*/}
       <section className="border-y border-border/30 bg-white/60">
         <div className="qc-wrap qc-section-pad-sm">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
@@ -99,7 +99,7 @@ function EnterprisePage() {
         </div>
       </section>
 
-      {/* ═══ FEATURES ═══ */}
+      {/* 鈺愨晲鈺?FEATURES 鈺愨晲鈺?*/}
       <section className="qc-section-pad-lg">
         <div className="qc-wrap">
           <div className="text-center mb-16">
@@ -125,7 +125,7 @@ function EnterprisePage() {
         </div>
       </section>
 
-      {/* ═══ TRUSTED BY ═══ */}
+      {/* 鈺愨晲鈺?TRUSTED BY 鈺愨晲鈺?*/}
       {clients.length > 0 && (
         <section className="qc-section-pad-lg bg-white/40">
           <div className="qc-wrap">
@@ -159,7 +159,7 @@ function EnterprisePage() {
         </section>
       )}
 
-      {/* ═══ CTA ═══ */}
+      {/* 鈺愨晲鈺?CTA 鈺愨晲鈺?*/}
       <section className="qc-section-pad-lg bg-gradient-to-br from-amber-500 via-orange-500 to-rose-500">
         <div className="qc-wrap text-center relative z-10">
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[40vw] h-[40vw] bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -183,15 +183,15 @@ function EnterprisePage() {
         </div>
       </section>
 
-      {/* ═══ FOOTER ═══ */}
+      {/* 鈺愨晲鈺?FOOTER 鈺愨晲鈺?*/}
       <footer className="bg-white border-t border-border/30 qc-section-pad-sm">
         <div className="qc-wrap">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center">
-                <img src="/logo.webp" alt="Quantum Spirit Claw" className="w-6 h-6 object-contain" />
+                <img src="/logo.webp" alt={t("Quantum Spirit Claw")} className="w-6 h-6 object-contain" />
               </div>
-              <span className="font-bold text-foreground">Quantum Spirit Claw Enterprise</span>
+              <span className="font-bold text-foreground">{t("Quantum Spirit Claw Enterprise")}</span>
             </div>
             <div className="flex items-center gap-6">
               <a href="mailto:sales@quantumclaw.ai" className="hover:text-foreground transition-colors">sales@quantumclaw.ai</a>
@@ -204,3 +204,4 @@ function EnterprisePage() {
     </div>
   )
 }
+

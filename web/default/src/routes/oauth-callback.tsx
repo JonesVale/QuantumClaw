@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
+﻿import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useEffect, useState, useRef } from 'react'
 import { Loader2, CheckCircle2, XCircle, ArrowLeft } from 'lucide-react'
@@ -173,10 +173,11 @@ function OAuthCallbackPage() {
         {/* Branding */}
         <div className="text-center mt-6">
           <p className="text-xs text-muted-foreground/50">
-            Quantum Spirit Claw AI API Gateway
+            {t("Quantum Spirit Claw AI API Gateway")}
           </p>
         </div>
       </div>
     </div>
   )
 }
+
