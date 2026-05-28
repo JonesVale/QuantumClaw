@@ -260,6 +260,7 @@ func migrateDB() error {
 	attempt("Reseller", func() error { return DB.AutoMigrate(&Reseller{}) })
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
+	attempt("HourlySettlement", func() error { return DB.AutoMigrate(&HourlySettlement{}) })
 
 	// ── 交易手续费默认值 ──
 	attempt("TransactionFeeDefaults", func() error {

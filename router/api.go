@@ -938,6 +938,9 @@ func SetApiRouter(router *gin.Engine) {
 
 
 
+		// Hourly settlement report routes
+		apiRouter.GET("/settlement/hourly", middleware.AdminAuth(), controller.GetHourlySettlements)
+
 		// Transaction routes
 
 		apiRouter.GET("/transactions", middleware.UserAuth(), controller.GetTransactions)

@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"context"
@@ -58,6 +58,7 @@ type User struct {
 	Quota            int64  `json:"quota" gorm:"bigint;default:0"`
 	UsedQuota        int64  `json:"used_quota" gorm:"bigint;default:0;column:used_quota"` // used quota
 	CashBalance      int64  `json:"cash_balance" gorm:"bigint;default:0;column:cash_balance"` // 现金余额，单位：分
+	Debt             int64  `json:"debt" gorm:"bigint;default:0;column:debt"`                    // 追偿挂账，单位：分
 	RequestCount     int    `json:"request_count" gorm:"type:int;default:0;"`             // request number
 	Group            string `json:"group" gorm:"type:varchar(32);default:'default'"`
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`

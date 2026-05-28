@@ -370,6 +370,7 @@ func main() {
 	client.Init()
 	go service.TaskPollingLoop()
 	go service.StartSubscriptionQuotaResetTask()
+	go service.StartHourlySettlement()
 	go service.StartRssService(context.Background())
 	go service.StartDailyModelSync()
 	service.LoadCustomOAuthProviders()
