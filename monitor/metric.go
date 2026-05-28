@@ -1,4 +1,4 @@
-﻿package monitor
+package monitor
 
 import (
 	"github.com/quantumclaw/quantumclaw/common/config"

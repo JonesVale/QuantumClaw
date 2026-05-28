@@ -1,4 +1,4 @@
-﻿package zhipu
+package zhipu
 
 import (
 	"errors"

@@ -1,4 +1,4 @@
-﻿package router
+package router
 
 import (
 	"github.com/gin-contrib/gzip"

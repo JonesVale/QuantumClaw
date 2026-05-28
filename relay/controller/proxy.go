@@ -1,4 +1,4 @@
-﻿// Package controller is a package for handling the relay controller
+// Package controller is a package for handling the relay controller
 package controller
 
 import (

@@ -266,14 +266,7 @@ func EpayNotify(c *gin.Context) {
 		return
 	}
 
-	// 更新订单状态
-	if err := model.UpdateTopUpStatus(tradeNo, model.PaymentProviderEpay, model.TopUpStatusSuccess); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Epay更新订单状态失败: trade_no=%s error=%q", tradeNo, err.Error()))
-		c.String(http.StatusOK, "fail")
-		return
-	}
-
-	// 充值用户配额
+	// 充值用户配额（CompleteTopUp 内部处理状态更新 + 手续费 + 债务抵扣）
 	if err := model.CompleteTopUp(tradeNo, model.PaymentProviderEpay, topUp.Amount); err != nil {
 		logger.Error(ctx, fmt.Sprintf("Epay充值配额失败: trade_no=%s error=%q", tradeNo, err.Error()))
 		c.String(http.StatusOK, "fail")

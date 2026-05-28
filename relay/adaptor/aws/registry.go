@@ -1,4 +1,4 @@
-﻿package aws
+package aws
 
 import (
 	claude "github.com/quantumclaw/quantumclaw/relay/adaptor/aws/claude"

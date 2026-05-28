@@ -1,4 +1,4 @@
-﻿package aws
+package aws
 
 import "github.com/quantumclaw/quantumclaw/relay/adaptor/anthropic"
 

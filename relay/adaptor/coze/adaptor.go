@@ -1,4 +1,4 @@
-﻿package coze
+package coze
 
 import (
 	"errors"

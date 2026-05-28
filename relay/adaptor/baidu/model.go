@@ -1,4 +1,4 @@
-﻿package baidu
+package baidu
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/model"

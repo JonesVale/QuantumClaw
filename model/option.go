@@ -109,6 +109,7 @@ func InitOptionMap() {
 	config.OptionMap["QuotaPerUnit"] = strconv.FormatFloat(config.QuotaPerUnit, 'f', -1, 64)
 	config.OptionMap["RetryTimes"] = strconv.Itoa(config.RetryTimes)
 	config.OptionMap["Theme"] = config.Theme
+	config.OptionMap["company_website_url"] = "https://www.ctji.cn"
 	config.OptionMapRWMutex.Unlock()
 	loadOptionsFromDatabase()
 }

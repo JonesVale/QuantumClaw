@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"github.com/quantumclaw/quantumclaw/common/config"

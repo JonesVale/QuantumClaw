@@ -56,6 +56,8 @@ const (
 	PaymentMethodWaffo        = "waffo"
 	PaymentMethodWaffoPancake = "waffo_pancake"
 	PaymentMethodBinance      = "binance"
+	PaymentMethodAlipay       = "alipay"
+	PaymentMethodWorldFirst   = "worldfirst"
 )
 
 // PaymentProvider 支付提供商
@@ -66,6 +68,8 @@ const (
 	PaymentProviderWaffo        = "waffo"
 	PaymentProviderWaffoPancake = "waffo_pancake"
 	PaymentProviderBinance      = "binance"
+	PaymentProviderAlipay       = "alipay"
+	PaymentProviderWorldFirst   = "worldfirst"
 )
 
 // 错误信息
@@ -363,24 +367,30 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 			return err
 		}
 		
-		// 更新用户配额 + 现金余额
+		// 更新用户配额
 		if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).Update("quota", gorm.Expr("quota + ?", quota)).Error; err != nil {
 			return err
 		}
-		// 同步加现金余额（Money 转分）扣除交易手续费
+
+		// 同步更新现金余额：用悲观锁锁定用户行，原子处理手续费+债务扣款
+		var userForBalance User
+		if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+			Where("id = ?", topUp.UserId).First(&userForBalance).Error; err != nil {
+			return err
+		}
+
 		cashAmount := int64(math.Ceil(topUp.Money * 100.0))
 		if cashAmount > 0 {
 			feePctDomestic, feePctForeign, feeMinUsd := GetTransactionFeeRate()
 			var fee int64
-			// 国内支付: Epay → 扣国内手续费
-			// 国外支付: Stripe/Creem/Waffo/Binance → 扣国外手续费, 最低 $5
 			switch topUp.PaymentProvider {
-			case PaymentProviderEpay:
+			case PaymentProviderEpay, PaymentProviderAlipay:
 				fee = int64(math.Ceil(float64(cashAmount) * feePctDomestic / 100.0))
 			case PaymentProviderStripe, PaymentProviderCreem,
-				PaymentProviderWaffo, PaymentProviderWaffoPancake, PaymentProviderBinance:
+				PaymentProviderWaffo, PaymentProviderWaffoPancake,
+				PaymentProviderBinance, PaymentProviderWorldFirst:
 				fee = int64(math.Ceil(float64(cashAmount) * feePctForeign / 100.0))
-				minFee := int64(math.Ceil(feeMinUsd * 100.0)) // $5 = 500 分
+				minFee := int64(math.Ceil(feeMinUsd * 100.0))
 				if fee < minFee {
 					fee = minFee
 				}
@@ -388,10 +398,45 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 			if fee > cashAmount {
 				fee = cashAmount
 			}
-			finalCashAmount := cashAmount - fee
+
+			// 事务内原子处理：加钱 → 扣手续费 → 自动还债
+			// userForBalance 已在事务内加锁读取，基于它的 Debt 计算
+			netCashChange := cashAmount - fee
+			debtDeduct := int64(0)
+			if userForBalance.Debt > 0 {
+				available := userForBalance.CashBalance + netCashChange
+				if available > 0 {
+					debtDeduct = userForBalance.Debt
+					if debtDeduct > available {
+						debtDeduct = available
+					}
+					// netCashChange 扣掉债务部分：新余额 = old余额 + cashAmount - fee - debtDeduct
+					netCashChange = netCashChange - debtDeduct
+				}
+			}
+
+			updates := map[string]interface{}{
+				"cash_balance": gorm.Expr("cash_balance + ?", netCashChange),
+			}
+			if debtDeduct > 0 {
+				newDebt := userForBalance.Debt - debtDeduct
+				if newDebt < 0 {
+					newDebt = 0
+				}
+				updates["debt"] = newDebt
+			}
 			if err := tx.Model(&User{}).Where("id = ?", topUp.UserId).
-				Update("cash_balance", gorm.Expr("cash_balance + ?", finalCashAmount)).Error; err != nil {
+				Updates(updates).Error; err != nil {
 				return err
+			}
+
+			// 写余额变更审计日志（事务内，用 tx 避免 SQLITE_BUSY）
+			finalBalance := userForBalance.CashBalance + netCashChange
+			_ = CreateBalanceLogTx(tx, topUp.UserId, BalanceLogTypeTopUp, cashAmount-fee,
+				finalBalance, 0, fmt.Sprintf("充值入账 provider=%s", topUp.PaymentProvider))
+			if debtDeduct > 0 {
+				_ = CreateBalanceLogTx(tx, topUp.UserId, BalanceLogTypeDebtDeduct, -debtDeduct,
+					finalBalance, 0, "充值自动抵扣欠费")
 			}
 		}
 		
@@ -425,23 +470,6 @@ func CompleteTopUp(tradeNo string, provider string, quota int64) error {
 	})
 	
 	if err == nil && topUpUserId > 0 {
-		// 自动抵扣挂账债务
-		var debtor User
-		if DB.Where("id = ?", topUpUserId).First(&debtor).Error == nil && debtor.Debt > 0 {
-			debt := debtor.Debt
-			deduct := debt
-			if debtor.CashBalance < deduct {
-				deduct = debtor.CashBalance
-			}
-			if deduct > 0 {
-				DB.Model(&User{}).Where("id = ?", topUpUserId).Updates(map[string]interface{}{
-					"cash_balance": gorm.Expr("cash_balance - ?", deduct),
-					"debt":         gorm.Expr("debt - ?", deduct),
-				})
-				_ = CreateBalanceLog(topUpUserId, "debt_deduct", -deduct, debtor.CashBalance-deduct, 0, "充值自动抵扣欠费")
-			}
-		}
-		
 		// 创建应用内通知
 		notifData := fmt.Sprintf(`{"trade_no":"%s","quota":%d}`, tradeNo, quota)
 		if createErr := CreateNotification(topUpUserId, "topup", "充值成功", fmt.Sprintf("您的账户已成功充值 %s", common.LogQuota(quota)), notifData); createErr != nil {

@@ -1,4 +1,4 @@
-﻿package deepl
+package deepl
 
 import (
 	"encoding/json"

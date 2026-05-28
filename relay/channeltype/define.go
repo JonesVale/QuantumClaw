@@ -1,4 +1,4 @@
-﻿package channeltype
+package channeltype
 
 const (
 	Unknown = iota

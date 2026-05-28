@@ -1,9 +1,12 @@
 import { Component, type ReactNode } from 'react'
+import { useRouter } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
 
 interface Props {
   children: ReactNode
   fallback?: ReactNode
+  /** 路由 key 变化时自动重置错误状态 */
+  routeKey?: string
 }
 
 interface State {
@@ -25,9 +28,15 @@ export class ErrorBoundary extends Component<Props, State> {
     console.error('ErrorBoundary caught:', error, info)
   }
 
+  componentDidUpdate(prevProps: Props) {
+    // 路由变化时自动重置，避免一次错误崩掉全局
+    if (this.state.hasError && this.props.routeKey && this.props.routeKey !== prevProps.routeKey) {
+      this.setState({ hasError: false, error: undefined })
+    }
+  }
+
   render() {
     if (this.state.hasError) {
-      // If a custom fallback is provided, render it
       if (this.props.fallback) {
         return this.props.fallback
       }
@@ -50,17 +59,16 @@ export class ErrorBoundary extends Component<Props, State> {
                 size="sm"
                 onClick={() => {
                   this.setState({ hasError: false, error: undefined })
-                  window.location.reload()
                 }}
               >
-                Reload Page
+                Try Again
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.history.back()}
+                onClick={() => window.location.reload()}
               >
-                Go Back
+                Reload Page
               </Button>
             </div>
           </div>
@@ -70,4 +78,12 @@ export class ErrorBoundary extends Component<Props, State> {
 
     return this.props.children
   }
+}
+
+/**
+ * ErrorBoundaryWithRouter — 自动监听路由变化重置错误状态
+ */
+export function ErrorBoundaryWithRouter({ children }: { children: ReactNode }) {
+  const router = useRouter()
+  return <ErrorBoundary routeKey={router.state.location.pathname}>{children}</ErrorBoundary>
 }

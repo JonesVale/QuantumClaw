@@ -1,4 +1,4 @@
-﻿package aiproxy
+package aiproxy
 
 import (
 	"bufio"

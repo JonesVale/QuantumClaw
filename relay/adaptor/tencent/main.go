@@ -1,4 +1,4 @@
-﻿package tencent
+package tencent
 
 import (
 	"bufio"

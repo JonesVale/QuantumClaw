@@ -1,4 +1,4 @@
-﻿package aiproxy
+package aiproxy
 
 import "github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 

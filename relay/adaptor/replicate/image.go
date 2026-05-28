@@ -1,4 +1,4 @@
-﻿package replicate
+package replicate
 
 import (
 	"bytes"

@@ -281,13 +281,7 @@ func handleStripeCheckoutCompleted(ctx context.Context, event StripeWebhookEvent
 		return
 	}
 
-	// 完成任务
-	if err := model.UpdateTopUpStatus(tradeNo, model.PaymentProviderStripe, model.TopUpStatusSuccess); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Stripe 更新订单状态失败: trade_no=%s error=%q", tradeNo, err.Error()))
-		return
-	}
-
-	// 充值用户配额
+	// 充值用户配额（CompleteTopUp 内部处理状态更新 + 手续费 + 债务抵扣）
 	if err := model.CompleteTopUp(tradeNo, model.PaymentProviderStripe, topUp.Amount); err != nil {
 		logger.Error(ctx, fmt.Sprintf("Stripe 充值配额失败: trade_no=%s error=%q", tradeNo, err.Error()))
 		return

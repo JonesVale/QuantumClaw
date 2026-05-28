@@ -1,4 +1,4 @@
-﻿package ali
+package ali
 
 import (
 	"encoding/base64"

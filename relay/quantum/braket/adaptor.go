@@ -1,4 +1,4 @@
-﻿package braket
+package braket
 
 import (
 	"bytes"

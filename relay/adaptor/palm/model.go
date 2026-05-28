@@ -1,4 +1,4 @@
-﻿package palm
+package palm
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/model"

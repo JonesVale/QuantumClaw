@@ -1,4 +1,4 @@
-﻿package aws_test
+package aws_test
 
 import (
 	"testing"

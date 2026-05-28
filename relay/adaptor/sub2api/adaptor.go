@@ -1,4 +1,4 @@
-﻿// Package sub2api implements the relay.Adaptor interface for schema-driven web model providers.
+// Package sub2api implements the relay.Adaptor interface for schema-driven web model providers.
 package sub2api
 
 import (

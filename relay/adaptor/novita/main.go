@@ -1,4 +1,4 @@
-﻿package novita
+package novita
 
 import (
 	"fmt"

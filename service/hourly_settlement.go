@@ -2,57 +2,35 @@ package service
 
 import (
 	"fmt"
+	"runtime/debug"
 	"time"
 
-	"gorm.io/gorm"
-
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
+// safeRunSettlement 安全执行对账，panic 时不崩溃整个定时器
+func safeRunSettlement() {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error(nil, fmt.Sprintf("[HourlySettlement] PANIC RECOVERED: %v\n%s", r, debug.Stack()))
+		}
+	}()
+	model.RunHourlySettlement()
+}
+
 // StartHourlySettlement 启动每小时对账定时任务
 func StartHourlySettlement() {
-	// 每小时整点执行
 	ticker := time.NewTicker(1 * time.Hour)
 	defer ticker.Stop()
 
 	// 启动后先对上一小时
-	model.RunHourlySettlement()
+	safeRunSettlement()
 
 	for range ticker.C {
-		model.RunHourlySettlement()
+		safeRunSettlement()
 	}
 }
 
-// DeductDebtOnTopup 充值成功后自动扣除挂账债务
-// 在 CompleteTopUp 中调用
-func DeductDebtOnTopup(userId int) (deducted int64, err error) {
-	user, err := model.GetUserById(userId, false)
-	if err != nil {
-		return 0, fmt.Errorf("get user: %w", err)
-	}
-	if user.Debt <= 0 {
-		return 0, nil
-	}
-	debt := user.Debt
-	balance := user.CashBalance
-
-	deduct := debt
-	if balance < deduct {
-		deduct = balance
-	}
-	if deduct <= 0 {
-		return 0, nil
-	}
-
-	err = model.DB.Model(&model.User{}).Where("id = ?", userId).
-		Updates(map[string]interface{}{
-			"cash_balance": gorm.Expr("cash_balance - ?", deduct),
-			"debt":         gorm.Expr("debt - ?", deduct),
-		}).Error
-	if err != nil {
-		return 0, fmt.Errorf("deduct debt: %w", err)
-	}
-
-	_ = model.CreateBalanceLog(userId, "debt_deduct", -deduct, balance-deduct, 0, "充值自动抵扣欠费")
-	return deduct, nil
-}
+// DeductDebtOnTopup 已删除——债务抵扣逻辑已移至 CompleteTopUp 事务内
+// （2026-05-28 重构：TOCTOU 修复 + 原子操作）

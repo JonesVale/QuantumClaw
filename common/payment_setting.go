@@ -21,8 +21,9 @@ import (
 // ==================== 支付配置(安全增强版)====================
 
 var (
-	paymentSettingOnce sync.Once
-	paymentSetting     *PaymentSetting
+	paymentSettingOnce  sync.Once
+	paymentSetting      *PaymentSetting
+	paymentSettingMu    sync.Mutex // 保护 Reload/Reset/Save 的 Once 重置
 )
 
 // PaymentSetting 支付设置
@@ -212,7 +213,10 @@ func loadPaymentConfigFromOptions(settings *PaymentSetting) {
 
 // ReloadPaymentSettings 重新加载支付配置（管理员修改后调用）
 func ReloadPaymentSettings() {
+	paymentSettingMu.Lock()
 	paymentSettingOnce = sync.Once{}
+	paymentSetting = nil
+	paymentSettingMu.Unlock()
 	GetPaymentSetting()
 	logger.SysLog("支付配置已重新加载")
 }
@@ -481,8 +485,10 @@ func SavePaymentSetting(settings *PaymentSetting) error {
 	}
 	// 注意: 避免 import cycle (model 依赖 common)，调用方(controller)负责写入 DB Option 表
 	// 仅重新加载配置
+	paymentSettingMu.Lock()
 	paymentSettingOnce = sync.Once{}
 	paymentSetting = nil
+	paymentSettingMu.Unlock()
 
 	logger.SysLog("支付设置已保存")
 	return nil
@@ -498,8 +504,10 @@ func getEnvOrDefault(key, defaultVal string) string {
 
 // ResetPaymentSetting 重置支付配置(重新从环境变量加载)
 func ResetPaymentSetting() {
+	paymentSettingMu.Lock()
 	paymentSettingOnce = sync.Once{}
 	paymentSetting = nil
+	paymentSettingMu.Unlock()
 	GetPaymentSetting()
 	logger.SysLog("支付配置已重置")
 }

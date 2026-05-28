@@ -1,4 +1,4 @@
-﻿package zhipu
+package zhipu
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/model"

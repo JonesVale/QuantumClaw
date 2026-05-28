@@ -1,4 +1,4 @@
-﻿package controller
+package controller
 
 import (
 	"fmt"
@@ -139,10 +139,11 @@ func AddToken(c *gin.Context) {
 		return
 	}
 
+	rawKey := random.GenerateKey()
 	cleanToken := model.Token{
 		UserId:         c.GetInt(ctxkey.Id),
 		Name:           token.Name,
-		Key:            random.GenerateKey(),
+		Key:            rawKey,
 		CreatedTime:    helper.GetTimestamp(),
 		AccessedTime:   helper.GetTimestamp(),
 		ExpiredTime:    token.ExpiredTime,
@@ -159,6 +160,8 @@ func AddToken(c *gin.Context) {
 		})
 		return
 	}
+	// Insert() encrypts Key; restore raw key for response so user can copy it
+	cleanToken.Key = rawKey
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

@@ -26,6 +26,16 @@ function HomePage() {
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
   const [content, setContent] = useState<SiteContent | null>(null)
+  const [companyUrl, setCompanyUrl] = useState('https://www.ctji.cn')
+
+  useEffect(() => {
+    fetch('/api/option/')
+      .then(r => r.json())
+      .then((data: Record<string, string>) => {
+        if (data?.company_website_url) setCompanyUrl(data.company_website_url)
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     fetch('/api/site-content').then(r => r.json()).then(d => d.data && setContent(d.data)).catch(() => {})
@@ -203,7 +213,7 @@ function HomePage() {
             </div>
             {[{ title: t('Platform'), links: [{ to: '/models', label: t('Models') }, { to: '/rankings', label: t('Rankings') }, { to: '/pricing', label: t('Pricing') }] },
               { title: t('Resources'), links: [{ to: '/playground', label: t('Playground') }, { to: '/api-docs', label: t('API Docs') }] },
-              { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }, { to: 'https://quantumclaw.ai', label: t('Official Website'), external: true }] },
+              { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }] },
             ].map(group => (
               <div key={group.title}>
                 <h4 className="text-sm font-semibold text-foreground mb-5">{group.title}</h4>
@@ -213,7 +223,7 @@ function HomePage() {
           </div>
           <div className="border-t border-border/30 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
             <div className="flex flex-col sm:flex-row items-center gap-2">
-              <a href="https://www.ctji.cn" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground/40 hover:text-foreground/70 transition-colors">{t('Company Website')}</a>
+              <a href={companyUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground/40 hover:text-foreground/70 transition-colors">{t('Company Website')}</a>
               <span className="hidden sm:inline text-muted-foreground/20">|</span>
               <span>&copy; {new Date().getFullYear()} {t("Quantum Spirit Claw")}. {t('All rights reserved.')}</span>
             </div>

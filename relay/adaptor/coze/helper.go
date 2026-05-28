@@ -1,4 +1,4 @@
-﻿package coze
+package coze
 
 import "github.com/quantumclaw/quantumclaw/relay/adaptor/coze/constant/event"
 

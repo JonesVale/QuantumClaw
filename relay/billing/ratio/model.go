@@ -1,4 +1,4 @@
-﻿package ratio
+package ratio
 
 import (
 	"encoding/json"

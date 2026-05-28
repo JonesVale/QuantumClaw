@@ -1,4 +1,4 @@
-﻿package model
+package model
 
 import (
 	"context"
@@ -26,9 +26,8 @@ var (
 	GroupModelsCacheSeconds   = config.SyncFrequency
 )
 
-func CacheGetTokenByKey(key string) (*Token, error) {
-	// 用 KeyHash 替代 raw key 查询
-	keyHash := common.SHA256Hash(key)
+func CacheGetTokenByKey(keyHash string) (*Token, error) {
+	// 所有调用方已传入 SHA256(raw_key)，直接用哈希查询
 	var token Token
 	if !common.RedisEnabled {
 		err := DB.Where("key_hash = ?", keyHash).First(&token).Error
@@ -44,7 +43,7 @@ func CacheGetTokenByKey(key string) (*Token, error) {
 		if err != nil {
 			return nil, err
 		}
-		err = common.RedisSet(fmt.Sprintf("token:%s", key), string(jsonBytes), time.Duration(TokenCacheSeconds)*time.Second)
+		err = common.RedisSet(fmt.Sprintf("token:%s", keyHash), string(jsonBytes), time.Duration(TokenCacheSeconds)*time.Second)
 		if err != nil {
 			logger.SysError("Redis set token error: " + err.Error())
 		}

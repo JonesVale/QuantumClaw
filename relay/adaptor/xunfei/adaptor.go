@@ -1,4 +1,4 @@
-﻿package xunfei
+package xunfei
 
 import (
 	"errors"

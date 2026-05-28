@@ -1,4 +1,4 @@
-﻿package relay
+package relay
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor"

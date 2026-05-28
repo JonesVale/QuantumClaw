@@ -342,13 +342,7 @@ func handleCreemCheckoutCompleted(ctx context.Context, event *CreemWebhookEvent)
 		return
 	}
 
-	// 更新订单状态
-	if err := model.UpdateTopUpStatus(referenceId, model.PaymentProviderCreem, model.TopUpStatusSuccess); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Creem 更新订单状态失败: trade_no=%s error=%q", referenceId, err.Error()))
-		return
-	}
-
-	// 充值用户配额
+	// 充值用户配额（CompleteTopUp 内部处理状态更新 + 手续费 + 债务抵扣）
 	if err := model.CompleteTopUp(referenceId, model.PaymentProviderCreem, topUp.Amount); err != nil {
 		logger.Error(ctx, fmt.Sprintf("Creem 充值配额失败: trade_no=%s error=%q", referenceId, err.Error()))
 		return

@@ -1,4 +1,4 @@
-﻿package baiduv2
+package baiduv2
 
 import (
 	"fmt"

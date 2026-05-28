@@ -1,4 +1,4 @@
-﻿package ali
+package ali
 
 import (
 	"errors"

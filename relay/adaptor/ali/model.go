@@ -1,4 +1,4 @@
-﻿package ali
+package ali
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"

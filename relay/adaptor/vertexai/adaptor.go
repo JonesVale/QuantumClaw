@@ -1,4 +1,4 @@
-﻿package vertexai
+package vertexai
 
 import (
 	"errors"

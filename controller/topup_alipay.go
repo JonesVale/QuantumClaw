@@ -1,8 +1,16 @@
 package controller
 
 import (
+	"crypto"
+	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
+	"encoding/pem"
 	"fmt"
 	"net/http"
+	"sort"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -115,7 +123,7 @@ func AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	// 验证签名
+	// 验证 RSA2 签名
 	alipayPublicKey := common.GetPaymentSetting().AlipayPublicKey
 	if alipayPublicKey == "" {
 		logger.Warn(c.Request.Context(), "支付宝公钥未配置，无法验签")
@@ -123,16 +131,13 @@ func AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	// TODO: 对接支付宝 SDK 后，用 RSA2 验签
-
-	// 更新订单状态
-	if err := model.UpdateTopUpStatus(tradeNo, model.PaymentProviderEpay, model.TopUpStatusSuccess); err != nil {
-		logger.Error(c.Request.Context(), fmt.Sprintf("支付宝更新订单状态失败 trade_no=%s error=%q", tradeNo, err.Error()))
+	if err := verifyAlipaySign(params, alipayPublicKey); err != nil {
+		logger.Warn(c.Request.Context(), fmt.Sprintf("支付宝回调签名验证失败 trade_no=%s error=%v", tradeNo, err))
 		c.String(http.StatusOK, "fail")
 		return
 	}
 
-	// 充值
+	// 充值（CompleteTopUp 内部处理状态更新 + 手续费 + 债务抵扣）
 	topUp, err := model.GetTopUpByTradeNo(tradeNo)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("支付宝订单不存在 trade_no=%s", tradeNo))
@@ -140,7 +145,7 @@ func AlipayNotify(c *gin.Context) {
 		return
 	}
 
-	if err := model.CompleteTopUp(tradeNo, "alipay", topUp.Amount); err != nil {
+	if err := model.CompleteTopUp(tradeNo, model.PaymentProviderAlipay, topUp.Amount); err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("支付宝充值失败 trade_no=%s error=%q", tradeNo, err.Error()))
 		c.String(http.StatusOK, "fail")
 		return
@@ -148,6 +153,94 @@ func AlipayNotify(c *gin.Context) {
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("支付宝充值成功 trade_no=%s user_id=%d amount=%d", tradeNo, topUp.UserId, topUp.Amount))
 	c.String(http.StatusOK, "success")
+}
+
+// verifyAlipaySign 验证支付宝 RSA2 签名
+// 支付宝签名规则：
+// 1. 排除 sign 和 sign_type 参数
+// 2. 剩余参数按键名升序排序
+// 3. 拼接成 key=value&key=value...
+// 4. base64 解码 sign
+// 5. RSA-SHA256 公钥验证
+func verifyAlipaySign(params map[string]string, alipayPublicKey string) error {
+	sign := params["sign"]
+	if sign == "" {
+		return fmt.Errorf("支付宝回调缺少 sign 参数")
+	}
+
+	// 1. 排除 sign 和 sign_type，收集待验签参数
+	var keys []string
+	for k := range params {
+		if k == "sign" || k == "sign_type" {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	// 2. 拼接 key=value&key=value...
+	var parts []string
+	for _, k := range keys {
+		if params[k] != "" {
+			parts = append(parts, fmt.Sprintf("%s=%s", k, params[k]))
+		}
+	}
+	signContent := strings.Join(parts, "&")
+
+	// 3. base64 解码签名
+	signBytes, err := base64.StdEncoding.DecodeString(sign)
+	if err != nil {
+		return fmt.Errorf("base64 解码签名失败: %w", err)
+	}
+
+	// 4. 解析 RSA 公钥
+	block, _ := pem.Decode([]byte(alipayPublicKey))
+	if block == nil {
+		// 尝试不带 PEM 头部的纯 Base64 公钥
+		pemStr := fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s\n-----END PUBLIC KEY-----",
+			chunkString(alipayPublicKey, 64))
+		block, _ = pem.Decode([]byte(pemStr))
+		if block == nil {
+			return fmt.Errorf("解析支付宝公钥失败: 无法解码 PEM")
+		}
+	}
+
+	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		return fmt.Errorf("解析 RSA 公钥失败: %w", err)
+	}
+
+	rsaPubKey, ok := pubKey.(*rsa.PublicKey)
+	if !ok {
+		return fmt.Errorf("公钥类型不是 RSA")
+	}
+
+	// 5. SHA256 哈希 + RSA 验证
+	hash := sha256.Sum256([]byte(signContent))
+	if err := rsa.VerifyPKCS1v15(rsaPubKey, crypto.SHA256, hash[:], signBytes); err != nil {
+		return fmt.Errorf("RSA2 签名验证失败: %w", err)
+	}
+
+	return nil
+}
+
+// chunkString 将字符串每 n 个字符插入换行（用于纯 base64 补 PEM 格式）
+func chunkString(s string, n int) string {
+	if n <= 0 {
+		return s
+	}
+	var result strings.Builder
+	for i := 0; i < len(s); i += n {
+		end := i + n
+		if end > len(s) {
+			end = len(s)
+		}
+		if result.Len() > 0 {
+			result.WriteByte('\n')
+		}
+		result.WriteString(s[i:end])
+	}
+	return result.String()
 }
 
 // AlipayReturn 支付宝同步返回（用户支付完成后跳转）

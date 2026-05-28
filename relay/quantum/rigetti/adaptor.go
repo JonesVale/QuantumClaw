@@ -1,4 +1,4 @@
-﻿package rigetti
+package rigetti
 
 import (
 	"bytes"

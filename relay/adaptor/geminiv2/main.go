@@ -1,4 +1,4 @@
-﻿package geminiv2
+package geminiv2
 
 import (
 	"fmt"

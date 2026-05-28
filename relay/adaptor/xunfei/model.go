@@ -1,4 +1,4 @@
-﻿package xunfei
+package xunfei
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/model"

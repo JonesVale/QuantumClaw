@@ -1,4 +1,4 @@
-﻿package gemini
+package gemini
 
 import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/geminiv2"

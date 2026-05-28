@@ -7,6 +7,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // HourlySettlement 每小时结算对账汇总
@@ -102,15 +103,15 @@ func CalculateAndRecoverDebt(hour string) (totalRecovered float64, affected int,
 	var losses []UserLoss
 
 	// 按用户聚合: 用户付了多少 vs 实际成本
+	// 直接计算 loss_amt = 实际成本 - 用户付费
 	err = DB.Raw(`
 		SELECT
 			user_id,
-			SUM(total_amount) AS user_paid,
-			SUM(key_provider_cost + commission_amount) AS actual_cost
+			SUM(key_provider_cost + commission_amount) - SUM(total_amount) AS loss_amt
 		FROM token_transaction
 		WHERE created_time >= ? AND created_time < ?
 		GROUP BY user_id
-		HAVING actual_cost > user_paid
+		HAVING loss_amt > 0.001
 	`, startTime, endTime).Scan(&losses).Error
 	if err != nil {
 		return 0, 0, fmt.Errorf("aggregate user loss: %w", err)
@@ -134,16 +135,17 @@ func CalculateAndRecoverDebt(hour string) (totalRecovered float64, affected int,
 				continue
 			}
 
-			// 查用户余额
+			// 用悲观锁锁定用户行，避免并发扣款竞态
 			var user User
-			if err := tx.Where("id = ?", loss.UserId).First(&user).Error; err != nil {
+			if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+				Where("id = ?", loss.UserId).First(&user).Error; err != nil {
 				logger.Warn(nil, fmt.Sprintf("debt recovery: user %d not found, skip", loss.UserId))
 				continue
 			}
 
 			// 先扣 cash_balance
 			deductFromBalance := lossCents
-			if user.CashBalance < int64(deductFromBalance) {
+			if user.CashBalance < deductFromBalance {
 				deductFromBalance = user.CashBalance
 			}
 			if deductFromBalance > 0 {
@@ -151,11 +153,11 @@ func CalculateAndRecoverDebt(hour string) (totalRecovered float64, affected int,
 					Update("cash_balance", gorm.Expr("cash_balance - ?", deductFromBalance)).Error; err != nil {
 					return fmt.Errorf("deduct user %d balance: %w", loss.UserId, err)
 				}
-				CreateBalanceLog(loss.UserId, "debt_recovery", -deductFromBalance,
+				_ = CreateBalanceLogTx(tx, loss.UserId, BalanceLogTypeDebtRecover, -deductFromBalance,
 					user.CashBalance-deductFromBalance, 0, "对账追偿")
 			}
 
-			// 剩余挂 debt
+			// 剩余挂 debt（已扣余额后的剩余亏损）
 			remaining := lossCents - deductFromBalance
 			if remaining > 0 {
 				if err := tx.Model(&User{}).Where("id = ?", loss.UserId).
@@ -175,35 +177,19 @@ func CalculateAndRecoverDebt(hour string) (totalRecovered float64, affected int,
 // RunHourlySettlement 执行每小时对账
 func RunHourlySettlement() {
 	now := time.Now()
-	// 对账上一整小时
 	prevHour := now.Truncate(time.Hour).Add(-time.Hour)
 	hour := prevHour.Format("2006-01-02 15:00")
 
 	logger.Info(nil, fmt.Sprintf("[HourlySettlement] 开始对账: %s", hour))
 
-	// 1. 检查是否已对过
-	var existing HourlySettlement
-	if DB.Where("hour = ?", hour).First(&existing).Error == nil {
-		logger.Info(nil, fmt.Sprintf("[HourlySettlement] %s 已对账，跳过", hour))
-		return
-	}
-
-	// 2. 聚合
+	// 1. 聚合（无事务，只读）
 	hs, err := AggregateHourlySettlement(hour)
 	if err != nil {
 		logger.Error(nil, fmt.Sprintf("[HourlySettlement] aggregate failed: %v", err))
 		return
 	}
 
-	if hs.TotalRequests == 0 {
-		hs.Status = "skipped"
-		if err := DB.Create(hs).Error; err != nil {
-			logger.Error(nil, fmt.Sprintf("[HourlySettlement] create skipped failed: %v", err))
-		}
-		return
-	}
-
-	// 3. 如果有亏损，追偿
+	// 2. 有亏损 → 追偿（在自身事务内原子执行：FOR UPDATE 锁定用户+debt调整）
 	if hs.LossAmount > 0.01 {
 		recovered, affected, err := CalculateAndRecoverDebt(hour)
 		if err != nil {
@@ -214,11 +200,28 @@ func RunHourlySettlement() {
 		}
 	}
 
-	hs.Status = "settled"
-	hs.SettledAt = helper.GetTimestamp()
+	// 3. 写对账记录（事务内 check-then-create 消除竞态）
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		var existing HourlySettlement
+		if err := tx.Where("hour = ?", hour).First(&existing).Error; err == nil {
+			return fmt.Errorf("already settled: %s", hour)
+		}
 
-	if err := DB.Create(hs).Error; err != nil {
-		logger.Error(nil, fmt.Sprintf("[HourlySettlement] save failed: %v", err))
+		if hs.TotalRequests == 0 {
+			hs.Status = "skipped"
+		} else {
+			hs.Status = "settled"
+			hs.SettledAt = helper.GetTimestamp()
+		}
+
+		if err := tx.Create(hs).Error; err != nil {
+			return fmt.Errorf("save: %w", err)
+		}
+		return nil
+	})
+
+	if err != nil {
+		logger.Error(nil, fmt.Sprintf("[HourlySettlement] 对账写入失败 %s: %v", hour, err))
 		return
 	}
 
@@ -237,10 +240,11 @@ func GetHourlySettlements(page, pageSize int) ([]HourlySettlement, int64, error)
 }
 
 // parseHourStart 将 "2026-05-28 15:00" 转为时间戳
+// 解析失败时 panic（因上层有 recover 保护，且格式保证来自代码）
 func parseHourStart(hour string) int64 {
 	t, err := time.Parse("2006-01-02 15:00", hour)
 	if err != nil {
-		return 0
+		panic(fmt.Sprintf("parseHourStart: 无法解析小时格式 %q: %v", hour, err))
 	}
 	return t.Unix()
 }

@@ -1,4 +1,4 @@
-﻿package common
+package common
 
 import (
 	"github.com/quantumclaw/quantumclaw/common/env"

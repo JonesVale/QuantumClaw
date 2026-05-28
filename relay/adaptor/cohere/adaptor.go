@@ -1,4 +1,4 @@
-﻿package cohere
+package cohere
 
 import (
 	"errors"

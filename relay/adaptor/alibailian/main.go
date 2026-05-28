@@ -1,4 +1,4 @@
-﻿package alibailian
+package alibailian
 
 import (
 	"fmt"
