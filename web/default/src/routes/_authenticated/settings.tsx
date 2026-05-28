@@ -68,7 +68,12 @@ function SettingsPage() {
   const [binanceEnabled, setBinanceEnabled] = useState(false)
   const [binanceApiKey, setBinanceApiKey] = useState('')
   const [binanceSecretKey, setBinanceSecretKey] = useState('')
-  const [binanceMerchantId, setBinanceMerchantId] = useState('')
+  const [binanceMerchantId, setBinanceMerchantId]
+  const [alipayEnabled, setAlipayEnabled] = useState(false)
+  const [alipayAppId, setAlipayAppId] = useState('')
+  const [alipayPrivateKey, setAlipayPrivateKey] = useState('')
+  const [alipayPublicKey, setAlipayPublicKey] = useState('')
+  const [alipayGatewayUrl, setAlipayGatewayUrl] = useState('') = useState('')
   const [minTopUp, setMinTopUp] = useState('')
   const [cacheBillingRatio, setCacheBillingRatio] = useState('')
   const [commissionEnabled, setCommissionEnabled] = useState(false)
@@ -186,6 +191,11 @@ function SettingsPage() {
     setBinanceApiKey(getOptionValue('BinanceApiKey', ''))
     setBinanceSecretKey(getOptionValue('BinanceSecretKey', ''))
     setBinanceMerchantId(getOptionValue('BinanceMerchantId', ''))
+    setAlipayEnabled(getOptionValue('AlipayEnabled', 'false') === 'true')
+    setAlipayAppId(getOptionValue('AlipayAppId', ''))
+    setAlipayPrivateKey(getOptionValue('AlipayPrivateKey', ''))
+    setAlipayPublicKey(getOptionValue('AlipayPublicKey', ''))
+    setAlipayGatewayUrl(getOptionValue('AlipayGatewayUrl', ''))
     setMinTopUp(getOptionValue('MinTopUp', '1'))
     setCacheBillingRatio(getOptionValue('CacheBillingRatio', '1.0'))
     setCommissionEnabled(getOptionValue('CommissionEnabled', 'false') === 'true')
@@ -314,6 +324,22 @@ function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2"><Label>{t('System Name')}</Label><Input value={systemName} onChange={(e) => setSystemName(e.target.value)} placeholder="QuantumClaw" /><p className="text-xs text-muted-foreground">{t('Displayed in the browser tab and login page')}</p></div>
               <div className="space-y-2"><Label>{t('Logo URL')}</Label><Input value={logoUrl} onChange={(e) => setLogoUrl(e.target.value)} placeholder="/logo.png" /></div>
+                            {/* Alipay Direct */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('Alipay Direct')}</Label>
+                  <Switch checked={alipayEnabled} onCheckedChange={setAlipayEnabled} />
+                </div>
+                {alipayEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-blue-200">
+                    <div><Label>{t('APPID')}</Label><Input value={alipayAppId} onChange={e => setAlipayAppId(e.target.value)} placeholder="202100..." /></div>
+                    <div><Label>{t('Private Key')}</Label><Input value={alipayPrivateKey} onChange={e => setAlipayPrivateKey(e.target.value)} type="password" placeholder="-----BEGIN RSA PRIVATE KEY-----..." /></div>
+                    <div><Label>{t('Alipay Public Key')}</Label><Input value={alipayPublicKey} onChange={e => setAlipayPublicKey(e.target.value)} type="password" placeholder="支付宝公钥..." /></div>
+                    <div><Label>{t('Gateway URL')}</Label><Input value={alipayGatewayUrl} onChange={e => setAlipayGatewayUrl(e.target.value)} placeholder="https://openapi.alipay.com/gateway.do" /></div>
+                  </div>
+                )}
+              </div>
+
               <Button onClick={() => handleSave({ SystemName: systemName, Logo: logoUrl, Footer: footerHtml })} disabled={saveMutation.isPending}>
                 <Save className="mr-2 h-4 w-4" />{saveMutation.isPending ? t('Saving...') : t('Save')}
               </Button>
@@ -789,6 +815,11 @@ function SettingsPage() {
                 BinanceApiKey: binanceApiKey,
                 BinanceSecretKey: binanceSecretKey,
                 BinanceMerchantId: binanceMerchantId,
+                AlipayEnabled: alipayEnabled ? 'true' : 'false',
+                AlipayAppId: alipayAppId,
+                AlipayPrivateKey: alipayPrivateKey,
+                AlipayPublicKey: alipayPublicKey,
+                AlipayGatewayUrl: alipayGatewayUrl || 'https://openapi.alipay.com/gateway.do',
               })} disabled={saveMutation.isPending}>
                 <Save className="mr-2 h-4 w-4" />{saveMutation.isPending ? t('Saving...') : t('Save Payment Settings')}
               </Button>

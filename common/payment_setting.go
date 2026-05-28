@@ -66,6 +66,14 @@ type PaymentSetting struct {
 	BinanceUnitPrice     float64 `json:"binance_unit_price"`
 	BinanceCurrency      string  `json:"binance_currency"`
 
+	// 支付宝官方直连配置
+	AlipayEnabled        bool    `json:"alipay_enabled"`
+	AlipayAppId         string  `json:"alipay_app_id"`
+	AlipayPrivateKey    string  `json:"alipay_private_key"`
+	AlipayPublicKey     string  `json:"alipay_public_key"`
+	AlipayGatewayUrl    string  `json:"alipay_gateway_url"`
+	AlipayMinTopUp      int     `json:"alipay_min_topup"`
+
 	// 通用配置
 	MinTopUp       int               `json:"min_topup"`
 	AmountOptions  []int            `json:"amount_options"`
@@ -166,6 +174,23 @@ func loadPaymentConfigFromOptions(settings *PaymentSetting) {
 			settings.BinanceMerchantId = v
 		}
 	}
+
+	// 支付宝官方直连
+	if getOpt("AlipayEnabled") == "true" {
+		settings.AlipayEnabled = true
+		if v := getOpt("AlipayAppId"); v != "" {
+			settings.AlipayAppId = v
+		}
+		if v := getOpt("AlipayPrivateKey"); v != "" {
+			settings.AlipayPrivateKey = v
+		}
+		if v := getOpt("AlipayPublicKey"); v != "" {
+			settings.AlipayPublicKey = v
+		}
+		if v := getOpt("AlipayGatewayUrl"); v != "" {
+			settings.AlipayGatewayUrl = v
+		}
+	}
 }
 
 // ReloadPaymentSettings 重新加载支付配置（管理员修改后调用）
@@ -233,6 +258,25 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 			}
 		}
 		settings.BinanceCurrency = getEnvOrDefault("BINANCE_CURRENCY", "USDT")
+	}
+
+	// 支付宝官方直连配置
+	if os.Getenv("ALIPAY_ENABLED") == "true" {
+		settings.AlipayEnabled = true
+		settings.AlipayAppId = os.Getenv("ALIPAY_APP_ID")
+		settings.AlipayPrivateKey = os.Getenv("ALIPAY_PRIVATE_KEY")
+		settings.AlipayPublicKey = os.Getenv("ALIPAY_PUBLIC_KEY")
+		if v := os.Getenv("ALIPAY_GATEWAY_URL"); v != "" {
+			settings.AlipayGatewayUrl = v
+		}
+		if v := os.Getenv("ALIPAY_MIN_TOPUP"); v != "" {
+			if min, err := strconv.Atoi(v); err == nil {
+				settings.AlipayMinTopUp = min
+			}
+		}
+	}
+	if settings.AlipayGatewayUrl == "" {
+		settings.AlipayGatewayUrl = "https://openapi.alipay.com/gateway.do"
 	}
 
 	// 通用配置
@@ -485,6 +529,20 @@ func IsBinanceEnabled() bool {
 // GetBinanceMinTopUp 获取Binance最小充值金额
 func GetBinanceMinTopUp() int {
 	return GetPaymentSetting().BinanceMinTopUp
+}
+
+// IsAlipayEnabled 支付宝是否启用
+func IsAlipayEnabled() bool {
+	return GetPaymentSetting().AlipayEnabled
+}
+
+// GetAlipayMinTopUp 获取支付宝最小充值金额
+func GetAlipayMinTopUp() int {
+	min := GetPaymentSetting().AlipayMinTopUp
+	if min <= 0 {
+		return 1
+	}
+	return min
 }
 
 // GetTimestamp 获取当前Unix时间戳(秒)

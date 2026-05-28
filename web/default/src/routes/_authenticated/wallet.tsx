@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   getBalance, getTopUpInfo, getTopUpList, getMyWithdrawals, getMyWithdrawable,
-  requestStripeTopUp, requestEpayTopUp, requestCreemTopUp, requestWaffoTopUp, requestBinanceTopUp,
+  requestStripeTopUp, requestEpayTopUp, requestCreemTopUp, requestWaffoTopUp, requestBinanceTopUp, requestAlipayTopUp,
   submitWithdrawal, getMyCommissionRecords, type BalanceInfo
 } from '@/lib/api-extended'
 import { Wallet, Copy, RefreshCw, CreditCard, TrendingUp, Banknote, History, ArrowUpRight, DollarSign } from 'lucide-react'
@@ -113,6 +113,7 @@ function WalletPage() {
     if (info.enable_creem_topup) methods.push('creem')
     if (info.enable_waffo_topup) methods.push('waffo')
     if (info.enable_binance_topup) methods.push('binance')
+    if (info.enable_alipay_topup) methods.push('alipay')
     return methods
   })()
   const historyItems: any[] = topupHistory?.data || []
@@ -123,6 +124,7 @@ function WalletPage() {
     creem: { label: 'Creem', icon: Wallet },
     waffo: { label: 'Waffo', icon: ArrowUpRight },
     binance: { label: t('Binance Pay'), icon: DollarSign },
+    alipay: { label: t('Alipay'), icon: DollarSign },
   }
 
   const handleTopup = async (method: string) => {
@@ -138,6 +140,7 @@ function WalletPage() {
         creem: requestCreemTopUp,
         waffo: requestWaffoTopUp,
         binance: requestBinanceTopUp,
+        alipay: requestAlipayTopUp,
       }
       const fn = apiMap[method]
       if (!fn) { toast.error(t('Unknown payment method')); return }

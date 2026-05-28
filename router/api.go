@@ -148,6 +148,8 @@ func SetApiRouter(router *gin.Engine) {
 
 		apiRouter.POST("/webhook/binance", middleware.WebhookIPWhitelist(), controller.BinanceWebhook)
 
+		apiRouter.Any("/webhook/alipay", middleware.WebhookIPWhitelist(), controller.AlipayNotify)
+
 		apiRouter.GET("/verification", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.SendEmailVerification)
 
 		apiRouter.GET("/reset_password", middleware.CriticalRateLimit(), middleware.TurnstileCheck(), controller.SendPasswordResetEmail)
@@ -259,6 +261,8 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.POST("/topup/waffo", controller.RequestWaffoTopUp)
 
 				selfRoute.POST("/topup/binance", controller.RequestBinanceTopUp)
+
+				selfRoute.POST("/topup/alipay", controller.RequestAlipayTopUp)
 
 				selfRoute.GET("/topup/list", controller.GetTopUpList)
 

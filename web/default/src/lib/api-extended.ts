@@ -852,6 +852,11 @@ export async function requestBinanceTopUp(amount: number): Promise<ApiResponse<{
   return res.data
 }
 
+export async function requestAlipayTopUp(amount: number): Promise<ApiResponse<{ payment_url: string }>> {
+  const res = await apiClient.post('/api/user/self/topup/alipay', { amount })
+  return res.data
+}
+
 export async function adminTopUp(userId: number, amount: number, remark?: string): Promise<ApiResponse> {
   const res = await apiClient.post('/api/topup', { user_id: userId, amount, remark })
   return res.data
