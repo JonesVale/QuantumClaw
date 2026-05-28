@@ -74,6 +74,10 @@ function SettingsPage() {
   const [alipayPrivateKey, setAlipayPrivateKey] = useState('')
   const [alipayPublicKey, setAlipayPublicKey] = useState('')
   const [alipayGatewayUrl, setAlipayGatewayUrl] = useState('')
+  const [worldfirstEnabled, setWorldfirstEnabled] = useState(false)
+  const [worldfirstApiKey, setWorldfirstApiKey] = useState('')
+  const [worldfirstSecretKey, setWorldfirstSecretKey] = useState('')
+  const [worldfirstWebhookKey, setWorldfirstWebhookKey] = useState('')
   const [minTopUp, setMinTopUp] = useState('')
   const [cacheBillingRatio, setCacheBillingRatio] = useState('')
   const [commissionEnabled, setCommissionEnabled] = useState(false)
@@ -196,6 +200,10 @@ function SettingsPage() {
     setAlipayPrivateKey(getOptionValue('AlipayPrivateKey', ''))
     setAlipayPublicKey(getOptionValue('AlipayPublicKey', ''))
     setAlipayGatewayUrl(getOptionValue('AlipayGatewayUrl', ''))
+    setWorldfirstEnabled(getOptionValue('WorldFirstEnabled', 'false') === 'true')
+    setWorldfirstApiKey(getOptionValue('WorldFirstApiKey', ''))
+    setWorldfirstSecretKey(getOptionValue('WorldFirstSecretKey', ''))
+    setWorldfirstWebhookKey(getOptionValue('WorldFirstWebhookKey', ''))
     setMinTopUp(getOptionValue('MinTopUp', '1'))
     setCacheBillingRatio(getOptionValue('CacheBillingRatio', '1.0'))
     setCommissionEnabled(getOptionValue('CommissionEnabled', 'false') === 'true')
@@ -336,6 +344,21 @@ function SettingsPage() {
                     <div><Label>{t('Private Key')}</Label><Input value={alipayPrivateKey} onChange={e => setAlipayPrivateKey(e.target.value)} type="password" placeholder="-----BEGIN RSA PRIVATE KEY-----..." /></div>
                     <div><Label>{t('Alipay Public Key')}</Label><Input value={alipayPublicKey} onChange={e => setAlipayPublicKey(e.target.value)} type="password" placeholder="支付宝公钥..." /></div>
                     <div><Label>{t('Gateway URL')}</Label><Input value={alipayGatewayUrl} onChange={e => setAlipayGatewayUrl(e.target.value)} placeholder="https://openapi.alipay.com/gateway.do" /></div>
+                  </div>
+                )}
+              </div>
+
+              {/* WorldFirst */}
+              <div className="space-y-3 rounded-xl border p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">{t('WorldFirst')}</Label>
+                  <Switch checked={worldfirstEnabled} onCheckedChange={setWorldfirstEnabled} />
+                </div>
+                {worldfirstEnabled && (
+                  <div className="space-y-3 pl-2 border-l-2 border-indigo-200">
+                    <div><Label>{t('API Key')}</Label><Input value={worldfirstApiKey} onChange={e => setWorldfirstApiKey(e.target.value)} type="password" placeholder="wf_..." /></div>
+                    <div><Label>{t('Secret Key')}</Label><Input value={worldfirstSecretKey} onChange={e => setWorldfirstSecretKey(e.target.value)} type="password" /></div>
+                    <div><Label>{t('Webhook Key')}</Label><Input value={worldfirstWebhookKey} onChange={e => setWorldfirstWebhookKey(e.target.value)} type="password" /></div>
                   </div>
                 )}
               </div>
@@ -820,6 +843,10 @@ function SettingsPage() {
                 AlipayPrivateKey: alipayPrivateKey,
                 AlipayPublicKey: alipayPublicKey,
                 AlipayGatewayUrl: alipayGatewayUrl || 'https://openapi.alipay.com/gateway.do',
+                WorldFirstEnabled: worldfirstEnabled ? 'true' : 'false',
+                WorldFirstApiKey: worldfirstApiKey,
+                WorldFirstSecretKey: worldfirstSecretKey,
+                WorldFirstWebhookKey: worldfirstWebhookKey,
               })} disabled={saveMutation.isPending}>
                 <Save className="mr-2 h-4 w-4" />{saveMutation.isPending ? t('Saving...') : t('Save Payment Settings')}
               </Button>

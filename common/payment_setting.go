@@ -74,6 +74,13 @@ type PaymentSetting struct {
 	AlipayGatewayUrl    string  `json:"alipay_gateway_url"`
 	AlipayMinTopUp      int     `json:"alipay_min_topup"`
 
+	// 万里汇 WorldFirst 配置
+	WorldFirstEnabled     bool    `json:"worldfirst_enabled"`
+	WorldFirstApiKey     string  `json:"worldfirst_api_key"`
+	WorldFirstSecretKey  string  `json:"worldfirst_secret_key"`
+	WorldFirstWebhookKey string  `json:"worldfirst_webhook_key"`
+	WorldFirstMinTopUp   int     `json:"worldfirst_min_topup"`
+
 	// 通用配置
 	MinTopUp       int               `json:"min_topup"`
 	AmountOptions  []int            `json:"amount_options"`
@@ -96,6 +103,8 @@ func GetPaymentSetting() *PaymentSetting {
 			CreemEnabled:         false,
 			WaffoEnabled:         false,
 			BinanceEnabled:       false,
+			WorldFirstEnabled:     false,
+			WorldFirstMinTopUp:   1,
 			StripeMinTopUp:       1,
 			WaffoMinTopUp:        1,
 			MinTopUp:             1,
@@ -191,6 +200,14 @@ func loadPaymentConfigFromOptions(settings *PaymentSetting) {
 			settings.AlipayGatewayUrl = v
 		}
 	}
+
+	// 万里汇 WorldFirst
+	if getOpt("WorldFirstEnabled") == "true" {
+		settings.WorldFirstEnabled = true
+		if v := getOpt("WorldFirstApiKey"); v != "" { settings.WorldFirstApiKey = v }
+		if v := getOpt("WorldFirstSecretKey"); v != "" { settings.WorldFirstSecretKey = v }
+		if v := getOpt("WorldFirstWebhookKey"); v != "" { settings.WorldFirstWebhookKey = v }
+	}
 }
 
 // ReloadPaymentSettings 重新加载支付配置（管理员修改后调用）
@@ -277,6 +294,14 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 	}
 	if settings.AlipayGatewayUrl == "" {
 		settings.AlipayGatewayUrl = "https://openapi.alipay.com/gateway.do"
+	}
+
+	// 万里汇 WorldFirst 配置
+	if os.Getenv("WORLDFIRST_ENABLED") == "true" {
+		settings.WorldFirstEnabled = true
+		settings.WorldFirstApiKey = os.Getenv("WORLDFIRST_API_KEY")
+		settings.WorldFirstSecretKey = os.Getenv("WORLDFIRST_SECRET_KEY")
+		settings.WorldFirstWebhookKey = os.Getenv("WORLDFIRST_WEBHOOK_KEY")
 	}
 
 	// 通用配置
@@ -539,6 +564,20 @@ func IsAlipayEnabled() bool {
 // GetAlipayMinTopUp 获取支付宝最小充值金额
 func GetAlipayMinTopUp() int {
 	min := GetPaymentSetting().AlipayMinTopUp
+	if min <= 0 {
+		return 1
+	}
+	return min
+}
+
+// IsWorldFirstEnabled 万里汇是否启用
+func IsWorldFirstEnabled() bool {
+	return GetPaymentSetting().WorldFirstEnabled
+}
+
+// GetWorldFirstMinTopUp 万里汇最小充值金额
+func GetWorldFirstMinTopUp() int {
+	min := GetPaymentSetting().WorldFirstMinTopUp
 	if min <= 0 {
 		return 1
 	}
