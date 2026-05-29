@@ -97,8 +97,10 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/brand-rankings", controller.GetBrandRankings)
 
 		apiRouter.GET("/enterprise-clients", controller.ListEnterpriseClients)
-
 		apiRouter.GET("/model-catalog/:model_name", controller.GetModelDetail)
+
+		// 公开渠道类型查询（无需认证，前端 channels 页面需要）
+		apiRouter.GET("/channel/types", controller.GetChannelTypes)
 
 		apiRouter.POST("/models/sync", controller.SyncModelMetadata)
 
@@ -413,8 +415,6 @@ func SetApiRouter(router *gin.Engine) {
 		{
 
 			channelUserRoute.GET("/", controller.GetAllChannels)
-
-			channelUserRoute.GET("/types", controller.GetChannelTypes)
 
 			channelUserRoute.GET("/search", controller.SearchChannels)
 
