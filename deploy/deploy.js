@@ -1,12 +1,13 @@
 // QuantumClaw Cloud Deploy Script v3 - tarball approach
+// ⚠️ 编辑前: 设置下方 HOST/USER/PASS 为你的腾讯云服务器信息
 const { Client } = require('ssh2');
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const HOST = '139.196.8.90';
-const USER = 'root';
-const PASS = 'Jones.Vale@01';
+const HOST = '122.51.221.43';  // ← 腾讯云服务器 IP
+const USER = 'root';           // ← SSH 用户名
+const PASS = '';               // ← SSH 密码（请填写）
 const PROJECT_DIR = '/opt/quantumclaw';
 const LOCAL_DIR = 'H:\\AiData\\openclaw\\workspace\\QuantumClaw';
 const TARBALL = path.join(process.env.TEMP || 'C:\\Temp', 'quantumclaw-deploy.tar.gz');
@@ -53,7 +54,6 @@ conn.on('ready', async () => {
     console.log('  Upload complete');
     sftp.end();
     
-    // Clean up local tarball
     try { fs.unlinkSync(TARBALL); } catch(e) {}
 
     // Step 4: Extract on server and build
@@ -78,8 +78,7 @@ conn.on('ready', async () => {
 
     console.log(`\n✅ ========================================`);
     console.log(`   QuantumClaw Deployed!`);
-    console.log(`   http://${HOST}:3666`);
-    console.log(`   Login: root / ctji2025`);
+    console.log(`   http://${HOST}`);
     console.log(`   ========================================`);
     conn.end();
   } catch (err) {
