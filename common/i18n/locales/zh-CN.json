@@ -10,5 +10,12 @@
   "identity_required": "请先完成身份认证",
   "identity_verified": "已实名认证",
   "identity_not_verified": "未实名认证",
-  "withdraw_identity_required": "提现前需要先完成身份认证，请联系管理员。"
+  "withdraw_identity_required": "提现前需要先完成身份认证，请联系管理员。",
+  "min_topup_amount": "充值数量不能小于 %d",
+  "get_user_info_failed": "获取用户信息失败",
+  "order_creation_failed": "创建订单失败",
+  "payment_channel_unconfigured": "支付渠道未配置",
+  "payment_link_generation_failed": "生成支付链接失败",
+  "order_expired": "订单已过期",
+  "insufficient_balance": "余额不足"
 }
