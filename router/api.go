@@ -1108,6 +1108,7 @@ apiRouter.POST("/admin/model-brands/configure-all", middleware.CriticalRateLimit
 	apiRouter.GET("/admin/apps", middleware.AdminAuth(), controller.AdminListApps)
 
 	apiRouter.POST("/admin/apps/:id/status", middleware.AdminAuth(), controller.AdminUpdateAppStatus)
+	apiRouter.POST("/admin/apps/sync", middleware.AdminAuth(), controller.AdminSyncPopularApps)
 
 	apiRouter.GET("/admin/inference-nodes", middleware.AdminAuth(), controller.AdminListInferenceNodes)
 

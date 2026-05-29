@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 import (
 	"net/http"
@@ -8,9 +8,10 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/service"
 )
 
-// ListApps 公开应用列表 — GET /api/apps
+// ListApps 鍏紑搴旂敤鍒楄〃 鈥?GET /api/apps
 func ListApps(c *gin.Context) {
 	ctx := c.Request.Context()
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -25,7 +26,7 @@ func ListApps(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": items, "total": total})
 }
 
-// GetApp 应用详情 — GET /api/apps/:id
+// GetApp 搴旂敤璇︽儏 鈥?GET /api/apps/:id
 func GetApp(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := strconv.Atoi(c.Param("id"))
@@ -41,7 +42,7 @@ func GetApp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": app})
 }
 
-// SubmitApp 用户提交应用 — POST /api/user/apps
+// SubmitApp 鐢ㄦ埛鎻愪氦搴旂敤 鈥?POST /api/user/apps
 func SubmitApp(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.GetInt("id")
@@ -65,7 +66,7 @@ func SubmitApp(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": app})
 }
 
-// GetMyApps 用户查看自己的应用 — GET /api/user/apps
+// GetMyApps 鐢ㄦ埛鏌ョ湅鑷繁鐨勫簲鐢?鈥?GET /api/user/apps
 func GetMyApps(c *gin.Context) {
 	ctx := c.Request.Context()
 	userID := c.GetInt("id")
@@ -80,7 +81,7 @@ func GetMyApps(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": items, "total": total})
 }
 
-// AdminListApps 管理员应用列表 — GET /api/admin/apps
+// AdminListApps 绠＄悊鍛樺簲鐢ㄥ垪琛?鈥?GET /api/admin/apps
 func AdminListApps(c *gin.Context) {
 	ctx := c.Request.Context()
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
@@ -95,7 +96,7 @@ func AdminListApps(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": items, "total": total})
 }
 
-// AdminUpdateAppStatus 管理员审核应用 — POST /api/admin/apps/:id/status
+// AdminUpdateAppStatus 绠＄悊鍛樺鏍稿簲鐢?鈥?POST /api/admin/apps/:id/status
 func AdminUpdateAppStatus(c *gin.Context) {
 	ctx := c.Request.Context()
 	id, err := strconv.Atoi(c.Param("id"))
@@ -115,4 +116,13 @@ func AdminUpdateAppStatus(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": ""})
+}
+
+// AdminSyncPopularApps 手动触发应用同步 — POST /api/admin/apps/sync
+func AdminSyncPopularApps(c *gin.Context) {
+	if err := service.SyncPopularApps(c.Request.Context()); err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true, "message": "sync completed"})
 }
