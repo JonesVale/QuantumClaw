@@ -10,4 +10,8 @@ backend.log
 sqlite/
 node_modules/
 *.exe~
+quantumclaw_test.exe
+支付宝收款码.jpg
+*.db-journal
+*.out
 .DS_Store
