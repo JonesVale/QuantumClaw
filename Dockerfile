@@ -41,8 +41,9 @@ COPY --from=frontend-builder /app/web/build/default ./web/default/dist
 
 # 3. Build
 ARG VERSION=dev
+ARG BUILD_TS=0
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w -linkmode external -extldflags '-static' -X github.com/quantumclaw/quantumclaw/common.Version=${VERSION}" \
+    go build -ldflags="-s -w -linkmode external -extldflags '-static' -X github.com/quantumclaw/quantumclaw/common.Version=${VERSION} -X 'github.com/quantumclaw/quantumclaw/common.BuildTS=${BUILD_TS}'" \
     -o quantumclaw .
 
 # ============================================================
