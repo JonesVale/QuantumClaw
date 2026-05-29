@@ -272,6 +272,10 @@ func main() {
 				logger.SysLog("[CRON] fetching brand rankings...")
 				service.FetchBrandRankings()
 				logger.SysLog("[CRON] brand rankings update completed")
+
+				logger.SysLog("[CRON] syncing popular AI apps...")
+				service.SyncPopularApps(context.Background())
+				logger.SysLog("[CRON] popular AI apps sync completed")
 			}
 			time.Sleep(1 * time.Hour)
 		}
