@@ -149,11 +149,13 @@ const FALLBACK_ICON_MAP: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 async function fetchMenus(type: string): Promise<MenuItemData[]> {
-  const res = await apiClient.get(`/api/menus?type=${type}`, {
-    skipErrorHandler: true,
-  } as never)
-  if (res.data?.success && Array.isArray(res.data.data)) {
-    return res.data.data
+  try {
+    const res = await apiClient.get(`/api/menus?type=${type}`)
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      return res.data.data
+    }
+  } catch {
+    // API 401 时 axios 拦截器已处理: 清 localStorage + 跳转 /sign-in
   }
   return []
 }

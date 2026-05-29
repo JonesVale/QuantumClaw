@@ -21,11 +21,11 @@ import (
 var (
 	appSyncOnce sync.Once
 	appCategoryKeywords = map[string]string{
-		"chat":       "ai-chat,llm-ui,chatbot",
-		"development": "ai-coding,code-assistant,developer-tool",
-		"platform":   "ai-platform,llm-platform,ai-framework",
-		"tools":      "ai-tool,llm-tool,ai-utility",
-		"agent":      "ai-agent,autonomous-agent,ai-assistant",
+		"chat":       "chatbot ai-chat",
+		"development": "copilot code-assistant",
+		"platform":   "llm ai-framework",
+		"tools":      "ai-tool ai-utility",
+		"agent":      "ai-agent autonomous",
 	}
 )
 
@@ -64,9 +64,8 @@ func SyncPopularApps(ctx context.Context) error {
 }
 
 func syncCategory(ctx context.Context, category, keywords string) (int, error) {
-	// 搜索 GitHub: stars > 1000, 按 stars 排序, 取前 15
-	// 限定 AI 主题仓库
-	query := fmt.Sprintf("stars:>1000 topics:>1 topic:%s sort:stars-desc", strings.Split(keywords, ",")[0])
+	// 搜索 GitHub AI 相关项目，按 stars 排序取前 15
+	query := fmt.Sprintf("stars:>1000 %s", strings.ReplaceAll(keywords, " ", " "))
 
 	req, err := http.NewRequestWithContext(ctx, "GET", "https://api.github.com/search/repositories", nil)
 	if err != nil {
