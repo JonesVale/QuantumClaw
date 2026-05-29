@@ -15,3 +15,6 @@ quantumclaw_test.exe
 *.db-journal
 *.out
 .DS_Store
+
+# Payment build artifacts
+**/payment/
