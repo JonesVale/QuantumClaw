@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/quantumclaw/quantumclaw/common"
+	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 
@@ -72,14 +73,14 @@ func GetTopUpInfo(c *gin.Context) {
 func RequestEpayTopUp(c *gin.Context) {
 	var req TopUpRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "参数错误"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "parameter_error")})
 		return
 	}
 
 	// 验证金额
 	minTopUp := common.GetMinTopUp()
 	if req.Amount < int64(minTopUp) {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": fmt.Sprintf(i18n.Translate(c, "min_topup_amount"), minTopUp)})
 		return
 	}
 
@@ -87,7 +88,7 @@ func RequestEpayTopUp(c *gin.Context) {
 	userId := c.GetInt("id")
 	user, err := model.GetUserById(userId, false)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取用户信息失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "get_user_info_failed")})
 		return
 	}
 
@@ -98,7 +99,7 @@ func RequestEpayTopUp(c *gin.Context) {
 	tradeNo, err := model.GenerateSecureTradeNo(userId)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("生成订单号失败 user_id=%d error=%q", userId, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "创建订单失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "order_creation_failed")})
 		return
 	}
 
@@ -115,7 +116,7 @@ func RequestEpayTopUp(c *gin.Context) {
 
 	if err := topUp.Insert(); err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("创建充值订单失败 user_id=%d trade_no=%s error=%q", userId, tradeNo, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "创建订单失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "order_creation_failed")})
 		return
 	}
 
@@ -123,7 +124,7 @@ func RequestEpayTopUp(c *gin.Context) {
 	epayCfg := common.GetEpayConfig()
 	if epayCfg == nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("Epay未配置 user_id=%d", userId))
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "支付渠道未配置"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "payment_channel_unconfigured")})
 		return
 	}
 
@@ -157,7 +158,7 @@ func RequestEpayTopUp(c *gin.Context) {
 	payURL, err := common.BuildEpayPayURL(epayCfg, epayParams)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("生成Epay支付链接失败 user_id=%d error=%q", userId, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": i18n.Translate(c, "payment_link_generation_failed")})
 		return
 	}
 
