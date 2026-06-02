@@ -1,30 +1,47 @@
+# === Binaries ===
 quantumclaw.exe
 quantumclaw_new.exe
+quantumclaw_test.exe
+*.exe~
+
+# === Dependencies ===
+node_modules/
+sqlite/
+
+# === Logs ===
 *.log
 err.log
 out.log
 backend.err
 backend.log
+
+# === Environment ===
 .env
 .env.bak
-sqlite/
-node_modules/
-*.exe~
-quantumclaw_test.exe
-支付宝收款码.jpg
-*.db-journal
-*.out
-.DS_Store
 
-# Payment build artifacts
+# === Build artifacts ===
+web/default/dist/
+release/dist/
+release/*.exe
+release/*.zip
+release/*.tar.gz
+release/quantumclaw-linux
+
+# === OS files ===
+.DS_Store
+Thumbs.db
+
+# === Payment build artifacts ===
 **/payment/
 
-# Local builds
-quantumclaw-linux
-
-# Session persistence
+# === Session ===
 .session_secret
 
-# Coverage
+# === Coverage ===
+*.out
 coverage_full.out
 coverage.out
+
+# === Misc ===
+支付宝收款码.jpg
+*.db-journal

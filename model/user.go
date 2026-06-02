@@ -182,6 +182,7 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 		}
 	}
 	user.Quota = config.QuotaForNewUser
+	user.CashBalance = config.NewUserTrialBalance // 注册赠送试用金
 	rawToken := random.GetUUID()
 	user.AccessToken = common.SHA256Hash(rawToken)
 	user.AffCode = random.GetRandomString(8)

@@ -111,6 +111,7 @@ function SignInPage() {
       if (res.success && res.data) {
         auth.setUser(res.data)
         navigate({ to: '/dashboard' })
+        toast.success(t('Welcome! Trial credits have been added to your account'))
       } else {
         setError(res.message || t('Registration failed'))
       }

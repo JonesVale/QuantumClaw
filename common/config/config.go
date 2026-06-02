@@ -123,10 +123,10 @@ var MessagePusherToken = ""
 var TurnstileSiteKey = ""
 var TurnstileSecretKey = ""
 
-var QuotaForNewUser int64 = 0
-var QuotaForInviter int64 = 0
-var QuotaForInvitee int64 = 0
-var NewUserTrialBalance int64 = 100 // 新用户注册赠送试用金（分），默认 ¥1
+var QuotaForNewUser int64 = 0 // 新用户注册赠送配额(0=关闭)
+var QuotaForInviter int64 = 0 // 邀请人奖励配额
+var QuotaForInvitee int64 = 0 // 被邀请人奖励配额
+var NewUserTrialBalance int64 = 5000 // 新用户注册赠送试用金（分），默认 ¥50
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = false
 var AutomaticEnableChannelEnabled = false
