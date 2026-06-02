@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -150,7 +151,30 @@ var ForceHTTPS = strings.ToLower(os.Getenv("FORCE_HTTPS")) == "true"
 
 // ==================== 生产环境强化配置 ====================
 // CryptoSecret: 共享Redis数据加密密钥(多机部署必须设置)
-var CryptoSecret = os.Getenv("CRYPTO_SECRET")
+// 使用 init() 加载确保在 godotenv 加载之后（godotenv/autoload 的 init 优先于本包 var 初始化）
+var CryptoSecret string
+
+func init() {
+	CryptoSecret = os.Getenv("CRYPTO_SECRET")
+	// 如果环境变量为空，尝试从 .env 文件读取
+	// 兜底 godotenv/autoload 未及时加载的情况
+	if CryptoSecret == "" {
+		data, err := os.ReadFile(".env")
+		if err == nil {
+			for _, line := range strings.Split(string(data), "\n") {
+				line = strings.TrimSpace(line)
+				if strings.HasPrefix(line, "CRYPTO_SECRET=") {
+					CryptoSecret = strings.TrimPrefix(line, "CRYPTO_SECRET=")
+					break
+				}
+			}
+		}
+	}
+	// 如果仍为空，打印警告（但不阻止启动，main() 会生成新密钥）
+	if CryptoSecret == "" {
+		fmt.Println("[WARN] CRYPTO_SECRET not set, will be generated at startup")
+	}
+}
 
 // StreamingTimeout: SSE流式响应超时(秒),默认300
 var StreamingTimeout = env.Int("STREAMING_TIMEOUT", 300)

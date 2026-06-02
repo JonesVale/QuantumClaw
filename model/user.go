@@ -54,11 +54,11 @@ type User struct {
 	TelegramId       string `json:"telegram_id" gorm:"column:telegram_id;index"`
 	CustomOAuthId    string `json:"custom_oauth_id" gorm:"column:custom_oauth_id;index"` // 格式: providerName:externalId
 	VerificationCode string `json:"verification_code" gorm:"-:all"`                                    // this field is only for Email verification, don't save it to database!
-	AccessToken      string `json:"access_token" gorm:"type:char(64);column:access_token;uniqueIndex"` // SHA-256 哈希，非明文
+	AccessToken      string `json:"access_token" gorm:"type:char(64);column:access_token;uniqueIndex"` // SHA-256 哈希,非明文
 	Quota            int64  `json:"quota" gorm:"bigint;default:0"`
 	UsedQuota        int64  `json:"used_quota" gorm:"bigint;default:0;column:used_quota"` // used quota
-	CashBalance      int64  `json:"cash_balance" gorm:"bigint;default:0;column:cash_balance"` // 现金余额，单位：分
-	Debt             int64  `json:"debt" gorm:"bigint;default:0;column:debt"`                    // 追偿挂账，单位：分
+	CashBalance      int64  `json:"cash_balance" gorm:"bigint;default:0;column:cash_balance"` // 现金余额,单位:分
+	Debt             int64  `json:"debt" gorm:"bigint;default:0;column:debt"`                    // 追偿挂账,单位:分
 	RequestCount     int    `json:"request_count" gorm:"type:int;default:0;"`             // request number
 	Group            string `json:"group" gorm:"type:varchar(32);default:'default'"`
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
@@ -134,7 +134,7 @@ func SearchUsers(keyword string, orgId ...int) (users []*User, err error) {
 
 func GetUserById(id int, selectAll bool) (*User, error) {
 	if id == 0 {
-		return nil, errors.New("id 为空！")
+		return nil, errors.New("id 为空!")
 	}
 	user := User{Id: id}
 	var err error = nil
@@ -148,7 +148,7 @@ func GetUserById(id int, selectAll bool) (*User, error) {
 
 func GetUserIdByAffCode(affCode string) (int, error) {
 	if affCode == "" {
-		return 0, errors.New("affCode 为空！")
+		return 0, errors.New("affCode 为空!")
 	}
 	var user User
 	err := DB.Select("id").First(&user, "aff_code = ?", affCode).Error
@@ -157,7 +157,7 @@ func GetUserIdByAffCode(affCode string) (int, error) {
 
 func DeleteUserById(id int) (err error) {
 	if id == 0 {
-		return errors.New("id 为空！")
+		return errors.New("id 为空!")
 	}
 	user := User{Id: id}
 	return user.Delete()
@@ -215,8 +215,8 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 			RecordLog(ctx, inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", common.LogQuota(config.QuotaForInviter)))
 		}
 	}
-	// 试用金已移除：注册后必须购买才能使用
-	// create default token (有限额度，不再 Unlimited)
+	// 试用金已移除:注册后必须购买才能使用
+	// create default token (有限额度,不再 Unlimited)
 	cleanToken := Token{
 		UserId:         user.Id,
 		Name:           "default",
@@ -254,7 +254,7 @@ func (user *User) Update(updatePassword bool) error {
 
 func (user *User) Delete() error {
 	if user.Id == 0 {
-		return errors.New("id 为空！")
+		return errors.New("id 为空!")
 	}
 	blacklist.BanUser(user.Id)
 	user.Username = fmt.Sprintf("deleted_%s", random.GetUUID())
@@ -266,8 +266,8 @@ func (user *User) Delete() error {
 // ValidateAndFill check password & user status
 func (user *User) ValidateAndFill() (err error) {
 	// When querying with struct, GORM will only query with non-zero fields,
-	// that means if your field’s value is 0, '', false or other zero values,
-	// it won’t be used to build query conditions
+	// that means if your field's value is 0, '', false or other zero values,
+	// it won't be used to build query conditions
 	password := user.Password
 	if user.Username == "" || password == "" {
 		return errors.New("用户名或密码为空")
@@ -276,21 +276,28 @@ func (user *User) ValidateAndFill() (err error) {
 	if err != nil {
 		// we must make sure check username firstly
 		// consider this case: a malicious user set his username as other's email
-		err := DB.Where("email = ?", user.Username).First(user).Error
+		err = DB.Where("email = ?", user.Username).First(user).Error // BUGFIX: use = not := to avoid shadowing outer err
 		if err != nil {
 			return errors.New("用户名或密码错误，或用户已被封禁")
 		}
 	}
+	// 先检查用户状态（与密码验证独立），让用户精确知道问题的类型
+	if user.Status != UserStatusEnabled {
+		if user.Status == UserStatusDisabled {
+			return errors.New("账号已被禁用，请联系管理员")
+		}
+		return errors.New("账号状态异常，无法登录")
+	}
 	okay := common.ValidatePasswordAndHash(password, user.Password)
-	if !okay || user.Status != UserStatusEnabled {
-		return errors.New("用户名或密码错误，或用户已被封禁")
+	if !okay {
+		return errors.New("密码错误，请重试（连续3次错误将锁定24小时）")
 	}
 	return nil
 }
 
 func (user *User) FillUserById() error {
 	if user.Id == 0 {
-		return errors.New("id 为空！")
+		return errors.New("id 为空!")
 	}
 	DB.Where(User{Id: user.Id}).First(user)
 	return nil
@@ -298,7 +305,7 @@ func (user *User) FillUserById() error {
 
 func (user *User) FillUserByEmail() error {
 	if user.Email == "" {
-		return errors.New("email 为空！")
+		return errors.New("email 为空!")
 	}
 	DB.Where(User{Email: user.Email}).First(user)
 	return nil
@@ -306,7 +313,7 @@ func (user *User) FillUserByEmail() error {
 
 func (user *User) FillUserByGitHubId() error {
 	if user.GitHubId == "" {
-		return errors.New("GitHub id 为空！")
+		return errors.New("GitHub id 为空!")
 	}
 	DB.Where(User{GitHubId: user.GitHubId}).First(user)
 	return nil
@@ -314,7 +321,7 @@ func (user *User) FillUserByGitHubId() error {
 
 func (user *User) FillUserByLarkId() error {
 	if user.LarkId == "" {
-		return errors.New("lark id 为空！")
+		return errors.New("lark id 为空!")
 	}
 	DB.Where(User{LarkId: user.LarkId}).First(user)
 	return nil
@@ -322,7 +329,7 @@ func (user *User) FillUserByLarkId() error {
 
 func (user *User) FillUserByOidcId() error {
 	if user.OidcId == "" {
-		return errors.New("oidc id 为空！")
+		return errors.New("oidc id 为空!")
 	}
 	DB.Where(User{OidcId: user.OidcId}).First(user)
 	return nil
@@ -330,7 +337,7 @@ func (user *User) FillUserByOidcId() error {
 
 func (user *User) FillUserByWeChatId() error {
 	if user.WeChatId == "" {
-		return errors.New("WeChat id 为空！")
+		return errors.New("WeChat id 为空!")
 	}
 	DB.Where(User{WeChatId: user.WeChatId}).First(user)
 	return nil
@@ -338,7 +345,7 @@ func (user *User) FillUserByWeChatId() error {
 
 func (user *User) FillUserByDiscordId() error {
 	if user.DiscordId == "" {
-		return errors.New("discord id 为空！")
+		return errors.New("discord id 为空!")
 	}
 	DB.Where(User{DiscordId: user.DiscordId}).First(user)
 	return nil
@@ -346,7 +353,7 @@ func (user *User) FillUserByDiscordId() error {
 
 func (user *User) FillUserByLinuxDOId() error {
 	if user.LinuxDOId == "" {
-		return errors.New("linuxdo id 为空！")
+		return errors.New("linuxdo id 为空!")
 	}
 	DB.Where(User{LinuxDOId: user.LinuxDOId}).First(user)
 	return nil
@@ -354,7 +361,7 @@ func (user *User) FillUserByLinuxDOId() error {
 
 func (user *User) FillUserByTelegramId() error {
 	if user.TelegramId == "" {
-		return errors.New("telegram id 为空！")
+		return errors.New("telegram id 为空!")
 	}
 	DB.Where(User{TelegramId: user.TelegramId}).First(user)
 	return nil
@@ -362,7 +369,7 @@ func (user *User) FillUserByTelegramId() error {
 
 func (user *User) FillUserByUsername() error {
 	if user.Username == "" {
-		return errors.New("username 为空！")
+		return errors.New("username 为空!")
 	}
 	DB.Where(User{Username: user.Username}).First(user)
 	return nil
@@ -406,7 +413,7 @@ func IsUsernameAlreadyTaken(username string) bool {
 
 func ResetUserPasswordByEmail(email string, password string) error {
 	if email == "" || password == "" {
-		return errors.New("邮箱地址或密码为空！")
+		return errors.New("邮箱地址或密码为空!")
 	}
 	hashedPassword, err := common.Password2Hash(password)
 	if err != nil {
@@ -448,11 +455,11 @@ func ValidateAccessToken(token string) (user *User) {
 	token = strings.Replace(token, "Bearer ", "", 1)
 	tokenHash := common.SHA256Hash(token)
 	user = &User{}
-	// 先查 SHA256 哈希值（新格式）
+	// 先查 SHA256 哈希值(新格式)
 	if DB.Where("access_token = ?", tokenHash).First(user).RowsAffected == 1 {
 		return user
 	}
-	// 再查原始值（兼容旧格式 root 用户）
+	// 再查原始值(兼容旧格式 root 用户)
 	if DB.Where("access_token = ?", token).First(user).RowsAffected == 1 {
 		return user
 	}
@@ -486,7 +493,7 @@ func GetUserGroup(id int) (group string, err error) {
 
 func IncreaseUserQuota(id int, quota int64) (err error) {
 	if quota < 0 {
-		return errors.New("quota 不能为负数！")
+		return errors.New("quota 不能为负数!")
 	}
 	if config.BatchUpdateEnabled {
 		addNewRecord(BatchUpdateTypeUserQuota, id, quota)
@@ -502,7 +509,7 @@ func increaseUserQuota(id int, quota int64) (err error) {
 
 func DecreaseUserQuota(id int, quota int64) (err error) {
 	if quota < 0 {
-		return errors.New("quota 不能为负数！")
+		return errors.New("quota 不能为负数!")
 	}
 	if config.BatchUpdateEnabled {
 		addNewRecord(BatchUpdateTypeUserQuota, id, -quota)
