@@ -151,6 +151,7 @@ type ModelInfo struct {
 	OutputPrice   float64 `json:"output_price"`
 	Status        int     `json:"status"`
 	Group         string  `json:"group"`
+	IsPremium     bool    `json:"is_premium"` // 是否高价渠道（SellPriceRate > 1.2）
 }
 
 func DashboardListModels(c *gin.Context) {
@@ -201,6 +202,7 @@ func DashboardListModels(c *gin.Context) {
 				OutputPrice:   outputPrice,
 				Status:        ch.Status,
 				Group:         ch.Group,
+				IsPremium:     ch.SellPriceRate > 1.2,
 			})
 		}
 	}

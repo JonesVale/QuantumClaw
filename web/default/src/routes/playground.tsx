@@ -62,8 +62,23 @@ function PlaygroundPage() {
             <select value={model} onChange={e => setModel(e.target.value)}
               className="h-10 rounded-xl border border-border/30 bg-white/70 px-3 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all min-w-[180px]">
               <option value="">{t('Select model')}</option>
-              {chatModels.map((m: any) => <option key={m.name} value={m.name}>{m.name}</option>)}
+              {chatModels.map((m: any) => (
+                <option key={m.name} value={m.name}>
+                  {m.name}{m.is_premium ? ' ⚠️' : ''}
+                </option>
+              ))}
             </select>
+            {(() => {
+              const selected = chatModels.find((m: any) => m.name === model)
+              if (selected?.is_premium) {
+                return (
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
+                    ⚠️ {t('Premium channel')} — {selected.channel_name} ({(selected.sell_price_rate * 100).toFixed(0)}% {t('of base price')})
+                  </div>
+                )
+              }
+              return null
+            })()}
             <button onClick={() => { setMsgs([]); setInput('') }}
               className="h-10 px-3 rounded-xl border border-border/30 bg-white/70 hover:bg-muted/40 text-xs text-muted-foreground transition-all flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><path d="M5 6v12a2 2 0 002 2h10a2 2 0 002-2V6"/></svg>

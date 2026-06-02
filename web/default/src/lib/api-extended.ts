@@ -340,6 +340,9 @@ export interface Model {
   channel_id: number
   channel_name: string
   created_at: number
+  is_premium?: boolean
+  sell_price_rate?: number
+  input_price?: number
 }
 
 export type ModelInfo = Model

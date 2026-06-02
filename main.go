@@ -16,6 +16,7 @@ import (
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+	"github.com/gin-contrib/sessions/redis"
 	"github.com/gin-gonic/gin"
 	"github.com/grafana/pyroscope-go"
 	_ "github.com/joho/godotenv/autoload"
@@ -395,8 +396,23 @@ AFTER_SLAVE_SETUP:
 	//server.Use(gzip.Gzip(gzip.DefaultCompression))
 	server.Use(middleware.RequestId())
 	middleware.SetUpLogger(server)
-	// Initialize session store
-	store := cookie.NewStore([]byte(config.SessionSecret))
+	// Initialize session store — Redis 共享（多机部署）或 Cookie 回退
+	var store sessions.Store
+	if common.RedisEnabled {
+		redisAddr := os.Getenv("REDIS_HOST")
+		redisPort := os.Getenv("REDIS_PORT")
+		if redisPort == "" {
+			redisPort = "6379"
+		}
+		redisPassword := os.Getenv("REDIS_PASSWORD")
+		store, _ = redis.NewStore(10, "tcp", redisAddr+":"+redisPort, redisPassword,
+			[]byte(config.SessionSecret))
+		logger.SysLog("session store: Redis (multi-server mode)")
+	}
+	if store == nil {
+		store = cookie.NewStore([]byte(config.SessionSecret))
+		logger.SysLog("session store: Cookie (single-server mode)")
+	}
 	server.Use(sessions.Sessions("session", store))
 
 	router.SetRouter(server, buildFS)
