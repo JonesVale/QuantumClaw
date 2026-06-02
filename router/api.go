@@ -397,6 +397,10 @@ func SetApiRouter(router *gin.Engine) {
 
 				adminRoute.POST("/withdrawals/:id/complete", controller.AdminCompleteWithdrawal)
 
+				// ── 渠道商审批 ──
+				adminRoute.POST("/providers/:id/review", controller.AdminReviewProviderUpgrade)
+				adminRoute.GET("/providers/pending", controller.AdminListPendingProviders)
+
 			}
 
 		}
