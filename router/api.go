@@ -316,6 +316,13 @@ func SetApiRouter(router *gin.Engine) {
 
 				selfRoute.GET("/team", controller.GetMyTeam)
 
+				// ── 组织管理 ──
+				selfRoute.GET("/organizations", controller.GetMyOrganizations)
+				selfRoute.POST("/organizations", controller.CreateOrganization)
+				selfRoute.GET("/organizations/:id/members", controller.GetOrganizationMembers)
+				selfRoute.POST("/organizations/:id/invite", controller.InviteOrganizationMember)
+				selfRoute.DELETE("/organizations/:id/members/:userId", controller.RemoveOrganizationMember)
+
 	selfRoute.POST("/upgrade", controller.UpgradeToProvider)
 
 				selfRoute.POST("/withdraw", controller.SubmitWithdrawal)

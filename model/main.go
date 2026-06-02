@@ -298,6 +298,9 @@ func migrateDB() error {
 	attempt("FAQ", func() error { return DB.AutoMigrate(&FAQ{}) })
 	attempt("AppMarket", func() error { return DB.AutoMigrate(&AppMarket{}) })
 	attempt("InferenceNode", func() error { return DB.AutoMigrate(&InferenceNode{}) })
+
+	// ── 组织/团队表 ──
+	InitOrganizationTables()
 		var count int64
 		DB.Model(&Sub2APISchema{}).Where("is_builtin = ?", true).Count(&count)
 		if count > 0 {

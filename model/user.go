@@ -64,6 +64,7 @@ type User struct {
 	AffCode          string `json:"aff_code" gorm:"type:varchar(32);column:aff_code;uniqueIndex"`
 	InviterId        int    `json:"inviter_id" gorm:"type:int;column:inviter_id;index"`
 	UserType         string `json:"user_type" gorm:"type:varchar(20);default:'consumer'"` // consumer=普通用户 provider=渠道商
+	OrganizationID   int    `json:"organization_id" gorm:"type:int;default:0;index"`         // 当前所属组织
 
 
 	Phone            string `json:"phone" gorm:"type:varchar(20);uniqueIndex" validate:"omitempty,max=20"`
