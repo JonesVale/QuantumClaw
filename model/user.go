@@ -75,6 +75,7 @@ type User struct {
 	IdentityName     string `json:"identity_name" gorm:"type:varchar(50)"`
 	IdentityNumber   string `json:"identity_number" gorm:"type:varchar(30)"`
 	CommissionBalance int64 `json:"commission_balance" gorm:"bigint;default:0;column:commission_balance"` // 累计佣金余额(分),不可直接用于消费,仅可提现
+	PreferredProviderId int `json:"preferred_provider_id" gorm:"type:int;default:0"` // 首选供应商 user_id
 }
 
 func CountUsers() (int64, error) {

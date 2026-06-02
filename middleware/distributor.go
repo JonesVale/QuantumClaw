@@ -17,15 +17,18 @@ type ModelRequest struct {
 	Model string `json:"model" form:"model"`
 }
 
-// Distribute 链式路由：所有人走同一套逻辑
+// Distribute 链式路由：三级路由原则
 //
-// 所有用户都有 promoterId（0=平台自己）：
+// 原则 1: 用户指定渠道商优先
+// 原则 2: 同品牌同模型 → 最低价优先
+// 原则 3: 国内资源不自动切到国外
 //
-//	Step 1: 先用 promoter 自己的 channel（UserId=promoterId）
-//	Step 2: 不够/全挂 → 全资源池兜底（不限 UserId）
-//	Step 3: 全失败 → 报错
-//
-// 结算在请求完成后异步写入 token_transaction 表。
+// 路由顺序:
+//   Step 0: 请求指定了 channel_id → 直接路由
+//   Step 1: 用户设置了 PreferredProviderId → 查首选供应商的渠道
+//   Step 2: 用自己的推广人的渠道（promoterId）
+//   Step 3: 全资源池兜底（同 region，选最便宜）
+//   Step 4: 全部失败 → 报错
 func Distribute() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		ctx := c.Request.Context()
@@ -36,7 +39,7 @@ func Distribute() func(c *gin.Context) {
 		var requestModel string
 		var channel *model.Channel
 
-		// ── 如果请求指定了 channel_id，直接用它（调试/定向路由）──
+		// ── Step 0: 请求指定 channel_id（调试/定向路由）──
 		channelId, ok := c.Get(ctxkey.SpecificChannelId)
 		if ok {
 			id, err := strconv.Atoi(channelId.(string))
@@ -60,31 +63,57 @@ func Distribute() func(c *gin.Context) {
 		// ── 正常路由 ──
 		requestModel = c.GetString(ctxkey.RequestModel)
 
-		// Step 1: 查推广人（0=平台自己）
+		// 查推广人
 		promoterId := model.GetPromoterId(userId)
 		c.Set(ctxkey.PromoterId, promoterId)
 
-		// Step 2: 第一层——用推广人自己的 channel
-		if promoterId >= 0 {
-			ch, err := model.CacheGetRandomSatisfiedChannelByOwner(userGroup, requestModel, promoterId)
+		// 获取用户首选供应商
+		user, _ := model.GetUserById(userId, false)
+
+		// ── Step 1: 首选供应商 ──
+		if user != nil && user.PreferredProviderId > 0 {
+			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, user.PreferredProviderId, "")
 			if err == nil {
-				logger.Debugf(ctx, "user %d, model %s: using promoter channel #%d (owner=%d)",
+				logger.Debugf(ctx, "user %d, model %s: using PREFERRED provider channel #%d (owner=%d)",
+					userId, requestModel, ch.Id, ch.UserId)
+				setupAndContinue(c, ch, requestModel, promoterId, false)
+				return
+			}
+			logger.Debugf(ctx, "user %d preferred provider #%d has no channel for %s, fallback",
+				userId, user.PreferredProviderId, requestModel)
+		}
+
+		// ── Step 2: 推广人渠道（最便宜优先）──
+		if promoterId >= 0 {
+			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, promoterId, "")
+			if err == nil {
+				logger.Debugf(ctx, "user %d, model %s: using PROMOTER channel #%d (owner=%d)",
 					userId, requestModel, ch.Id, promoterId)
 				setupAndContinue(c, ch, requestModel, promoterId, false)
 				return
 			}
 		}
 
-		// Step 3: 第二层——全资源池兜底（所有渠道商 Key 混用）
-		poolChannel, err := model.CacheGetRandomSatisfiedChannelAnyOwner(userGroup, requestModel, promoterId)
+		// ── Step 3: 全资源池兜底（原则 3：国内 → 仅限国内）──
+		// 先尝试国内渠道
+		poolChannel, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionChina)
 		if err == nil {
-			logger.Debugf(ctx, "user %d, model %s: FALLBACK pool channel #%d (owner=%d, fallback_from=%d)",
-				userId, requestModel, poolChannel.Id, poolChannel.UserId, promoterId)
+			logger.Debugf(ctx, "user %d, model %s: FALLBACK china channel #%d (owner=%d)",
+				userId, requestModel, poolChannel.Id, poolChannel.UserId)
 			setupAndContinue(c, poolChannel, requestModel, promoterId, true)
 			return
 		}
 
-		// Step 4: 全部失败
+		// 国内没有 → 尝试国外渠道（原则 3：只有国内渠道不可用时才切国外）
+		poolChannel, err = model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionOverseas)
+		if err == nil {
+			logger.Debugf(ctx, "user %d, model %s: FALLBACK overseas channel #%d (owner=%d, from=china_pool)",
+				userId, requestModel, poolChannel.Id, poolChannel.UserId)
+			setupAndContinue(c, poolChannel, requestModel, promoterId, true)
+			return
+		}
+
+		// ── Step 4: 全部失败 ──
 		message := fmt.Sprintf("当前分组 %s 下对于模型 %s 无可用渠道", userGroup, requestModel)
 		if channel != nil {
 			logger.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
@@ -95,8 +124,6 @@ func Distribute() func(c *gin.Context) {
 }
 
 // setupAndContinue 设置上下文并继续请求链
-// 注意：交易流水不在 middleware 写入，由 RecordConsumeLog 中的 createTransactionFromLog 负责
-// 该函数使用精确的 prompt_tokens + completion_tokens 计算金额
 func setupAndContinue(c *gin.Context, channel *model.Channel, modelName string, promoterId int, isFallback bool) {
 	c.Set(ctxkey.ChannelOwner, channel.UserId)
 	c.Set(ctxkey.IsFallback, isFallback)
@@ -105,7 +132,7 @@ func setupAndContinue(c *gin.Context, channel *model.Channel, modelName string, 
 	c.Next()
 }
 
-// SetupContextForSelectedChannel 设置 channel 上下文（已有逻辑不动）
+// SetupContextForSelectedChannel 设置 channel 上下文
 func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, modelName string) {
 	c.Set(ctxkey.Channel, channel.Type)
 	c.Set(ctxkey.ChannelId, channel.Id)
@@ -133,14 +160,9 @@ func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, mode
 				cfg.APIVersion = *channel.Other
 			}
 		case channeltype.AIProxyLibrary:
-			if cfg.LibraryID == "" {
-				cfg.LibraryID = *channel.Other
-			}
-		case channeltype.Ali:
-			if cfg.Plugin == "" {
-				cfg.Plugin = *channel.Other
-			}
 		}
 	}
-	c.Set(ctxkey.Config, cfg)
+	if cfg != nil {
+		c.Set(ctxkey.Config, cfg)
+	}
 }

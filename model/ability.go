@@ -113,6 +113,62 @@ func GetGroupModels(ctx context.Context, group string) ([]string, error) {
 	return models, err
 }
 
+// GetCheapestSatisfiedChannel 按价格排序取最便宜的可用渠道
+// 支持 region 过滤（空字符串=不限区域）
+// 支持 ownerId 过滤（0=不限, >0=指定供应商）
+func GetCheapestSatisfiedChannel(group string, model string, ownerId int, region string) (*Channel, error) {
+	groupCol := "`group`"
+	trueVal := "1"
+	if common.UsingPostgreSQL {
+		groupCol = `"group"`
+		trueVal = "true"
+	}
+
+	query := DB.Table("abilities").
+		Select("channels.*").
+		Joins("JOIN channels ON channels.id = abilities.channel_id").
+		Where("abilities."+groupCol+" = ? AND abilities.model = ? AND abilities.enabled = "+trueVal+
+			" AND channels.status = ? AND channels.deleted_at IS NULL",
+			group, model, ChannelStatusEnabled)
+
+	if ownerId > 0 {
+		query = query.Where("channels.user_id = ?", ownerId)
+	}
+	if region != "" {
+		query = query.Where("channels.region = ?", region)
+	}
+
+	// 按售价倍率升序取最便宜
+	var channel Channel
+	err := query.Order("channels.sell_price_rate ASC, channels.channel_markup ASC").
+		First(&channel).Error
+	if err != nil {
+		return nil, err
+	}
+	return &channel, nil
+}
+
+// GetChannelsByModel 获取某模型所有可用渠道（按价格排序）
+// 用于前端价格展示和比较
+func GetChannelsByModel(group string, model string, ownerId int) ([]*Channel, error) {
+	groupCol := "`group`"
+	trueVal := "1"
+	if common.UsingPostgreSQL {
+		groupCol = `"group"`
+		trueVal = "true"
+	}
+	var channels []*Channel
+	err := DB.Table("abilities").
+		Select("channels.*").
+		Joins("JOIN channels ON channels.id = abilities.channel_id").
+		Where("abilities."+groupCol+" = ? AND abilities.model = ? AND abilities.enabled = "+trueVal+
+			" AND channels.status = ? AND channels.deleted_at IS NULL",
+			group, model, ChannelStatusEnabled).
+		Order("channels.sell_price_rate ASC, channels.channel_markup ASC").
+		Find(&channels).Error
+	return channels, err
+}
+
 // GetRandomSatisfiedChannelByOwner 按 group + model + ownerId 查 channel
 // ownerId=0 → 平台渠道, ownerId>0 → 指定渠道商
 func GetRandomSatisfiedChannelByOwner(group string, model string, ownerId int) (*Channel, error) {
