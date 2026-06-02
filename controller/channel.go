@@ -44,7 +44,12 @@ func GetChannelTypes(c *gin.Context) {
 			detail.URL = baseURLs[id]
 		}
 		// 尝试通过名称匹配 model_metadata 中的 provider
-		if models, ok := modelsByProvider[name]; ok && len(models) > 0 {
+		// 优先使用 ChannelTypeNameToProvider 映射表，再回退到直接名称匹配
+		providerKey := name
+		if mapped, ok := channeltype.ChannelTypeNameToProvider[name]; ok && mapped != "" {
+			providerKey = mapped
+		}
+		if models, ok := modelsByProvider[providerKey]; ok && len(models) > 0 {
 			detail.Models = models
 		}
 		result = append(result, detail)
