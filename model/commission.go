@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
 	"gorm.io/gorm"
@@ -10,20 +11,23 @@ import (
 type CommissionSetting struct {
 	Id             int     `json:"id" gorm:"primaryKey;autoIncrement"`
 	Enabled        bool    `json:"enabled" gorm:"default:true"`
-	RegisterReward int64   `json:"register_reward" gorm:"default:0"`       // 好友注册奖励（固定额度）
+	RegisterReward int64   `json:"register_reward" gorm:"default:0"`                // 好友注册奖励（固定额度）
 	ConsumeRate    float64 `json:"consume_rate" gorm:"type:decimal(5,4);default:0.1"` // 消费返佣比例（0.1=10%）
-	MinWithdraw    int64   `json:"min_withdraw" gorm:"default:10000"`       // 最低提现额度
+	Level2Rate     float64 `json:"level2_rate" gorm:"type:decimal(5,4);default:0.02"` // 二级返佣比例（0.02=2%）
+	Level3Rate     float64 `json:"level3_rate" gorm:"type:decimal(5,4);default:0.01"` // 三级返佣比例（0.01=1%）
+	MinWithdraw    int64   `json:"min_withdraw" gorm:"default:10000"`                  // 最低提现额度
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
 // CommissionRecord — 佣金流水
 type CommissionRecord struct {
 	Id          int       `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserId      int       `json:"user_id" gorm:"index;not null"`      // 获得佣金的人
-	FromUserId  int       `json:"from_user_id" gorm:"index"`           // 来源用户（谁消费了）
-	Type        string    `json:"type" gorm:"type:varchar(20)"`        // register | consume
-	Amount      int64     `json:"amount" gorm:"bigint;not null"`       // 佣金数额（微额度）
+	UserId      int       `json:"user_id" gorm:"index;not null"`                // 获得佣金的人
+	FromUserId  int       `json:"from_user_id" gorm:"index"`                     // 来源用户（谁消费了）
+	Type        string    `json:"type" gorm:"type:varchar(20)"`                  // register | consume
+	Amount      int64     `json:"amount" gorm:"bigint;not null"`                 // 佣金数额（微额度）
 	Status      string    `json:"status" gorm:"type:varchar(20);default:'pending'"` // pending | settled | withdrawn
+	Level       int       `json:"level" gorm:"type:int;default:1"`               // 代级: 1/2/3
 	Description string    `json:"description" gorm:"type:text"`
 	CreatedAt   time.Time `json:"created_at"`
 	SettledAt   *time.Time `json:"settled_at,omitempty"`
@@ -149,34 +153,65 @@ func GetUserWithdrawableBalance(userId int) (int64, error) {
 	return available, nil
 }
 
-// RewardInviterOnConsume — 用户消费时自动返佣给邀请人
+// RewardInviterOnConsume — 用户消费时自动三级返佣
+// 代级: 1→5%  2→2%  3→1%  (默认比例，可配置)
 func RewardInviterOnConsume(userId int, consumeAmount int64) {
 	if consumeAmount <= 0 {
 		return
 	}
-	var user User
-	if err := DB.First(&user, userId).Error; err != nil || user.InviterId <= 0 {
-		return
-	}
 	setting, err := GetCommissionSetting()
-	if err != nil || !setting.Enabled || setting.ConsumeRate <= 0 {
+	if err != nil || !setting.Enabled {
 		return
 	}
-	reward := int64(float64(consumeAmount) * setting.ConsumeRate)
-	if reward <= 0 {
-		return
+
+	// 递归查找三级邀请人
+	type levelInfo struct {
+		id    int
+		rate  float64
+		level int
 	}
-	CreateCommissionRecord(&CommissionRecord{
-		UserId:      user.InviterId,
-		FromUserId:  userId,
-		Type:        "consume",
-		Amount:      reward,
-		Status:      "settled",
-		Description: "referral consumption reward",
-	})
-	// 返佣计入佣金独立池，不可直接用于 API 消费
-	DB.Model(&User{}).Where("id = ?", user.InviterId).
-		UpdateColumn("commission_balance", gorm.Expr("commission_balance + ?", reward))
+	levels := []levelInfo{}
+	currentId := userId
+
+	for l := 1; l <= 3; l++ {
+		var u User
+		if err := DB.Select("inviter_id").First(&u, currentId).Error; err != nil || u.InviterId <= 0 {
+			break
+		}
+		var rate float64
+		switch l {
+		case 1:
+			rate = setting.ConsumeRate
+		case 2:
+			rate = setting.Level2Rate
+		case 3:
+			rate = setting.Level3Rate
+		}
+		if rate <= 0 {
+			currentId = u.InviterId
+			continue
+		}
+		levels = append(levels, levelInfo{id: u.InviterId, rate: rate, level: l})
+		currentId = u.InviterId
+	}
+
+	for _, l := range levels {
+		reward := int64(float64(consumeAmount) * l.rate)
+		if reward <= 0 {
+			continue
+		}
+		CreateCommissionRecord(&CommissionRecord{
+			UserId:      l.id,
+			FromUserId:  userId,
+			Type:        "consume",
+			Amount:      reward,
+			Status:      "settled",
+			Level:       l.level,
+			Description: fmt.Sprintf("referral consumption reward (level %d)", l.level),
+		})
+		DB.Model(&User{}).Where("id = ?", l.id).
+			UpdateColumn("commission_balance", gorm.Expr("commission_balance + ?", reward))
+	}
 }
 
 func GetWithdrawalByUser(userId int, limit int) ([]WithdrawalRequest, error) {

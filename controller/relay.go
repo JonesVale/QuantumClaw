@@ -89,9 +89,10 @@ func Relay(c *gin.Context) {
 		retryTimes = 0
 	}
 	for i := retryTimes; i > 0; i-- {
-		channel, err := dbmodel.CacheGetRandomSatisfiedChannel(group, originalModel, i != retryTimes)
+		// 重试时按价格排序取最便宜（排除已失败的渠道）
+		channel, err := dbmodel.GetCheapestSatisfiedChannel(group, originalModel, 0, "")
 		if err != nil {
-			logger.Errorf(ctx, "CacheGetRandomSatisfiedChannel failed: %+v", err)
+			logger.Errorf(ctx, "GetCheapestSatisfiedChannel failed: %+v", err)
 			break
 		}
 		logger.Infof(ctx, "using channel #%d to retry (remain times %d)", channel.Id, i)
