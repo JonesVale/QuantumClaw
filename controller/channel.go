@@ -146,7 +146,7 @@ func GetAllChannels(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "无权查看全部渠道"})
 			return
 		}
-		err = query.Order("id desc").Find(&channels).Error
+		err = query.Unscoped().Order("id desc").Find(&channels).Error
 	case "disabled":
 		err = query.Where("status = ? or status = ?",
 			model.ChannelStatusAutoDisabled, model.ChannelStatusManuallyDisabled).

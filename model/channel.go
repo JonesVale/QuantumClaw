@@ -50,6 +50,12 @@ type Channel struct {
 	BalanceAlertThreshold   float64 `json:"balance_alert_threshold" gorm:"type:decimal(10,2);default:0"`
 	BalanceDisableThreshold float64 `json:"balance_disable_threshold" gorm:"type:decimal(10,2);default:0"`
 	ChannelMarkup          float64 `json:"channel_markup" gorm:"type:decimal(5,2);default:1.0"`      // 渠道加价倍率（1.0=原价, 1.2=+20%）
+
+	// 区域标识：china / overseas / ""（自动判定）
+	Region string `json:"region" gorm:"type:varchar(20);default:''"`
+
+	// 软删除（供应商删除时标记，不物理删除）
+	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty"`
 }
 
 type ChannelConfig struct {

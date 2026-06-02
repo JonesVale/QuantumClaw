@@ -76,7 +76,93 @@ var ChannelTypeNames = map[int]string{
 	GoogleQuantum: "Google Quantum",
 }
 
-// ChannelTypeNameToProvider maps channel type display names to model_metadata.Provider values.
+const (
+	// 区域常量
+	RegionChina    = "china"
+	RegionOverseas = "overseas"
+)
+
+// ChannelTypeRegion 渠道类型 → 区域映射（国内/国外）
+// 用于 routing 时按 region 过滤，确保国内资源不自动切到国外
+var ChannelTypeRegion = map[int]string{
+	// ── 国内 AI 渠道 ──
+	Baidu:        RegionChina,
+	Zhipu:        RegionChina,
+	Ali:          RegionChina,
+	Xunfei:       RegionChina,
+	AI360:        RegionChina,
+	Tencent:      RegionChina,
+	Baichuan:     RegionChina,
+	Minimax:      RegionChina,
+	Moonshot:     RegionChina,
+	LingYiWanWu:  RegionChina,
+	StepFun:      RegionChina,
+	Doubao:       RegionChina,
+	XunfeiV2:     RegionChina,
+	BaiduV2:      RegionChina,
+	AliBailian:   RegionChina,
+	ZhipuV4:      RegionChina,
+	Jimeng:       RegionChina,
+	VolcEngine:   RegionChina,
+	MokaAI:       RegionChina,
+	DeepSeek:     RegionChina,
+
+	// ── 国内量子算力 ──
+	// (预留)
+
+	// ── 国外 AI 渠道 ──
+	OpenAI:                RegionOverseas,
+	Anthropic:             RegionOverseas,
+	Gemini:                RegionOverseas,
+	PaLM:                  RegionOverseas,
+	Mistral:               RegionOverseas,
+	AwsClaude:             RegionOverseas,
+	Azure:                 RegionOverseas,
+	Cohere:                RegionOverseas,
+	Groq:                  RegionOverseas,
+	DeepL:                 RegionOverseas,
+	TogetherAI:            RegionOverseas,
+	Cloudflare:            RegionOverseas,
+	Novita:                RegionOverseas,
+	VertextAI:             RegionOverseas,
+	SiliconFlow:           RegionOverseas,
+	XAI:                   RegionOverseas,
+	Replicate:             RegionOverseas,
+	OpenAICompatible:      RegionOverseas,
+	GeminiOpenAICompatible: RegionOverseas,
+	Codex:                 RegionOverseas,
+	Proxy:                 RegionOverseas,
+	Coze:                  RegionOverseas,
+	Jina:                  RegionOverseas,
+	Dify:                  RegionOverseas,
+	Submodel:              RegionOverseas,
+	Xinference:            RegionOverseas,
+	Sub2API:               RegionOverseas,
+	VLLM:                  RegionOverseas,
+	SGLang:                RegionOverseas,
+	QuantumClaw:            RegionOverseas,
+
+	// ── 国外量子算力 ──
+	IonQ:         RegionOverseas,
+	IBMQ:         RegionOverseas,
+	Rigetti:      RegionOverseas,
+	AWSBraket:    RegionOverseas,
+	AzureQuantum: RegionOverseas,
+	GoogleQuantum: RegionOverseas,
+}
+
+// ResolveChannelRegion 根据渠道类型判定区域
+// 优先使用 channel 上已设置的 Region，其次按类型自动判定
+func ResolveChannelRegion(channelType int, existingRegion string) string {
+	if existingRegion != "" {
+		return existingRegion
+	}
+	if r, ok := ChannelTypeRegion[channelType]; ok {
+		return r
+	}
+	return RegionOverseas // 未识别的默认走国外
+}
+
 // ChannelTypeNames uses display-friendly names (e.g., "Google Gemini", "Ali (Qwen)")
 // while model_metadata.Provider uses slug/tech names (e.g., "Google", "Alibaba").
 // This mapping bridges the two so GetChannelTypes can auto-populate model lists.
