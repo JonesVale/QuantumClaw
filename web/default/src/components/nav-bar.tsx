@@ -1,8 +1,9 @@
-﻿import { Link, useLocation } from '@tanstack/react-router'
+import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useRef, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
 import { useNavMenus } from '@/lib/use-menus'
+import { signOut } from '@/lib/api-extended'
 
 // Hardcoded fallback nav items (used if API is unavailable)
 const FALLBACK_NAV_ITEMS = [
@@ -19,20 +20,43 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
   const { t, language, langs, changeLanguage } = useT()
   const { auth } = useAuthStore()
   const location = useLocation()
+  const navigate = useNavigate()
   const loggedIn = !!auth?.user
   const [mobileOpen, setMobileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+  const userMenuRef = useRef<HTMLDivElement>(null)
 
   // Unread notification count comes from login response via auth store
   const unreadCount = auth.user?.unread_count ?? 0
 
+  // User initial for avatar
+  const userInitial = auth.user?.display_name?.[0]?.toUpperCase() || auth.user?.username?.[0]?.toUpperCase() || '?'
+
+  // Logout handler
+  const handleLogout = async () => {
+    await signOut()
+    auth.reset()
+    navigate({ to: '/sign-in' })
+  }
+
   // Fetch nav menus from API
   const { data: navItems = FALLBACK_NAV_ITEMS } = useNavMenus()
 
+  // Close lang menu on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) setLangOpen(false)
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  // Close user menu on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false)
     }
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
@@ -96,7 +120,7 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
                   <circle cx="12" cy="12" r="10"/>
                   <path d="M2 12h20M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
                 </svg>
-                <span className="hidden sm:inline text-xs tracking-wide uppercase">{language.length > 8 ? language.substring(0, 8) + '…' : language}</span>
+                <span className="hidden sm:inline text-xs tracking-wide uppercase">{language.length > 8 ? language.substring(0, 8) + '\u2026' : language}</span>
                 <svg className={`w-3 h-3 transition-transform duration-200 ${langOpen ? 'rotate-180' : ''}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 9l6 6 6-6"/></svg>
               </button>
               {langOpen && (
@@ -140,14 +164,66 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
               </Link>
             )}
 
-            {/* Auth */}
+            {/* Auth — Avatar dropdown when logged in */}
             {loggedIn ? (
-              <Link to="/dashboard" className="relative inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                  </svg>
-                  {t('Dashboard')}
-              </Link>
+              <div className="relative" ref={userMenuRef}>
+                <button
+                  onClick={() => setUserMenuOpen(!userMenuOpen)}
+                  className="relative w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-orange-500/20 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                  aria-label="User menu"
+                >
+                  {userInitial}
+                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-52 py-2 bg-white rounded-2xl border border-border/20 shadow-xl shadow-black/5 z-50 overflow-hidden">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-border/10">
+                      <p className="text-sm font-semibold text-foreground truncate">{auth.user?.display_name || auth.user?.username}</p>
+                      <p className="text-xs text-muted-foreground/50 truncate">@{auth.user?.username}</p>
+                    </div>
+
+                    {/* Menu items */}
+                    <div className="py-1">
+                      <Link
+                        to="/dashboard"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all no-underline"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                        {t('Dashboard')}
+                      </Link>
+                      <Link
+                        to="/profile"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all no-underline"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        {t('Profile')}
+                      </Link>
+                      <Link
+                        to="/team"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all no-underline"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        {t('Team')}
+                      </Link>
+                    </div>
+
+                    <hr className="border-border/10" />
+
+                    <div className="py-1">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-500 hover:text-red-600 hover:bg-red-50 transition-all"
+                      >
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                        {t('Log Out')}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <Link to="/sign-in" className="hidden sm:block px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground border border-border/20 hover:border-border/40 bg-transparent transition-all duration-200">
@@ -192,6 +268,18 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
                 {t(n.label)}
               </Link>
             ))}
+            {loggedIn && (
+              <>
+                <hr className="my-3 border-border/10" />
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 w-full px-4 py-3.5 text-base font-medium text-red-500 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all"
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                  {t('Log Out')}
+                </button>
+              </>
+            )}
             <hr className="my-3 border-border/10" />
             <p className="px-4 text-[10px] font-semibold text-muted-foreground/30 uppercase tracking-[0.15em] mb-2">{t('Language')}</p>
             <div className="flex flex-wrap gap-1 px-4">
@@ -215,4 +303,3 @@ export default function NavBar({ variant = 'default' }: { variant?: 'default' | 
     </header>
   )
 }
-
