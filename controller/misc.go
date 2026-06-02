@@ -166,7 +166,7 @@ func SendPasswordResetEmail(c *gin.Context) {
 	}
 	code := common.GenerateVerificationCode(0)
 	common.RegisterVerificationCodeWithKey(email, code, common.PasswordResetPurpose)
-	link := fmt.Sprintf("%s/user/reset?email=%s&token=%s", config.ServerAddress, email, code)
+	link := fmt.Sprintf("%s/reset-password?email=%s&token=%s", config.ServerAddress, email, code)
 	subject := fmt.Sprintf("%s 密码重置", config.SystemName)
 	content := message.EmailTemplate(
 		subject,
@@ -198,8 +198,9 @@ func SendPasswordResetEmail(c *gin.Context) {
 }
 
 type PasswordResetRequest struct {
-	Email string `json:"email"`
-	Token string `json:"token"`
+	Email       string `json:"email"`
+	Token       string `json:"token"`
+	NewPassword string `json:"new_password"` // 可选，用户自定义新密码
 }
 
 func ResetPassword(c *gin.Context) {
@@ -219,7 +220,19 @@ func ResetPassword(c *gin.Context) {
 		})
 		return
 	}
-	password := common.GenerateVerificationCode(12)
+
+	// 优先使用用户自定义密码，否则自动生成
+	password := req.NewPassword
+	if password == "" {
+		password = common.GenerateVerificationCode(12)
+	} else if len(password) < 6 {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "密码长度不能少于6位",
+		})
+		return
+	}
+
 	err = model.ResetUserPasswordByEmail(req.Email, password)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{

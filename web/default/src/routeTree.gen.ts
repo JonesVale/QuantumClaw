@@ -64,6 +64,7 @@ import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authSetupRouteImport } from './routes/(auth)/setup'
+import { Route as authResetPasswordRouteImport } from './routes/(auth)/reset-password'
 import { Route as authChatRouteImport } from './routes/(auth)/chat'
 
 const RankingsRoute = RankingsRouteImport.update({
@@ -353,6 +354,11 @@ const authSetupRoute = authSetupRouteImport.update({
   path: '/setup',
   getParentRoute: () => rootRouteImport,
 } as any)
+const authResetPasswordRoute = authResetPasswordRouteImport.update({
+  id: '/(auth)/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const authChatRoute = authChatRouteImport.update({
   id: '/(auth)/chat',
   path: '/chat',
@@ -373,6 +379,7 @@ export interface FileRoutesByFullPath {
   '/quantum': typeof QuantumRoute
   '/rankings': typeof RankingsRoute
   '/chat': typeof authChatRoute
+  '/reset-password': typeof authResetPasswordRoute
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
@@ -430,6 +437,7 @@ export interface FileRoutesByTo {
   '/quantum': typeof QuantumRoute
   '/rankings': typeof RankingsRoute
   '/chat': typeof authChatRoute
+  '/reset-password': typeof authResetPasswordRoute
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
@@ -489,6 +497,7 @@ export interface FileRoutesById {
   '/quantum': typeof QuantumRoute
   '/rankings': typeof RankingsRoute
   '/(auth)/chat': typeof authChatRoute
+  '/(auth)/reset-password': typeof authResetPasswordRoute
   '/(auth)/setup': typeof authSetupRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/_authenticated/about': typeof AuthenticatedAboutRoute
@@ -548,6 +557,7 @@ export interface FileRouteTypes {
     | '/quantum'
     | '/rankings'
     | '/chat'
+    | '/reset-password'
     | '/setup'
     | '/sign-in'
     | '/about'
@@ -605,6 +615,7 @@ export interface FileRouteTypes {
     | '/quantum'
     | '/rankings'
     | '/chat'
+    | '/reset-password'
     | '/setup'
     | '/sign-in'
     | '/about'
@@ -663,6 +674,7 @@ export interface FileRouteTypes {
     | '/quantum'
     | '/rankings'
     | '/(auth)/chat'
+    | '/(auth)/reset-password'
     | '/(auth)/setup'
     | '/(auth)/sign-in'
     | '/_authenticated/about'
@@ -722,6 +734,7 @@ export interface RootRouteChildren {
   QuantumRoute: typeof QuantumRoute
   RankingsRoute: typeof RankingsRoute
   authChatRoute: typeof authChatRoute
+  authResetPasswordRoute: typeof authResetPasswordRoute
   authSetupRoute: typeof authSetupRoute
   authSignInRoute: typeof authSignInRoute
 }
@@ -1113,6 +1126,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof authSetupRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/(auth)/reset-password': {
+      id: '/(auth)/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof authResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/(auth)/chat': {
       id: '/(auth)/chat'
       path: '/chat'
@@ -1227,6 +1247,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuantumRoute: QuantumRoute,
   RankingsRoute: RankingsRoute,
   authChatRoute: authChatRoute,
+  authResetPasswordRoute: authResetPasswordRoute,
   authSetupRoute: authSetupRoute,
   authSignInRoute: authSignInRoute,
 }
