@@ -174,8 +174,9 @@ func RewardInviterOnConsume(userId int, consumeAmount int64) {
 		Status:      "settled",
 		Description: "referral consumption reward",
 	})
+	// 返佣计入佣金独立池，不可直接用于 API 消费
 	DB.Model(&User{}).Where("id = ?", user.InviterId).
-		UpdateColumn("quota", gorm.Expr("quota + ?", reward))
+		UpdateColumn("commission_balance", gorm.Expr("commission_balance + ?", reward))
 }
 
 func GetWithdrawalByUser(userId int, limit int) ([]WithdrawalRequest, error) {
@@ -198,8 +199,16 @@ func GetAllWithdrawals(status string, page, pageSize int) ([]WithdrawalRequest, 
 
 func ApproveWithdrawal(id int, remark string) error {
 	now := time.Now()
-	return DB.Model(&WithdrawalRequest{}).Where("id = ? AND status = ?",
-		id, WithdrawStatusPending).Updates(map[string]interface{}{
+	// 先查询提现记录
+	var w WithdrawalRequest
+	if err := DB.Where("id = ? AND status = ?", id, WithdrawStatusPending).First(&w).Error; err != nil {
+		return err
+	}
+	// 扣除佣金余额（独立池）
+	DB.Model(&User{}).Where("id = ?", w.UserId).
+		UpdateColumn("commission_balance", gorm.Expr("commission_balance - ?", w.Amount))
+	// 更新状态
+	return DB.Model(&WithdrawalRequest{}).Where("id = ?", id).Updates(map[string]interface{}{
 		"status":       WithdrawStatusApproved,
 		"remark":       remark,
 		"processed_at": now,

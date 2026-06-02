@@ -84,11 +84,13 @@ func RequestWithdrawal(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "below minimum withdrawal amount"})
 		return
 	}
-	totalComm, _ := model.GetUserTotalCommission(userId)
-	// 检查已提现总额
-	var withdrawn int64
-	model.DB.Model(&model.WithdrawalRequest{}).Where("user_id = ? AND status = ?", userId, "approved").Select("COALESCE(SUM(amount), 0)").Scan(&withdrawn)
-	if totalComm-withdrawn < req.Amount {
+	// 直接查询用户佣金余额
+	user, err := model.GetUserById(userId, false)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "user not found"})
+		return
+	}
+	if user.CommissionBalance < req.Amount {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "insufficient commission balance"})
 		return
 	}
