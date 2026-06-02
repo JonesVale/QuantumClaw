@@ -61,31 +61,16 @@
 
 ### Batch 2B：计费/充值完善
 
-#### 2B-1：充值扣费优先级确认 + 文档化（2h）
-- **位置**：`relay/billing/billing.go`, `service/cash_billing.go`
-- **现状**：`PreConsumeQuota` 和 `PreConsumeBalance` 是两条并行路径但优先级不明确
-- **目标**：
-  1. 用户有订阅 → 先扣订阅额度（`SubscriptionPreConsume`）
-  2. 订阅额度用完 → 扣 `CashBalance`
-  3. `CashBalance` 用完 → 回退到 `Quota`
-  4. 没有额度 → 拒绝请求
-- **改动**：改造 `relay/common_handler/billing.go` 的消费链，增加优先级判断
-- **文件**：`relay/common_handler/billing.go`, `relay/billing/billing.go`
+#### 2B-1：充值扣费优先级确认 + 文档化 ✅（`94a0cfd`）
+- **位置**：`relay/common_handler/billing.go`
+- **现状**：三级优先级链已实现：订阅 → CashBalance → CommissionBalance → Quota
+- **改动**：PreConsumeBilling / PostConsumeBilling 统一入口
 
-#### 2B-2：签到奖励提升（0.5h）
-- **位置**：`setting/operation_setting/checkin_setting.go`
-- **现状**：`MinQuota=1000, MaxQuota=10000`（约 ¥0.002~¥0.02）
-- **目标**：提升 10 倍 `MinQuota=10000, MaxQuota=50000`（约 ¥0.02~¥0.1），提高用户活跃度
-- **文件**：`setting/operation_setting/checkin_setting.go`
+#### 2B-2：签到奖励提升 ✅（`527a048` Min 1000→10000, Max 10000→50000）
 
-#### 2B-3：提现自动审批（2h）
-- **位置**：`controller/commission.go:RequestWithdrawal`
-- **现状**：纯手动审批
-- **目标**：
-  - 提现金额 ≤ `AutoWithdrawThreshold`（建议 ¥100）→ 自动通过
-  - 超额 → 需管理员审核
-  - 前端显示自动/待审核状态
-- **文件**：`controller/commission.go`, `model/commission.go`, `web/.../commission.tsx`
+#### 2B-3：提现自动审批 ✅（`9109acb`）
+- **位置**：`model/commission.go:CreateWithdrawal`
+- **现状**：金额 ≤ AutoWithdraw（默认¥100）→ 自动审批通过 + 即时扣除佣金余额
 
 ### Batch 2C：供应商通道完善
 
@@ -140,24 +125,16 @@
 
 ### Batch 4A：佣金/返佣体系
 
-#### 4A-1：佣金独立池（3h）
-- **位置**：`model/commission.go:RewardInviterOnConsume`
-- **现状**：返佣直接加 `quota`（可消费额度），和平台现金混在一起
-- **目标**：
-  - 新增 `commission_balance` 独立佣金余额字段（用户表 or 独立表）
-  - 返佣累加到此余额
-  - 提现时从佣金余额扣除
-  - 佣金余额不可直接用于消费
-- **文件**：`model/user.go`, `model/commission.go`, `controller/commission.go`, `model/billing.go`
+#### 4A-1：佣金独立池 ✅（`2c84170` + `3cce18d` 修正可消费）
+- **位置**：`model/user.go:CommissionBalance`
+- **现状**：返佣计入独立 CommissionBalance，既可消费也可提现
+- **消费优先级**：订阅 → CashBalance → CommissionBalance → Quota
+- **提现**：ApproveWithdrawal 从 CommissionBalance 扣除
 
-#### 4A-2：多级返佣（3-5h）
+#### 4A-2：多级返佣 ✅（`c33350c`）
 - **位置**：`model/commission.go:RewardInviterOnConsume`
-- **现状**：仅 1 级邀请人
-- **目标**：
-  - 支持 3 级代理链（1:5%, 2:2%, 3:1%）
-  - 从 `InviterId` 递归查找第 2/3 级
-  - 在 CommissionRecord 记录代级信息
-- **文件**：`model/commission.go`, `model/user.go`
+- **现状**：递归查找 3 级邀请人，1级5% / 2级2% / 3级1%
+- **改动**：CommissionSetting 新增 Level2Rate/Level3Rate, CommissionRecord 新增 Level 字段
 
 ### Batch 4B：消费/结算
 
@@ -208,16 +185,16 @@
 ```
                高影响                 中影响                低影响
             ┌────────────────────────────────────────────────────┐
- 容易  │  ✅ 2A-1: 登录逐级锁     ❌ 2B-3: 提现自动审批    ✅ 2B-2: 签到奖励
+ 容易  │  ✅ 2A-1: 登录逐级锁     ✅ 2B-3: 提现自动审批    ✅ 2B-2: 签到奖励
        │  ✅ 2A-3: 新用户引导     ✅ 2C-2: 模型列表修复
-       │  ✅ 3A-1: Distributor加密 ❌ 2B-1: 扣费优先级
+       │  ✅ 3A-1: Dist加密        ✅ 2B-1: 扣费优先级
        │                         ✅ 2A-2: 密码强度可配置
        ├────────────────────────────────────────────────────┤
- 中等  │  ❌ 4A-1: 佣金独立池      ✅ 3A-2: 价格int64化     ❌ 5A-2: Redis
-       │  ✅ 2C-1: 供应商审批      ❌ 4B-1: 分账优化
-       │                         ❌ 4A-2: 多级返佣
+ 中等  │  ✅ 4A-1: 佣金独立池     ✅ 3A-2: 价格int64化     ❌ 5A-2: Redis
+       │  ✅ 2C-1: 供应商审批     ❌ 4B-1: 分账优化
+       │  ✅ 4A-2: 多级返佣       ❌ 4B-2: 异常结算
        ├────────────────────────────────────────────────────┤
- 困难  │  ❌ 5A-1: JWT            ❌ 4B-2: 异常结算         ❌ 5B-x: 运维
+ 困难  │  ❌ 5A-1: JWT            ❌ 4B-2: 异常结算        ❌ 5B-x: 运维
        │                         ❌ 5A-3: 审计日志
        └────────────────────────────────────────────────────┘
 ```
@@ -227,19 +204,15 @@
 ## 建议执行顺序
 
 ```
-当前（Batch 4 起点）
-  ├── 4A-1: 佣金独立池 (3h) ← 解锁 2B-1/2B-3/4A-2/4B-1
-  ├── 2B-1: 扣费优先级 (2h) ← 依赖 4A-1
-  ├── 2B-3: 提现自动审批 (2h) ← 依赖 4A-1
-  └── 4B-1: 分账优化 (3h) ← 依赖 4A-1
-
-后续
-  ├── 4A-2: 多级返佣 → 按需
-  ├── 5A-2: Redis Session 共享
-  └── 5B-x: 运维工具
+剩余任务
+  ├── 4B-1: 分账比例配置化 (渠道级 profit_split)
+  ├── 4B-2: 异常结算处理 (Debt 追偿)
+  ├── 5A-2: Redis Session 共享 (多机部署)
+  ├── Batch D: 前端高价提示 (Playground 价格对比)
+  └── 5A-1: JWT + 5A-3: 审计日志 + 5B-x
 
 长期
-  └── 5A-1: JWT + 5A-3: 审计日志 + 5B-x
+  └── 前端高价提示 (Playground/模型选择器) + 前端首选供应商设置
 ```
 
 ---
