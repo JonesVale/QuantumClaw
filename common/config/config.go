@@ -11,6 +11,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/env"
 
 	"github.com/google/uuid"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 var SystemName = "QuantumClaw"

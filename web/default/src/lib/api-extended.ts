@@ -531,6 +531,14 @@ export async function manageUser(data: {
   return res.data
 }
 
+export async function resetUserPassword(data: {
+  user_id: number
+  new_password: string
+}): Promise<ApiResponse> {
+  const res = await apiClient.post('/api/admin/password/reset-user', data)
+  return res.data
+}
+
 // ---------------------------------------------------------------------------
 // Redemption API
 // ---------------------------------------------------------------------------

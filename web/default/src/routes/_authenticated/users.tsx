@@ -13,6 +13,7 @@ import {
   XCircle,
   Shield,
   Users,
+  KeyRound,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -34,6 +35,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import {
   type User, type UserFormData,
   getUsers, createUser, updateUser, deleteUser, manageUser,
+  resetUserPassword,
 } from '@/lib/api-extended'
 import { toast } from 'sonner'
 import dayjs from '@/lib/dayjs'
@@ -185,6 +187,20 @@ function UsersPage() {
     staleTime: 30 * 1000,
   })
 
+  const [resetPasswordDialog, setResetPasswordDialog] = useState<{ open: boolean; userId: number; username: string }>({ open: false, userId: 0, username: '' })
+  const [resetPasswordValue, setResetPasswordValue] = useState('')
+  const [resetPasswordGenerated, setResetPasswordGenerated] = useState('')
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: ({ user_id, new_password }: { user_id: number; new_password: string }) => resetUserPassword({ user_id, new_password }),
+    onSuccess: (_, variables) => {
+      toast.success(t('Password reset successfully'))
+      setResetPasswordGenerated(variables.new_password)
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+    },
+    onError: () => toast.error(t('Failed to reset password')),
+  })
+
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
@@ -316,6 +332,13 @@ function UsersPage() {
                               )}
                               {u.status === 1 ? t('Disable') : t('Enable')}
                             </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => {
+                              setResetPasswordDialog({ open: true, userId: u.id, username: u.username });
+                              setResetPasswordValue('');
+                              setResetPasswordGenerated('');
+                            }}>
+                              <KeyRound className="mr-2 h-4 w-4" /> {t('Reset Password')}
+                            </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => {
                                 if (confirm(t('Are you sure?'))) deleteMutation.mutate(u.id)
@@ -335,6 +358,64 @@ function UsersPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Reset Password Dialog */}
+      <Dialog open={resetPasswordDialog.open} onOpenChange={(open) => setResetPasswordDialog({ ...resetPasswordDialog, open })}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('Reset Password')}</DialogTitle>
+            <DialogDescription>
+              {t('Reset password for')} <strong>{resetPasswordDialog.username}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {resetPasswordGenerated ? (
+              <>
+                <div className="p-4 rounded-lg bg-green-50 border border-green-200 text-green-800 text-sm space-y-2">
+                  <p className="font-medium">{t('Password has been reset. Share the new password securely with the user.')}</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>{t('New Password')}</Label>
+                  <div className="flex gap-2">
+                    <Input value={resetPasswordGenerated} readOnly className="font-mono text-sm" />
+                    <Button variant="outline" onClick={() => {
+                      navigator.clipboard.writeText(resetPasswordGenerated);
+                      toast.success(t('Copied'));
+                    }}>{t('Copy')}</Button>
+                  </div>
+                </div>
+                <Button className="w-full" variant="outline" onClick={() => {
+                  setResetPasswordDialog({ open: false, userId: 0, username: '' });
+                  setResetPasswordGenerated('');
+                }}>{t('Done')}</Button>
+              </>
+            ) : (
+              <>
+                <div>
+                  <Label>{t('Enter new password (min 6 chars)')}</Label>
+                  <Input type="password" value={resetPasswordValue} onChange={(e) => setResetPasswordValue(e.target.value)} placeholder="••••••••" className="mt-2" />
+                </div>
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <KeyRound className="w-3 h-3" />
+                  <button type="button" className="underline hover:text-foreground" onClick={() => {
+                    const gen = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-4).toUpperCase() + '!'
+                    setResetPasswordValue(gen)
+                  }}>{t('Generate random password')}</button>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setResetPasswordDialog({ open: false, userId: 0, username: '' })}>{t('Cancel')}</Button>
+                  <Button
+                    disabled={resetPasswordValue.length < 6 || resetPasswordMutation.isPending}
+                    onClick={() => resetPasswordMutation.mutate({ user_id: resetPasswordDialog.userId, new_password: resetPasswordValue })}
+                  >
+                    {resetPasswordMutation.isPending ? t('Resetting...') : t('Reset')}
+                  </Button>
+                </DialogFooter>
+              </>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <UserFormDialog
         open={dialogOpen}
