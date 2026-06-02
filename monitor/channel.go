@@ -29,7 +29,11 @@ func notifyRootUser(subject string, content string) {
 
 // DisableChannel disable & notify
 func DisableChannel(channelId int, channelName string, reason string) {
-	model.UpdateChannelStatusById(channelId, model.ChannelStatusAutoDisabled)
+	model.DB.Model(&model.Channel{}).Where("id = ?", channelId).Updates(map[string]interface{}{
+		"status":            model.ChannelStatusAutoDisabled,
+		"last_test_passed":  false,
+		"last_error_message": reason,
+	})
 	logger.SysLog(fmt.Sprintf("channel #%d has been disabled: %s", channelId, reason))
 	subject := fmt.Sprintf("渠道状态变更提醒")
 	content := message.EmailTemplate(

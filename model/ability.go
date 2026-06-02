@@ -113,6 +113,31 @@ func GetGroupModels(ctx context.Context, group string) ([]string, error) {
 	return models, err
 }
 
+// GetGroupModelsWithHealthCheck 只返回有健康渠道支持的模型
+// 过滤条件：渠道已启用 + 测试通过 + 未软删除
+func GetGroupModelsWithHealthCheck(ctx context.Context, group string) ([]string, error) {
+	groupCol := "`group`"
+	trueVal := "1"
+	if common.UsingPostgreSQL {
+		groupCol = `"group"`
+		trueVal = "true"
+	}
+	var models []string
+	err := DB.Table("abilities").
+		Select("DISTINCT abilities.model").
+		Joins("JOIN channels ON channels.id = abilities.channel_id").
+		Where("abilities."+groupCol+" = ? AND abilities.enabled = "+trueVal+
+			" AND channels.status = ? AND channels.deleted_at IS NULL"+
+			" AND channels.last_test_passed = ?",
+			group, ChannelStatusEnabled, true).
+		Pluck("abilities.model", &models).Error
+	if err != nil {
+		return nil, err
+	}
+	sort.Strings(models)
+	return models, nil
+}
+
 // GetCheapestSatisfiedChannel 按价格排序取最便宜的可用渠道
 // 支持 region 过滤（空字符串=不限区域）
 // 支持 ownerId 过滤（0=不限, >0=指定供应商）
@@ -128,8 +153,9 @@ func GetCheapestSatisfiedChannel(group string, model string, ownerId int, region
 		Select("channels.*").
 		Joins("JOIN channels ON channels.id = abilities.channel_id").
 		Where("abilities."+groupCol+" = ? AND abilities.model = ? AND abilities.enabled = "+trueVal+
-			" AND channels.status = ? AND channels.deleted_at IS NULL",
-			group, model, ChannelStatusEnabled)
+			" AND channels.status = ? AND channels.deleted_at IS NULL"+
+			" AND channels.last_test_passed = ?",
+			group, model, ChannelStatusEnabled, true)
 
 	if ownerId > 0 {
 		query = query.Where("channels.user_id = ?", ownerId)

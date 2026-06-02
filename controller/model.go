@@ -343,7 +343,8 @@ func GetUserAvailableModels(c *gin.Context) {
 		})
 		return
 	}
-	models, err := model.CacheGetGroupModels(ctx, userGroup)
+	// 只返回已测试通过、可用的渠道对应的模型
+	models, err := model.GetGroupModelsWithHealthCheck(ctx, userGroup)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,

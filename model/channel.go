@@ -56,6 +56,10 @@ type Channel struct {
 
 	// 软删除（供应商删除时标记，不物理删除）
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty"`
+
+	// 测试状态
+	LastTestPassed   bool   `json:"last_test_passed" gorm:"default:false"`      // 最近一次测试是否通过
+	LastErrorMessage string `json:"last_error_message" gorm:"type:text;default:''"` // 最近一次错误信息
 }
 
 type ChannelConfig struct {

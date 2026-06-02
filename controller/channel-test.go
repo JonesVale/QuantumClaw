@@ -293,6 +293,18 @@ func testChannels(ctx context.Context, notify bool, scope string) error {
 			if !isChannelEnabled && monitor.ShouldEnableChannel(err, openaiErr) {
 				monitor.EnableChannel(channel.Id, channel.Name)
 			}
+			// 保存测试结果
+			testPassed := err == nil && (openaiErr == nil)
+			errMsg := ""
+			if err != nil {
+				errMsg = err.Error()
+			} else if openaiErr != nil {
+				errMsg = openaiErr.Message
+			}
+			model.DB.Model(&model.Channel{}).Where("id = ?", channel.Id).Updates(map[string]interface{}{
+				"last_test_passed":    testPassed,
+				"last_error_message":  errMsg,
+			})
 			channel.UpdateResponseTime(milliseconds)
 			time.Sleep(config.RequestInterval)
 		}
