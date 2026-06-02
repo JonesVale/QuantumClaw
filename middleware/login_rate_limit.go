@@ -83,6 +83,9 @@ func LoginRateLimit() gin.HandlerFunc {
 		ip := c.ClientIP()
 		now := time.Now()
 
+		// 仅登录路径触发连续失败锁定，注册不计入
+		isLoginPath := strings.HasSuffix(c.Request.URL.Path, "/login")
+
 		// Read username from body without consuming it
 		username := "unknown"
 		rawData, err := c.GetRawData()
@@ -158,34 +161,36 @@ func LoginRateLimit() gin.HandlerFunc {
 
 		c.Next()
 
-		// Post-response: track failures
+		// Post-response: track failures（仅登录路径触发锁定）
 		unlock2 := accountMutexes.Lock(lockKey)
 		attempt.mu.Lock()
 
-		// Check response body for success field (login always returns 200 even on failure)
-		isFailure := true // default: treat as failure
-		respBody := getResponseBody(c)
-		if len(respBody) > 0 {
-			var resp struct {
-				Success bool `json:"success"`
+		if isLoginPath {
+			// Check response body for success field
+			isFailure := true // default: treat as failure
+			respBody := getResponseBody(c)
+			if len(respBody) > 0 {
+				var resp struct {
+					Success bool `json:"success"`
+				}
+				if json.Unmarshal(respBody, &resp) == nil {
+					isFailure = !resp.Success
+				}
 			}
-			if json.Unmarshal(respBody, &resp) == nil {
-				isFailure = !resp.Success
-			}
-		}
 
-		if isFailure {
-			attempt.consecutiveFails++
-			logger.Warn(c.Request.Context(), fmt.Sprintf("login failed (attempt %d): %s", attempt.consecutiveFails, lockKey))
-			if attempt.consecutiveFails >= 3 {
-				attempt.lockedUntil = now.Add(24 * time.Hour)
-				logger.Warn(c.Request.Context(), "login locked (3 consecutive failures, 24h): "+lockKey)
+			if isFailure {
+				attempt.consecutiveFails++
+				logger.Warn(c.Request.Context(), fmt.Sprintf("login failed (attempt %d): %s", attempt.consecutiveFails, lockKey))
+				if attempt.consecutiveFails >= 3 {
+					attempt.lockedUntil = now.Add(24 * time.Hour)
+					logger.Warn(c.Request.Context(), "login locked (3 consecutive failures, 24h): "+lockKey)
+				}
+			} else {
+				// Login success, reset counters
+				attempt.count = 0
+				attempt.consecutiveFails = 0
+				attempt.lockedUntil = time.Time{}
 			}
-		} else {
-			// Login success, reset counters
-			attempt.count = 0
-			attempt.consecutiveFails = 0
-			attempt.lockedUntil = time.Time{}
 		}
 
 		attempt.mu.Unlock()
