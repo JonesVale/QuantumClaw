@@ -60,6 +60,10 @@ type Channel struct {
 	// 测试状态
 	LastTestPassed   bool   `json:"last_test_passed" gorm:"default:false"`      // 最近一次测试是否通过
 	LastErrorMessage string `json:"last_error_message" gorm:"type:text;default:''"` // 最近一次错误信息
+
+	// 分账比例：0.0~1.0，渠道商所得比例，剩余为平台抽成
+	// 默认 0.85 = 渠道商得 85%，平台得 15%
+	ProfitSplit float64 `json:"profit_split" gorm:"type:decimal(4,3);default:0.85"`
 }
 
 type ChannelConfig struct {

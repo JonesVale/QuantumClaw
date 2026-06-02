@@ -117,7 +117,13 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 
 	// 6. 分账
 	if channel.UserId > 0 {
-		netAmount := priceCents
+		// 使用渠道级分账比例
+		split := channel.ProfitSplit
+		if split <= 0 || split > 1 {
+			split = 0.85 // 默认渠道商 85%
+		}
+		commissionAmount := int64(float64(priceCents) * (1.0 - split)) // 平台抽成
+		netAmount := priceCents - commissionAmount                     // 渠道商净得
 		if netAmount < 0 {
 			netAmount = 0
 		}
@@ -126,7 +132,7 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 			int64(meta.ChannelId),
 			int64(meta.UserId),
 			priceCents,
-			0,
+			commissionAmount,
 			netAmount,
 			helper.GetCurrentMonth(),
 			model.EarningStatusSettled,
