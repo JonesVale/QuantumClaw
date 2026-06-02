@@ -15,7 +15,8 @@ type CommissionSetting struct {
 	ConsumeRate    float64 `json:"consume_rate" gorm:"type:decimal(5,4);default:0.1"` // 消费返佣比例（0.1=10%）
 	Level2Rate     float64 `json:"level2_rate" gorm:"type:decimal(5,4);default:0.02"` // 二级返佣比例（0.02=2%）
 	Level3Rate     float64 `json:"level3_rate" gorm:"type:decimal(5,4);default:0.01"` // 三级返佣比例（0.01=1%）
-	MinWithdraw    int64   `json:"min_withdraw" gorm:"default:10000"`                  // 最低提现额度
+	MinWithdraw    int64   `json:"min_withdraw" gorm:"default:10000"`                  // 最低提现额度（分）
+	AutoWithdraw   int64   `json:"auto_withdraw" gorm:"bigint;default:10000"`          // 自动审批门槛（分,默认¥100）
 	UpdatedAt      time.Time `json:"updated_at"`
 }
 
@@ -107,11 +108,23 @@ func CreateWithdrawal(w *WithdrawalRequest) error {
 	for _, f := range pendingFees {
 		totalPending += f.FeeAmount
 	}
-	w.PlatformFeeAmount = totalPending
+
+	// 小额自动审批
+	setting, _ := GetCommissionSetting()
+	if setting.AutoWithdraw > 0 && w.Amount <= setting.AutoWithdraw {
+		w.Status = WithdrawStatusApproved
+		now := time.Now()
+		w.ProcessedAt = &now
+		// 自动审批时扣除佣金余额
+		DB.Model(&User{}).Where("id = ?", w.UserId).
+			UpdateColumn("commission_balance", gorm.Expr("commission_balance - ?", w.Amount))
+	}
+
 	w.NetAmount = w.Amount - totalPending
 	if w.NetAmount < 0 {
 		w.NetAmount = 0
 	}
+	w.PlatformFeeAmount = totalPending
 	if err := DB.Create(w).Error; err != nil {
 		return err
 	}
@@ -121,7 +134,6 @@ func CreateWithdrawal(w *WithdrawalRequest) error {
 	}
 	return nil
 }
-
 func GetWithdrawalById(id int) (*WithdrawalRequest, error) {
 	var w WithdrawalRequest
 	err := DB.First(&w, "id = ?", id).Error
