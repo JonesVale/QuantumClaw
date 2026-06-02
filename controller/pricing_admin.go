@@ -121,7 +121,7 @@ func GetSubscriptionTierInfo(c *gin.Context) {
 			"plan_title":   plan.Title,
 			"has_tiers":    plan.TiersJSON != "",
 			"tiers":        tiers,
-			"base_price":   plan.PriceAmount,
+			"base_price":   plan.PriceCents,
 			"total_amount": plan.TotalAmount,
 		},
 	})

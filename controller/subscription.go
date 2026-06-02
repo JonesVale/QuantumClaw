@@ -89,8 +89,8 @@ func AdminCreateSubscriptionPlan(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "套餐标题不能为空"})
 		return
 	}
-	if req.Plan.PriceAmount < 0 || req.Plan.PriceAmount > 9999 {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "价格需在 0~9999 之间"})
+	if req.Plan.PriceCents < 0 || req.Plan.PriceCents > 999900 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "价格需在 0~9999 USD 之间（单位：美分）"})
 		return
 	}
 	if req.Plan.Currency == "" {
@@ -145,7 +145,7 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "套餐标题不能为空"})
 		return
 	}
-	if req.Plan.PriceAmount < 0 || req.Plan.PriceAmount > 9999 {
+	if req.Plan.PriceCents < 0 || req.Plan.PriceCents > 999900 {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "价格需在 0~9999 之间"})
 		return
 	}
@@ -174,7 +174,7 @@ func AdminUpdateSubscriptionPlan(c *gin.Context) {
 	updateMap := map[string]interface{}{
 		"title":                      req.Plan.Title,
 		"subtitle":                   req.Plan.Subtitle,
-		"price_amount":               req.Plan.PriceAmount,
+		"price_cents":                req.Plan.PriceCents,
 		"currency":                   req.Plan.Currency,
 		"duration_unit":              req.Plan.DurationUnit,
 		"duration_value":             req.Plan.DurationValue,
