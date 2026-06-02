@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useCallback, useEffect } from 'react'
 import { useAuthStore } from '@/stores/auth-store'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/(auth)/sign-in')({
   component: SignInPage,
@@ -23,7 +24,9 @@ function SignInPage() {
   const [error, setError] = useState('')
   const [providers, setProviders] = useState<OAuthProvider[]>([])
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [mode, setMode] = useState<'login' | 'register'>('login')
+  const [mode, setMode] = useState<'login' | 'register' | 'forgot'>('login')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotSent, setForgotSent] = useState(false)
   const navigate = useNavigate()
   const auth = useAuthStore(s => s.auth)
   const refCode = typeof window !== 'undefined'
@@ -115,6 +118,21 @@ function SignInPage() {
     setLoading(false)
   }, [username, password, confirmPassword, refCode, t, navigate, auth])
 
+  const doForgot = useCallback(async () => {
+    if (!forgotEmail) return
+    setLoading(true); setError('')
+    try {
+      const res = await fetch(`/api/reset_password?email=${encodeURIComponent(forgotEmail)}`).then(r => r.json())
+      if (res.success) {
+        setForgotSent(true)
+        toast.success(t('Reset link sent if email is registered'))
+      } else {
+        setError(res.message || t('Failed to send reset link'))
+      }
+    } catch { setError(t('Network error')) }
+    setLoading(false)
+  }, [forgotEmail, t])
+
   const handleOAuthLogin = async (provider: OAuthProvider) => {
     setOauthLoading(provider.id)
     try {
@@ -156,8 +174,17 @@ function SignInPage() {
             </button>
           </div>
                     {error && (
-            <div className="mb-5 px-5 py-3 rounded-xl bg-red-900/90 text-red-200 text-base font-medium border border-red-700">
-              {error}
+            <div className="mb-5 px-5 py-3 rounded-xl bg-red-900/80 text-red-200 text-base font-medium border border-red-700/50">
+              <div>{error}</div>
+              {mode === 'login' && (
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(''); setForgotEmail(''); setForgotSent(false) }}
+                  className="mt-2 text-sm text-amber-400 hover:text-amber-300 underline underline-offset-2"
+                >
+                  {t('Forgot password? Reset it here')}
+                </button>
+              )}
             </div>
           )}
           <div className="space-y-5">
@@ -183,13 +210,57 @@ function SignInPage() {
                 placeholder="&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;&#x2022;" autoComplete="new-password" />
             </div>
             )}
-            <button onClick={mode === 'login' ? doLogin : doRegister} disabled={loading || !username || !password || (mode === 'register' && (!confirmPassword || password !== confirmPassword))}
+            {mode === 'login' && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setMode('forgot'); setError(''); setForgotEmail(''); setForgotSent(false) }}
+                  className="text-sm text-amber-400 hover:text-amber-300 transition-colors"
+                >
+                  {t('Forgot password?')}
+                </button>
+              </div>
+            )}
+            <button onClick={mode === 'login' ? doLogin : mode === 'register' ? doRegister : undefined} disabled={loading || !username || !password || (mode === 'register' && (!confirmPassword || password !== confirmPassword)) || mode === 'forgot'}
               className="w-full py-5 rounded-xl text-xl font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg hover:shadow-orange-500/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 transition-all duration-200 flex items-center justify-center gap-2">
               {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : mode === 'login' ? t('Sign In') : t('Register')}
             </button>
           </div>
 
-          {providers.length > 0 && (
+          {/* Forgot Password section */}
+          {mode === 'forgot' && (
+            <div className="space-y-4">
+              <p className="text-sm text-amber-200/80">{t('Enter your registered email to receive a password reset link')}</p>
+              <div>
+                <label className="text-lg font-medium text-amber-200 block mb-3">{t('Email')}</label>
+                <input type="email" value={forgotEmail} onChange={e => setForgotEmail(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && doForgot()}
+                  className="w-full h-14 rounded-xl border border-gray-600 bg-gray-800 px-5 text-base text-white outline-none placeholder:text-gray-500 focus:border-amber-500 focus:ring-2 focus:ring-amber-400/30 transition-all"
+                  placeholder="email@example.com" autoComplete="email" />
+              </div>
+              {forgotSent ? (
+                <div className="px-4 py-3 rounded-xl bg-green-900/80 text-green-200 text-sm border border-green-700">
+                  {t('If this email is registered, a password reset link has been sent. Check your inbox.')}
+                </div>
+              ) : (
+                <button onClick={doForgot} disabled={loading || !forgotEmail}
+                  className="w-full py-5 rounded-xl text-xl font-semibold text-white bg-gradient-to-r from-amber-500 to-orange-500 shadow-md shadow-orange-500/20 hover:shadow-lg disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                  {loading ? <><div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" /></> : t('Send Reset Link')}
+                </button>
+              )}
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => { setMode('login'); setError('') }}
+                  className="text-sm text-amber-400 hover:text-amber-300 transition-colors"
+                >
+                  {t('Back to login')}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {providers.length > 0 && mode !== 'forgot' && (
             <>
               <div className="relative my-8">
                 <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-700" /></div>
