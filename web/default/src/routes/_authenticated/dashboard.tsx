@@ -305,6 +305,46 @@ function DashboardPage() {
         </div>
       </div>
 
+      {/* ── 新手引导卡片 ── */}
+      {totalRequests === 0 && (
+        <div className="mb-6 rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-600/5 p-4 sm:p-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-500/10 to-orange-600/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+          <div className="relative">
+            <h3 className="text-lg font-semibold text-amber-400 mb-2">
+              🎉 {t('Welcome to QuantumClaw!')}
+            </h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
+              {t('Your account has been credited with')} <span className="text-amber-400 font-medium">{new Intl.NumberFormat().format(50000)} {t('free credits')}</span>
+              {t(' and ')}<span className="text-amber-400 font-medium">¥50</span> {t('trial balance')}.
+              {t('Get started with these quick steps:')}
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <Link to="/playground" className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors border border-amber-500/10">
+                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold shrink-0">1</span>
+                <div>
+                  <p className="text-sm font-medium text-amber-300">{t('Try the Playground')}</p>
+                  <p className="text-xs text-muted-foreground">{t('Test models in your browser')}</p>
+                </div>
+              </Link>
+              <Link to="/keys" className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors border border-amber-500/10">
+                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold shrink-0">2</span>
+                <div>
+                  <p className="text-sm font-medium text-amber-300">{t('Create API Key')}</p>
+                  <p className="text-xs text-muted-foreground">{t('Get your first API access key')}</p>
+                </div>
+              </Link>
+              <Link to="/pricing" className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors border border-amber-500/10">
+                <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold shrink-0">3</span>
+                <div>
+                  <p className="text-sm font-medium text-amber-300">{t('View Pricing')}</p>
+                  <p className="text-xs text-muted-foreground">{t('Explore model costs and plans')}</p>
+                </div>
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Body ── */}
       <div className="space-y-6">
 

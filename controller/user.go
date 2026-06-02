@@ -92,13 +92,15 @@ func SetupLogin(user *model.User, c *gin.Context) {
 		"message": "",
 		"success": true,
 		"data": gin.H{
-			"id":              user.Id,
-			"username":        user.Username,
-			"display_name":    user.DisplayName,
-			"role":            user.Role,
-			"status":          user.Status,
-			"organization_id": user.OrganizationID,
-			"unread_count":    unreadCount,
+			"id":               user.Id,
+			"username":         user.Username,
+			"display_name":     user.DisplayName,
+			"role":             user.Role,
+			"status":           user.Status,
+			"organization_id":  user.OrganizationID,
+			"unread_count":     unreadCount,
+			"quota_for_new_user": user.Quota > 0,
+			"trial_balance":    user.CashBalance,
 		},
 	})
 }
