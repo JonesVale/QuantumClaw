@@ -133,6 +133,7 @@ var AutomaticEnableChannelEnabled = false
 var QuotaRemindThreshold int64 = 1000
 var PreConsumedQuota int64 = 500
 var ApproximateTokenEnabled = false
+var DebtDisableThreshold int64 = 50000 // 欠费超过 ¥500 自动禁用账号
 var RetryTimes = 2
 
 var RootUserEmail = ""
