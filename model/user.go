@@ -22,6 +22,7 @@ const (
 	RoleSupplier   = 2
 	RoleAdminUser  = 10
 	RoleRootUser   = 100
+	RoleDistributor = 1000
 )
 
 const (
@@ -183,7 +184,7 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 	user.Quota = config.QuotaForNewUser
 	rawToken := random.GetUUID()
 	user.AccessToken = common.SHA256Hash(rawToken)
-	user.AffCode = random.GetRandomString(4)
+	user.AffCode = random.GetRandomString(8)
 
 	// 为空的 email/phone/qq 生成唯一占位符
 	// 避免 GORM uniqueIndex 空字符串冲突

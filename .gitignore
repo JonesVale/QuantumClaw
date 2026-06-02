@@ -21,3 +21,10 @@ quantumclaw_test.exe
 
 # Local builds
 quantumclaw-linux
+
+# Session persistence
+.session_secret
+
+# Coverage
+coverage_full.out
+coverage.out

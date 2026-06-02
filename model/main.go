@@ -59,7 +59,7 @@ func CreateRootAccountIfNeed() error {
 			AccessToken: common.SHA256Hash(accessToken),
 			Quota:       500000000000000,
 			CashBalance: 500000000000000,
-			AffCode:     random.GetRandomString(4),
+			AffCode:     random.GetRandomString(8),
 		}
 		DB.Create(&rootUser)
 		if config.InitialRootToken != "" {
@@ -91,7 +91,7 @@ func CreateRootAccountIfNeed() error {
 			}
 			// Self-healing: generate aff_code if missing
 			if firstAdmin.AffCode == "" {
-				newAffCode := random.GetRandomString(4)
+				newAffCode := random.GetRandomString(8)
 				DB.Model(&firstAdmin).Update("aff_code", newAffCode)
 				logger.SysLogf("root aff_code self-healed: generated %s for %s", newAffCode, firstAdmin.Username)
 			}

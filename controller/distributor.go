@@ -71,7 +71,7 @@ func CreateDistributor(c *gin.Context) {
 		return
 	}
 	// 提升用户角色为分销商（1000 = 分销商角色）
-	model.DB.Model(&model.User{}).Where("id = ?", user.Id).Update("role", 1000)
+	model.DB.Model(&model.User{}).Where("id = ?", user.Id).Update("role", model.RoleDistributor)
 	c.JSON(http.StatusOK, gin.H{"success": true, "data": d})
 }
 

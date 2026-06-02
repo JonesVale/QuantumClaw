@@ -242,7 +242,7 @@ func CustomOAuthCallback(c *gin.Context) {
 	}
 	// 确保用户名唯一
 	if model.IsUsernameAlreadyTaken(username) {
-		username = username + "_" + random.GetRandomString(4)
+		username = username + "_" + random.GetRandomString(8)
 	}
 
 	user := model.User{

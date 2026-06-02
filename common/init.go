@@ -89,20 +89,39 @@ func Init() {
 		os.Exit(0)
 	}
 
-	if os.Getenv("SESSION_SECRET") != "" {
-		if os.Getenv("SESSION_SECRET") == "random_string" {
+	// 1. 优先使用环境变量（最高优先级）
+	if envSecret := os.Getenv("SESSION_SECRET"); envSecret != "" {
+		if envSecret == "random_string" {
 			logger.SysError("SESSION_SECRET is set to an example value, please change it to a random string.")
 		} else {
-			config.SessionSecret = os.Getenv("SESSION_SECRET")
+			config.SessionSecret = envSecret
+		}
+	} else {
+		// 2. 尝试从 .session_secret 文件读取
+		if data, err := os.ReadFile(".session_secret"); err == nil {
+			secret := strings.TrimSpace(string(data))
+			if secret != "" {
+				config.SessionSecret = secret
+			}
 		}
 	}
 
-	// Enhance SessionSecret with quantum random data if available
+	// 3. 如果仍然是默认的随机 UUID（每次重启不同），生成持久化密钥
+	// config.SessionSecret 的 var 默认值为 uuid.New().String()（每次不同）
+	// 这里检测到是默认值（首次启动且无 .env/.session_secret）则持久化
+	if _, statErr := os.Stat(".session_secret"); os.IsNotExist(statErr) && os.Getenv("SESSION_SECRET") == "" {
+		// 首次启动：持久化当前 secret
+		if err := os.WriteFile(".session_secret", []byte(config.SessionSecret), 0600); err != nil {
+			logger.SysError("failed to persist session_secret: " + err.Error())
+		} else {
+			logger.SysLog("generated new session secret, persisted to .session_secret")
+		}
+	}
+
+	// 4. Enhance SessionSecret with quantum random data if available
 	if QRNGEnabled {
 		quantumBytes, err := GetQuantumRandomBytes(16)
 		if err == nil {
-			// XOR quantum bytes into the UUID-based secret
-			// This makes the session secret truly unpredictable
 			hasher := sha256.New()
 			hasher.Write([]byte(config.SessionSecret))
 			hasher.Write(quantumBytes)
