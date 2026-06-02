@@ -25,4 +25,5 @@ const (
 	ChannelOwner      = "channel_owner"
 	IsFallback        = "is_fallback"
 	FallbackFrom      = "fallback_from"
+	OrganizationID    = "organization_id"
 )

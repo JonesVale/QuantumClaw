@@ -22,6 +22,7 @@ func authHelper(c *gin.Context, minRole int) {
 	role := session.Get("role")
 	id := session.Get("id")
 	status := session.Get("status")
+	orgId := session.Get("organization_id")
 
 	// Check session age if present
 	if loginTimeRaw := session.Get("login_time"); loginTimeRaw != nil {
@@ -57,6 +58,7 @@ func authHelper(c *gin.Context, minRole int) {
 			role = user.Role
 			id = user.Id
 			status = user.Status
+			orgId = user.OrganizationID
 		} else {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
@@ -115,6 +117,9 @@ func authHelper(c *gin.Context, minRole int) {
 	c.Set("username", username)
 	c.Set("role", role)
 	c.Set("id", id)
+	if orgId != nil {
+		c.Set("organization_id", orgId)
+	}
 	c.Next()
 }
 

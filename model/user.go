@@ -95,8 +95,12 @@ func GetMaxUserId() int {
 	return user.Id
 }
 
-func GetAllUsers(startIdx int, num int, order string) (users []*User, err error) {
+func GetAllUsers(startIdx int, num int, order string, orgId ...int) (users []*User, err error) {
 	query := DB.Limit(num).Offset(startIdx).Omit("password").Where("status != ?", UserStatusDeleted)
+
+	if len(orgId) > 0 && orgId[0] > 0 {
+		query = query.Where("organization_id = ?", orgId[0])
+	}
 
 	switch order {
 	case "quota":
@@ -113,11 +117,17 @@ func GetAllUsers(startIdx int, num int, order string) (users []*User, err error)
 	return users, err
 }
 
-func SearchUsers(keyword string) (users []*User, err error) {
+func SearchUsers(keyword string, orgId ...int) (users []*User, err error) {
+	query := DB.Omit("password")
+
+	if len(orgId) > 0 && orgId[0] > 0 {
+		query = query.Where("organization_id = ?", orgId[0])
+	}
+
 	if !common.UsingPostgreSQL {
-		err = DB.Omit("password").Where("id = ? or username LIKE ? or email LIKE ? or display_name LIKE ?", keyword, keyword+"%", keyword+"%", keyword+"%").Find(&users).Error
+		err = query.Where("id = ? or username LIKE ? or email LIKE ? or display_name LIKE ?", keyword, keyword+"%", keyword+"%", keyword+"%").Find(&users).Error
 	} else {
-		err = DB.Omit("password").Where("username LIKE ? or email LIKE ? or display_name LIKE ?", keyword+"%", keyword+"%", keyword+"%").Find(&users).Error
+		err = query.Where("username LIKE ? or email LIKE ? or display_name LIKE ?", keyword+"%", keyword+"%", keyword+"%").Find(&users).Error
 	}
 	return users, err
 }

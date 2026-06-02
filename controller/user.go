@@ -75,6 +75,7 @@ func SetupLogin(user *model.User, c *gin.Context) {
 	session.Set("username", user.Username)
 	session.Set("role", user.Role)
 	session.Set("status", user.Status)
+	session.Set("organization_id", user.OrganizationID)
 	session.Set("login_time", time.Now().Unix())
 	err := session.Save()
 	if err != nil {
@@ -91,12 +92,13 @@ func SetupLogin(user *model.User, c *gin.Context) {
 		"message": "",
 		"success": true,
 		"data": gin.H{
-			"id":           user.Id,
-			"username":     user.Username,
-			"display_name": user.DisplayName,
-			"role":         user.Role,
-			"status":       user.Status,
-			"unread_count": unreadCount,
+			"id":              user.Id,
+			"username":        user.Username,
+			"display_name":    user.DisplayName,
+			"role":            user.Role,
+			"status":          user.Status,
+			"organization_id": user.OrganizationID,
+			"unread_count":    unreadCount,
 		},
 	})
 }
@@ -352,6 +354,16 @@ func Register(c *gin.Context) {
 	SetupLogin(&cleanUser, c)
 }
 
+// getAdminOrgFilter 获取管理员可见的组织范围
+// Root (100) 可见全部；其他 admin (10+) 仅限本组织
+func getAdminOrgFilter(c *gin.Context) int {
+	role := c.GetInt(ctxkey.Role)
+	if role >= model.RoleRootUser {
+		return 0 // 不限组织
+	}
+	return c.GetInt(ctxkey.OrganizationID)
+}
+
 func GetAllUsers(c *gin.Context) {
 	p, _ := strconv.Atoi(c.Query("p"))
 	if p < 0 {
@@ -359,7 +371,8 @@ func GetAllUsers(c *gin.Context) {
 	}
 
 	order := c.DefaultQuery("order", "")
-	users, err := model.GetAllUsers(p*config.ItemsPerPage, config.ItemsPerPage, order)
+	orgId := getAdminOrgFilter(c)
+	users, err := model.GetAllUsers(p*config.ItemsPerPage, config.ItemsPerPage, order, orgId)
 
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -378,7 +391,8 @@ func GetAllUsers(c *gin.Context) {
 
 func SearchUsers(c *gin.Context) {
 	keyword := c.Query("keyword")
-	users, err := model.SearchUsers(keyword)
+	orgId := getAdminOrgFilter(c)
+	users, err := model.SearchUsers(keyword, orgId)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
@@ -416,6 +430,16 @@ func GetUser(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "无权获取同级或更高等级用户的信息",
+		})
+		return
+	}
+
+	// 非 Root admin 只能看本组织用户
+	orgId := getAdminOrgFilter(c)
+	if orgId > 0 && user.OrganizationID != orgId {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该用户不在您管理的组织中",
 		})
 		return
 	}
@@ -815,6 +839,16 @@ func DeleteUser(c *gin.Context) {
 		})
 		return
 	}
+
+	// 非 Root admin 只能删本组织用户
+	orgId := getAdminOrgFilter(c)
+	if orgId > 0 && originUser.OrganizationID != orgId {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该用户不在您管理的组织中",
+		})
+		return
+	}
 	err = model.DeleteUserById(id)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -882,10 +916,18 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 	// Even for admin users, we cannot fully trust them!
+	// 非 Root admin 创建的用户自动归入本组织
+	userOrgId := 0
+	orgId := getAdminOrgFilter(c)
+	if orgId > 0 {
+		userOrgId = orgId
+	}
+
 	cleanUser := model.User{
-		Username:    user.Username,
-		Password:    user.Password,
-		DisplayName: user.DisplayName,
+		Username:         user.Username,
+		Password:         user.Password,
+		DisplayName:      user.DisplayName,
+		OrganizationID:   userOrgId,
 	}
 	if err := cleanUser.Insert(ctx, 0); err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -936,6 +978,16 @@ func ManageUser(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "无权更新同权限等级或更高权限等级的用户信息",
+		})
+		return
+	}
+
+	// 非 Root admin 只能管理本组织用户
+	orgId := getAdminOrgFilter(c)
+	if orgId > 0 && user.OrganizationID != orgId {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "该用户不在您管理的组织中",
 		})
 		return
 	}
