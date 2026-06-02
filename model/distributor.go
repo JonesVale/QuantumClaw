@@ -1,8 +1,11 @@
 package model
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"gorm.io/gorm"
 )
 
@@ -29,6 +32,47 @@ type DistributorPricingRule struct {
 	ModelName      string  `json:"model_name" gorm:"type:varchar(100);not null"` // * = 所有模型
 	PriceMultiplier float64 `json:"price_multiplier" gorm:"type:decimal(6,4);default:1.0"` // 价格倍率
 	FixedPrice     int64   `json:"fixed_price" gorm:"default:0"`                 // 固定价格（0=不启用）
+}
+
+// BeforeCreate GORM hook: encrypt ApiKey before storing
+func (d *Distributor) BeforeCreate(tx *gorm.DB) error {
+	if d.ApiKey != "" && config.CryptoSecret != "" {
+		key := encrypt.DeriveKey(config.CryptoSecret)
+		encrypted, err := encrypt.Encrypt([]byte(d.ApiKey), key)
+		if err != nil {
+			return fmt.Errorf("encrypt distributor api_key: %w", err)
+		}
+		d.ApiKey = encrypted
+	}
+	return nil
+}
+
+// AfterFind GORM hook: decrypt ApiKey after reading
+func (d *Distributor) AfterFind(tx *gorm.DB) error {
+	if d.ApiKey != "" && config.CryptoSecret != "" {
+		key := encrypt.DeriveKey(config.CryptoSecret)
+		decrypted, err := encrypt.Decrypt(d.ApiKey, key)
+		if err == nil {
+			d.ApiKey = string(decrypted)
+		} else {
+			// Not encrypted yet (plaintext), leave as-is
+			// This handles backward compatibility with existing plaintext keys
+		}
+	}
+	return nil
+}
+
+// BeforeUpdate GORM hook: encrypt ApiKey before updating
+func (d *Distributor) BeforeUpdate(tx *gorm.DB) error {
+	if d.ApiKey != "" && config.CryptoSecret != "" {
+		key := encrypt.DeriveKey(config.CryptoSecret)
+		encrypted, err := encrypt.Encrypt([]byte(d.ApiKey), key)
+		if err != nil {
+			return fmt.Errorf("encrypt distributor api_key on update: %w", err)
+		}
+		d.ApiKey = encrypted
+	}
+	return nil
 }
 
 func InitDistributorTables() {

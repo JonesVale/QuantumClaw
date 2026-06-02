@@ -113,11 +113,12 @@ func LoginRateLimit() gin.HandlerFunc {
 
 		// Check if locked
 		if !attempt.lockedUntil.IsZero() && now.Before(attempt.lockedUntil) {
+			remaining := attempt.lockedUntil.Sub(now).Round(time.Second)
 			attempt.mu.Unlock()
 			unlock()
 			logger.Warn(c.Request.Context(), "rate limited (locked) login: "+lockKey)
 			c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
-				"message":      "连续3次密码错误，账号已锁定24小时。24小时后自动解锁或用紧急重置",
+				"message":      fmt.Sprintf("密码错误次数过多，账号已锁定(剩余%s)。请稍后再试", remaining.String()),
 				"success":      false,
 				"locked":       true,
 				"locked_until": attempt.lockedUntil.Unix(),
@@ -181,9 +182,22 @@ func LoginRateLimit() gin.HandlerFunc {
 			if isFailure {
 				attempt.consecutiveFails++
 				logger.Warn(c.Request.Context(), fmt.Sprintf("login failed (attempt %d): %s", attempt.consecutiveFails, lockKey))
-				if attempt.consecutiveFails >= 3 {
-					attempt.lockedUntil = now.Add(24 * time.Hour)
-					logger.Warn(c.Request.Context(), "login locked (3 consecutive failures, 24h): "+lockKey)
+				// 阶梯锁：对不同的连续失败次数施加不同的锁定时间
+				// 3次→5min  5次→15min  8次→1h  10次+→24h
+				var lockDuration time.Duration
+				switch {
+				case attempt.consecutiveFails >= 10:
+					lockDuration = 24 * time.Hour
+				case attempt.consecutiveFails >= 8:
+					lockDuration = 1 * time.Hour
+				case attempt.consecutiveFails >= 5:
+					lockDuration = 15 * time.Minute
+				case attempt.consecutiveFails >= 3:
+					lockDuration = 5 * time.Minute
+				}
+				if lockDuration > 0 {
+					attempt.lockedUntil = now.Add(lockDuration)
+					logger.Warn(c.Request.Context(), fmt.Sprintf("login locked (%d consecutive fails, %v): %s", attempt.consecutiveFails, lockDuration, lockKey))
 				}
 			} else {
 				// Login success, reset counters

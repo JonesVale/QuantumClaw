@@ -121,33 +121,53 @@ func Logout(c *gin.Context) {
 }
 
 // ValidatePasswordStrength checks password strength and returns an error message if weak
+// 强度要求通过 config.PasswordMinLength / config.PasswordRequireUpper 等配置控制
 func ValidatePasswordStrength(password string) string {
-	if len(password) < 8 {
-		return "密码长度至少8位"
+	if len(password) < config.PasswordMinLength {
+		return fmt.Sprintf("密码长度至少%d位", config.PasswordMinLength)
 	}
-	hasUpper := false
-	hasNumber := false
-	hasSpecial := false
-	for _, c := range password {
-		switch {
-		case c >= 'A' && c <= 'Z':
-			hasUpper = true
-		case c >= 'a' && c <= 'z':
-			// lowercase is acceptable
-		case c >= '0' && c <= '9':
-			hasNumber = true
-		default:
-			hasSpecial = true
+	if config.PasswordRequireUpper {
+		hasUpper := false
+		for _, c := range password {
+			if c >= 'A' && c <= 'Z' {
+				hasUpper = true
+				break
+			}
+		}
+		if !hasUpper {
+			return "密码需要包含大写字母"
 		}
 	}
-	if !hasUpper {
-		return "密码需要包含大写字母"
+	if config.PasswordRequireNumber {
+		hasNumber := false
+		for _, c := range password {
+			if c >= '0' && c <= '9' {
+				hasNumber = true
+				break
+			}
+		}
+		if !hasNumber {
+			return "密码需要包含数字"
+		}
 	}
-	if !hasNumber {
-		return "密码需要包含数字"
-	}
-	if !hasSpecial {
-		return "密码需要包含特殊字符"
+	if config.PasswordRequireSpecial {
+		hasSpecial := false
+		for _, c := range password {
+			if c >= 'a' && c <= 'z' {
+				continue
+			}
+			if c >= 'A' && c <= 'Z' {
+				continue
+			}
+			if c >= '0' && c <= '9' {
+				continue
+			}
+			hasSpecial = true
+			break
+		}
+		if !hasSpecial {
+			return "密码需要包含特殊字符"
+		}
 	}
 	return ""
 }

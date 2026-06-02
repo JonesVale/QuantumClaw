@@ -13,8 +13,8 @@ var (
 	checkinSettingMu sync.RWMutex
 	checkinSetting   = CheckinSetting{
 		Enabled:  true,
-		MinQuota: 1000,  // 约 0.002 USD
-		MaxQuota: 10000, // 约 0.02 USD
+		MinQuota: 10000,  // 约 0.02 USD
+		MaxQuota: 50000, // 约 0.1 USD
 	}
 )
 

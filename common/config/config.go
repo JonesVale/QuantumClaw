@@ -66,6 +66,12 @@ var EmailDomainWhitelist = []string{
 	"foxmail.com",
 }
 
+// PasswordStrength configuration
+var PasswordMinLength = env.Int("PASSWORD_MIN_LENGTH", 6)
+var PasswordRequireUpper = os.Getenv("PASSWORD_REQUIRE_UPPER") != "false"
+var PasswordRequireNumber = os.Getenv("PASSWORD_REQUIRE_NUMBER") != "false"
+var PasswordRequireSpecial = os.Getenv("PASSWORD_REQUIRE_SPECIAL") == "true"
+
 var DebugEnabled = strings.ToLower(os.Getenv("DEBUG")) == "true"
 var DebugSQLEnabled = strings.ToLower(os.Getenv("DEBUG_SQL")) == "true"
 var MemoryCacheEnabled = strings.ToLower(os.Getenv("MEMORY_CACHE_ENABLED")) == "true"

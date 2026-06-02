@@ -41,7 +41,7 @@ const (
 type User struct {
 	Id               int    `json:"id"`
 	Username         string `json:"username" gorm:"unique;index" validate:"max=12"`
-	Password         string `json:"password" gorm:"not null;" validate:"min=8,max=20"`
+	Password         string `json:"password" gorm:"not null;" validate:"min=1,max=64"`
 	DisplayName      string `json:"display_name" gorm:"index" validate:"max=20"`
 	Role             int    `json:"role" gorm:"type:int;default:1"`   // admin, util
 	Status           int    `json:"status" gorm:"type:int;default:1"` // enabled, disabled
@@ -291,7 +291,7 @@ func (user *User) ValidateAndFill() (err error) {
 	}
 	okay := common.ValidatePasswordAndHash(password, user.Password)
 	if !okay {
-		return errors.New("密码错误，请重试（连续3次错误将锁定24小时）")
+		return errors.New("密码错误，请重试（连续3次错误将锁定5分钟）")
 	}
 	return nil
 }
