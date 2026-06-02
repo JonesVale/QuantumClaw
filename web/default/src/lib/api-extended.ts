@@ -143,7 +143,14 @@ export async function updateAllChannelsBalance(): Promise<ApiResponse> {
 }
 
 // 获取所有渠道类型名称映射（动态，避免前端硬编码）
-export async function getChannelTypes(): Promise<Record<string, string>> {
+export interface ChannelTypeDetail {
+  id: number
+  name: string
+  url: string
+  models: string[]
+}
+
+export async function getChannelTypes(): Promise<ChannelTypeDetail[]> {
   const res = await apiClient.get('/api/channel/types')
   return res.data
 }

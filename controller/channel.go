@@ -11,8 +11,46 @@ import (
 	"strings"
 )
 
+// ChannelTypeDetail 渠道类型详细信息（含默认 URL 和可用模型列表）
+type ChannelTypeDetail struct {
+	Id        int      `json:"id"`
+	Name      string   `json:"name"`
+	URL       string   `json:"url"`
+	Models    []string `json:"models,omitempty"`
+}
+
 func GetChannelTypes(c *gin.Context) {
-	c.JSON(http.StatusOK, channeltype.ChannelTypeNames)
+	typeNames := channeltype.ChannelTypeNames
+	baseURLs := channeltype.ChannelBaseURLs
+
+	// 查询 model_metadata 获取各提供商/品牌的模型列表
+	var metadata []model.ModelMetadata
+	model.DB.Select("DISTINCT model_name, provider").Where("languages_type = ?", "English").Find(&metadata)
+
+	modelsByProvider := make(map[string][]string)
+	for _, m := range metadata {
+		if m.Provider != "" && m.ModelName != "" {
+			modelsByProvider[m.Provider] = append(modelsByProvider[m.Provider], m.ModelName)
+		}
+	}
+
+	result := make([]ChannelTypeDetail, 0, len(typeNames))
+	for id, name := range typeNames {
+		detail := ChannelTypeDetail{
+			Id:   id,
+			Name: name,
+		}
+		if id >= 0 && id < len(baseURLs) && baseURLs[id] != "" {
+			detail.URL = baseURLs[id]
+		}
+		// 尝试通过名称匹配 model_metadata 中的 provider
+		if models, ok := modelsByProvider[name]; ok && len(models) > 0 {
+			detail.Models = models
+		}
+		result = append(result, detail)
+	}
+
+	c.JSON(http.StatusOK, result)
 }
 
 // GetChannelProfit 获取渠道利润分析

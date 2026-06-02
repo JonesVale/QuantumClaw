@@ -33,19 +33,25 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
   const { t } = useT()
   const queryClient = useQueryClient()
   const isEdit = !!channel
-  const { data: typeMap } = useQuery({ queryKey: ['channelTypes'], queryFn: getChannelTypes, staleTime: 10 * 60 * 1000 })
-  const typeGroups = useMemo(() => {
-    const map = typeMap || {}
-    const ai: { id: number; name: string }[] = []
-    const quantum: { id: number; name: string }[] = []
-    Object.entries(map).forEach(([idStr, name]) => {
-      const id = Number(idStr)
-      if (id <= 0) return
-      if (id >= 100) quantum.push({ id, name })
-      else ai.push({ id, name })
+  // Channel types with extended info: name, url, models
+  const { data: channelTypes = [] } = useQuery({ queryKey: ['channelTypes'], queryFn: getChannelTypes, staleTime: 10 * 60 * 1000 })
+  const typeList = useMemo(() => {
+    const list = Array.isArray(channelTypes) ? channelTypes : []
+    const ai: { id: number; name: string; url: string; models: string[] }[] = []
+    const quantum: { id: number; name: string; url: string; models: string[] }[] = []
+    list.forEach((t: { id: number; name: string; url: string; models: string[] }) => {
+      if (t.id <= 0) return
+      if (t.id >= 100) quantum.push(t)
+      else ai.push(t)
     })
-    return { ai, quantum }
-  }, [typeMap])
+    return { ai, quantum, all: list }
+  }, [channelTypes])
+
+  // Lookup helper: find type detail by id
+  const findTypeById = (id: number) => typeList.all.find((t: any) => t.id === id) || null
+
+  // Selected models as array (for multi-select)
+  const [selectedModels, setSelectedModels] = useState<string[]>([])
   const [form, setForm] = useState<ChannelFormData>({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, thinking_to_content: false })
   function parseConfig(config?: string): { cache_billing_ratio?: number; thinking_to_content?: boolean } {
     if (!config) return {}
@@ -53,12 +59,32 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
     catch { return {} }
   }
   const prevChannel = useRef(channel)
+  const prevType = useRef(form.type)
+
+  // Auto-fill URL and models when type changes
+  useEffect(() => {
+    if (form.type !== prevType.current && !channel) {
+      const td = findTypeById(form.type)
+      if (td) {
+        setForm(prev => ({
+          ...prev,
+          base_url: td.url || prev.base_url,
+          models: td.models?.join(', ') || prev.models,
+        }))
+        setSelectedModels(td.models || [])
+      }
+      prevType.current = form.type
+    }
+  }, [form.type, channel])
+
   useEffect(() => {
     if (channel && channel !== prevChannel.current) {
       const cfg = parseConfig(channel.config)
       setForm({ type: channel.type || 1, key: '', name: channel.name || '', base_url: channel.base_url || '', models: channel.models || '', group: channel.group || 'default', model_mapping: '', priority: 0, weight: channel.weight || 1, cache_billing_ratio: cfg.cache_billing_ratio ?? 0, cost_per_unit: channel.cost_per_unit || 0, sell_price_rate: channel.sell_price_rate || 1, thinking_to_content: cfg.thinking_to_content ?? false })
+      const td = findTypeById(channel.type)
+      setSelectedModels(td?.models?.filter((m: string) => channel.models?.includes(m)) || [])
     }
-    if (!channel) setForm({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, thinking_to_content: false })
+    if (!channel) { setForm({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, thinking_to_content: false }); setSelectedModels([]) }
     prevChannel.current = channel
   }, [channel])
   const createMutation = useMutation({ mutationFn: createChannel, onSuccess: () => { toast.success(t('Channel created')); queryClient.invalidateQueries({ queryKey: ['channels'] }); onOpenChange(false) }, onError: () => toast.error(t('Failed to create channel')) })
@@ -87,18 +113,35 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-3"><Label>{t('Channel Name')}</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="e.g. OpenAI Official" required /></div>
             <div className="space-y-3"><Label>{t('Channel Type')}</Label>
-              <Select value={String(form.type)} onValueChange={(v) => setForm({ ...form, type: Number(v) })}>
+              <Select value={String(form.type)} onValueChange={(v) => { setForm({ ...form, type: Number(v) }); prevType.current = Number(v) }}>
                 <SelectTrigger><SelectValue placeholder={t('Select type')} /></SelectTrigger>
                 <SelectContent className="max-h-72">
-                  {typeGroups.ai.length > 0 && <><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('AI Models')}</div>{typeGroups.ai.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}</>}
-                  {typeGroups.quantum.length > 0 && <><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t pt-2 mt-1">{t('Quantum Computing')}</div>{typeGroups.quantum.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}</>}
+                  {typeList.ai.length > 0 && <><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('AI Models')}</div>{typeList.ai.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}</>}
+                  {typeList.quantum.length > 0 && <><div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-t pt-2 mt-1">{t('Quantum Computing')}</div>{typeList.quantum.map((t) => <SelectItem key={t.id} value={String(t.id)}>{t.name}</SelectItem>)}</>}
                 </SelectContent>
               </Select>
             </div>
           </div>
           <div className="space-y-3"><Label>{t('API Key')}</Label><Input type="password" value={form.key} onChange={(e) => setForm({ ...form, key: e.target.value })} placeholder={isEdit ? t('Leave empty to keep unchanged') : ''} required={!isEdit} /></div>
-          <div className="space-y-3"><Label>{t('Base URL')}</Label><Input value={form.base_url} onChange={(e) => setForm({ ...form, base_url: e.target.value })} placeholder="https://api.openai.com/v1" /></div>
-          <div className="space-y-3"><Label>{t('Models')}</Label><Input value={form.models} onChange={(e) => setForm({ ...form, models: e.target.value })} placeholder="gpt-4, gpt-3.5-turbo, ..." /></div>
+          <div className="space-y-3"><Label>{t('Base URL')}</Label>
+            <Input value={form.base_url} onChange={(e) => setForm({ ...form, base_url: e.target.value })} placeholder="https://api.openai.com/v1" className={form.base_url ? 'border-qc-amber-300/50' : ''} />
+            {form.base_url && <p className="text-xs text-green-600 flex items-center gap-1"><svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>{t('Auto-filled from channel type')}</p>}
+          </div>
+          <div className="space-y-3"><Label>{t('Models')}</Label>
+            {selectedModels.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5 p-2 min-h-[42px] border rounded-lg bg-muted/10">
+                {selectedModels.map(m => (
+                  <span key={m} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-qc-amber-50 text-qc-amber-700 text-xs font-medium border border-qc-amber-200/50">
+                    {m}
+                    <button type="button" onClick={() => { const next = selectedModels.filter(x => x !== m); setSelectedModels(next); setForm({ ...form, models: next.join(', ') }) }} className="hover:text-red-500">&times;</button>
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <Input value={form.models} onChange={(e) => setForm({ ...form, models: e.target.value })} placeholder="gpt-4, gpt-3.5-turbo, ..." />
+            )}
+            {selectedModels.length > 0 && <p className="text-xs text-muted-foreground mt-1">{t('Click x to remove a model, or type custom models in the input')}</p>}
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-3"><Label>{t('Group')}</Label><Input value={form.group} onChange={(e) => setForm({ ...form, group: e.target.value })} placeholder="default" /></div>
             <div className="space-y-3"><Label>{t('Weight')}</Label><Input type="number" value={form.weight} onChange={(e) => setForm({ ...form, weight: Number(e.target.value) })} min="1" /></div>
