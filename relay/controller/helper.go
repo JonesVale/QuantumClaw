@@ -13,6 +13,8 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/relay/common"
+	"github.com/quantumclaw/quantumclaw/relay/common_handler"
 	"github.com/quantumclaw/quantumclaw/service"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
@@ -52,15 +54,22 @@ func getPromptTokens(textRequest *relaymodel.GeneralOpenAIRequest, relayMode int
 	return 0
 }
 
-// ==================== 现金计费 ====================
+// ==================== 计费优先级链 ====================
+// 优先级：订阅 → CashBalance → Quota
+// （统一入口，替代旧版仅检查 CashBalance 的逻辑）
 
-// preConsumeBalance — 只检查余额，不预扣
+// preConsumeBalance — 预扣前检查，使用优先级链
 func preConsumeBalance(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, *relaymodel.ErrorWithStatusCode) {
-	estimatedPrice, err := service.PreConsumeBalance(ctx, meta, promptTokens, ratio)
-	if err != nil {
-		return estimatedPrice, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
+	// 构建 RelayInfo 供 common_handler 使用
+	relayInfo := &common.RelayInfo{
+		UserID:   meta.UserId,
+		TokenID:  meta.TokenId,
 	}
-	return estimatedPrice, nil
+	preConsumedQuota, _, err := common_handler.PreConsumeBilling(ctx, relayInfo, promptTokens, ratio)
+	if err != nil {
+		return preConsumedQuota, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
+	}
+	return preConsumedQuota, nil
 }
 
 func postConsumeDeduct(ctx context.Context, usage *relaymodel.Usage, meta *meta.Meta, textRequest *relaymodel.GeneralOpenAIRequest, ratio float64, preConsumedQuota int64, modelRatio float64, groupRatio float64, systemPromptReset bool) {
