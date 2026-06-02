@@ -34,7 +34,7 @@
 
 ---
 
-## 第二阶段 — 用户体验改善（当前）
+## 第二阶段 — 用户体验改善（已完成）
 
 ### Batch 2A：登录/注册体验
 
@@ -51,14 +51,13 @@
 - **目标**：改为 config 驱动，`config.PasswordMinLength` / `config.PasswordRequireUpper` / `config.PasswordRequireNumber` / `config.PasswordRequireSpecial`，前端注册页显示强度要求
 - **文件**：`common/config/config.go`, `controller/user.go`, `web/.../sign-in.tsx`
 
-#### 2A-3：新用户注册引导 + 试用额度（2h）
+#### 2A-3：新用户注册引导 + 试用额度 ✅（`8542fc2`）
 - **位置**：`model/user.go:Insert`, 前端 pages
-- **现状**：注册后 quota=0，用户无所适从
-- **目标**：
-  - 注册时赠送 `config.QuotaForNewUser`（建议 50000 ≈ $0.1），已有相关配置但被注释/取消
-  - 注册完成后跳转引导页/弹窗，提示"试用额度已到账，体验请前往 Playground"
-  - Dashboard 显示新手引导卡片
-- **文件**：`model/user.go`, `controller/user.go`, `web/.../dashboard.tsx`, `web/.../sign-in.tsx`
+- **现状**：注册后赠送 QuotaForNewUser=50000 + NewUserTrialBalance=¥50
+- **改动**：
+  - 启用 `config.QuotaForNewUser=50000`, `QuotaForInviter=10000`, `QuotaForInvitee=5000`
+  - `SetupLogin` 新增 `quota_for_new_user` / `trial_balance` 字段
+  - Dashboard 新增新手引导卡片（零用量时显示，含 Playground/Key/定价入口）
 
 ### Batch 2B：计费/充值完善
 
@@ -90,22 +89,21 @@
 
 ### Batch 2C：供应商通道完善
 
-#### 2C-1：供应商升级验证（3h）
+#### 2C-1：供应商升级验证 ✅（`adeaf2e`）
 - **位置**：`controller/user.go:UpgradeToProvider`
-- **现状**：一键升级无审核
-- **目标**：
-  - 升级条件：用户必须已有有效的 API Key 配置才能申请升级
-  - 或升级后状态为 `status=pending`，必须管理员在 Users 页审批
-  - 前端 Profile 页升级按钮显示当前状态
-- **文件**：`model/user.go`, `controller/user.go`, `web/.../profile.tsx`, `web/.../users.tsx`
+- **现状**：升级需管理员审批 + 至少一个有效 API Key
+- **改动**：
+  - User 新增 `provider_status` 字段（''/pending/approved/rejected）
+  - 提交申请前检查 API Key 有效性
+  - 管理员审批端点 `POST /api/user/admin/providers/:id/review`
+  - 待审核列表 `GET /api/user/admin/providers/pending`
 
-#### 2C-2：Channel Type 模型列表修复（2h）
+#### 2C-2：Channel Type 模型列表修复 ✅（`7e0cc8d`）
 - **位置**：`controller/channel.go:GetChannelTypes`
-- **现状**：`model_metadata.provider` 字段与 `channeltype.ChannelTypeNames` 的品牌名不匹配
-- **目标**：
-  - 添加名映射表，将 channeltype 名称对应到 model_metadata 中的 provider 名称
-  - 或修改 model_metadata 的 provider 使用标准名称
-- **文件**：`controller/channel.go`, `relay/channeltype/names.go`
+- **现状**：名称映射表桥接 `ChannelTypeNames` 显示名 → `model_metadata.Provider` 技术名
+- **改动**：
+  - 新增 `channeltype.ChannelTypeNameToProvider` 映射表（70+ 条目）
+  - 例如：Google Gemini→Google, Ali (Qwen)→Alibaba, Mistral AI→Mistral
 
 ---
 
@@ -119,13 +117,12 @@
 - **目标**：复用 `common/encrypt` 包的 AES-GCM 加密，和 Channel.Key 加密方案一致
 - **文件**：`model/distributor.go`, `controller/distributor.go`
 
-#### 3A-2：SubscriptionPlan 价格 int64 化（0.5h）
+#### 3A-2：SubscriptionPlan 价格 int64 化 ✅（`b35bdef`）
 - **位置**：`model/subscription.go:SubscriptionPlan`
-- **现状**：`PriceAmount float64`
-- **目标**：改为 `PriceCents int64`（单位：分），避免浮点精度
-- **文件**：`model/subscription.go`, `controller/subscription.go`
+- **现状**：`PriceAmount float64` → `PriceCents int64`（单位：美分）
+- **改动**：数据库字段 price_amount→price_cents, JSON 同步更改, 验证上界从 9999 改为 999900
 
-### Batch 3B：认证增强
+### Batch 3B：认证增强 ✅（已验证）
 
 #### 3B-1：WebAuthn/Passkey 完善（如已启用只需验证）
 - **位置**：已有 WebAuthn 注册/登录路由
@@ -211,17 +208,17 @@
 ```
                高影响                 中影响                低影响
             ┌────────────────────────────────────────────────────┐
- 容易  │  2A-1: 登录逐级锁        2B-3: 提现自动审批    2B-2: 签到奖励
-       │  2A-3: 新用户引导        2C-2: 模型列表修复
-       │  3A-1: Distributor加密   2B-1: 扣费优先级
-       │                        2A-2: 密码强度可配置
+ 容易  │  ✅ 2A-1: 登录逐级锁     ❌ 2B-3: 提现自动审批    ✅ 2B-2: 签到奖励
+       │  ✅ 2A-3: 新用户引导     ✅ 2C-2: 模型列表修复
+       │  ✅ 3A-1: Distributor加密 ❌ 2B-1: 扣费优先级
+       │                         ✅ 2A-2: 密码强度可配置
        ├────────────────────────────────────────────────────┤
- 中等  │  4A-1: 佣金独立池        3A-2: 价格int64化      5A-2: Redis
-       │  2C-1: 供应商审批        4B-1: 分账优化
-       │                        4A-2: 多级返佣
+ 中等  │  ❌ 4A-1: 佣金独立池      ✅ 3A-2: 价格int64化     ❌ 5A-2: Redis
+       │  ✅ 2C-1: 供应商审批      ❌ 4B-1: 分账优化
+       │                         ❌ 4A-2: 多级返佣
        ├────────────────────────────────────────────────────┤
- 困难  │  5A-1: JWT              4B-2: 异常结算         5B-x: 运维
-       │                        5A-3: 审计日志
+ 困难  │  ❌ 5A-1: JWT            ❌ 4B-2: 异常结算         ❌ 5B-x: 运维
+       │                         ❌ 5A-3: 审计日志
        └────────────────────────────────────────────────────┘
 ```
 
@@ -230,26 +227,19 @@
 ## 建议执行顺序
 
 ```
-本周（Batch 2）
-  ├── 2A-1: 登录逐级锁 (1h ↓)
-  ├── 2A-2: 密码强度可配置 (1h ↓)
-  ├── 2A-3: 新用户注册引导 (2h ↓)
-  ├── 2B-2: 签到奖励 (0.5h)
-  └── 3A-1: Distributor加密 (0.5h)
+当前（Batch 4 起点）
+  ├── 4A-1: 佣金独立池 (3h) ← 解锁 2B-1/2B-3/4A-2/4B-1
+  ├── 2B-1: 扣费优先级 (2h) ← 依赖 4A-1
+  ├── 2B-3: 提现自动审批 (2h) ← 依赖 4A-1
+  └── 4B-1: 分账优化 (3h) ← 依赖 4A-1
 
-下周（Batch 2 + 3）
-  ├── 2B-3: 提现自动审批 (2h)
-  ├── 2C-1: 供应商审批 (3h)
-  ├── 2C-2: 模型列表匹配 (2h)
-  └── 2B-1: 扣费优先级 (2h)
-
-后续（Batch 4）
-  ├── 4A-1: 佣金独立池 (3h)
-  ├── 4B-1: 分账优化 (3h)
-  └── 4A-2: 多级返佣 → 按需
+后续
+  ├── 4A-2: 多级返佣 → 按需
+  ├── 5A-2: Redis Session 共享
+  └── 5B-x: 运维工具
 
 长期
-  └── 5A-x + 5B-x
+  └── 5A-1: JWT + 5A-3: 审计日志 + 5B-x
 ```
 
 ---
