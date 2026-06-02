@@ -184,6 +184,20 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 	rawToken := random.GetUUID()
 	user.AccessToken = common.SHA256Hash(rawToken)
 	user.AffCode = random.GetRandomString(4)
+
+	// 为空的 email/phone/qq 生成唯一占位符
+	// 避免 GORM uniqueIndex 空字符串冲突
+	prefix := common.SHA256Hash(rawToken + "_salt_")[:12]
+	if user.Email == "" {
+		user.Email = prefix + "@placeholder.local"
+	}
+	if user.Phone == "" {
+		user.Phone = "ph_" + prefix
+	}
+	if user.QQ == "" {
+		user.QQ = "qq_" + prefix
+	}
+
 	result := DB.Create(user)
 	if result.Error != nil {
 		return result.Error

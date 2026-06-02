@@ -53,6 +53,9 @@ func CreateRootAccountIfNeed() error {
 			Role:        RoleRootUser,
 			Status:      UserStatusEnabled,
 			DisplayName: "Root User",
+			Email:       "admin@quantumclaw.local",
+			Phone:       "+8600000000",
+			QQ:          "00000",
 			AccessToken: common.SHA256Hash(accessToken),
 			Quota:       500000000000000,
 			CashBalance: 500000000000000,
@@ -91,6 +94,19 @@ func CreateRootAccountIfNeed() error {
 				newAffCode := random.GetRandomString(4)
 				DB.Model(&firstAdmin).Update("aff_code", newAffCode)
 				logger.SysLogf("root aff_code self-healed: generated %s for %s", newAffCode, firstAdmin.Username)
+			}
+			// Self-healing: set email/phone/qq if empty (prevents UNIQUE constraint conflict)
+			if firstAdmin.Email == "" {
+				DB.Model(&firstAdmin).Update("email", "admin@quantumclaw.local")
+				logger.SysLogf("root email self-healed: set to admin@quantumclaw.local for %s", firstAdmin.Username)
+			}
+			if firstAdmin.Phone == "" {
+				DB.Model(&firstAdmin).Update("phone", "+8600000000")
+				logger.SysLogf("root phone self-healed for %s", firstAdmin.Username)
+			}
+			if firstAdmin.QQ == "" {
+				DB.Model(&firstAdmin).Update("qq", "00000")
+				logger.SysLogf("root qq self-healed for %s", firstAdmin.Username)
 			}
 		}
 	}
