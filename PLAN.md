@@ -89,14 +89,14 @@
 
 ### Batch 2C：供应商通道完善
 
-#### 2C-1：供应商升级验证 ✅（`adeaf2e`）
+#### 2C-1：供应商升级验证 ✅（已修正）
 - **位置**：`controller/user.go:UpgradeToProvider`
-- **现状**：升级需管理员审批 + 至少一个有效 API Key
+- **现状**：用户添加至少一个 API 渠道后即可立即升级为供应商（无需审核）
+- **身份审核**：提现时检查 `IdentityVerified` 字段，必须完成实名认证才能提现
 - **改动**：
-  - User 新增 `provider_status` 字段（''/pending/approved/rejected）
-  - 提交申请前检查 API Key 有效性
-  - 管理员审批端点 `POST /api/user/admin/providers/:id/review`
-  - 待审核列表 `GET /api/user/admin/providers/pending`
+  - 升级仅检查是否有 Channel（不检查 Token/API Key）
+  - 直接设置 `user_type=provider`, `role=supplier`，即时生效
+  - 提现前强制身份信息审核（见 `withdrawal.go`）
 
 #### 2C-2：Channel Type 模型列表修复 ✅（`7e0cc8d`）
 - **位置**：`controller/channel.go:GetChannelTypes`

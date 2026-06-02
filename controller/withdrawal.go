@@ -28,6 +28,20 @@ func SubmitWithdrawal(c *gin.Context) {
 
 	userId := c.GetInt("id")
 
+	// 0. 身份信息审核 — 提现前必须完成实名认证
+	user, err := model.GetUserById(userId, false)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户不存在"})
+		return
+	}
+	if !user.IdentityVerified {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "请先完成实名认证后再申请提现。请在「个人资料」中提交身份信息",
+		})
+		return
+	}
+
 	// 1. 检查可提现金额
 	available, err := model.GetUserWithdrawableBalance(userId)
 	if err != nil {

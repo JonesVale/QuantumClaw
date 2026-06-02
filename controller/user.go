@@ -14,7 +14,6 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
-	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/common/i18n"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/random"
@@ -102,7 +101,6 @@ func SetupLogin(user *model.User, c *gin.Context) {
 			"unread_count":     unreadCount,
 			"quota_for_new_user": user.Quota > 0,
 			"trial_balance":    user.CashBalance,
-			"provider_status":  user.ProviderStatus,
 		},
 	})
 }
@@ -1206,6 +1204,8 @@ func AdminTopUp(c *gin.Context) {
 }
 
 // UpgradeToProvider 升级为渠道商
+// 用户配置好 API 渠道后即可直接升级，无需管理员审批
+// 提现时才需要身份信息审核（见 withdrawal.go）
 func UpgradeToProvider(c *gin.Context) {
 	userId := c.GetInt("id")
 
@@ -1219,32 +1219,29 @@ func UpgradeToProvider(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "已是渠道商，无需重复升级"})
 		return
 	}
-	if user.ProviderStatus == "pending" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "您的渠道商申请正在审核中，请耐心等待"})
+
+	// 检查用户是否有至少一个 API 渠道
+	var channelCount int64
+	model.DB.Model(&model.Channel{}).Where("user_id = ?", userId).Count(&channelCount)
+	if channelCount == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先在「渠道管理」中添加至少一个 API 渠道后再升级为渠道商"})
 		return
 	}
 
-	// 检查用户是否有至少一个有效的 API Key（非过期）
-	var keyCount int64
-	model.DB.Model(&model.Token{}).Where("user_id = ? AND expired_time > ?", userId, helper.GetTimestamp()).Count(&keyCount)
-	if keyCount == 0 {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先创建至少一个 API Key 后再申请升级为渠道商"})
-		return
-	}
-
-	// 提交升级申请（状态设为 pending，需管理员审批）
+	// 立即升级为渠道商（无需审核）
 	if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
 		Updates(map[string]interface{}{
-			"provider_status": "pending",
+			"user_type": model.UserTypeProvider,
+			"role":      model.RoleSupplier,
 		}).Error; err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "提交失败"})
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "升级失败"})
 		return
 	}
 
-	model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "用户提交渠道商升级申请")
+	model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "用户升级为渠道商")
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
-		"message": "升级申请已提交，请等待管理员审核",
+		"message": "升级成功，您现在可以管理 API 渠道了",
 	})
 }
 
@@ -1289,65 +1286,3 @@ func GetMyTeam(c *gin.Context) {
 		"data":    result,
 	})
 }
-
-// AdminReviewProviderUpgrade 管理员审核渠道商升级申请（approve/reject）
-func AdminReviewProviderUpgrade(c *gin.Context) {
-	userId, _ := strconv.Atoi(c.Param("id"))
-	if userId <= 0 {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "无效的用户ID"})
-		return
-	}
-	var req struct {
-		Action string `json:"action"`
-	}
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "参数错误"})
-		return
-	}
-	if req.Action != "approve" && req.Action != "reject" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "action 必须为 approve 或 reject"})
-		return
-	}
-	user, err := model.GetUserById(userId, false)
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户不存在"})
-		return
-	}
-	if user.ProviderStatus != "pending" {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "该用户没有待审核的升级申请"})
-		return
-	}
-	if req.Action == "approve" {
-		if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
-			Updates(map[string]interface{}{
-				"provider_status": "approved",
-				"user_type":       model.UserTypeProvider,
-				"role":            model.RoleSupplier,
-			}).Error; err != nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "审批失败"})
-			return
-		}
-		model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "管理员已批准渠道商升级申请")
-		c.JSON(http.StatusOK, gin.H{"success": true, "message": "已批准升级申请"})
-	} else {
-		if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
-			Update("provider_status", "rejected").Error; err != nil {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "操作失败"})
-			return
-		}
-		model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "管理员已拒绝渠道商升级申请")
-		c.JSON(http.StatusOK, gin.H{"success": true, "message": "已拒绝升级申请"})
-	}
-}
-
-// AdminListPendingProviders 管理员查看所有渠道商申请状态
-func AdminListPendingProviders(c *gin.Context) {
-	var users []model.User
-	if err := model.DB.Where("provider_status IN ?", []string{"pending", "approved"}).
-		Select("id, username, display_name, email, user_type, provider_status, created_at, request_count").
-		Order("id desc").Find(&users).Error; err != nil {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": users})
-} 
