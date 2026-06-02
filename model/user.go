@@ -190,12 +190,7 @@ func (user *User) Insert(ctx context.Context, inviterId int) error {
 			RecordLog(ctx, inviterId, LogTypeSystem, fmt.Sprintf("邀请用户赠送 %s", common.LogQuota(config.QuotaForInviter)))
 		}
 	}
-	// 赠送新用户试用金
-	trialBalance := GetTrialBalanceFromConfig()
-	if trialBalance > 0 {
-		user.CashBalance = trialBalance
-		RecordLog(ctx, user.Id, LogTypeSystem, fmt.Sprintf("新用户注册赠送试用金 %d 分", trialBalance))
-	}
+	// 试用金已移除：注册后必须购买才能使用
 	// create default token (有限额度，不再 Unlimited)
 	cleanToken := Token{
 		UserId:         user.Id,

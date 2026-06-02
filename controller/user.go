@@ -316,23 +316,6 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	// 自动创建默认 API Key
-	now := helper.GetTimestamp()
-	apiKey := random.GenerateKey()
-	defaultToken := model.Token{
-		UserId:         cleanUser.Id,
-		Name:           "Default Key",
-		Key:            apiKey,
-		CreatedTime:    now,
-		AccessedTime:   now,
-		ExpiredTime:    -1,
-		RemainQuota:    0,
-		UnlimitedQuota: true,
-	}
-	if err := defaultToken.Insert(); err != nil {
-		logger.SysError("failed to create default token for user " + strconv.Itoa(cleanUser.Id) + ": " + err.Error())
-	}
-
 	// 自动发放邀请注册奖励 + 绑定推广关系
 	if inviterId > 0 {
 		setting, _ := model.GetCommissionSetting()
@@ -366,20 +349,8 @@ func Register(c *gin.Context) {
 		}
 	}
 
-	trialBalance := model.GetTrialBalanceFromConfig()
-	if trialBalance > 0 {
-		c.JSON(http.StatusOK, gin.H{
-			"success":       true,
-			"message":       "",
-			"trial_balance": trialBalance,
-		})
-	} else {
-		c.JSON(http.StatusOK, gin.H{
-			"success": true,
-			"message": "",
-		})
-	}
-	return
+	// 注册成功后自动登录
+	SetupLogin(&cleanUser, c)
 }
 
 func GetAllUsers(c *gin.Context) {
