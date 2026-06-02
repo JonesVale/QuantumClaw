@@ -77,22 +77,41 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 		priceCents = 1
 	}
 
-	// 4. 扣消费者余额
+	// 4. 扣消费者余额（三级优先：现金→佣金→配额）
 	balance, err := model.GetUserCashBalance(meta.UserId)
 	if err != nil {
 		return fmt.Errorf("get user balance: %w", err)
 	}
-	if balance < priceCents {
-		return fmt.Errorf("user %d balance %d < price %d", meta.UserId, balance, priceCents)
-	}
-	if err := model.MinusUserCashBalance(meta.UserId, priceCents); err != nil {
-		return fmt.Errorf("deduct user %d balance: %w", meta.UserId, err)
+	if balance >= priceCents {
+		// Tier 1: 现金余额扣款
+		if err := model.MinusUserCashBalance(meta.UserId, priceCents); err != nil {
+			return fmt.Errorf("deduct user %d balance: %w", meta.UserId, err)
+		}
+	} else {
+		// Tier 2: 佣金余额（推广奖励积分，可消费）
+		commBalance, err := model.GetUserCommissionBalance(meta.UserId)
+		if err == nil && commBalance >= priceCents {
+			if err := model.MinusUserCommissionBalance(meta.UserId, priceCents); err != nil {
+				return fmt.Errorf("deduct user %d commission: %w", meta.UserId, err)
+			}
+		} else {
+			// Tier 3: 配额回退
+			if balance > 0 {
+				// 现金有部分但不够，先扣完现金，剩下扣配额
+				remaining := priceCents - balance
+				model.MinusUserCashBalance(meta.UserId, balance)
+				model.DecreaseUserQuota(meta.UserId, remaining)
+			} else {
+				if err := model.DecreaseUserQuota(meta.UserId, priceCents); err != nil {
+					return fmt.Errorf("deduct user %d quota: %w", meta.UserId, err)
+				}
+			}
+		}
 	}
 
 	// 5. 记余额流水
-	newBalance := balance - priceCents
 	remark := fmt.Sprintf("模型:%s 配额:%d 价格:%d分", textRequest.Model, quota, priceCents)
-	if err := model.CreateBalanceLog(meta.UserId, model.BalanceLogTypeConsume, -priceCents, newBalance, meta.ChannelId, remark); err != nil {
+	if err := model.CreateBalanceLog(meta.UserId, model.BalanceLogTypeConsume, -priceCents, balance-priceCents, meta.ChannelId, remark); err != nil {
 		logger.Error(ctx, fmt.Sprintf("create balance log: %v", err))
 	}
 

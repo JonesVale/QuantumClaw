@@ -597,3 +597,23 @@ func MinusUserCashBalance(id int, amount int64) error {
 	}
 	return DB.Model(&User{}).Where("id = ?", id).Update("cash_balance", gorm.Expr("cash_balance - ?", amount)).Error
 }
+
+func GetUserCommissionBalance(id int) (int64, error) {
+	var balance int64
+	err := DB.Model(&User{}).Where("id = ?", id).Select("commission_balance").Find(&balance).Error
+	return balance, err
+}
+
+func PlusUserCommissionBalance(id int, amount int64) error {
+	if amount < 0 {
+		return errors.New("amount 不能为负数")
+	}
+	return DB.Model(&User{}).Where("id = ?", id).Update("commission_balance", gorm.Expr("commission_balance + ?", amount)).Error
+}
+
+func MinusUserCommissionBalance(id int, amount int64) error {
+	if amount < 0 {
+		return errors.New("amount 不能为负数")
+	}
+	return DB.Model(&User{}).Where("id = ?", id).Update("commission_balance", gorm.Expr("commission_balance - ?", amount)).Error
+}
