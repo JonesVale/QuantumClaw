@@ -200,7 +200,9 @@ function ProfitPage() {
                       <TableCell className="font-medium">{item.name}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className={item.type >= 100 ? 'border-purple-300 text-purple-700' : ''}>
-                          {typeMap?.[String(item.type)] || `T${item.type}`}
+                          {Array.isArray(typeMap)
+                            ? (typeMap as { id: number; name: string }[]).find(t => t.id === item.type)?.name || `T${item.type}`
+                            : `T${item.type}`}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono text-sm">{item.cost_per_unit.toFixed(4)}</TableCell>

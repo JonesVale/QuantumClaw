@@ -62,14 +62,13 @@ function ResellerKeysPage() {
   })
 
   const typeGroups = useMemo(() => {
-    const map = (typeMap || {}) as Record<string, string>
+    const list = Array.isArray(typeMap) ? (typeMap as { id: number; name: string; url: string; models: string[] }[]) : []
     const ai: { id: number; name: string }[] = []
     const quantum: { id: number; name: string }[] = []
-    Object.entries(map).forEach(([idStr, name]) => {
-      const id = Number(idStr)
-      if (id <= 0) return
-      if (id >= 100) quantum.push({ id, name })
-      else ai.push({ id, name })
+    list.forEach((t) => {
+      if (t.id <= 0) return
+      if (t.id >= 100) quantum.push({ id: t.id, name: t.name })
+      else ai.push({ id: t.id, name: t.name })
     })
     return { ai, quantum }
   }, [typeMap])
@@ -142,7 +141,9 @@ function ResellerKeysPage() {
         <tbody>
           {channels.map((ch) => {
             const st = statusMap[ch.status] || { label: ch.status.toString(), variant: 'secondary' as const, icon: <WifiOff className="w-3 h-3" /> }
-            const typeName = (typeMap as Record<string, string>)?.[String(ch.type)] || `Type ${ch.type}`
+            const typeName = Array.isArray(typeMap)
+              ? (typeMap.find((t: { id: number }) => t.id === ch.type) as { name?: string })?.name || `Type ${ch.type}`
+              : `Type ${ch.type}`
             const isQuantum = ch.type >= 100
             return (
               <tr key={ch.id} className="border-b border-muted/50 hover:bg-muted/30">

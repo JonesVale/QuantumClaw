@@ -22,7 +22,7 @@ interface TaskLog {
 interface TaskResponse extends ApiResponse<TaskLog[]> {}
 
 async function getTaskLogs(): Promise<TaskResponse> {
-  const res = await apiClient.get('/api/task/log')
+  const res = await apiClient.get('/api/task/')
   return res.data
 }
 

@@ -2,7 +2,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Key, EyeOff, Eye, Check, X } from 'lucide-react'
+import { Save, RefreshCw, Key, EyeOff, Eye, Check, X, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -93,6 +93,62 @@ function PlatformSettingsPage() {
           {t('Save All')}
         </Button>
       </div>
+
+      {/* ── Basic Platform Settings ── */}
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Settings className="w-4 h-4 text-amber-500" />
+            {t('platform_basic')}
+          </CardTitle>
+          <CardDescription>{t('platform_basic_desc')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-1.5">
+            <Label>{t('server_address')}</Label>
+            <Input
+              value={form['server_address'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, server_address: e.target.value }))}
+              placeholder="https://your-domain.com"
+            />
+            <p className="text-xs text-muted-foreground">{t('server_address_hint')}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('system_name')}</Label>
+            <Input
+              value={form['system_name'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, system_name: e.target.value }))}
+              placeholder="QuantumClaw"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('footer_html')}</Label>
+            <textarea
+              className="flex min-h-[80px] w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              value={form['footer_html'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, footer_html: e.target.value }))}
+              placeholder={'<a href="/about">About</a> | &copy; 2026'}
+            />
+            <p className="text-xs text-muted-foreground">{t('footer_html_hint')}</p>
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('logo_url')}</Label>
+            <Input
+              value={form['logo'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, logo: e.target.value }))}
+              placeholder="/logo.webp"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label>{t('top_up_link')}</Label>
+            <Input
+              value={form['top_up_link'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, top_up_link: e.target.value }))}
+              placeholder="/topup"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* ── Free Chat API Keys ── */}
       <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">

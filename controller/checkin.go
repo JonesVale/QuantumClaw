@@ -72,5 +72,33 @@ func DoCheckin(c *gin.Context) {
 
 // GetCheckinHistory 获取签到历史记录
 func GetCheckinHistory(c *gin.Context) {
-	GetCheckinStatus(c)
+	userId := c.GetInt("id")
+	month := c.DefaultQuery("month", time.Now().Format("2006-01"))
+	startDate := month + "-01"
+	endDate := month + "-31"
+
+	records, err := model.GetUserCheckinRecords(userId, startDate, endDate)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": err.Error(),
+		})
+		return
+	}
+
+	result := make([]gin.H, 0, len(records))
+	for _, r := range records {
+		result = append(result, gin.H{
+			"id":         r.Id,
+			"user_id":    r.UserId,
+			"date":       r.CheckinDate,
+			"amount":     r.QuotaAwarded,
+			"created_at": r.CreatedAt,
+		})
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    result,
+	})
 }

@@ -57,7 +57,7 @@ function ProfilePage() {
   useQuery({
     queryKey: ['webauthn-credentials'],
     queryFn: async () => {
-      const res = await fetch('/api/webauthn/credentials', { headers: { 'Cache-Control': 'no-store' } })
+      const res = await fetch('/api/user/self/webauthn/credentials', { headers: { 'Cache-Control': 'no-store' } })
       if (!res.ok) return []
       const data = await res.json()
       setPasskeys(data?.data || [])
@@ -493,7 +493,7 @@ function ProfilePage() {
                       size="icon"
                       className="h-7 w-7 shrink-0 text-destructive hover:text-destructive"
                       onClick={async () => {
-                        const res = await fetch(`/api/webauthn/credentials/${pk.id}`, {
+                        const res = await fetch(`/api/user/self/webauthn/credentials/${pk.id}`, {
                           method: 'DELETE',
                         })
                         const data = await res.json()

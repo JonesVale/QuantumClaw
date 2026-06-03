@@ -78,12 +78,19 @@ function CheckinPage() {
   const status = statusData?.data
   const history: CheckinRecord[] = historyData?.data || []
 
-  const canCheckin = !status?.checkin
-  const consecutiveDays = status?.consecutive_days || 0
-  const totalReward = status?.total_reward || 0
-  const lastCheckinTime = status?.last_checkin_time
-    ? new Date(status.last_checkin_time * 1000)
-    : null
+  // 签到 API 返回格式: data.stats = { checked_in_today, total_quota, checkin_count, ... }
+  // data.enabled, data.min_quota, data.max_quota
+  const checkinStats = status?.stats as {
+    checked_in_today?: boolean
+    total_quota?: number
+    total_checkins?: number
+    checkin_count?: number
+  } | undefined
+
+  const canCheckin = status?.enabled && !checkinStats?.checked_in_today
+  const totalReward = checkinStats?.total_quota || 0
+  const consecutiveDays = checkinStats?.checkin_count || 0
+  const lastCheckinTime = null // Not available from current API
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp * 1000).toLocaleDateString()

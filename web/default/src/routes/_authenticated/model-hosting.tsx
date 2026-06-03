@@ -36,7 +36,7 @@ function ModelHostingPage() {
 
   const loadNodes = () => {
     setLoading(true)
-    fetch('/api/user/inference-nodes')
+    fetch('/api/user/self/inference-nodes')
       .then(r => r.json())
       .then(d => { if (d.success) setNodes(d.data); setLoading(false) })
       .catch(() => setLoading(false))
@@ -44,7 +44,7 @@ function ModelHostingPage() {
 
   const addNode = async () => {
     if (!name.trim() || !baseURL.trim()) return
-    const r = await fetch('/api/user/inference-nodes', {
+    const r = await fetch('/api/user/self/inference-nodes', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name: name.trim(), node_type: nodeType, base_url: baseURL.trim(), api_key: apiKey }),
@@ -59,7 +59,7 @@ function ModelHostingPage() {
   }
 
   const deleteNode = async (id: number) => {
-    const r = await fetch(`/api/user/inference-nodes/${id}`, { method: 'DELETE' })
+    const r = await fetch(`/api/user/self/inference-nodes/${id}`, { method: 'DELETE' })
     const d = await r.json()
     if (d.success) loadNodes()
     else setMessage(d.message || 'Error')
@@ -67,7 +67,7 @@ function ModelHostingPage() {
 
   const testNode = async (id: number) => {
     setTesting(id)
-    const r = await fetch(`/api/user/inference-nodes/${id}/test`, { method: 'POST' })
+    const r = await fetch(`/api/user/self/inference-nodes/${id}/test`, { method: 'POST' })
     const d = await r.json()
     if (d.success) {
       setMessage(`✅ ${d.data.count} models discovered`)

@@ -29,7 +29,7 @@ function FeedbackPage() {
   useEffect(() => { loadHistory() }, [page])
 
   const loadHistory = () => {
-    fetch(`/api/user/feedback?page=${page}&page_size=${pageSize}`)
+    fetch(`/api/user/self/feedback?page=${page}&page_size=${pageSize}`)
       .then(r => r.json())
       .then(d => { if (d.success) { setHistory(d.data); setTotal(d.total) } })
       .catch(() => {})
@@ -40,7 +40,7 @@ function FeedbackPage() {
     setSubmitting(true)
     setMessage('')
     try {
-      const r = await fetch('/api/user/feedback', {
+      const r = await fetch('/api/user/self/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: title.trim(), content: content.trim(), type, email }),

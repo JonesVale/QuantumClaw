@@ -10,31 +10,32 @@ import { type ApiResponse } from '@/lib/api-extended'
 
 interface BillingRecord {
   id: number
-  type: string
   amount: number
-  currency: string
+  action: string
   status: string
-  description: string
+  remark: string
   created_at: number
 }
 
 interface BillingStats {
-  total_income: number
-  total_expense: number
-  balance: number
-  pending_amount: number
+  total_quota: number
+  used_quota: number
+  remain_quota: number
+  request_count: number
+  display_in_currency: boolean
+  quota_per_unit: number
 }
 
 interface BillingStatsResponse extends ApiResponse<BillingStats> {}
 interface BillingRecordsResponse extends ApiResponse<BillingRecord[]> {}
 
 async function getBillingStats(): Promise<BillingStatsResponse> {
-  const res = await apiClient.get('/api/billing/stats')
+  const res = await apiClient.get('/api/user/self/billing/stats')
   return res.data
 }
 
 async function getBillingRecords(): Promise<BillingRecordsResponse> {
-  const res = await apiClient.get('/api/billing/records')
+  const res = await apiClient.get('/api/user/self/billing/records')
   return res.data
 }
 
@@ -58,13 +59,23 @@ function BillingPage() {
   })
 
   const stats: BillingStats = statsData?.data || {
-    total_income: 0,
-    total_expense: 0,
-    balance: 0,
-    pending_amount: 0,
+    total_quota: 0,
+    used_quota: 0,
+    remain_quota: 0,
+    request_count: 0,
+    display_in_currency: false,
+    quota_per_unit: 500000,
   }
 
   const records: BillingRecord[] = recordsData?.data || []
+
+  // 如果开启了货币显示，将配额转换为金额
+  const fmtQuota = (q: number) => {
+    if (stats.display_in_currency && stats.quota_per_unit > 0) {
+      return '$' + (q / stats.quota_per_unit).toFixed(2)
+    }
+    return q.toLocaleString()
+  }
 
   const getTypeText = (type: string) => {
     const typeMap: Record<string, string> = {
@@ -107,8 +118,8 @@ function BillingPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('Balance')}</p>
-                <p className="text-2xl font-bold mt-1">${stats.balance.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">{t('Remaining Quota')}</p>
+                <p className="text-2xl font-bold mt-1">{fmtQuota(stats.remain_quota)}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
                 <DollarSign className="h-5 w-5 text-blue-600" />
@@ -121,8 +132,8 @@ function BillingPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('Total Income')}</p>
-                <p className="text-2xl font-bold mt-1 text-green-600">+${stats.total_income.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">{t('Total Quota')}</p>
+                <p className="text-2xl font-bold mt-1 text-green-600">{fmtQuota(stats.total_quota)}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
                 <TrendingUp className="h-5 w-5 text-green-600" />
@@ -135,8 +146,8 @@ function BillingPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('Total Expense')}</p>
-                <p className="text-2xl font-bold mt-1 text-red-600">-${stats.total_expense.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">{t('Used Quota')}</p>
+                <p className="text-2xl font-bold mt-1 text-red-600">{fmtQuota(stats.used_quota)}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center">
                 <TrendingDown className="h-5 w-5 text-red-600" />
@@ -149,8 +160,8 @@ function BillingPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">{t('Pending')}</p>
-                <p className="text-2xl font-bold mt-1 text-yellow-600">${stats.pending_amount.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">{t('Requests')}</p>
+                <p className="text-2xl font-bold mt-1 text-yellow-600">{stats.request_count.toLocaleString()}</p>
               </div>
               <div className="w-10 h-10 rounded-full bg-yellow-50 flex items-center justify-center">
                 <CreditCard className="h-5 w-5 text-yellow-600" />
@@ -205,7 +216,7 @@ function BillingPage() {
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium">{getTypeText(record.type)}</span>
+                      <span className="font-medium">{record.action}</span>
                       <Badge
                         variant="secondary"
                         className={`${getStatusColor(record.status)} text-white text-xs`}
@@ -213,7 +224,7 @@ function BillingPage() {
                         {record.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{record.description}</p>
+                    <p className="text-sm text-muted-foreground">{record.remark}</p>
                   </div>
                   <div className="text-left sm:text-right">
                     <p className={`font-medium ${record.amount > 0 ? 'text-green-600' : 'text-red-600'}`}>

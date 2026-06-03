@@ -187,7 +187,10 @@ function ChannelsPage() {
   }), [channels, searchText, status, typeCategory, channelCategory])
 
   const getTypeBadge = (type: number) => {
-    const typeName = typeMap?.[String(type)]; const isQuantum = type >= 100
+    const typeName = Array.isArray(typeMap)
+      ? (typeMap as { id: number; name: string }[]).find(t => t.id === type)?.name
+      : undefined
+    const isQuantum = type >= 100
     return <Badge variant="outline" className={isQuantum ? 'border-purple-300 text-purple-700 dark:border-purple-700 dark:text-purple-300' : ''}>{typeName || `Type ${type}`}</Badge>
   }
 

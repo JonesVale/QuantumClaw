@@ -2,9 +2,11 @@ package controller
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -46,6 +48,26 @@ func UpdatePlatformConfig(c *gin.Context) {
 				Value:       value,
 				UpdatedTime: now,
 			})
+		}
+
+		// 同步关键配置到运行时变量
+		switch key {
+		case "server_address":
+			config.ServerAddress = value
+		case "footer_html":
+			config.Footer = value
+		case "system_name":
+			config.SystemName = value
+		case "logo":
+			config.Logo = value
+		case "top_up_link":
+			config.TopUpLink = value
+		case "chat_link":
+			config.ChatLink = value
+		case "quota_per_unit":
+			if v, err := strconv.ParseFloat(value, 64); err == nil {
+				config.QuotaPerUnit = v
+			}
 		}
 	}
 
