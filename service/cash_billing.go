@@ -12,48 +12,21 @@ import (
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
+	"gorm.io/gorm"
 )
-
-// ==================== 现金计费 — 预检查 ====================
-
-// PreConsumeBalance 消费前检查余额是否足够
-// 只检查不预扣，简化回退逻辑
-// 返回：estimatedPrice（预估价，分），error
-func PreConsumeBalance(ctx context.Context, meta *meta.Meta, promptTokens int, ratio float64) (int64, error) {
-	// 读取渠道信息，获取 CostPerUnit + SellPriceRate
-	channel, err := model.GetChannelById(meta.ChannelId, true)
-	if err != nil {
-		return 0, fmt.Errorf("get channel: %w", err)
-	}
-
-	// 预估价 = 按 prompt 估算的配额 × CostPerUnit × SellPriceRate
-	estimatedQuota := getEstimatedQuota(promptTokens, ratio)
-	estimatedPrice := quotaToPrice(estimatedQuota, channel.CostPerUnit, channel.SellPriceRate)
-
-	// 查用户现金余额
-	balance, err := model.GetUserCashBalance(meta.UserId)
-	if err != nil {
-		return 0, fmt.Errorf("get user balance: %w", err)
-	}
-
-	// 余额必须 ≥ 预估费用
-	if balance < 1 {
-		return estimatedPrice, fmt.Errorf("余额不足，当前余额 %d 分，需要至少 1 分", balance)
-	}
-	if balance < estimatedPrice {
-		return estimatedPrice, fmt.Errorf("余额不足，当前 %d 分，预估需要 %d 分", balance, estimatedPrice)
-	}
-
-	return estimatedPrice, nil
-}
 
 // ==================== 现金计费 — 消费后扣款 ====================
 
 // PostConsumeDeduct 消费成功后扣款 + 分账
-// usage: 实际用量（含 prompt_tokens, completion_tokens）
-// ratio: modelRatio * groupRatio（沿用现有倍率体系）
+// billingSource 来自 PreConsumeBilling 的优先级链结果：
+//
+//	"subscription" — 订阅已预扣，跳过现金/佣金/配额扣款
+//	"cash"         — 现金未预扣，正常走现金→佣金→配额→挂账链
+//	"commission"   — 佣金未预扣，跳过现金直接扣佣金→配额→挂账
+//	"quota"        — 配额已预扣，跳过现金/佣金，只做配额对齐
+//	""             — 兼容旧调用方（audio/image），默认走全链
 func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.Usage, textRequest *relaymodel.GeneralOpenAIRequest,
-	ratio float64, modelRatio float64, groupRatio float64, preConsumedQuota int64, systemPromptReset bool) error {
+	ratio float64, modelRatio float64, groupRatio float64, preConsumedQuota int64, systemPromptReset bool, billingSource string) error {
 
 	if usage == nil {
 		return fmt.Errorf("usage is nil, cannot deduct")
@@ -77,73 +50,100 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 		priceCents = 1
 	}
 
-	// 4. 扣消费者余额（三级优先：现金→佣金→配额，仍不足则记 Debt）
-	balance, err := model.GetUserCashBalance(meta.UserId)
-	if err != nil {
-		return fmt.Errorf("get user balance: %w", err)
-	}
+	// 4. 扣消费者余额（根据 billingSource 决定扣款策略）
 	remaining := priceCents
+	var deductedFromCash int64   // 实际从现金扣了多少（用于余额流水）
+	initialCashBalance, _ := model.GetUserCashBalance(meta.UserId)
 
-	// Tier 1: 现金余额
-	if balance > 0 {
-		deduct := balance
-		if deduct > remaining {
-			deduct = remaining
-		}
-		model.MinusUserCashBalance(meta.UserId, deduct)
-		remaining -= deduct
-	}
+	switch billingSource {
+	case "subscription":
+		// 订阅已预扣，不再重复扣现金/佣金/配额
+		remaining = 0
 
-	// Tier 2: 佣金余额
-	if remaining > 0 {
-		commBalance, err := model.GetUserCommissionBalance(meta.UserId)
-		if err == nil && commBalance > 0 {
-			deduct := commBalance
-			if deduct > remaining {
-				deduct = remaining
+	case "commission":
+		// PreConsumeBilling 仅检查了佣金余额，未实际扣款
+		// 直接扣佣金
+		if remaining > 0 {
+			commBalance, err := model.GetUserCommissionBalance(meta.UserId)
+			if err == nil && commBalance > 0 {
+				deduct := commBalance
+				if deduct > remaining {
+					deduct = remaining
+				}
+				model.MinusUserCommissionBalance(meta.UserId, deduct)
+				remaining -= deduct
 			}
-			model.MinusUserCommissionBalance(meta.UserId, deduct)
-			remaining -= deduct
 		}
-	}
+		// 尾差走配额→挂账
+		fallthrough
 
-	// Tier 3: 配额回退（只扣可用配额，避免负数）
-	if remaining > 0 {
-		userQuota, qErr := model.CacheGetUserQuota(ctx, meta.UserId)
-		if qErr == nil && userQuota > 0 {
-			deduct := userQuota
-			if deduct > remaining {
-				deduct = remaining
+	case "quota":
+		// PreConsumeBilling 已预扣配额，此处只对齐余额
+		// 如果还有剩余，记挂账
+		if remaining > 0 {
+			recordDebt(ctx, meta.UserId, remaining)
+			remaining = 0
+		}
+
+	default:
+		// "cash" 或 "" — 正常走全链：现金 → 佣金 → 配额 → 挂账
+		// Tier 1: 现金余额
+		if remaining > 0 {
+			cashBalance, err := model.GetUserCashBalance(meta.UserId)
+			if err == nil && cashBalance > 0 {
+				deduct := cashBalance
+				if deduct > remaining {
+					deduct = remaining
+				}
+				model.MinusUserCashBalance(meta.UserId, deduct)
+				deductedFromCash = deduct
+				remaining -= deduct
 			}
-			model.DecreaseUserQuota(meta.UserId, deduct)
-			model.PreConsumeTokenQuota(meta.TokenId, deduct)
-			remaining -= deduct
+		}
+
+		// Tier 2: 佣金余额
+		if remaining > 0 {
+			commBalance, err := model.GetUserCommissionBalance(meta.UserId)
+			if err == nil && commBalance > 0 {
+				deduct := commBalance
+				if deduct > remaining {
+					deduct = remaining
+				}
+				model.MinusUserCommissionBalance(meta.UserId, deduct)
+				remaining -= deduct
+			}
+		}
+
+		// Tier 3: 配额回退
+		if remaining > 0 {
+			userQuota, qErr := model.CacheGetUserQuota(ctx, meta.UserId)
+			if qErr == nil && userQuota > 0 {
+				deduct := userQuota
+				if deduct > remaining {
+					deduct = remaining
+				}
+				model.DecreaseUserQuota(meta.UserId, deduct)
+				model.PreConsumeTokenQuota(meta.TokenId, deduct)
+				remaining -= deduct
+			}
+		}
+
+		// Tier 4: 仍不足 → 记追偿挂账
+		if remaining > 0 {
+			recordDebt(ctx, meta.UserId, remaining)
+			remaining = 0
 		}
 	}
 
-	// Tier 4: 仍不足 → 记追偿挂账（Debt），请求已转发完成必须记账
-	if remaining > 0 {
-		model.DB.Model(&model.User{}).Where("id = ?", meta.UserId).
-			UpdateColumn("debt", gorm.Expr("COALESCE(debt,0) + ?", remaining))
-		// 欠费超过阈值 → 自动禁用账号
-		var totalDebt int64
-		model.DB.Model(&model.User{}).Where("id = ?", meta.UserId).Select("COALESCE(debt,0)").Find(&totalDebt)
-		model.RecordLog(ctx, meta.UserId, model.LogTypeSystem,
-			fmt.Sprintf("消费追偿挂账 %d 分，累计欠费 %d 分", remaining, totalDebt))
-		logger.Warnf(ctx, "user %d: debt %d added, total debt %d", meta.UserId, remaining, totalDebt)
-		if config.DebtDisableThreshold > 0 && totalDebt >= config.DebtDisableThreshold {
-			model.DB.Model(&model.User{}).Where("id = ?", meta.UserId).
-				Update("status", model.UserStatusDisabled)
-			model.RecordLog(ctx, meta.UserId, model.LogTypeSystem,
-				fmt.Sprintf("欠费 %d 分超过阈值 %d 分，账号已自动禁用", totalDebt, config.DebtDisableThreshold))
-		}
-	}
-
-	// 5. 记余额流水
+	// 5. 记余额流水（仅记录现金余额变动）
 	actualDeducted := priceCents - remaining
-	remark := fmt.Sprintf("模型:%s 配额:%d 价格:%d分 实扣:%d分 挂账:%d分",
-		textRequest.Model, quota, priceCents, actualDeducted, remaining)
-	if err := model.CreateBalanceLog(meta.UserId, model.BalanceLogTypeConsume, -actualDeducted, balance-actualDeducted, meta.ChannelId, remark); err != nil {
+	newCashBalance := initialCashBalance - deductedFromCash
+	if newCashBalance < 0 {
+		newCashBalance = 0
+	}
+	remark := fmt.Sprintf("模型:%s 配额:%d 价格:%d分 来源:%s 实扣:%d分 挂账:%d分",
+		textRequest.Model, quota, priceCents, billingSource, actualDeducted, remaining)
+	if err := model.CreateBalanceLog(meta.UserId, model.BalanceLogTypeConsume, -deductedFromCash, newCashBalance, meta.ChannelId, remark); err != nil {
 		logger.Error(ctx, fmt.Sprintf("create balance log: %v", err))
 	}
 
@@ -174,7 +174,7 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 	}
 
 	// 7. 保留日志 + 渠道用量统计
-	logContent := fmt.Sprintf("倍率：%.2f × %.2f | 现金扣款：%d分", modelRatio, groupRatio, priceCents)
+	logContent := fmt.Sprintf("倍率：%.2f × %.2f | 扣款：%d分 来源:%s", modelRatio, groupRatio, priceCents, billingSource)
 	model.RecordConsumeLog(ctx, &model.Log{
 		UserId:            meta.UserId,
 		ChannelId:         meta.ChannelId,
@@ -199,6 +199,7 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 // ==================== 辅助函数 ====================
 
 // getEstimatedQuota 估算请求配额（仅 prompt 部分）
+// 保留用于单元测试兼容
 func getEstimatedQuota(promptTokens int, ratio float64) int64 {
 	return int64(float64(config.PreConsumedQuota+int64(promptTokens)) * ratio)
 }
@@ -249,7 +250,25 @@ func quotaToPrice(quota int64, costPerUnit, sellPriceRate float64) int64 {
 	return priceCents
 }
 
+// recordDebt 记录追偿挂账，欠费超阈值自动禁用账号
+func recordDebt(ctx context.Context, userId int, amount int64) {
+	model.DB.Model(&model.User{}).Where("id = ?", userId).
+		UpdateColumn("debt", gorm.Expr("COALESCE(debt,0) + ?", amount))
+	var totalDebt int64
+	model.DB.Model(&model.User{}).Where("id = ?", userId).Select("COALESCE(debt,0)").Find(&totalDebt)
+	model.RecordLog(ctx, userId, model.LogTypeSystem,
+		fmt.Sprintf("消费追偿挂账 %d 分，累计欠费 %d 分", amount, totalDebt))
+	logger.Warnf(ctx, "user %d: debt %d added, total debt %d", userId, amount, totalDebt)
+	if config.DebtDisableThreshold > 0 && totalDebt >= config.DebtDisableThreshold {
+		model.DB.Model(&model.User{}).Where("id = ?", userId).
+			Update("status", model.UserStatusDisabled)
+		model.RecordLog(ctx, userId, model.LogTypeSystem,
+			fmt.Sprintf("欠费 %d 分超过阈值 %d 分，账号已自动禁用", totalDebt, config.DebtDisableThreshold))
+	}
+}
+
 // PostConsumeQuantumDeduct 量子任务扣款
+// 使用与 PostConsumeDeduct 一致的三级扣款链：现金→佣金→配额
 func PostConsumeQuantumDeduct(userId, channelId int, costQuota int64) error {
 	if costQuota <= 0 {
 		return nil
@@ -261,20 +280,48 @@ func PostConsumeQuantumDeduct(userId, channelId int, costQuota int64) error {
 	}
 	// 配额 → 现金价格（分）
 	priceCents := quotaToPrice(costQuota, channel.CostPerUnit, channel.SellPriceRate)
-	// 扣消费者余额
-	balance, err := model.GetUserCashBalance(userId)
-	if err != nil {
-		return fmt.Errorf("get user balance: %w", err)
+
+	remaining := priceCents
+
+	// Tier 1: 现金余额
+	if remaining > 0 {
+		cashBalance, err := model.GetUserCashBalance(userId)
+		if err == nil && cashBalance > 0 {
+			deduct := cashBalance
+			if deduct > remaining {
+				deduct = remaining
+			}
+			if err := model.MinusUserCashBalance(userId, deduct); err != nil {
+				return fmt.Errorf("deduct user %d cash: %w", userId, err)
+			}
+			remaining -= deduct
+		}
 	}
-	if balance < priceCents {
-		return fmt.Errorf("user %d balance %d < price %d", userId, balance, priceCents)
+
+	// Tier 2: 佣金余额
+	if remaining > 0 {
+		commBalance, err := model.GetUserCommissionBalance(userId)
+		if err == nil && commBalance > 0 {
+			deduct := commBalance
+			if deduct > remaining {
+				deduct = remaining
+			}
+			if err := model.MinusUserCommissionBalance(userId, deduct); err != nil {
+				return fmt.Errorf("deduct user %d commission: %w", userId, err)
+			}
+			remaining -= deduct
+		}
 	}
-	if err := model.MinusUserCashBalance(userId, priceCents); err != nil {
-		return fmt.Errorf("deduct user %d balance: %w", userId, err)
+
+	// Tier 3: 不足 → 返回错误（量子任务不支持挂账）
+	if remaining > 0 {
+		return fmt.Errorf("user %d balance + commission %d < price %d", userId, priceCents-remaining, priceCents)
 	}
+
 	// 余额流水
-	newBalance := balance - priceCents
-	_ = model.CreateBalanceLog(userId, model.BalanceLogTypeConsume, -priceCents, newBalance, channelId, "quantum task")
+	actualDeducted := priceCents - remaining
+	_ = model.CreateBalanceLog(userId, model.BalanceLogTypeConsume, -actualDeducted, remaining, channelId, "quantum task")
+
 	// 分账
 	if channel.UserId > 0 {
 		netAmount := priceCents

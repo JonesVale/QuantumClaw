@@ -162,7 +162,7 @@ func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, mode
 		case channeltype.AIProxyLibrary:
 		}
 	}
-	if cfg != nil {
+	if cfg.APIVersion != "" {
 		c.Set(ctxkey.Config, cfg)
 	}
 }

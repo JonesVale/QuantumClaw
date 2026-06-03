@@ -13,7 +13,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/relay/common"
+	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
 	"github.com/quantumclaw/quantumclaw/relay/common_handler"
 	"github.com/quantumclaw/quantumclaw/service"
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
@@ -59,21 +59,22 @@ func getPromptTokens(textRequest *relaymodel.GeneralOpenAIRequest, relayMode int
 // （统一入口，替代旧版仅检查 CashBalance 的逻辑）
 
 // preConsumeBalance — 预扣前检查，使用优先级链
-func preConsumeBalance(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, *relaymodel.ErrorWithStatusCode) {
+// 返回：(preConsumedQuota, billingSource, error)
+func preConsumeBalance(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, string, *relaymodel.ErrorWithStatusCode) {
 	// 构建 RelayInfo 供 common_handler 使用
-	relayInfo := &common.RelayInfo{
+	relayInfo := &relaycommon.RelayInfo{
 		UserID:   meta.UserId,
 		TokenID:  meta.TokenId,
 	}
-	preConsumedQuota, _, err := common_handler.PreConsumeBilling(ctx, relayInfo, promptTokens, ratio)
+	preConsumedQuota, billingSource, err := common_handler.PreConsumeBilling(ctx, relayInfo, promptTokens, ratio)
 	if err != nil {
-		return preConsumedQuota, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
+		return preConsumedQuota, billingSource, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
 	}
-	return preConsumedQuota, nil
+	return preConsumedQuota, billingSource, nil
 }
 
-func postConsumeDeduct(ctx context.Context, usage *relaymodel.Usage, meta *meta.Meta, textRequest *relaymodel.GeneralOpenAIRequest, ratio float64, preConsumedQuota int64, modelRatio float64, groupRatio float64, systemPromptReset bool) {
-	if err := service.PostConsumeDeduct(ctx, meta, usage, textRequest, ratio, modelRatio, groupRatio, preConsumedQuota, systemPromptReset); err != nil {
+func postConsumeDeduct(ctx context.Context, usage *relaymodel.Usage, meta *meta.Meta, textRequest *relaymodel.GeneralOpenAIRequest, ratio float64, preConsumedQuota int64, modelRatio float64, groupRatio float64, systemPromptReset bool, billingSource string) {
+	if err := service.PostConsumeDeduct(ctx, meta, usage, textRequest, ratio, modelRatio, groupRatio, preConsumedQuota, systemPromptReset, billingSource); err != nil {
 		logger.Error(ctx, fmt.Sprintf("post consume deduct failed: %v", err))
 	}
 }

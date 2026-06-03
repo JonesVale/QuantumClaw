@@ -174,7 +174,7 @@ func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	if meta.ChannelType != channeltype.Replicate {
 		estimatedQuota *= int64(imageRequest.N)
 	}
-	if _, bizErr := preConsumeBalance(ctx, &relaymodel.GeneralOpenAIRequest{Model: imageModel},
+	if _, _, bizErr := preConsumeBalance(ctx, &relaymodel.GeneralOpenAIRequest{Model: imageModel},
 		int(estimatedQuota), ratio, meta); bizErr != nil {
 		logger.Warnf(ctx, "preConsumeBalance failed: %+v", *bizErr)
 		return bizErr
@@ -200,6 +200,6 @@ func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	// 成功后现金扣款 + 分账
 	postConsumeDeduct(c.Request.Context(), usage, meta,
 		&relaymodel.GeneralOpenAIRequest{Model: imageModel},
-		ratio, 0, modelRatio, groupRatio, false)
+		ratio, 0, modelRatio, groupRatio, false, "")
 	return nil
 }

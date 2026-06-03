@@ -62,7 +62,7 @@ func RelayAudioHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	default:
 		estimatedTokens = 100 // 预估值
 	}
-	if _, bizErr := preConsumeBalance(ctx, &relaymodel.GeneralOpenAIRequest{Model: audioModel},
+	if _, _, bizErr := preConsumeBalance(ctx, &relaymodel.GeneralOpenAIRequest{Model: audioModel},
 		estimatedTokens, ratio, meta); bizErr != nil {
 		logger.Warnf(ctx, "preConsumeBalance failed: %+v", *bizErr)
 		return bizErr
@@ -178,7 +178,7 @@ func RelayAudioHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 		PromptTokens:     int(quota),
 		CompletionTokens: 0,
 	}, meta, &relaymodel.GeneralOpenAIRequest{Model: audioModel},
-		ratio, 0, modelRatio, groupRatio, false)
+		ratio, 0, modelRatio, groupRatio, false, "")
 
 	for k, v := range resp.Header {
 		c.Writer.Header().Set(k, v[0])

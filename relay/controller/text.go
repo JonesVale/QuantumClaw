@@ -51,7 +51,7 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 	// pre-consume — 使用现金计费
 	promptTokens := getPromptTokens(textRequest, meta.Mode)
 	meta.PromptTokens = promptTokens
-	preConsumedQuota, bizErr := preConsumeBalance(ctx, textRequest, promptTokens, ratio, meta)
+	preConsumedQuota, billingSource, bizErr := preConsumeBalance(ctx, textRequest, promptTokens, ratio, meta)
 	if bizErr != nil {
 		logger.Warnf(ctx, "preConsumeBalance failed: %+v", *bizErr)
 		return bizErr
@@ -86,7 +86,7 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 		return respErr
 	}
 	// post-consume — 现金扣款 + 分账（同步执行，失败返回错误）
-	postConsumeDeduct(ctx, usage, meta, textRequest, ratio, preConsumedQuota, modelRatio, groupRatio, systemPromptReset)
+	postConsumeDeduct(ctx, usage, meta, textRequest, ratio, preConsumedQuota, modelRatio, groupRatio, systemPromptReset, billingSource)
 	return nil
 }
 
