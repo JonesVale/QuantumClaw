@@ -20,39 +20,52 @@ type ChannelTypeDetail struct {
 }
 
 func GetChannelTypes(c *gin.Context) {
-	typeNames := channeltype.ChannelTypeNames
-	baseURLs := channeltype.ChannelBaseURLs
+	// 优先从 channel_providers 表读取（数据统一、可后台维护）
+	var providers []model.ChannelProvider
+	result := make([]ChannelTypeDetail, 0)
 
-	// 查询 model_metadata 获取各提供商/品牌的模型列表
-	var metadata []model.ModelMetadata
-	model.DB.Select("DISTINCT model_name, provider").Where("languages_type = ?", "English").Find(&metadata)
+	if err := model.DB.Order("type_id asc").Find(&providers).Error; err == nil && len(providers) > 0 {
+		// 从数据库读取
+		for _, p := range providers {
+			result = append(result, ChannelTypeDetail{
+				Id:     p.TypeID,
+				Name:   p.Name,
+				URL:    p.BaseURL,
+				Models: p.GetModels(),
+			})
+		}
+	} else {
+		// 兜底：从硬编码读取（channel_providers 表为空时）
+		typeNames := channeltype.ChannelTypeNames
+		baseURLs := channeltype.ChannelBaseURLs
 
-	modelsByProvider := make(map[string][]string)
-	for _, m := range metadata {
-		if m.Provider != "" && m.ModelName != "" {
-			modelsByProvider[m.Provider] = append(modelsByProvider[m.Provider], m.ModelName)
-		}
-	}
+		var metadata []model.ModelMetadata
+		model.DB.Select("DISTINCT model_name, provider").Where("languages_type = ?", "English").Find(&metadata)
 
-	result := make([]ChannelTypeDetail, 0, len(typeNames))
-	for id, name := range typeNames {
-		detail := ChannelTypeDetail{
-			Id:   id,
-			Name: name,
+		modelsByProvider := make(map[string][]string)
+		for _, m := range metadata {
+			if m.Provider != "" && m.ModelName != "" {
+				modelsByProvider[m.Provider] = append(modelsByProvider[m.Provider], m.ModelName)
+			}
 		}
-		if id >= 0 && id < len(baseURLs) && baseURLs[id] != "" {
-			detail.URL = baseURLs[id]
+
+		for id, name := range typeNames {
+			detail := ChannelTypeDetail{
+				Id:   id,
+				Name: name,
+			}
+			if id >= 0 && id < len(baseURLs) && baseURLs[id] != "" {
+				detail.URL = baseURLs[id]
+			}
+			providerKey := name
+			if mapped, ok := channeltype.ChannelTypeNameToProvider[name]; ok && mapped != "" {
+				providerKey = mapped
+			}
+			if models, ok := modelsByProvider[providerKey]; ok && len(models) > 0 {
+				detail.Models = models
+			}
+			result = append(result, detail)
 		}
-		// 尝试通过名称匹配 model_metadata 中的 provider
-		// 优先使用 ChannelTypeNameToProvider 映射表，再回退到直接名称匹配
-		providerKey := name
-		if mapped, ok := channeltype.ChannelTypeNameToProvider[name]; ok && mapped != "" {
-			providerKey = mapped
-		}
-		if models, ok := modelsByProvider[providerKey]; ok && len(models) > 0 {
-			detail.Models = models
-		}
-		result = append(result, detail)
 	}
 
 	c.JSON(http.StatusOK, result)

@@ -95,6 +95,8 @@ func SetupLogin(user *model.User, c *gin.Context) {
 			"id":               user.Id,
 			"username":         user.Username,
 			"display_name":     user.DisplayName,
+			"email":            user.Email,
+			"avatar_url":       user.AvatarURL,
 			"role":             user.Role,
 			"status":           user.Status,
 			"organization_id":  user.OrganizationID,
@@ -815,6 +817,8 @@ func UpdateSelf(c *gin.Context) {
 		Username:    user.Username,
 		Password:    user.Password,
 		DisplayName: user.DisplayName,
+		Email:       user.Email,
+		AvatarURL:   user.AvatarURL,
 	}
 	if user.Password == "$I_LOVE_U" {
 		user.Password = "" // rollback to what it should be

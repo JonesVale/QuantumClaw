@@ -40,9 +40,10 @@ func GetModelCatalog(c *gin.Context) {
 		return
 	}
 
-	// 2. Fetch all enabled channels for pricing/status
+	// 2. Fetch all enabled AND tested channels for pricing/status
+	// 只包含测试通过的渠道，确保聊天下拉中的模型都是可用的
 	var channels []model.Channel
-	model.DB.Where("status = ?", model.ChannelStatusEnabled).Find(&channels)
+	model.DB.Where("status = ? AND last_test_passed = ?", model.ChannelStatusEnabled, true).Find(&channels)
 	channelMap := make(map[string]*model.Channel)
 	for _, ch := range channels {
 		models := strings.Split(ch.Models, ",")

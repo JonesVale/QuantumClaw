@@ -266,7 +266,9 @@ func quotaToPrice(quota int64, costPerUnit, sellPriceRate float64) int64 {
 	return priceCents
 }
 
-// recordDebt 记录追偿挂账，欠费超阈值自动禁用账号
+// recordDebt 记录追偿挂账（仅记账，不封号）
+// 用户余额不足时记录欠费用于追踪，不影响登录和使用
+// 欠费用户在下次请求时会直接在 API 层面被拒绝，但依然可以登录和充值
 func recordDebt(ctx context.Context, userId int, amount int64) {
 	model.DB.Model(&model.User{}).Where("id = ?", userId).
 		UpdateColumn("debt", gorm.Expr("COALESCE(debt,0) + ?", amount))
@@ -275,12 +277,6 @@ func recordDebt(ctx context.Context, userId int, amount int64) {
 	model.RecordLog(ctx, userId, model.LogTypeSystem,
 		fmt.Sprintf("消费追偿挂账 %d 分，累计欠费 %d 分", amount, totalDebt))
 	logger.Warnf(ctx, "user %d: debt %d added, total debt %d", userId, amount, totalDebt)
-	if config.DebtDisableThreshold > 0 && totalDebt >= config.DebtDisableThreshold {
-		model.DB.Model(&model.User{}).Where("id = ?", userId).
-			Update("status", model.UserStatusDisabled)
-		model.RecordLog(ctx, userId, model.LogTypeSystem,
-			fmt.Sprintf("欠费 %d 分超过阈值 %d 分，账号已自动禁用", totalDebt, config.DebtDisableThreshold))
-	}
 }
 
 // PostConsumeQuantumDeduct 量子任务扣款

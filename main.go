@@ -378,6 +378,8 @@ func main() {
 	go service.StartHourlySettlement()
 	go service.StartRssService(context.Background())
 	go service.StartDailyModelSync()
+	// Provider 模型列表自动同步（每24h从各供应商拉取最新模型）
+	go service.NewProviderSyncService(24 * time.Hour).Start()
 	service.LoadCustomOAuthProviders()
 
 AFTER_SLAVE_SETUP:

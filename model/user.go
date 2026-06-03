@@ -76,6 +76,7 @@ type User struct {
 	IdentityNumber   string `json:"identity_number" gorm:"type:varchar(30)"`
 	CommissionBalance int64 `json:"commission_balance" gorm:"bigint;default:0;column:commission_balance"` // 累计佣金余额(分),不可直接用于消费,仅可提现
 	PreferredProviderId int `json:"preferred_provider_id" gorm:"type:int;default:0"` // 首选供应商 user_id
+	AvatarURL        string `json:"avatar_url" gorm:"type:varchar(500);default:''"` // 头像 URL
 }
 
 func CountUsers() (int64, error) {
@@ -287,16 +288,15 @@ func (user *User) ValidateAndFill() (err error) {
 			return errors.New("用户名或密码错误，或用户已被封禁")
 		}
 	}
-	// 先检查用户状态（与密码验证独立），让用户精确知道问题的类型
-	if user.Status != UserStatusEnabled {
-		if user.Status == UserStatusDisabled {
-			return errors.New("账号已被禁用，请联系管理员")
-		}
-		return errors.New("账号状态异常，无法登录")
-	}
+	// 先验证密码（密码正确就是本人，无论 status 都让登录）
 	okay := common.ValidatePasswordAndHash(password, user.Password)
 	if !okay {
 		return errors.New("密码错误，请重试（连续3次错误将锁定5分钟）")
+	}
+	// 密码正确后检查状态（仅警告，不阻断登录）
+	// 禁用/异常状态的用户依然可以登录查看和充值
+	if user.Status != UserStatusEnabled {
+		logger.SysWarnf("user %d (%s) logged in with non-enabled status: %d", user.Id, user.Username, user.Status)
 	}
 	return nil
 }

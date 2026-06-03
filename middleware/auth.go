@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/blacklist"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/network"
 	"github.com/quantumclaw/quantumclaw/model"
 	"net/http"
@@ -95,7 +96,11 @@ func authHelper(c *gin.Context, minRole int) {
 		return
 	}
 
-	if statusInt == model.UserStatusDisabled || blacklist.IsUserBanned(idInt) {
+	// 黑名单直接拦截（管理员手动封禁）
+	// 注意：UserStatusDisabled 不再自动阻断登录和浏览
+	// 禁用状态的用户依然可以登录查看、充值、联系客服
+	// API 层面的权限由配额/余额逻辑控制
+	if blacklist.IsUserBanned(idInt) {
 		c.JSON(http.StatusOK, gin.H{
 			"success": false,
 			"message": "用户已被封禁",
@@ -105,6 +110,9 @@ func authHelper(c *gin.Context, minRole int) {
 		_ = session.Save()
 		c.Abort()
 		return
+	}
+	if statusInt == model.UserStatusDisabled {
+		logger.SysWarnf("disabled user %d accessed route: %s", idInt, c.Request.URL.Path)
 	}
 	if roleInt < minRole {
 		c.JSON(http.StatusOK, gin.H{

@@ -714,6 +714,7 @@ export async function getEnhancedDashboard(): Promise<ApiResponse<EnhancedDashbo
 export async function updateSelf(data: {
   display_name?: string
   email?: string
+  avatar_url?: string
   password?: string
   old_password?: string
 }): Promise<ApiResponse> {

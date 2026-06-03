@@ -192,12 +192,9 @@ func DiscordOAuth(c *gin.Context) {
 		}
 	}
 
+	// 无论状态都允许登录
 	if user.Status != model.UserStatusEnabled {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "用户已被封禁",
-			"success": false,
-		})
-		return
+		logger.SysWarnf("user %d (%s) login with Discord OAuth, status=%d", user.Id, user.Username, user.Status)
 	}
 
 	controller.SetupLogin(&user, c)

@@ -206,22 +206,55 @@ func GetModelBrands(c *gin.Context) {
 	}
 
 	// 4. 鏋勫缓宸茬煡鍝佺墝閰嶇疆鏌ユ壘琛?
+		// Load provider overrides from DB (channel_providers table)
+	var channelProviders []model.ChannelProvider
+	model.DB.Order("type_id asc").Find(&channelProviders)
+	providerURLOverride := make(map[int]string)
+	providerModelsOverride := make(map[string][]string)
+	for _, cp := range channelProviders {
+		if cp.BaseURL != "" {
+			providerURLOverride[cp.TypeID] = cp.BaseURL
+		}
+		if cp.ProviderSlug != "" && len(cp.GetModels()) > 0 {
+			providerModelsOverride[cp.ProviderSlug] = cp.GetModels()
+		}
+	}
+
 	knownConfigs := make(map[string]*BrandConfig)
 	for i := range brandConfigs {
 		knownConfigs[strings.ToLower(brandConfigs[i].ProviderName)] = &brandConfigs[i]
 	}
 
-	// 5. 鏋勫缓鍝嶅簲锛氶亶鍘嗘墍鏈夊彂鐜扮殑鎻愪緵鍟?
 	var brands []BrandInfo
 
-	// 鍏堝鐞嗗凡鐭ュ搧鐗岋紙淇濇寔绋冲畾椤哄簭锛?
 	for _, cfg := range brandConfigs {
 		providerName := cfg.ProviderName
 		if _, exists := modelsByProvider[providerName]; !exists {
-			// 宸茬煡鍝佺墝浣嗘棤妯″瀷鏁版嵁锛屼粛灞曠ず锛堝畠浠湁妯″瀷绉嶅瓙锛?
 		}
 
-		bi := buildBrandInfoFromConfig(&cfg, modelsByProvider[providerName], channelByName)
+		// Override URL from DB if available
+		if overrideURL, ok := providerURLOverride[cfg.ChannelType]; ok {
+			cfg.DefaultURL = overrideURL
+		}
+
+		// Override model list from DB if available
+		providerModels := modelsByProvider[providerName]
+		if overrideModels, ok := providerModelsOverride[cfg.ProviderName]; ok {
+			filteredModels := make([]model.ModelMetadata, 0)
+			for _, pm := range providerModels {
+				for _, om := range overrideModels {
+					if strings.EqualFold(pm.ModelName, om) {
+						filteredModels = append(filteredModels, pm)
+						break
+					}
+				}
+			}
+			if len(filteredModels) > 0 {
+				providerModels = filteredModels
+			}
+		}
+
+		bi := buildBrandInfoFromConfig(&cfg, providerModels, channelByName)
 		brands = append(brands, bi)
 	}
 

@@ -222,9 +222,9 @@ func CustomOAuthCallback(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户查询失败"})
 			return
 		}
+		// 无论状态都允许登录
 		if user.Status != model.UserStatusEnabled {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户已被封禁"})
-			return
+			logger.SysWarnf("login with disabled status: user %d status=%d", user.Id, user.Status)
 		}
 		SetupLogin(&user, c)
 		return

@@ -15,7 +15,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 )
@@ -216,6 +216,9 @@ func InitDB() {
 	AutoPopulateModelMetadataFromRatio()
 	SeedDefaultChannels()
 
+	// 渠道提供商表 seed（从已存在的硬编码数据填充）
+	SeedChannelProviders()
+
 	// (language initialization removed; frontend i18n only)
 }
 
@@ -378,6 +381,9 @@ func migrateDB() error {
 			logger.SysLog("add tiers_json column note: " + addErr.Error())
 		}
 	}
+
+	// ── 渠道提供商表（统一管理品牌/URL/模型列表）──
+	attempt("ChannelProvider", func() error { return DB.AutoMigrate(&ChannelProvider{}) })
 
 	return lastErr
 }

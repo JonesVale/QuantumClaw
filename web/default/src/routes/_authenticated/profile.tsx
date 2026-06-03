@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useAuthStore } from '@/stores/auth-store'
 import { updateSelf } from '@/lib/api-extended'
 import apiClient from '@/lib/api'
@@ -27,6 +27,7 @@ function ProfilePage() {
 
   const [displayName, setDisplayName] = useState(user?.display_name || '')
   const [email, setEmail] = useState(user?.email || '')
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '')
   const [oldPassword, setOldPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -81,6 +82,7 @@ function ProfilePage() {
     updateMutation.mutate({
       display_name: displayName,
       email,
+      avatar_url: avatarUrl,
     })
   }
 
@@ -118,6 +120,9 @@ function ProfilePage() {
           <form onSubmit={handleProfileSubmit} className="space-y-4">
             <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
               <Avatar className="h-16 w-16">
+                {auth.user?.avatar_url && (
+                  <AvatarImage src={auth.user.avatar_url} alt={auth.user.display_name || auth.user.username} />
+                )}
                 <AvatarFallback className="bg-primary/10 text-lg">
                   {user?.display_name?.[0] || user?.username?.[0] || 'U'}
                 </AvatarFallback>
@@ -144,6 +149,14 @@ function ProfilePage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('Email address')}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t('Avatar URL')}</Label>
+              <Input
+                value={avatarUrl}
+                onChange={(e) => setAvatarUrl(e.target.value)}
+                placeholder={t('https://example.com/avatar.jpg')}
               />
             </div>
             <Button type="submit" disabled={updateMutation.isPending}>

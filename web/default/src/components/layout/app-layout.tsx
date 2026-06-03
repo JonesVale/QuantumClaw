@@ -91,7 +91,7 @@ import {
 
 import { Button } from '@/components/ui/button'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 
 import { Badge } from '@/components/ui/badge'
 
@@ -617,6 +617,9 @@ function AppHeader({ onMobileMenuToggle }: { onMobileMenuToggle: () => void }) {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 px-2">
               <Avatar className="h-7 w-7">
+                {auth.user?.avatar_url && (
+                  <AvatarImage src={auth.user.avatar_url} alt={auth.user.display_name || auth.user.username} />
+                )}
                 <AvatarFallback className="bg-primary/10 text-xs">
                   {auth.user?.display_name?.[0] || auth.user?.username?.[0] || 'U'}
                 </AvatarFallback>
