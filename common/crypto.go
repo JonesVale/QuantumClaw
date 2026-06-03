@@ -3,7 +3,6 @@ package common
 import (
 	"crypto/sha256"
 	"encoding/hex"
-	"fmt"
 
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/encrypt"
@@ -13,13 +12,10 @@ import (
 // Password2Hash 密码 → bcrypt 哈希 → AES-256-GCM 加密 → base64
 // 存储的是加密后的密码，不是明文 bcrypt 哈希
 func Password2Hash(password string) (string, error) {
-	fmt.Printf("[DBG-PW] Password2Hash called, secret_len=%d, secret_first8=%.8s\n", len(config.CryptoSecret), config.CryptoSecret)
 	result, err := encrypt.EncryptPassword(password, config.CryptoSecret)
 	if err != nil {
-		fmt.Printf("[DBG-PW] Password2Hash FAILED: %v\n", err)
 		return "", err
 	}
-	fmt.Printf("[DBG-PW] Password2Hash result len=%d prefix=%.20s\n", len(result), result)
 	return result, nil
 }
 
