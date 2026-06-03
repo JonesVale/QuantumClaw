@@ -74,8 +74,24 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 				remaining -= deduct
 			}
 		}
-		// 尾差走配额→挂账
-		fallthrough
+		// 佣金不足 → 走配额兜底
+		if remaining > 0 {
+			userQuota, qErr := model.CacheGetUserQuota(ctx, meta.UserId)
+			if qErr == nil && userQuota > 0 {
+				deduct := userQuota
+				if deduct > remaining {
+					deduct = remaining
+				}
+				model.DecreaseUserQuota(meta.UserId, deduct)
+				model.PreConsumeTokenQuota(meta.TokenId, deduct)
+				remaining -= deduct
+			}
+		}
+		// 仍不足 → 记挂账
+		if remaining > 0 {
+			recordDebt(ctx, meta.UserId, remaining)
+			remaining = 0
+		}
 
 	case "quota":
 		// PreConsumeBilling 已预扣配额，此处只对齐余额

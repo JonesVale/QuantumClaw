@@ -75,7 +75,10 @@ func GetCheckinHistory(c *gin.Context) {
 	userId := c.GetInt("id")
 	month := c.DefaultQuery("month", time.Now().Format("2006-01"))
 	startDate := month + "-01"
-	endDate := month + "-31"
+	// 计算该月最后一天（兼容2月/小月）
+	parsed, _ := time.Parse("2006-01", month)
+	endOfMonth := parsed.AddDate(0, 1, -1).Format("2006-01-02")
+	endDate := endOfMonth
 
 	records, err := model.GetUserCheckinRecords(userId, startDate, endDate)
 	if err != nil {
