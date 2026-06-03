@@ -110,7 +110,7 @@ function SignInPage() {
       const res = await fetch('/api/user/register', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) }).then(r=>r.json())
       if (res.success && res.data) {
         auth.setUser(res.data)
-        navigate({ to: '/dashboard' })
+        navigate({ to: '/welcome' })
         toast.success(t('Welcome! Trial credits have been added to your account'))
       } else {
         setError(res.message || t('Registration failed'))
