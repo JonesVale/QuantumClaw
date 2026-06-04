@@ -1,0 +1,1445 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "QuantumClaw API",
+    "description": "QuantumClaw AI API Gateway \u7ba1\u7406\u63a5\u53e3\n\nSDK \u7528\u9014\uff1a\u7ed9\u7f51\u5173\u7ba1\u7406\u5458\u81ea\u52a8\u5316\u7ba1\u7406 Key\u3001\u67e5\u7528\u91cf\u3001\u914d\u6e20\u9053\u3001\u7ba1\u7528\u6237\u3002\n\u8c03 AI \u6a21\u578b\u8bf7\u4f7f\u7528 OpenAI \u5b98\u65b9 SDK\uff08\u6539 base_url \u6307\u5411\u672c\u7f51\u5173\u5373\u53ef\uff09\u3002\n",
+    "version": "1.0.0",
+    "contact": {
+      "email": "support@quantumclaw.com"
+    }
+  },
+  "host": "localhost:3666",
+  "basePath": "/api",
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "securityDefinitions": {
+    "BearerAuth": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header",
+      "description": "Bearer token authentication. Format: Bearer <your_token>"
+    }
+  },
+  "paths": {
+    "/api/user/self": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get current user info",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User info"
+          }
+        }
+      }
+    },
+    "/api/token": {
+      "get": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "List user tokens",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "startIdx",
+            "in": "query",
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "num",
+            "in": "query",
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Create a new token",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "remain_quota": {
+                  "type": "integer",
+                  "default": 0
+                },
+                "unlimited_quota": {
+                  "type": "boolean",
+                  "default": false
+                },
+                "expired_time": {
+                  "type": "integer",
+                  "default": -1
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created token"
+          }
+        }
+      }
+    },
+    "/api/token/{id}": {
+      "put": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Update token settings",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Delete a token",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/channel": {
+      "get": {
+        "tags": [
+          "Channel"
+        ],
+        "summary": "List all channels (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channel list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Channel"
+        ],
+        "summary": "Create a new channel (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/channel/{id}": {
+      "put": {
+        "tags": [
+          "Channel"
+        ],
+        "summary": "Update channel (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Channel"
+        ],
+        "summary": "Delete channel (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/api/option": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get system settings",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Options"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update system settings",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/api/log": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "summary": "Query request logs",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "model",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "startIdx",
+            "in": "query",
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "num",
+            "in": "query",
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log list"
+          }
+        }
+      }
+    },
+    "/api/user/topup": {
+      "post": {
+        "tags": [
+          "TopUp"
+        ],
+        "summary": "Top up user quota (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "integer"
+                },
+                "quota": {
+                  "type": "integer"
+                },
+                "remark": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/user/self/topup": {
+      "post": {
+        "tags": [
+          "TopUp"
+        ],
+        "summary": "Recharge via redemption code",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/user/search": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Search users (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User list"
+          }
+        }
+      }
+    },
+    "/api/redemption": {
+      "get": {
+        "tags": [
+          "Redemption"
+        ],
+        "summary": "List redemption codes (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Redemption list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Redemption"
+        ],
+        "summary": "Create redemption codes (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/api/search/config": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Get web search configuration (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search config"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Update web search configuration (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "bing",
+                    "searxng",
+                    "serpapi"
+                  ]
+                },
+                "api_key": {
+                  "type": "string"
+                },
+                "endpoint": {
+                  "type": "string"
+                },
+                "max_results": {
+                  "type": "integer"
+                },
+                "auto_search": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/api/search/test": {
+      "post": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "Test web search (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "query": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results"
+          }
+        }
+      }
+    },
+    "/api/search/providers": {
+      "get": {
+        "tags": [
+          "Search"
+        ],
+        "summary": "List available search providers",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Provider list"
+          }
+        }
+      }
+    },
+    "/api/status": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Get system status",
+        "responses": {
+          "200": {
+            "description": "Status info"
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health check (for load balancers)",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/cascade/node/register": {
+      "post": {
+        "tags": [
+          "Cascade"
+        ],
+        "summary": "Register a new cascade slave node",
+        "description": "Used by slave nodes on startup to register with the master",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "version": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node ID + API Key"
+          }
+        }
+      }
+    },
+    "/api/cascade/nodes": {
+      "get": {
+        "tags": [
+          "Cascade"
+        ],
+        "summary": "List all cascade nodes (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Node list"
+          }
+        }
+      }
+    },
+    "/api/cascade/nodes/{id}": {
+      "delete": {
+        "tags": [
+          "Cascade"
+        ],
+        "summary": "Delete a cascade node (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "type": "integer",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/v1/chat/completions": {
+      "post": {
+        "tags": [
+          "Relay"
+        ],
+        "summary": "Chat completions (OpenAI-compatible)",
+        "description": "Forward chat completion requests to configured AI models.\nSupports all OpenAI-compatible parameters.\nAuthentication: Bearer token.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string",
+                  "example": "gpt-4o"
+                },
+                "messages": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                },
+                "temperature": {
+                  "type": "number",
+                  "default": 1
+                },
+                "max_tokens": {
+                  "type": "integer"
+                },
+                "stream": {
+                  "type": "boolean",
+                  "default": false
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chat completion response"
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "tags": [
+          "Relay"
+        ],
+        "summary": "List available models (OpenAI-compatible)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Model list"
+          }
+        }
+      }
+    },
+    "/v1/images/generations": {
+      "post": {
+        "tags": [
+          "Relay"
+        ],
+        "summary": "Generate images (OpenAI-compatible)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "model": {
+                  "type": "string"
+                },
+                "prompt": {
+                  "type": "string"
+                },
+                "n": {
+                  "type": "integer",
+                  "default": 1
+                },
+                "size": {
+                  "type": "string",
+                  "default": "1024x1024"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Generated images"
+          }
+        }
+      }
+    },
+    "/api/platform/config": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Get platform configuration (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Platform config"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "Update platform configuration (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Updated"
+          }
+        }
+      }
+    },
+    "/api/user/balance": {
+      "post": {
+        "tags": [
+          "TopUp"
+        ],
+        "summary": "Adjust user balance (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "integer"
+                },
+                "amount": {
+                  "type": "integer"
+                },
+                "remark": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/user/self/balance": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get own balance info",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Balance info"
+          }
+        }
+      }
+    },
+    "/api/transaction": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "summary": "Get user transaction logs",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "integer",
+            "default": 1
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transaction log list"
+          }
+        }
+      }
+    },
+    "/api/token/search": {
+      "get": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Search API keys",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Token list"
+          }
+        }
+      }
+    },
+    "/api/channel/types": {
+      "get": {
+        "tags": [
+          "Channel"
+        ],
+        "summary": "Get channel type list",
+        "responses": {
+          "200": {
+            "description": "Channel type list"
+          }
+        }
+      }
+    },
+    "/api/user/self/dashboard": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get user dashboard",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Dashboard data"
+          }
+        }
+      }
+    },
+    "/api/user/self/billing/stats": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get billing statistics",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing stats"
+          }
+        }
+      }
+    },
+    "/api/user/self/billing/records": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Get billing records",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Billing records"
+          }
+        }
+      }
+    },
+    "/api/log/self": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "summary": "Get own request logs",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "startIdx",
+            "in": "query",
+            "type": "integer",
+            "default": 0
+          },
+          {
+            "name": "num",
+            "in": "query",
+            "type": "integer",
+            "default": 10
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log list"
+          }
+        }
+      }
+    },
+    "/api/log/self/stat": {
+      "get": {
+        "tags": [
+          "Log"
+        ],
+        "summary": "Get own log statistics",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Log stats"
+          }
+        }
+      }
+    },
+    "/api/user/": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "List all users (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "p",
+            "in": "query",
+            "type": "integer",
+            "default": 0
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User list"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Create user (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "username": {
+                  "type": "string"
+                },
+                "password": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "integer"
+                },
+                "quota": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Created user"
+          }
+        }
+      }
+    },
+    "/api/user/add_balance": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Add balance to user (admin)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "user_id": {
+                  "type": "integer"
+                },
+                "amount": {
+                  "type": "integer"
+                },
+                "remark": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/v1/embeddings": {
+      "post": {
+        "tags": [
+          "Relay"
+        ],
+        "summary": "Create embeddings (OpenAI-compatible)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Embedding result"
+          }
+        }
+      }
+    },
+    "/v1/audio/transcriptions": {
+      "post": {
+        "tags": [
+          "Relay"
+        ],
+        "summary": "Transcribe audio (OpenAI-compatible)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Transcription text"
+          }
+        }
+      }
+    },
+    "/api/checkin": {
+      "post": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Daily check-in",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Check-in result"
+          }
+        }
+      }
+    },
+    "/api/site-content": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Get site content",
+        "responses": {
+          "200": {
+            "description": "Site content"
+          }
+        }
+      }
+    },
+    "/api/model-catalog": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Get model catalog",
+        "responses": {
+          "200": {
+            "description": "Model catalog list"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Token",
+      "description": "API Key \u7ba1\u7406\uff08\u6838\u5fc3\u6a21\u5757\uff09"
+    },
+    {
+      "name": "User",
+      "description": "\u7528\u6237\u4fe1\u606f\u4e0e\u914d\u7f6e"
+    },
+    {
+      "name": "Billing",
+      "description": "\u8ba1\u8d39\u4e0e\u4f59\u989d"
+    },
+    {
+      "name": "Channel",
+      "description": "\u4e0a\u6e38 AI \u5382\u5546\u6e20\u9053\u914d\u7f6e"
+    },
+    {
+      "name": "Admin",
+      "description": "\u7ba1\u7406\u5458\u64cd\u4f5c"
+    },
+    {
+      "name": "Log",
+      "description": "\u8bf7\u6c42\u65e5\u5fd7"
+    },
+    {
+      "name": "System",
+      "description": "\u7cfb\u7edf\u72b6\u6001\u4e0e\u914d\u7f6e"
+    },
+    {
+      "name": "Relay",
+      "description": "AI \u6a21\u578b\u8c03\u7528\uff08\u8fde\u901a\u6027\u6d4b\u8bd5\uff09"
+    },
+    {
+      "name": "OAuth",
+      "description": "\u7b2c\u4e09\u65b9\u767b\u5f55"
+    },
+    {
+      "name": "Password",
+      "description": "\u5bc6\u7801\u7ba1\u7406"
+    },
+    {
+      "name": "WebAuthn",
+      "description": "WebAuthn \u514d\u5bc6\u8ba4\u8bc1"
+    },
+    {
+      "name": "Cascade",
+      "description": "\u591a\u8282\u70b9\u7ea7\u8054\u90e8\u7f72"
+    }
+  ],
+  "definitions": {
+    "ApiResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
+        },
+        "message": {
+          "type": "string"
+        },
+        "data": {
+          "type": "object"
+        }
+      }
+    },
+    "Token": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "user_id": {
+          "type": "integer"
+        },
+        "key": {
+          "type": "string",
+          "description": "API Key (sk-xxx)"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "integer",
+          "description": "1=enabled, 2=disabled, 3=expired, 4=exhausted"
+        },
+        "remain_quota": {
+          "type": "integer"
+        },
+        "unlimited_quota": {
+          "type": "boolean"
+        },
+        "expired_time": {
+          "type": "integer"
+        },
+        "models": {
+          "type": "string"
+        },
+        "subnet": {
+          "type": "string"
+        },
+        "created_time": {
+          "type": "integer"
+        },
+        "accessed_time": {
+          "type": "integer"
+        }
+      }
+    },
+    "ChatCompletionRequest": {
+      "type": "object",
+      "properties": {
+        "model": {
+          "type": "string"
+        },
+        "messages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ChatMessage"
+          }
+        },
+        "temperature": {
+          "type": "number",
+          "default": 1
+        },
+        "max_tokens": {
+          "type": "integer"
+        },
+        "stream": {
+          "type": "boolean",
+          "default": false
+        },
+        "top_p": {
+          "type": "number",
+          "default": 1
+        }
+      }
+    },
+    "ChatMessage": {
+      "type": "object",
+      "properties": {
+        "role": {
+          "type": "string",
+          "enum": [
+            "user",
+            "assistant",
+            "system",
+            "tool"
+          ]
+        },
+        "content": {
+          "type": "string"
+        }
+      }
+    },
+    "ChatCompletionResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        },
+        "created": {
+          "type": "integer"
+        },
+        "model": {
+          "type": "string"
+        },
+        "choices": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Choice"
+          }
+        },
+        "usage": {
+          "$ref": "#/definitions/Usage"
+        }
+      }
+    },
+    "Choice": {
+      "type": "object",
+      "properties": {
+        "index": {
+          "type": "integer"
+        },
+        "message": {
+          "$ref": "#/definitions/ChatMessage"
+        },
+        "finish_reason": {
+          "type": "string"
+        }
+      }
+    },
+    "Usage": {
+      "type": "object",
+      "properties": {
+        "prompt_tokens": {
+          "type": "integer"
+        },
+        "completion_tokens": {
+          "type": "integer"
+        },
+        "total_tokens": {
+          "type": "integer"
+        }
+      }
+    }
+  }
+}
