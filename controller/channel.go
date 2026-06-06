@@ -257,12 +257,22 @@ func AddChannel(c *gin.Context) {
 	userId := c.GetInt("id")
 	role := c.GetInt("role")
 
-	// 普通用户必须是渠道商才能添加渠道
+	// 普通用户：渠道商可直接添加；消费者首次创建时自动放行并升级
 	if role < model.RoleAdminUser {
 		user, err := model.GetUserById(userId, false)
-		if err != nil || user.UserType != model.UserTypeProvider {
-			c.JSON(http.StatusOK, gin.H{"success": false, "message": "仅渠道商可添加渠道，请在个人中心升级为渠道商"})
+		if err != nil {
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "用户不存在"})
 			return
+		}
+		if user.UserType != model.UserTypeProvider {
+			// 检查是否已有渠道 —— 首次创建放行
+			var existingCount int64
+			model.DB.Model(&model.Channel{}).Where("user_id = ?", userId).Count(&existingCount)
+			if existingCount > 0 {
+				c.JSON(http.StatusOK, gin.H{"success": false, "message": "仅渠道商可添加渠道，请在个人中心升级为渠道商"})
+				return
+			}
+			// 首次创建：标记后续需要升级
 		}
 		channel.UserId = userId
 	}
@@ -286,6 +296,26 @@ func AddChannel(c *gin.Context) {
 		})
 		return
 	}
+
+	// 首次创建渠道的消费者 → 自动升级为渠道商
+	roleVal := c.GetInt("role")
+	if roleVal < model.RoleAdminUser {
+		var user model.User
+		if err := model.DB.First(&user, userId).Error; err == nil && user.UserType != model.UserTypeProvider {
+			model.DB.Model(&model.User{}).Where("id = ?", userId).
+				Updates(map[string]interface{}{
+					"user_type": model.UserTypeProvider,
+					"role":      model.RoleSupplier,
+				})
+			model.RecordLog(c.Request.Context(), userId, model.LogTypeSystem, "首次创建渠道，自动升级为渠道商")
+			c.JSON(http.StatusOK, gin.H{
+				"success": true,
+				"message": "渠道创建成功，您已自动升级为渠道商！现在可以管理 API 渠道了。",
+			})
+			return
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

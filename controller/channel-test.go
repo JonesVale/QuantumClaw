@@ -201,6 +201,16 @@ func TestChannel(c *gin.Context) {
 		})
 		return
 	}
+	// 权限校验: 非管理员只能测试自己的渠道
+	userId := c.GetInt("id")
+	role := c.GetInt("role")
+	if role < model.RoleAdminUser && channel.UserId != userId {
+		c.JSON(http.StatusOK, gin.H{
+			"success": false,
+			"message": "仅可测试自己的渠道",
+		})
+		return
+	}
 	// 量子渠道使用独立的测试逻辑
 	if channel.Type >= 100 {
 		tik := time.Now()

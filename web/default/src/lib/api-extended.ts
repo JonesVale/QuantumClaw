@@ -161,6 +161,196 @@ export async function getChannelModels(): Promise<ApiResponse<string[]>> {
 }
 
 // ---------------------------------------------------------------------------
+// Store / Marketplace API
+// ---------------------------------------------------------------------------
+
+export interface ProviderStore {
+  id: number
+  user_id: number
+  name: string
+  description: string
+  logo: string
+  banner_url: string
+  contact_info: string
+  store_slug: string
+  status: number
+  rating: number
+  total_sales: number
+  created_at: string
+  updated_at: string
+}
+
+export interface StoreWithOwner extends ProviderStore {
+  username: string
+  model_count: number
+  active_model: number
+}
+
+export interface StoreModelItem {
+  id: number
+  store_id: number
+  channel_id: number
+  model_name: string
+  display_name: string
+  description: string
+  tags: string
+  input_price: number
+  output_price: number
+  cache_read_price: number
+  price_multiplier: number
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}
+
+export async function getMyStore(): Promise<ApiResponse<{store: ProviderStore; model_count: number}>> {
+  const res = await apiClient.get('/api/provider/store')
+  return res.data
+}
+
+export async function saveMyStore(data: Partial<ProviderStore>): Promise<ApiResponse<ProviderStore>> {
+  const res = await apiClient.put('/api/provider/store', data)
+  return res.data
+}
+
+export async function toggleStoreStatus(): Promise<ApiResponse<{status: number}>> {
+  const res = await apiClient.post('/api/provider/store/toggle-status')
+  return res.data
+}
+
+export async function checkStoreSlug(slug: string): Promise<ApiResponse<{available: boolean}>> {
+  const res = await apiClient.get(`/api/provider/store/slug-check?slug=${encodeURIComponent(slug)}`)
+  return res.data
+}
+
+// Store models
+export async function getMyStoreModels(activeOnly?: boolean): Promise<ApiResponse<StoreModelItem[]>> {
+  const res = await apiClient.get(`/api/provider/store/models${activeOnly ? '?active=1' : ''}`)
+  return res.data
+}
+
+export async function addStoreModel(data: {
+  channel_id: number
+  model_name: string
+  display_name?: string
+  description?: string
+  tags?: string
+  input_price?: number
+  output_price?: number
+  cache_read_price?: number
+  price_multiplier?: number
+}): Promise<ApiResponse<StoreModelItem>> {
+  const res = await apiClient.post('/api/provider/store/models', data)
+  return res.data
+}
+
+export async function updateStoreModel(id: number, data: Partial<StoreModelItem>): Promise<ApiResponse<StoreModelItem>> {
+  const res = await apiClient.put(`/api/provider/store/models/${id}`, data)
+  return res.data
+}
+
+export async function deleteStoreModel(id: number): Promise<ApiResponse> {
+  const res = await apiClient.delete(`/api/provider/store/models/${id}`)
+  return res.data
+}
+
+// Public store pages
+export async function listActiveStores(): Promise<ApiResponse<StoreWithOwner[]>> {
+  const res = await apiClient.get('/api/stores')
+  return res.data
+}
+
+export async function searchStores(q: string): Promise<ApiResponse<StoreWithOwner[]>> {
+  const res = await apiClient.get(`/api/stores/search?q=${encodeURIComponent(q)}`)
+  return res.data
+}
+
+export async function getPublicStore(slug: string): Promise<ApiResponse<{store: ProviderStore; owner: {username: string; display_name: string; avatar_url: string}; models: StoreModelItem[]}>> {
+  const res = await apiClient.get(`/api/stores/${encodeURIComponent(slug)}`)
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// Enterprise Management API
+// ---------------------------------------------------------------------------
+
+export interface Department {
+  id: number
+  org_id: number
+  name: string
+  description: string
+  head_user_id: number
+  monthly_budget: number
+  alert_threshold: number
+  status: number
+  member_count?: number
+}
+
+export interface EnterpriseTokenPolicy {
+  id: number
+  org_id: number
+  default_quota: number
+  default_group: string
+  allowed_models: string
+  blocked_models: string
+  require_ip_whitelist: boolean
+  max_keys_per_user: number
+  auto_expire_days: number
+  require_admin_approval: boolean
+}
+
+// ── 组织升级 ──
+export async function upgradeOrganization(orgId: number, tier: 'enterprise' | 'provider'): Promise<ApiResponse> {
+  const res = await apiClient.post(`/api/org/${orgId}/upgrade`, { tier })
+  return res.data
+}
+
+// ── 部门管理 ──
+export async function getDepartments(orgId: number): Promise<ApiResponse<Department[]>> {
+  const res = await apiClient.get(`/api/org/${orgId}/departments`)
+  return res.data
+}
+
+export async function createDepartment(orgId: number, data: { name: string; description?: string; head_user_id?: number; monthly_budget?: number }): Promise<ApiResponse<Department>> {
+  const res = await apiClient.post(`/api/org/${orgId}/departments`, data)
+  return res.data
+}
+
+export async function updateDepartment(orgId: number, id: number, data: Partial<Department>): Promise<ApiResponse> {
+  const res = await apiClient.put(`/api/org/${orgId}/departments/${id}`, data)
+  return res.data
+}
+
+export async function deleteDepartment(orgId: number, id: number): Promise<ApiResponse> {
+  const res = await apiClient.delete(`/api/org/${orgId}/departments/${id}`)
+  return res.data
+}
+
+// ── 员工部门设置 ──
+export async function setEmployeeDepartment(orgId: number, userId: number, departmentId: number): Promise<ApiResponse> {
+  const res = await apiClient.post(`/api/org/${orgId}/employees/department`, { user_id: userId, department_id: departmentId })
+  return res.data
+}
+
+// ── 企业策略 ──
+export async function getEnterprisePolicy(orgId: number): Promise<ApiResponse<EnterpriseTokenPolicy>> {
+  const res = await apiClient.get(`/api/org/${orgId}/policy`)
+  return res.data
+}
+
+export async function saveEnterprisePolicy(orgId: number, data: Partial<EnterpriseTokenPolicy>): Promise<ApiResponse> {
+  const res = await apiClient.put(`/api/org/${orgId}/policy`, data)
+  return res.data
+}
+
+// ── 用量查询 ──
+export async function getOrgUsage(orgId: number, from?: string): Promise<ApiResponse> {
+  const res = await apiClient.get(`/api/org/${orgId}/usage`, { params: { from } })
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
 // Token Management API
 // ---------------------------------------------------------------------------
 
@@ -2042,5 +2232,34 @@ export async function getHomePageContent(): Promise<ApiResponse<Record<string, s
 
 export async function getPrometheusMetrics(): Promise<string> {
   const res = await apiClient.get('/api/metrics')
+  return res.data
+}
+
+// ── 企业 Token 创建 ──
+export async function createEnterpriseToken(orgId: number, data: {
+  user_id: number; name: string; department_id?: number; purpose?: string;
+  label?: string; remain_quota?: number; expired_time?: number; models?: string; subnet?: string
+}): Promise<ApiResponse> {
+  const res = await apiClient.post(`/api/org/${orgId}/tokens`, data)
+  return res.data
+}
+
+export async function getOrgEnterpriseTokens(orgId: number): Promise<ApiResponse> {
+  const res = await apiClient.get(`/api/org/${orgId}/tokens`)
+  return res.data
+}
+
+// ── 企业审批 ──
+export interface EnterpriseApproval {
+  id: number; org_id: number; type: string; status: string
+  request_by: number; approved_by: number; content: string
+  reason: string; remark: string; created_at: string; processed_at?: string
+}
+export async function getOrgApprovals(orgId: number, status?: string): Promise<ApiResponse<EnterpriseApproval[]>> {
+  const res = await apiClient.get(`/api/org/${orgId}/approvals`, { params: { status } })
+  return res.data
+}
+export async function processApproval(orgId: number, id: number, action: 'approve' | 'reject', remark?: string): Promise<ApiResponse> {
+  const res = await apiClient.post(`/api/org/${orgId}/approvals/${id}/process`, { action, remark })
   return res.data
 }

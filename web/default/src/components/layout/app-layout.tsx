@@ -216,6 +216,9 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/transactions', icon: Receipt, labelKey: 'Transactions', adminOnly: true },
   { path: '/platform-settings', icon: Settings, labelKey: 'Platform Settings', adminOnly: true },
   { path: '/reseller', icon: Store, labelKey: 'Reseller Portal', loginRequired: true },
+  { path: '/my-store', icon: Store, labelKey: 'My Store', loginRequired: true },
+  { path: '/enterprise', icon: Building2, labelKey: 'Enterprise', loginRequired: true },
+  { path: '/provider-analytics', icon: TrendingUp, labelKey: 'Provider Analytics', loginRequired: true },
   { path: '/reseller-keys', icon: Key, labelKey: 'My Keys', loginRequired: true },
 ]
 
@@ -266,7 +269,11 @@ const FALLBACK_SIDEBAR_GROUPS: Record<string, NavItem[]> = {
 
 const GROUP_LABEL_KEYS: Record<string, string> = {
   '': '',
-  'management': 'Management',
+  'operation': 'Operation',
+  'channel': 'Channel',
+  'finance': 'Finance',
+  'platform': 'Platform',
+  'reseller': 'Reseller',
   'account': 'Account',
 }
 
@@ -456,7 +463,8 @@ const breadcrumbMap: Record<string, string> = {
   '/admin-tools': 'Admin Tools',
   '/profit': 'Channel Profit',
   '/reseller-admin': 'Reseller Management',
-  '/reseller': 'Reseller Portal',
+  '/my-store': 'My Store',
+  '/provider-analytics': 'Provider Analytics',
   '/reseller-keys': 'My Keys',
   '/team': 'My Team',
   '/platform-settings': 'Platform Settings',

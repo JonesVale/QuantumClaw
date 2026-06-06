@@ -813,3 +813,10 @@ func AutoPopulateModelMetadataFromRatio() {
 	}
 }
 
+// GetAllModelMetadatas 获取所有模型元数据（用于 Sitemap）
+func GetAllModelMetadatas() ([]ModelMetadata, error) {
+	var list []ModelMetadata
+	err := DB.Select("model_name, updated_time").Find(&list).Error
+	return list, err
+}
+

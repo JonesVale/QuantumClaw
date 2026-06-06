@@ -170,6 +170,7 @@ func SeedDefaultMenus() error {
 		{MenuKey: "nav-enterprise", ParentKey: "", MenuType: "nav", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 50, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-dashboard", ParentKey: "", MenuType: "nav", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 5, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
 		{MenuKey: "nav-api-docs", ParentKey: "", MenuType: "nav", LabelKey: "API Docs", Icon: "BookOpen", Path: "/api-docs", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "nav-download", ParentKey: "", MenuType: "nav", LabelKey: "Download App", Icon: "Download", Path: "/download", SortOrder: 80, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 
 		// ===== Sidebar items (group: "" -- main sidebar, no collapsible label) =====
 		{MenuKey: "sidebar-dashboard", ParentKey: "", MenuType: "sidebar", LabelKey: "Dashboard", Icon: "LayoutDashboard", Path: "/dashboard", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
@@ -181,30 +182,38 @@ func SeedDefaultMenus() error {
 		{MenuKey: "sidebar-fusion", ParentKey: "", MenuType: "sidebar", LabelKey: "Fusion", Icon: "GitCompare", Path: "/fusion", SortOrder: 57, Roles: "[0,1]", GroupName: "", Enabled: true},
 
 		{MenuKey: "sidebar-apps", ParentKey: "", MenuType: "sidebar", LabelKey: "Apps", Icon: "Sparkles", Path: "/apps", SortOrder: 60, Roles: "[0,1]", GroupName: "", Enabled: true},
-		{MenuKey: "sidebar-enterprise", ParentKey: "", MenuType: "sidebar", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 70, Roles: "[0,1]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-enterprise", ParentKey: "", MenuType: "sidebar", LabelKey: "Enterprise", Icon: "Building2", Path: "/enterprise", SortOrder: 70, Roles: "[1,2,10,100]", GroupName: "", Enabled: true},
+		{MenuKey: "sidebar-marketplace", ParentKey: "", MenuType: "sidebar", LabelKey: "Marketplace", Icon: "Store", Path: "/marketplace", SortOrder: 75, Roles: "[0,1,2,10,100]", GroupName: "", Enabled: true},
 
 
 // ===== Sidebar items (group: "management") =====
-		{MenuKey: "sidebar-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "API Keys", Icon: "Key", Path: "/keys", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-users", ParentKey: "", MenuType: "sidebar", LabelKey: "Users", Icon: "Users", Path: "/users", SortOrder: 20, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-logs", ParentKey: "", MenuType: "sidebar", LabelKey: "Usage Logs", Icon: "ScrollText", Path: "/logs", SortOrder: 30, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-redemption", ParentKey: "", MenuType: "sidebar", LabelKey: "Redemption Codes", Icon: "Ticket", Path: "/redemption", SortOrder: 40, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-distributors", ParentKey: "", MenuType: "sidebar", LabelKey: "Distributors", Icon: "Truck", Path: "/distributors", SortOrder: 50, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-admin-tools", ParentKey: "", MenuType: "sidebar", LabelKey: "Admin Tools", Icon: "Wrench", Path: "/admin-tools", SortOrder: 60, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 70, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 80, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 95, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-model-brands", ParentKey: "", MenuType: "sidebar", LabelKey: "Model Brands", Icon: "Cpu", Path: "/model-brands", SortOrder: 96, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-quantum-sources", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum Sources", Icon: "Atom", Path: "/channels?category=quantum", SortOrder: 97, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-reseller-admin", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Management", Icon: "Store", Path: "/reseller-admin", SortOrder: 100, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-settlement", ParentKey: "", MenuType: "sidebar", LabelKey: "Settlement Config", Icon: "Percent", Path: "/settlement", SortOrder: 110, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-transactions", ParentKey: "", MenuType: "sidebar", LabelKey: "Transactions", Icon: "Receipt", Path: "/transactions", SortOrder: 120, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-platform-settings", ParentKey: "", MenuType: "sidebar", LabelKey: "Platform Settings", Icon: "Settings", Path: "/platform-settings", SortOrder: 130, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-promo-ads", ParentKey: "", MenuType: "sidebar", LabelKey: "Promo Ads", Icon: "Megaphone", Path: "/promo-ads", SortOrder: 135, Roles: "[10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-reseller", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Portal", Icon: "Store", Path: "/reseller", SortOrder: 140, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-reseller-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "My Keys", Icon: "Key", Path: "/reseller-keys", SortOrder: 150, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-team", ParentKey: "", MenuType: "sidebar", LabelKey: "My Team", Icon: "Users", Path: "/team", SortOrder: 155, Roles: "[1,2,10,100]", GroupName: "management", Enabled: true},
-		{MenuKey: "sidebar-menu-permissions", ParentKey: "", MenuType: "sidebar", LabelKey: "Menu Permissions", Icon: "Settings", Path: "/menu-permissions", SortOrder: 160, Roles: "[10,100]", GroupName: "management", Enabled: true},
+		{MenuKey: "sidebar-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "API Keys", Icon: "Key", Path: "/keys", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "operation", Enabled: true},
+		{MenuKey: "sidebar-users", ParentKey: "", MenuType: "sidebar", LabelKey: "Users", Icon: "Users", Path: "/users", SortOrder: 20, Roles: "[10,100]", GroupName: "operation", Enabled: true},
+		{MenuKey: "sidebar-logs", ParentKey: "", MenuType: "sidebar", LabelKey: "Usage Logs", Icon: "ScrollText", Path: "/logs", SortOrder: 30, Roles: "[1,2,10,100]", GroupName: "operation", Enabled: true},
+		{MenuKey: "sidebar-monitoring", ParentKey: "", MenuType: "sidebar", LabelKey: "Monitoring", Icon: "Activity", Path: "/monitoring", SortOrder: 40, Roles: "[10,100]", GroupName: "operation", Enabled: true},
+
+		{MenuKey: "sidebar-channels", ParentKey: "", MenuType: "sidebar", LabelKey: "Channels", Icon: "Network", Path: "/channels", SortOrder: 10, Roles: "[10,100]", GroupName: "channel", Enabled: true},
+		{MenuKey: "sidebar-model-brands", ParentKey: "", MenuType: "sidebar", LabelKey: "Model Brands", Icon: "Cpu", Path: "/model-brands", SortOrder: 20, Roles: "[10,100]", GroupName: "channel", Enabled: true},
+		{MenuKey: "sidebar-quantum-sources", ParentKey: "", MenuType: "sidebar", LabelKey: "Quantum Sources", Icon: "Atom", Path: "/channels?category=quantum", SortOrder: 30, Roles: "[10,100]", GroupName: "channel", Enabled: true},
+
+		{MenuKey: "sidebar-profit", ParentKey: "", MenuType: "sidebar", LabelKey: "Channel Profit", Icon: "TrendingUp", Path: "/profit", SortOrder: 10, Roles: "[10,100]", GroupName: "finance", Enabled: true},
+		{MenuKey: "sidebar-settlement", ParentKey: "", MenuType: "sidebar", LabelKey: "Settlement Config", Icon: "Percent", Path: "/settlement", SortOrder: 20, Roles: "[10,100]", GroupName: "finance", Enabled: true},
+		{MenuKey: "sidebar-transactions", ParentKey: "", MenuType: "sidebar", LabelKey: "Transactions", Icon: "Receipt", Path: "/transactions", SortOrder: 30, Roles: "[10,100]", GroupName: "finance", Enabled: true},
+		{MenuKey: "sidebar-redemption", ParentKey: "", MenuType: "sidebar", LabelKey: "Redemption Codes", Icon: "Ticket", Path: "/redemption", SortOrder: 40, Roles: "[10,100]", GroupName: "finance", Enabled: true},
+
+		{MenuKey: "sidebar-admin-tools", ParentKey: "", MenuType: "sidebar", LabelKey: "Admin Tools", Icon: "Wrench", Path: "/admin-tools", SortOrder: 10, Roles: "[10,100]", GroupName: "platform", Enabled: true},
+		{MenuKey: "sidebar-platform-settings", ParentKey: "", MenuType: "sidebar", LabelKey: "Platform Settings", Icon: "Settings", Path: "/platform-settings", SortOrder: 20, Roles: "[10,100]", GroupName: "platform", Enabled: true},
+		{MenuKey: "sidebar-promo-ads", ParentKey: "", MenuType: "sidebar", LabelKey: "Promo Ads", Icon: "Megaphone", Path: "/promo-ads", SortOrder: 30, Roles: "[10,100]", GroupName: "platform", Enabled: true},
+		{MenuKey: "sidebar-menu-permissions", ParentKey: "", MenuType: "sidebar", LabelKey: "Menu Permissions", Icon: "Settings", Path: "/menu-permissions", SortOrder: 40, Roles: "[10,100]", GroupName: "platform", Enabled: true},
+
+		{MenuKey: "sidebar-reseller-admin", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Management", Icon: "Store", Path: "/reseller-admin", SortOrder: 10, Roles: "[10,100]", GroupName: "reseller", Enabled: true},
+		{MenuKey: "sidebar-reseller", ParentKey: "", MenuType: "sidebar", LabelKey: "Reseller Portal", Icon: "Store", Path: "/reseller", SortOrder: 20, Roles: "[1,2,10,100]", GroupName: "reseller", Enabled: true},
+		{MenuKey: "sidebar-reseller-keys", ParentKey: "", MenuType: "sidebar", LabelKey: "My Keys", Icon: "Key", Path: "/reseller-keys", SortOrder: 30, Roles: "[1,2,10,100]", GroupName: "reseller", Enabled: true},
+		{MenuKey: "sidebar-team", ParentKey: "", MenuType: "sidebar", LabelKey: "My Team", Icon: "Users", Path: "/team", SortOrder: 40, Roles: "[1,2,10,100]", GroupName: "reseller", Enabled: true},
+		{MenuKey: "sidebar-my-store", ParentKey: "", MenuType: "sidebar", LabelKey: "My Store", Icon: "Store", Path: "/my-store", SortOrder: 50, Roles: "[1,2,10,100]", GroupName: "reseller", Enabled: true},
+		{MenuKey: "sidebar-provider-analytics", ParentKey: "", MenuType: "sidebar", LabelKey: "Provider Analytics", Icon: "TrendingUp", Path: "/provider-analytics", SortOrder: 60, Roles: "[1,2,10,100]", GroupName: "reseller", Enabled: true},
+
+		{MenuKey: "sidebar-distributors", ParentKey: "", MenuType: "sidebar", LabelKey: "Distributors", Icon: "Truck", Path: "/distributors", SortOrder: 10, Roles: "[10,100]", GroupName: "account", Enabled: true},
 
 		// ===== Sidebar items (group: "account") =====
 		{MenuKey: "sidebar-profile", ParentKey: "", MenuType: "sidebar", LabelKey: "Profile", Icon: "User", Path: "/profile", SortOrder: 10, Roles: "[1,2,10,100]", GroupName: "account", Enabled: true},

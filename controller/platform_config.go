@@ -34,6 +34,24 @@ func UpdatePlatformConfig(c *gin.Context) {
 		return
 	}
 
+	// 敏感配置项需要 Root(>=100) 权限
+	rootKeys := map[string]bool{
+		"platform_fee_rate_percent":      true,
+		"platform_fee_min_revenue_cents": true,
+		"transaction_fee_domestic":       true,
+		"transaction_fee_foreign":        true,
+		"transaction_fee_foreign_min":    true,
+		"new_user_trial_balance_cents":   true,
+		"quota_for_new_user":             true,
+	}
+	role := c.GetInt("role")
+	for key := range req {
+		if rootKeys[key] && role < model.RoleRootUser {
+			c.JSON(http.StatusForbidden, gin.H{"success": false, "message": "敏感配置项(" + key + ")需要超级管理员权限"})
+			return
+		}
+	}
+
 	now := time.Now().Unix()
 	for key, value := range req {
 		var existing model.PlatformConfig
@@ -67,6 +85,18 @@ func UpdatePlatformConfig(c *gin.Context) {
 		case "quota_per_unit":
 			if v, err := strconv.ParseFloat(value, 64); err == nil {
 				config.QuotaPerUnit = v
+			}
+		case "platform_fee_rate_percent":
+			if v, err := strconv.ParseFloat(value, 64); err == nil {
+				config.PlatformFeeRate = v
+			}
+		case "quota_for_new_user":
+			if v, err := strconv.ParseInt(value, 10, 64); err == nil {
+				config.QuotaForNewUser = v
+			}
+		case "new_user_trial_balance_cents":
+			if v, err := strconv.ParseInt(value, 10, 64); err == nil {
+				config.NewUserTrialBalance = v
 			}
 		}
 	}

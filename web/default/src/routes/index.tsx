@@ -25,14 +25,19 @@ function HomePage() {
   const { t, language } = useT()
   const { auth } = useAuthStore()
   const loggedIn = !!auth.user
-  const [content, setContent] = useState<SiteContent | null>(null)
   const [companyUrl, setCompanyUrl] = useState('https://www.ctji.cn')
+  const [icpBeian, setIcpBeian] = useState('')
+  const [content, setContent] = useState<SiteContent | null>(null)
 
   useEffect(() => {
-    fetch('/api/option/')
+    // 使用公开的 site-info 端点（无需登录）
+    fetch('/api/site-info')
       .then(r => r.json())
-      .then((data: Record<string, string>) => {
-        if (data?.company_website_url) setCompanyUrl(data.company_website_url)
+      .then((res: {success?: boolean; data?: Record<string, string>}) => {
+        if (res?.success && res?.data) {
+          if (res.data.company_website_url) setCompanyUrl(res.data.company_website_url)
+          if (res.data.icp_beian) setIcpBeian(res.data.icp_beian)
+        }
       })
       .catch(() => {})
   }, [])
@@ -211,7 +216,7 @@ function HomePage() {
               </div>
               <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">{t('AI API Gateway & Token Distribution Platform')}</p>
             </div>
-            {[{ title: t('Platform'), links: [{ to: '/models', label: t('Models') }, { to: '/rankings', label: t('Rankings') }, { to: '/pricing', label: t('Pricing') }] },
+            {[{ title: t('Platform'), links: [{ to: '/models', label: t('Models') }, { to: '/rankings', label: t('Rankings') }, { to: '/pricing', label: t('Pricing') }, { to: '/download', label: t('Download App') }] },
               { title: t('Resources'), links: [{ to: '/playground', label: t('Playground') }, { to: '/api-docs', label: t('API Docs') }] },
               { title: t('Company'), links: [{ to: '/about', label: t('About') }, { to: '/reseller', label: t('Reseller Program') }] },
             ].map(group => (
@@ -228,6 +233,11 @@ function HomePage() {
               <span>&copy; {new Date().getFullYear()} {t("Quantum Spirit Claw")}. {t('All rights reserved.')}</span>
             </div>
             <div className="flex items-center gap-6">
+              {icpBeian && (
+                <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground cursor-pointer transition-colors text-muted-foreground/60">
+                  {icpBeian}
+                </a>
+              )}
               <span className="hover:text-foreground cursor-pointer transition-colors">{t('Privacy')}</span>
               <span className="hover:text-foreground cursor-pointer transition-colors">{t('Terms')}</span>
             </div>

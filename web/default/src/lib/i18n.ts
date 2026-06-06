@@ -1,11 +1,12 @@
 /**
- * i18n 初始化 — 纯文件驱动，替换旧的 DB 驱动 useT()
+ * i18n 初始化 — 数据库驱动 + JSON 文件降级
  *
  * 架构：
- *   i18n/*.json (18个文件) → 构建时打包 → i18next 内存字典
- *   回退链: 当前语言 → zh-CN → 键名
+ *   启动时 → fetch /api/translations/{lang} → 存入 i18next
+ *   如果 DB 不可用 → 回退到构建时打包的 JSON 文件
+ *   回退链: DB 翻译 → JSON 文件 → zh-CN → 键名
  *   持久化: localStorage('qc_lang')
- *   零网络请求、零竞态
+ *   运行时编辑: 管理员通过平台设置页面修改翻译，前端定时刷新
  *
  * 语言代码映射：显示名 (Display Name) ↔ 标准码 (ISO Code)
  *   显示名用于 UI 展示（English, 中文简体, 日本語...）

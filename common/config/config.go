@@ -30,6 +30,7 @@ var Logo = "/logo.webp"
 var TopUpLink = ""
 var ChatLink = ""
 var QuotaPerUnit = 500 * 1000.0 // $0.002 / 1K tokens
+var PlatformFeeRate = 0.1000 // default 10% platform fee
 var DisplayInCurrencyEnabled = true
 var DisplayTokenStatEnabled = true
 
@@ -97,6 +98,8 @@ var OidcAuthorizationEndpoint = ""
 var OidcTokenEndpoint = ""
 var OidcUserinfoEndpoint = ""
 
+var AlipayOAuthEnabled = false
+
 var WeChatServerAddress = ""
 var WeChatServerToken = ""
 var WeChatAccountQRCodeImageURL = ""
@@ -126,7 +129,7 @@ var TurnstileSecretKey = ""
 var QuotaForNewUser int64 = 50000 // 新用户注册赠送配额(0=关闭), 默认 50000 ≈ $0.1
 var QuotaForInviter int64 = 10000 // 邀请人奖励配额
 var QuotaForInvitee int64 = 5000  // 被邀请人奖励配额
-var NewUserTrialBalance int64 = 5000 // 新用户注册赠送试用金（分），默认 ¥50
+var NewUserTrialBalance int64 = 0 // 新用户注册赠送试用金（分），默认 0 = 关闭
 var ChannelDisableThreshold = 5.0
 var AutomaticDisableChannelEnabled = true
 var AutomaticEnableChannelEnabled = false

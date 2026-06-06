@@ -1,4 +1,4 @@
-﻿{
+{
   "0": "س",
   "587600277": "587600277",
   "(auto)": "التلقائي",
@@ -2107,5 +2107,12 @@
   "Quantum Spirit Claw": "Quantum Spirit Claw",
   "Quantum Spirit Claw Enterprise": "Quantum Spirit Claw Enterprise",
   "Quantum Spirit Claw AI API Gateway": "Quantum Spirit Claw AI API Gateway",
-  "Official Website": "Official Website"
+  "Official Website": "Official Website",
+  "Download App": "تحميل التطبيق",
+  "Finance": "الإدارة المالية",
+  "Marketplace": "متجر بلازا",
+  "My Store": "بلدي متجر",
+  "Operation": "إدارة العمليات",
+  "Provider Analytics": "تحليل الموردين",
+  "Reseller": "قناة تاجر"
 }

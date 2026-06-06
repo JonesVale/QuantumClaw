@@ -1224,15 +1224,7 @@ func UpgradeToProvider(c *gin.Context) {
 		return
 	}
 
-	// 检查用户是否有至少一个 API 渠道
-	var channelCount int64
-	model.DB.Model(&model.Channel{}).Where("user_id = ?", userId).Count(&channelCount)
-	if channelCount == 0 {
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "请先在「渠道管理」中添加至少一个 API 渠道后再升级为渠道商"})
-		return
-	}
-
-	// 立即升级为渠道商（无需审核）
+	// 立即升级为渠道商（无需审核，不要求已有渠道）
 	if err := model.DB.Model(&model.User{}).Where("id = ?", userId).
 		Updates(map[string]interface{}{
 			"user_type": model.UserTypeProvider,

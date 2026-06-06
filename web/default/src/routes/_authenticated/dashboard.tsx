@@ -315,8 +315,7 @@ function DashboardPage() {
             </h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-2xl">
               {t('Your account has been credited with')} <span className="text-amber-400 font-medium">{new Intl.NumberFormat().format(50000)} {t('free credits')}</span>
-              {t(' and ')}<span className="text-amber-400 font-medium">¥50</span> {t('trial balance')}.
-              {t('Get started with these quick steps:')}
+              {t('. Get started with these quick steps:')}
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Link to="/playground" className="flex items-center gap-3 p-3 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 transition-colors border border-amber-500/10">

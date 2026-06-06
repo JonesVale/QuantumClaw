@@ -4,6 +4,26 @@
 
 services:
   # -----------------------
+  # Nginx Reverse Proxy (SSL)
+  # -----------------------
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: quantumclaw-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/certbot/www:/var/www/certbot
+    depends_on:
+      - app
+    networks:
+      - quantumclaw-net
+
+  # -----------------------
   # QuantumClaw Application
   # -----------------------
   app:

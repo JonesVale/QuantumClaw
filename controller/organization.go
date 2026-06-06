@@ -11,6 +11,7 @@ import (
 // CreateOrgRequest 创建组织请求
 type CreateOrgRequest struct {
 	Name string `json:"name" binding:"required,max=50"`
+	Tier string `json:"tier"` // personal / enterprise / provider
 }
 
 // 创建组织
@@ -27,10 +28,21 @@ func CreateOrganization(c *gin.Context) {
 		return
 	}
 
+	tier := req.Tier
+	if tier != "enterprise" && tier != "provider" {
+		tier = "personal"
+	}
+
 	org, err := model.CreateOrganization(userId, req.Name)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "创建组织失败"})
 		return
+	}
+
+	// 设置 tier
+	if tier != "personal" {
+		model.DB.Model(org).Update("tier", tier)
+		org.Tier = tier
 	}
 
 	// 更新用户的 organization_id

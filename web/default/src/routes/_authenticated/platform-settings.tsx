@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { useAuthStore } from '@/stores/auth-store'
 import { useT } from '@/lib/use-t'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useEffect } from 'react'
-import { Save, RefreshCw, Key, EyeOff, Eye, Check, X, Settings } from 'lucide-react'
+import { useState, useEffect, type ReactNode } from 'react'
+import { Save, RefreshCw, Key, EyeOff, Eye, Check, X, Settings, DollarSign, ShieldAlert } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -22,7 +23,9 @@ interface ConfigMap {
 
 function PlatformSettingsPage() {
   const { t } = useT()
+  const { auth } = useAuthStore()
   const queryClient = useQueryClient()
+  const isRoot = (auth.user?.role ?? 0) >= 100
   const [form, setForm] = useState<ConfigMap>({})
   const [saving, setSaving] = useState(false)
 
@@ -147,6 +150,15 @@ function PlatformSettingsPage() {
               placeholder="/topup"
             />
           </div>
+          <div className="space-y-1.5">
+            <Label>{t('icp_beian')}</Label>
+            <Input
+              value={form['icp_beian'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, icp_beian: e.target.value }))}
+              placeholder={t('icp_beian_placeholder') || '粤ICP备2025xxxxxx号'}
+            />
+            <p className="text-xs text-muted-foreground">{t('icp_beian_hint')}</p>
+          </div>
         </CardContent>
       </Card>
 
@@ -216,6 +228,81 @@ function PlatformSettingsPage() {
         </CardContent>
       </Card>
 
+      {/* ── Registration Bonus Settings ── */}
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-green-500" />
+            {t('Registration Bonus')}
+            {!isRoot && <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center gap-1"><ShieldAlert className="w-3 h-3" />{t('Root Only')}</span>}
+          </CardTitle>
+          <CardDescription>{t('Control trial balance and quota given to new users. Set to 0 to disable.')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <RootField label={t('New User Trial Balance (cents)')} hint={t('Default: 0 (disabled). Only enable for key clients.')} isRoot={isRoot}>
+            <Input type="number" min="0" step="100"
+              value={form['new_user_trial_balance_cents'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, new_user_trial_balance_cents: e.target.value }))}
+              placeholder="5000" disabled={!isRoot} />
+          </RootField>
+          <RootField label={t('New User Quota')} hint={t('Free quota for new users. Set to 0 to disable. Default: 50000')} isRoot={isRoot}>
+            <Input type="number" min="0" step="1000"
+              value={form['quota_for_new_user'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, quota_for_new_user: e.target.value }))}
+              placeholder="50000" disabled={!isRoot} />
+          </RootField>
+        </CardContent>
+      </Card>
+
+      {/* ── Platform Fee Settings ── */}
+      <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-blue-500" />
+            {t('Platform Fees')}
+            {!isRoot && <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 border border-red-200 flex items-center gap-1"><ShieldAlert className="w-3 h-3" />{t('Root Only')}</span>}
+          </CardTitle>
+          <CardDescription>{t('Configure transaction fees and channel partner onboarding fees')}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <RootField label={t('Platform Fee Rate (%)')} hint={t('Percentage of monthly revenue charged as onboarding fee. Default: 5.0%')} isRoot={isRoot}>
+            <Input type="number" min="0" step="0.1"
+              value={form['platform_fee_rate_percent'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, platform_fee_rate_percent: e.target.value }))}
+              placeholder="5.0" disabled={!isRoot} />
+          </RootField>
+          <RootField label={t('Min Revenue for Fee (cents)')} hint={t('Minimum monthly revenue before fee applies. Default: 100 (¥1)')} isRoot={isRoot}>
+            <Input type="number" min="0" step="100"
+              value={form['platform_fee_min_revenue_cents'] || ''}
+              onChange={(e) => setForm(f => ({ ...f, platform_fee_min_revenue_cents: e.target.value }))}
+              placeholder="100" disabled={!isRoot} />
+          </RootField>
+          <div className="border-t pt-4 mt-2">
+            <p className="text-sm font-medium mb-3">{t('Transaction Fees')}</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <RootField label={t('Domestic Rate (%)')} hint={t('Default: 1.0')} isRoot={isRoot}>
+                <Input type="number" min="0" step="0.1"
+                  value={form['transaction_fee_domestic'] || ''}
+                  onChange={(e) => setForm(f => ({ ...f, transaction_fee_domestic: e.target.value }))}
+                  placeholder="1.0" disabled={!isRoot} />
+              </RootField>
+              <RootField label={t('Foreign Rate (%)')} hint={t('Default: 3.0')} isRoot={isRoot}>
+                <Input type="number" min="0" step="0.1"
+                  value={form['transaction_fee_foreign'] || ''}
+                  onChange={(e) => setForm(f => ({ ...f, transaction_fee_foreign: e.target.value }))}
+                  placeholder="3.0" disabled={!isRoot} />
+              </RootField>
+              <RootField label={t('Foreign Min ($)')} hint={t('Default: 5.00')} isRoot={isRoot}>
+                <Input type="number" min="0" step="0.01"
+                  value={form['transaction_fee_foreign_min'] || ''}
+                  onChange={(e) => setForm(f => ({ ...f, transaction_fee_foreign_min: e.target.value }))}
+                  placeholder="5.00" disabled={!isRoot} />
+              </RootField>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* ── Promotion & Settlement Settings ── */}
       <Card className="bg-white/80 backdrop-blur-xl rounded-xl border">
         <CardHeader>
@@ -234,6 +321,21 @@ function PlatformSettingsPage() {
           ))}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+// RootField 超级管理员专属字段包装器（非root显示锁定且不可编辑）
+function RootField({ label, hint, isRoot, children }: { label: string; hint: string; isRoot: boolean; children: ReactNode }) {
+  const { t } = useT()
+  return (
+    <div className="space-y-1.5">
+      <Label className="flex items-center gap-2">
+        {label}
+        {!isRoot && <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-500 border border-red-100 font-normal">{t('Locked')}</span>}
+      </Label>
+      {children}
+      <p className="text-xs text-muted-foreground">{hint}</p>
     </div>
   )
 }

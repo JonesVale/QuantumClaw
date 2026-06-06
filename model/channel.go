@@ -153,6 +153,9 @@ func BatchInsertChannels(channels []Channel) error {
 				logger.SysError("batch encrypt channel key: " + e.Error())
 			}
 		}
+		// 新建渠道标记为已通过测试（确保立即加入路由调度）
+		// monitor 会定期测试并在失败时自动禁用
+		channels[i].LastTestPassed = true
 	}
 	err = DB.Create(&channels).Error
 	if err != nil {
@@ -246,6 +249,7 @@ func (channel *Channel) Insert() error {
 			logger.SysError("encrypt channel key: " + e.Error())
 		}
 	}
+	channel.LastTestPassed = true // 新建渠道标记为可用
 	err = DB.Create(channel).Error
 	if err != nil {
 		return err

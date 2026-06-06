@@ -1,4 +1,4 @@
-﻿{
+{
   "0": "0",
   "587600277": "587600277",
   "(auto)": "(자동)",
@@ -2107,5 +2107,12 @@
   "Quantum Spirit Claw": "Quantum Spirit Claw",
   "Quantum Spirit Claw Enterprise": "Quantum Spirit Claw Enterprise",
   "Quantum Spirit Claw AI API Gateway": "Quantum Spirit Claw AI API Gateway",
-  "Official Website": "Official Website"
+  "Official Website": "Official Website",
+  "Download App": "App 다운로드",
+  "Finance": "재무 관리",
+  "Marketplace": "가게 광장",
+  "My Store": "내 가게",
+  "Operation": "운영 관리",
+  "Provider Analytics": "공급업체 분석",
+  "Reseller": "채널 업체"
 }

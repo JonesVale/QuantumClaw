@@ -47,14 +47,15 @@ export interface SidebarMenuItem {
 // ---------------------------------------------------------------------------
 
 const FALLBACK_NAV: NavMenuItem[] = [
-  { to: '/dashboard',  label: 'Dashboard',  icon: '??' },
+  { to: '/dashboard',  label: 'Dashboard',  icon: '?' },
   { to: '/models',     label: 'Models',     icon: '?' },
-  { to: '/pricing',    label: 'Pricing',    icon: '��' },
-  { to: '/rankings',   label: 'Rankings',   icon: '��' },
+  { to: '/pricing',    label: 'Pricing',    icon: '?' },
+  { to: '/rankings',   label: 'Rankings',   icon: '?' },
+  { to: '/download',   label: 'Download',   icon: '?' },
   { to: '/apps',       label: 'Apps',       icon: '?' },
   { to: '/enterprise', label: 'Enterprise', icon: '?' },
-  { to: '/news',       label: 'AI News',    icon: '??' },
-  { to: '/api-docs',   label: 'API Docs',   icon: '??' },
+  { to: '/news',       label: 'AI News',    icon: '?' },
+  { to: '/api-docs',   label: 'API Docs',   icon: '?' },
 ]
 
 
@@ -73,25 +74,23 @@ const FALLBACK_SIDEBAR: SidebarMenuItem[] = [
   { path: '/channels?category=ai', icon: 'Box', labelKey: 'Model Brands', groupName: 'supplier' },
   { path: '/channels?category=quantum', icon: 'Atom', labelKey: 'Quantum Sources', groupName: 'supplier' },
   // Management group
-  { path: '/keys', icon: 'Key', labelKey: 'API Keys', groupName: 'management' },
-  { path: '/users', icon: 'Users', labelKey: 'Users', groupName: 'management' },
-  { path: '/logs', icon: 'ScrollText', labelKey: 'Usage Logs', groupName: 'management' },
-  { path: '/redemption', icon: 'Ticket', labelKey: 'Redemption Codes', groupName: 'management' },
-  { path: '/distributors', icon: 'Truck', labelKey: 'Distributors', groupName: 'management' },
-  { path: '/admin-tools', icon: 'Wrench', labelKey: 'Admin Tools', groupName: 'management' },
-  { path: '/monitoring', icon: 'Activity', labelKey: 'Monitoring', groupName: 'management' },
-  { path: '/profit', icon: 'TrendingUp', labelKey: 'Channel Profit', groupName: 'management' },
+  { path: '/keys', icon: 'Key', labelKey: 'API Keys', groupName: 'operation' },
+  { path: '/users', icon: 'Users', labelKey: 'Users', groupName: 'operation' },
+  { path: '/logs', icon: 'ScrollText', labelKey: 'Usage Logs', groupName: 'operation' },
+  { path: '/monitoring', icon: 'Activity', labelKey: 'Monitoring', groupName: 'operation' },
 
-  { path: '/reseller-admin', icon: 'Store', labelKey: 'Reseller Management', groupName: 'management' },
-  { path: '/settlement', icon: 'Percent', labelKey: 'Settlement Config', groupName: 'management' },
-  { path: '/transactions', icon: 'Receipt', labelKey: 'Transactions', groupName: 'management' },
-  { path: '/promo-ads', icon: 'Megaphone', labelKey: 'Promo Ads', groupName: 'management' },
-  { path: '/platform-settings', icon: 'Settings', labelKey: 'Platform Settings', groupName: 'management' },
-  { path: '/reseller', icon: 'Store', labelKey: 'Reseller Portal', groupName: 'management' },
-  { path: '/reseller-keys', icon: 'Key', labelKey: 'My Keys', groupName: 'management' },
-  { path: '/team', icon: 'Users', labelKey: 'My Team', groupName: 'management' },
-  { path: '/channels', icon: 'Network', labelKey: 'Channels', groupName: 'management' },
-  { path: '/menu-permissions', icon: 'Settings', labelKey: 'Menu Permissions', groupName: 'management' },
+  { path: '/channels', icon: 'Network', labelKey: 'Channels', groupName: 'channel' },
+  { path: '/profit', icon: 'TrendingUp', labelKey: 'Channel Profit', groupName: 'finance' },
+  { path: '/transactions', icon: 'Receipt', labelKey: 'Transactions', groupName: 'finance' },
+
+  { path: '/reseller-admin', icon: 'Store', labelKey: 'Reseller Management', groupName: 'reseller' },
+  { path: '/settlement', icon: 'Percent', labelKey: 'Settlement Config', groupName: 'finance' },
+  { path: '/promo-ads', icon: 'Megaphone', labelKey: 'Promo Ads', groupName: 'platform' },
+  { path: '/platform-settings', icon: 'Settings', labelKey: 'Platform Settings', groupName: 'platform' },
+  { path: '/reseller', icon: 'Store', labelKey: 'Reseller Portal', groupName: 'reseller' },
+  { path: '/reseller-keys', icon: 'Key', labelKey: 'My Keys', groupName: 'reseller' },
+  { path: '/team', icon: 'Users', labelKey: 'My Team', groupName: 'reseller' },
+  { path: '/menu-permissions', icon: 'Settings', labelKey: 'Menu Permissions', groupName: 'platform' },
   // Account group
   { path: '/profile', icon: 'User', labelKey: 'Profile', groupName: 'account' },
   { path: '/wallet', icon: 'Wallet', labelKey: 'Wallet', groupName: 'account' },

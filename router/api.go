@@ -88,6 +88,12 @@ func SetApiRouter(router *gin.Engine) {
 
 		apiRouter.GET("/rss/articles", controller.GetRssArticles)
 
+		apiRouter.GET("/sitemap.xml", controller.GetSitemap)
+
+		apiRouter.GET("/site-info", controller.GetSiteInfo)
+
+		apiRouter.GET("/translations/:langCode", controller.GetTranslations)
+
 		apiRouter.GET("/models", controller.DashboardListModels)
 
 		apiRouter.GET("/models/rankings", controller.ListModelRankings)
@@ -191,6 +197,10 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/oauth/telegram/widget", middleware.CriticalRateLimit(), auth.GenerateTelegramWidgetOptions)
 
 		apiRouter.GET("/oauth/email/bind", middleware.CriticalRateLimit(), middleware.UserAuth(), controller.EmailBind)
+
+		apiRouter.GET("/oauth/alipay", middleware.CriticalRateLimit(), auth.AlipayAuth)
+
+		apiRouter.POST("/oauth/alipay/callback", middleware.CriticalRateLimit(), auth.AlipayAuthCallback)
 
 
 
@@ -422,18 +432,13 @@ func SetApiRouter(router *gin.Engine) {
 		{
 
 			channelUserRoute.GET("/", controller.GetAllChannels)
-
 			channelUserRoute.GET("/search", controller.SearchChannels)
-
 			channelUserRoute.GET("/models", controller.ListAllModels)
-
 			channelUserRoute.GET("/:id", controller.GetChannel)
-
 			channelUserRoute.POST("/", controller.AddChannel)
-
 			channelUserRoute.PUT("/", controller.UpdateChannel)
-
 			channelUserRoute.DELETE("/:id", controller.DeleteChannel)
+			channelUserRoute.GET("/test/:id", controller.TestChannel) // 渠道商自测
 
 		}
 
@@ -496,8 +501,6 @@ func SetApiRouter(router *gin.Engine) {
 		{
 
 			channelAdminRoute.GET("/test", controller.TestChannels)
-
-			channelAdminRoute.GET("/test/:id", controller.TestChannel)
 
 			channelAdminRoute.GET("/update_balance", controller.UpdateAllChannelsBalance)
 
@@ -877,7 +880,35 @@ func SetApiRouter(router *gin.Engine) {
 
 		}
 
+		// ── 消息发送路由 ──
 
+		messageRoute := apiRouter.Group("/message")
+
+		messageRoute.Use(middleware.UserAuth())
+
+		{
+			messageRoute.GET("/agreements/active", controller.GetActiveAgreement)
+			messageRoute.POST("/jobs", controller.CreateMessageJob)
+			messageRoute.GET("/jobs", controller.GetMessageJobs)
+			messageRoute.GET("/jobs/:id", controller.GetMessageJobDetail)
+			messageRoute.PUT("/jobs/:id/progress", controller.UpdateMessageJobProgress)
+			messageRoute.PUT("/jobs/:id/complete", controller.CompleteMessageJob)
+			messageRoute.POST("/jobs/:id/pause", controller.PauseMessageJob)
+			messageRoute.POST("/jobs/:id/resume", controller.ResumeMessageJob)
+			messageRoute.POST("/jobs/:id/cancel", controller.CancelMessageJob)
+			messageRoute.POST("/logs/batch", controller.BatchCreateMessageLogs)
+			messageRoute.GET("/jobs/:id/logs", controller.GetMessageJobLogs)
+		}
+
+		// ── 管理员消息路由 ──
+
+		adminMessageRoute := apiRouter.Group("/admin/message")
+
+		adminMessageRoute.Use(middleware.AdminAuth())
+
+		{
+			adminMessageRoute.POST("/agreements", controller.AdminCreateAgreement)
+		}
 
 		// Password management routes
 
@@ -931,7 +962,55 @@ func SetApiRouter(router *gin.Engine) {
 
 		apiRouter.GET("/distributor/self", middleware.UserAuth(), controller.GetMyDistributor)
 
+		// ── 渠道商店铺 ──
 
+		// 公开接口
+		apiRouter.GET("/stores/search", controller.SearchStores)
+		apiRouter.GET("/stores", controller.ListActiveStores)
+		apiRouter.GET("/stores/:slug", controller.GetPublicStore)
+
+		// 渠道商自服务（需登录）
+		storeRoute := apiRouter.Group("/provider/store")
+		storeRoute.Use(middleware.UserAuth())
+		{
+			storeRoute.GET("/", controller.GetMyStore)
+			storeRoute.PUT("/", controller.SaveMyStore)
+			storeRoute.POST("/toggle-status", controller.ToggleStoreStatus)
+			storeRoute.GET("/slug-check", controller.PreviewStoreSlug)
+
+			// 店铺商品管理
+			storeRoute.GET("/models", controller.GetMyStoreModels)
+			storeRoute.POST("/models", controller.AddStoreModel)
+			storeRoute.PUT("/models/:id", controller.UpdateStoreModel)
+			storeRoute.DELETE("/models/:id", controller.DeleteStoreModel)
+		}
+
+		// ── 企业管理（Enterprise Console）──
+
+		orgMgmt := apiRouter.Group("/org/:orgId")
+		orgMgmt.Use(middleware.UserAuth())
+		{
+			// 组织升级
+			orgMgmt.POST("/upgrade", controller.UpgradeOrganization)
+			// 部门管理
+			orgMgmt.GET("/departments", controller.ListDepartments)
+			orgMgmt.POST("/departments", controller.CreateDepartment)
+			orgMgmt.PUT("/departments/:id", controller.UpdateDepartment)
+			orgMgmt.DELETE("/departments/:id", controller.DeleteDepartment)
+			// 员工部门设置
+			orgMgmt.POST("/employees/department", controller.SetEmployeeDepartment)
+			// 企业策略
+			orgMgmt.GET("/policy", controller.GetEnterprisePolicy)
+			orgMgmt.PUT("/policy", controller.SaveEnterprisePolicy)
+			// 用量查询
+			orgMgmt.GET("/usage", controller.GetOrgUsage)
+			// 企业Token创建
+			orgMgmt.POST("/tokens", controller.CreateEnterpriseToken)
+			orgMgmt.GET("/tokens", controller.GetOrgEnterpriseTokens) // 查看企业Key列表
+			// 审批
+			orgMgmt.GET("/approvals", controller.GetOrgApprovals)
+			orgMgmt.POST("/approvals/:id/process", controller.ProcessApproval)
+		}
 
 		// Settlement config routes
 
@@ -977,6 +1056,7 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.POST("/reseller/withdraw", middleware.UserAuth(), controller.SubmitResellerWithdrawal)
 
 		apiRouter.GET("/reseller/stats", middleware.UserAuth(), controller.GetResellerStats)
+		apiRouter.GET("/provider/customers", middleware.UserAuth(), controller.GetProviderCustomers)
 
 
 
@@ -1118,6 +1198,13 @@ apiRouter.POST("/admin/model-brands/configure-all", middleware.CriticalRateLimit
 	apiRouter.POST("/admin/apps/sync", middleware.AdminAuth(), controller.AdminSyncPopularApps)
 
 	apiRouter.GET("/admin/inference-nodes", middleware.AdminAuth(), controller.AdminListInferenceNodes)
+
+	apiRouter.POST("/admin/rss/articles", middleware.AdminAuth(), controller.AdminCreateRssArticle)
+
+	apiRouter.GET("/admin/translations", middleware.AdminAuth(), controller.AdminGetTranslations)
+	apiRouter.POST("/admin/translations", middleware.AdminAuth(), controller.AdminUpsertTranslation)
+	apiRouter.POST("/admin/translations/batch", middleware.AdminAuth(), controller.AdminBatchImportTranslations)
+	apiRouter.DELETE("/admin/translations/:id", middleware.AdminAuth(), controller.AdminDeleteTranslation)
 
 		apiRouter.GET("/cascade/nodes", middleware.AdminAuth(), controller.CascadeListNodes)
 

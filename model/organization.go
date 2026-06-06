@@ -11,6 +11,7 @@ type Organization struct {
 	Id        int       `json:"id"`
 	Name      string    `json:"name" gorm:"type:varchar(100);not null" validate:"required,max=50"`
 	OwnerId   int       `json:"owner_id" gorm:"type:int;index;not null"` // 组织创建者（超级管理员）
+	Tier      string    `json:"tier" gorm:"type:varchar(20);default:'personal'"` // personal / enterprise / provider
 	CreatedAt time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }

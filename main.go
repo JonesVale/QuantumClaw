@@ -380,6 +380,8 @@ func main() {
 	go service.StartDailyModelSync()
 	// Provider 模型列表自动同步（每24h从各供应商拉取最新模型）
 	go service.NewProviderSyncService(24 * time.Hour).Start()
+	// 企业用量统计定时聚合（每小时）
+	go service.StartEnterpriseUsageStatsTask()
 	service.LoadCustomOAuthProviders()
 
 AFTER_SLAVE_SETUP:

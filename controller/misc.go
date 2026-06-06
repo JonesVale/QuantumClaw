@@ -50,6 +50,8 @@ func GetStatus(c *gin.Context) {
 			"linuxdo_client_id":           config.LinuxDOClientId,
 			"telegram_oauth":              config.TelegramOAuthEnabled,
 			"telegram_bot_username":       config.TelegramBotUsername,
+			"alipay_oauth":                config.AlipayOAuthEnabled,
+			"alipay_app_id":               config.AlipayAppId,
 		},
 	})
 	return

@@ -69,6 +69,7 @@ func InitOptionMap() {
 	config.OptionMap["BinanceSecretKey"] = ""
 	config.OptionMap["BinanceMerchantId"] = ""
 	config.OptionMap["AlipayEnabled"] = "false"
+	config.OptionMap["AlipayOAuthEnabled"] = "false"
 	config.OptionMap["AlipayAppId"] = ""
 	config.OptionMap["AlipayPrivateKey"] = ""
 	config.OptionMap["AlipayPublicKey"] = ""
@@ -110,6 +111,7 @@ func InitOptionMap() {
 	config.OptionMap["RetryTimes"] = strconv.Itoa(config.RetryTimes)
 	config.OptionMap["Theme"] = config.Theme
 	config.OptionMap["company_website_url"] = "https://www.ctji.cn"
+	config.OptionMap["icp_beian"] = "粤ICP备2021033000号-2"
 	config.OptionMapRWMutex.Unlock()
 	loadOptionsFromDatabase()
 }
@@ -174,6 +176,8 @@ func updateOptionMap(key string, value string) (err error) {
 			config.TelegramOAuthEnabled = boolValue
 		case "LinuxDOOAuthEnabled":
 			config.LinuxDOOAuthEnabled = boolValue
+		case "AlipayOAuthEnabled":
+			config.AlipayOAuthEnabled = boolValue
 		case "TurnstileCheckEnabled":
 			config.TurnstileCheckEnabled = boolValue
 		case "RegisterEnabled":

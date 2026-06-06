@@ -1,4 +1,4 @@
-﻿{
+{
   "0": "0",
   "587600277": "587600277",
   "(auto)": "(auto)",
@@ -2107,5 +2107,12 @@
   "Quantum Spirit Claw": "Quantum Spirit Claw",
   "Quantum Spirit Claw Enterprise": "Quantum Spirit Claw Enterprise",
   "Quantum Spirit Claw AI API Gateway": "Quantum Spirit Claw AI API Gateway",
-  "Official Website": "Official Website"
+  "Official Website": "Official Website",
+  "Finance": "Finance",
+  "Reseller": "Reseller",
+  "My Store": "My Store",
+  "Download App": "Download App",
+  "Operation": "Operation",
+  "Marketplace": "Marketplace",
+  "Provider Analytics": "Provider Analytics"
 }

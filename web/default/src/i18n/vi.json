@@ -1,4 +1,4 @@
-﻿{
+{
   "0": "0",
   "587600277": "587600277",
   "(auto)": "(tự động)",
@@ -2107,5 +2107,12 @@
   "Quantum Spirit Claw": "Quantum Spirit Claw",
   "Quantum Spirit Claw Enterprise": "Quantum Spirit Claw Enterprise",
   "Quantum Spirit Claw AI API Gateway": "Quantum Spirit Claw AI API Gateway",
-  "Official Website": "Official Website"
+  "Official Website": "Official Website",
+  "Download App": "Tải xuống App",
+  "Finance": "Quản lý tài chính",
+  "Marketplace": "Quảng trường cửa hàng",
+  "My Store": "Cửa hàng của tôi",
+  "Operation": "Quản lý vận hành và bảo trì",
+  "Provider Analytics": "Phân tích nhà cung cấp",
+  "Reseller": "Nhà phân phối kênh"
 }

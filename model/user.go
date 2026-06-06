@@ -66,6 +66,7 @@ type User struct {
 	InviterId        int    `json:"inviter_id" gorm:"type:int;column:inviter_id;index"`
 	UserType         string `json:"user_type" gorm:"type:varchar(20);default:'consumer'"` // consumer=普通用户 provider=渠道商
 	OrganizationID   int    `json:"organization_id" gorm:"type:int;default:0;index"`         // 当前所属组织
+	DepartmentID     int    `json:"department_id" gorm:"type:int;default:0;index"`           // 所属部门
 	ProviderStatus   string `json:"provider_status" gorm:"type:varchar(20);default:''"`       // ''=consumer pending=待审核 approved=已通过 rejected=已拒绝
 
 

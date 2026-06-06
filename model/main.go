@@ -287,9 +287,10 @@ func migrateDB() error {
 			"transaction_fee_domestic":     "1.0",
 			"transaction_fee_foreign":       "3.0",
 			"transaction_fee_foreign_min":   "5.00",
-			"new_user_trial_balance_cents": "100",
+			"new_user_trial_balance_cents": "0",
 			"platform_fee_min_revenue_cents": "100",
 			"platform_fee_rate_percent":     "5.0",
+			"icp_beian":                     "粤ICP备2021033000号-2",
 		}
 		now := helper.GetTimestamp()
 		for k, v := range defaults {
@@ -320,7 +321,15 @@ func migrateDB() error {
 
 	// ── 组织/团队表 ──
 	InitOrganizationTables()
-		var count int64
+	// ── 渠道商店铺表 ──
+	InitStoreTables()
+	// ── 企业管理表 ──
+	InitEnterpriseTables()
+	// ── 消息发送引擎表 ──
+	InitMessageTables()
+	// ── 多语言翻译表 ──
+	InitTranslationTables()
+	// ── Sub2API 内置模版种子 ──
 		DB.Model(&Sub2APISchema{}).Where("is_builtin = ?", true).Count(&count)
 		if count > 0 {
 			return nil // already seeded
