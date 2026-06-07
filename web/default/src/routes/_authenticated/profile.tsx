@@ -43,6 +43,9 @@ function ProfilePage() {
   const [disableCode, setDisableCode] = useState('')
   const [passkeys, setPasskeys] = useState<{ id: string; name: string; created_at: string }[]>([])
   const [registeringPasskey, setRegisteringPasskey] = useState(false)
+  const [identityName, setIdentityName] = useState(auth.user?.identity_name || '')
+  const [identityNumber, setIdentityNumber] = useState(auth.user?.identity_number || '')
+  const [identityPending, setIdentityPending] = useState(false)
 
   const { data: twoFAStatus } = useQuery({
     queryKey: ['2fa-status'],
@@ -100,6 +103,30 @@ function ProfilePage() {
     setNewPassword('')
     setConfirmPassword('')
   }
+
+  const handleIdentitySubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!identityName.trim() || !identityNumber.trim()) return
+    setIdentityPending(true)
+    try {
+      const r = await apiClient.post('/api/user/self/identity', {
+        identity_name: identityName.trim(),
+        identity_number: identityNumber.trim(),
+      })
+      if (r.data?.success) {
+        toast.success(t("identity_submitted"))
+        // Refresh user data to get updated identity status
+        queryClient.invalidateQueries({ queryKey: ["self"] })
+      } else {
+        toast.error(r.data?.message || t("submit_failed"))
+      }
+    } catch {
+      toast.error(t("network_error"))
+    } finally {
+      setIdentityPending(false)
+    }
+  }
+
 
   return (
     <div className="qc-wrapper py-8 space-y-6">

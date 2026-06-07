@@ -19,6 +19,10 @@ export interface AuthUser {
   used_quota?: number
   request_count?: number
   unread_count?: number
+  identity_verified?: boolean
+  identity_name?: string
+  identity_number?: string
+  balance?: number
 }
 
 interface AuthState {
