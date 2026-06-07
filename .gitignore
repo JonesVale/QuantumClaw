@@ -42,6 +42,9 @@ Thumbs.db
 
 
 
+# === Runtime Data ===
+data/
+
 # === Memory / Dev Notes ===
 memory/
 
