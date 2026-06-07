@@ -24,6 +24,7 @@ import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as StoresSlugRouteImport } from './routes/stores.$slug'
 import { Route as AuthenticatedWelcomeRouteImport } from './routes/_authenticated/welcome'
 import { Route as AuthenticatedWalletRouteImport } from './routes/_authenticated/wallet'
 import { Route as AuthenticatedUsersRouteImport } from './routes/_authenticated/users'
@@ -145,6 +146,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StoresSlugRoute = StoresSlugRouteImport.update({
+  id: '/stores/$slug',
+  path: '/stores/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedWelcomeRoute = AuthenticatedWelcomeRouteImport.update({
@@ -465,6 +471,7 @@ export interface FileRoutesByFullPath {
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/stores/$slug': typeof StoresSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -529,6 +536,7 @@ export interface FileRoutesByTo {
   '/users': typeof AuthenticatedUsersRoute
   '/wallet': typeof AuthenticatedWalletRoute
   '/welcome': typeof AuthenticatedWelcomeRoute
+  '/stores/$slug': typeof StoresSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -595,6 +603,7 @@ export interface FileRoutesById {
   '/_authenticated/users': typeof AuthenticatedUsersRoute
   '/_authenticated/wallet': typeof AuthenticatedWalletRoute
   '/_authenticated/welcome': typeof AuthenticatedWelcomeRoute
+  '/stores/$slug': typeof StoresSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -661,6 +670,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/wallet'
     | '/welcome'
+    | '/stores/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -725,6 +735,7 @@ export interface FileRouteTypes {
     | '/users'
     | '/wallet'
     | '/welcome'
+    | '/stores/$slug'
   id:
     | '__root__'
     | '/'
@@ -790,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/users'
     | '/_authenticated/wallet'
     | '/_authenticated/welcome'
+    | '/stores/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -812,6 +824,7 @@ export interface RootRouteChildren {
   authResetPasswordRoute: typeof authResetPasswordRoute
   authSetupRoute: typeof authSetupRoute
   authSignInRoute: typeof authSignInRoute
+  StoresSlugRoute: typeof StoresSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -919,6 +932,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stores/$slug': {
+      id: '/stores/$slug'
+      path: '/stores/$slug'
+      fullPath: '/stores/$slug'
+      preLoaderRoute: typeof StoresSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/welcome': {
@@ -1377,6 +1397,7 @@ const rootRouteChildren: RootRouteChildren = {
   authResetPasswordRoute: authResetPasswordRoute,
   authSetupRoute: authSetupRoute,
   authSignInRoute: authSignInRoute,
+  StoresSlugRoute: StoresSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

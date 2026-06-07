@@ -207,5 +207,6 @@ function PublicStorePage() {
         <Card><CardContent className="py-12 text-center text-muted-foreground">{t('No models match this filter')}</CardContent></Card>
       )}
     </div>
+    </div>
   )
 }
