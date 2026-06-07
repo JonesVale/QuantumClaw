@@ -2114,5 +2114,14 @@
   "Download App": "下載App",
   "Operation": "運維管理",
   "Marketplace": "店鋪廣場",
-  "Provider Analytics": "供應商分析"
+  "Provider Analytics": "供應商分析",
+  "identity_verification": "Identity Verification",
+  "identity_verification_desc": "Complete identity verification before withdrawal",
+  "real_name": "Real Name",
+  "real_name_placeholder": "Enter your real name",
+  "id_number": "ID Number",
+  "id_number_placeholder": "Enter your ID number",
+  "submit_identity": "Submit for Review",
+  "identity_submitted": "Identity info submitted, awaiting admin review",
+  "submit_failed": "Submit failed"
 }
