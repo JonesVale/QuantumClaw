@@ -89,6 +89,7 @@ export default defineConfig(({ envMode }) => {
           tanstackRouter({
             target: 'react',
             autoCodeSplitting: isProd,
+            routeFileIgnorePattern: 'stores\.\$slug\.tsx',
           }),
         ],
       },
