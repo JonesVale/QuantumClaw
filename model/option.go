@@ -78,6 +78,7 @@ func InitOptionMap() {
 	config.OptionMap["AlipayPublicKey"] = ""
 	config.OptionMap["AlipayGatewayUrl"] = ""
 	config.OptionMap["AlipayMinTopUp"] = "1"
+	config.OptionMap["AlipaySubject"] = "QuantumClaw 充值"
 	config.OptionMap["WorldFirstEnabled"] = "false"
 	config.OptionMap["WorldFirstApiKey"] = ""
 	config.OptionMap["WorldFirstSecretKey"] = ""

@@ -89,9 +89,14 @@ func RequestAlipayTopUp(c *gin.Context) {
 		returnURL = req.ReturnURL
 	}
 
-	bizContent := buildAlipayBizContent(tradeNo, payMoney, "量子之爪充值")
+	isMobile := isMobileDevice(c.GetHeader("User-Agent"))
+	subject := common.GetPaymentSetting().AlipaySubject
+	if subject == "" {
+		subject = "QuantumClaw 充值"
+	}
+	bizContent := buildAlipayBizContent(tradeNo, payMoney, subject, isMobile)
 	payFormURL, err := buildAlipayPayForm(setting.AlipayAppId, setting.AlipayPrivateKey,
-		setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent)
+		setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent, isMobile)
 	if err != nil {
 		logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝支付表单失败 trade_no=%s error=%q", tradeNo, err.Error()))
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
@@ -109,23 +114,46 @@ func RequestAlipayTopUp(c *gin.Context) {
 	})
 }
 
+// isMobileDevice 通过 User-Agent 判断是否为移动设备
+func isMobileDevice(userAgent string) bool {
+	ua := strings.ToLower(userAgent)
+	mobileKeywords := []string{"mobile", "android", "iphone", "ipad", "ipod", "phone", "windows phone"}
+	for _, kw := range mobileKeywords {
+		if strings.Contains(ua, kw) {
+			return true
+		}
+	}
+	return false
+}
+
 // buildAlipayBizContent 构建支付宝 biz_content
-func buildAlipayBizContent(tradeNo string, totalAmount float64, subject string) string {
+// 聚合支付：自动适配 PC 网页支付和移动端 H5 支付
+func buildAlipayBizContent(tradeNo string, totalAmount float64, subject string, isMobile bool) string {
 	biz := map[string]interface{}{
 		"out_trade_no":  tradeNo,
-		"product_code":  "FAST_INSTANT_TRADE_PAY",
 		"total_amount":  fmt.Sprintf("%.2f", totalAmount),
 		"subject":       subject,
+		"product_code":  "FAST_INSTANT_TRADE_PAY",
+	}
+	if isMobile {
+		// 移动端：使用快捷支付（wap），支付宝收银台自适应
+		biz["product_code"] = "QUICK_WAP_PAY"
+		biz["quit_url"] = "" // 前端传递退出回跳 URL
 	}
 	b, _ := json.Marshal(biz)
 	return string(b)
 }
 
-// buildAlipayPayForm 构建支付宝电脑网站支付表单（返回完整 URL，前端可直接跳转）
-func buildAlipayPayForm(appId, privateKey, gatewayUrl, notifyURL, returnURL, bizContent string) (string, error) {
+// buildAlipayPayForm 构建支付宝聚合支付表单（PC端 page.pay / 移动端 wap.pay）
+// 返回值: 支付跳转 URL，前端可直接跳转或展示 iframe
+func buildAlipayPayForm(appId, privateKey, gatewayUrl, notifyURL, returnURL, bizContent string, isMobile bool) (string, error) {
 	params := url.Values{}
+	method := "alipay.trade.page.pay"
+	if isMobile {
+		method = "alipay.trade.wap.pay"
+	}
 	params.Set("app_id", appId)
-	params.Set("method", "alipay.trade.page.pay")
+	params.Set("method", method)
 	params.Set("format", "JSON")
 	params.Set("charset", "utf-8")
 	params.Set("sign_type", "RSA2")
@@ -143,7 +171,10 @@ func buildAlipayPayForm(appId, privateKey, gatewayUrl, notifyURL, returnURL, biz
 	}
 	params.Set("sign", sign)
 
-	// 构建完整的 POST 提交 URL（前端用 form 提交）
+	// 支付宝新网关（聚合支付统一入口）
+	if gatewayUrl == "" {
+		gatewayUrl = "https://openapi.alipay.com/gateway.do"
+	}
 	return gatewayUrl + "?" + params.Encode(), nil
 }
 

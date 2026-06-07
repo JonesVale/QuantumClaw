@@ -74,6 +74,7 @@ type PaymentSetting struct {
 	AlipayPublicKey     string  `json:"alipay_public_key"`
 	AlipayGatewayUrl    string  `json:"alipay_gateway_url"`
 	AlipayMinTopUp      int     `json:"alipay_min_topup"`
+	AlipaySubject      string  `json:"alipay_subject"`
 
 	// 万里汇 WorldFirst 配置
 	WorldFirstEnabled     bool    `json:"worldfirst_enabled"`
@@ -294,6 +295,12 @@ func loadPaymentConfigFromEnv(settings *PaymentSetting) {
 			if min, err := strconv.Atoi(v); err == nil {
 				settings.AlipayMinTopUp = min
 			}
+		}
+		if v := os.Getenv("ALIPAY_SUBJECT"); v != "" {
+			settings.AlipaySubject = v
+		}
+		if settings.AlipaySubject == "" {
+			settings.AlipaySubject = "QuantumClaw 充值"
 		}
 	}
 	if settings.AlipayGatewayUrl == "" {
