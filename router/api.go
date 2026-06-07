@@ -265,6 +265,8 @@ func SetApiRouter(router *gin.Engine) {
 
 				selfRoute.GET("/available_models", controller.GetUserAvailableModels)
 
+				selfRoute.POST("/identity", controller.SubmitIdentityUpload)
+
 
 
 				selfRoute.GET("/topup/info", controller.GetTopUpInfo)
@@ -413,6 +415,7 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.POST("/withdrawals/:id/reject", controller.AdminRejectWithdrawal)
 
 				adminRoute.POST("/withdrawals/:id/complete", controller.AdminCompleteWithdrawal)
+	adminRoute.POST("/user/verify-identity", controller.AdminVerifyIdentity)
 
 			}
 
