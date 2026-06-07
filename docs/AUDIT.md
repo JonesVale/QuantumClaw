@@ -157,11 +157,13 @@ Channel 创建
 middleware_core_test.go: CORS / GzipDecode / RequestId / SecurityHeaders
 ```
 
-**剩余 20 个仍需覆盖**：
+**新增 5 个基础测试 (commit 0ee0ec5)**：
+LoginRateLimit / GlobalAPIRateLimit / ParamValidatorMiddleware / SearchMiddleware / RelayPanicRecover
+
+**剩余 15 个仍需覆盖** (需 DB/Redis 环境支持)：
 cache.go, cascade_auth.go, distributor.go, geo.go, https_redirect.go,
-intelligent_router.go, logger.go, login_rate_limit.go, model_rate_limit.go,
-param_validator.go, payment_auth.go, prompt_optimizer.go, rate-limit.go,
-recover.go, search.go, ssrf_protection.go, sub2api.go, turnstile-check.go,
+intelligent_router.go, logger.go, model_rate_limit.go, payment_auth.go,
+prompt_optimizer.go, ssrf_protection.go, sub2api.go, turnstile-check.go,
 utils.go, webhook_security.go
 
 ### 3.3 52 个 AI 适配器，51 个无专用测试
