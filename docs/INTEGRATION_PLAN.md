@@ -2,6 +2,19 @@
 
 > 生成日期: 2026-06-07
 > 基线版本: v2.2.0 (develop)
+> 最后更新: 2026-06-07
+>
+> ## 📊 执行状态
+>
+> | Phase | 状态 | Commits |
+> |:------|:----:|:--------|
+> | Phase 1 构建体系归一化 | ✅ 完成 | `ff3e7c4` `d8c59e2` |
+> | Phase 2 app/ 集成 | 🟡 部分完成 | Makefile 已加，页面待实现 |
+> | Phase 3 electron/ 集成 | 🟡 部分完成 | Makefile 已加 |
+> | Phase 4 SDK 管理 | 🟡 待处理 | — |
+> | Phase 5 历史遗留清理 | ✅ 完成 | `d8c59e2` |
+> | Phase 6 i18n 整合 | 🟡 待处理 | — |
+> | Phase 7 级联架构 | 🟡 待处理 | — |
 
 ---
 
@@ -30,7 +43,12 @@ Docker 构建流程（Dockerfile）：
   [Stage 2] go build → 嵌入 web/build/default
 ```
 
-**根源**：项目经历了多次前端框架迁移（历史遗留），`web/build/` 是旧版构建目标路径，当前 Dockerfile 仍指向它。
+**根源**：项目经历了多次前端框架迁移（历史遗留），`web/build/` 是旧版构建目标路径。
+
+**✅ 已修复（commit `ff3e7c4` + `d8c59e2`）**：
+- `web/build/` 已整体删除（88 个冗余文件）
+- Dockerfile 简化：去掉中间 `mv` 步骤，直接 `default/dist → web/default/dist`
+- `.gitignore`/`.dockerignore` 统一更新
 
 ---
 
@@ -41,28 +59,28 @@ Docker 构建流程（Dockerfile）：
 
 | 任务 | 优先级 | 耗时 | 依赖 |
 |------|:------:|:----:|:----:|
-| 1.1 清理 web/build/ 占位文件 | P0 | 5min | — |
-| 1.2 修正 Dockerfile 构建输出路径 | P0 | 10min | 1.1 |
-| 1.3 确认 go embed 引用路径一致 | P0 | 15min | 1.2 |
-| 1.4 清理 release/dist/ 重复构建 | P1 | 10min | 1.1 |
-| 1.5 更新 .gitignore 全面清理 | P1 | 5min | — |
+| 1.1 清理 web/build/ 占位文件 | P0 | ✅ | commit `d8c59e2` |
+| 1.2 修正 Dockerfile 构建输出路径 | P0 | ✅ | commit `ff3e7c4` |
+| 1.3 确认 go embed 引用路径一致 | P0 | ✅ | 已验证（`main.go:111` → `router/web.go`） |
+| 1.4 清理 release/dist/ 重复构建 | P1 | 🟡 | 非阻塞，可后续处理 |
+| 1.5 更新 .gitignore 全面清理 | P1 | ✅ | commit `d8c59e2` |
 
 ### Phase 2: app/ 移动端集成
 **目标**：移动端纳入统一构建流程 + 补全缺页面
 
 | 任务 | 优先级 | 耗时 | 依赖 |
 |------|:------:|:----:|:----:|
-| 2.1 Makefile 新增 app 构建目标 | P0 | 15min | — |
-| 2.2 移动端 i18n 对齐后端 | P1 | 30min | — |
-| 2.3 补全 provider/enterprise 屏幕 | P2 | 2h | — |
+| 2.1 Makefile 新增 app 构建目标 | P0 | ✅ | commit `d8c59e2` |
+| 2.2 移动端 i18n 对齐后端 | P1 | 🟡 | app/ 无 i18n 模块，待 Feature Sprint |
+| 2.3 补全 provider/enterprise 屏幕 | P2 | 🟡 | 8 个 Placeholder 待实现 |
 
 ### Phase 3: electron/ 桌面端集成
 **目标**：桌面端纳入统一发布流程
 
 | 任务 | 优先级 | 耗时 | 依赖 |
 |------|:------:|:----:|:----:|
-| 3.1 Makefile 新增 electron 构建目标 | P0 | 10min | — |
-| 3.2 版本号对齐（VERSION → electron） | P1 | 5min | — |
+| 3.1 Makefile 新增 electron 构建目标 | P0 | ✅ | commit `d8c59e2` |
+| 3.2 版本号对齐（VERSION → electron） | P1 | 🟡 | electron 通过 API 读取版本 |
 
 ### Phase 4: SDK 统一管理
 **目标**：三语言 SDK 版本对齐 + 统一发布
@@ -77,10 +95,10 @@ Docker 构建流程（Dockerfile）：
 
 | 任务 | 优先级 | 耗时 | 依赖 |
 |------|:------:|:----:|:----:|
-| 5.1 归档 SQL/ 脚本至 docs/legacy/ | P0 | 10min | — |
-| 5.2 清理根目录实验性脚本 | P0 | 5min | — |
-| 5.3 删除空目录 data/ | P0 | 2min | — |
-| 5.4 BFG 清理 Git history 敏感文件 | P1 | 30min | — |
+| 5.1 归档 SQL/ 脚本至 docs/legacy/ | P0 | ✅ | 30 JS 脚本移入 docs/legacy/sql-migrations/ |
+| 5.2 清理根目录实验性脚本 | P0 | ✅ | 14 个 `_` 文件移入 docs/legacy/ |
+| 5.3 data/ 加入 .gitignore | P0 | ✅ | data/ 含 5.7MB SQLite 数据库，已排除 |
+| 5.4 BFG 清理 Git history 敏感文件 | P1 | 🟡 | 需协调，已 gitignore 防护
 
 ### Phase 6: i18n 整合
 **目标**：前后端语言资源统一
