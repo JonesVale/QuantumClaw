@@ -14,9 +14,7 @@ COPY web/default ./default/
 ARG VERSION=dev
 RUN cd default && \
     VITE_REACT_APP_VERSION=${VERSION} npx rsbuild build && \
-    cd .. && \
-    mkdir -p /app/web/build && \
-    mv default/dist /app/web/build/default
+    cd ..
 
 # ============================================================
 # Stage 2: Build Go Backend
@@ -37,7 +35,7 @@ RUN go mod download
 
 # 2. Copy source and built frontend
 COPY . .
-COPY --from=frontend-builder /app/web/build/default ./web/default/dist
+COPY --from=frontend-builder /app/default/dist ./web/default/dist
 
 # 3. Build
 ARG VERSION=dev

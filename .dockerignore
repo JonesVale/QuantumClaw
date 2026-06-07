@@ -14,8 +14,7 @@ LICENSE
 !.env.example
 
 # Build artifacts
-web/build/
-web/*/build/
+web/*/dist/
 web/node_modules/
 web/*/node_modules/
 

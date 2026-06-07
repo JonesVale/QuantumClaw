@@ -1,8 +1,17 @@
-# === Binaries ===
-quantumclaw.exe
-quantumclaw_new.exe
-quantumclaw_test.exe
+# === Build Artifacts ===
+*.exe
 *.exe~
+web/default/dist/
+release/dist/
+release/*.exe
+release/*.zip
+release/*.tar.gz
+release/quantumclaw-linux
+
+# === Go ===
+*.test
+*.out
+coverage*.out
 
 # === Dependencies ===
 node_modules/
@@ -19,13 +28,7 @@ backend.log
 .env
 .env.bak
 
-# === Build artifacts ===
-web/default/dist/
-release/dist/
-release/*.exe
-release/*.zip
-release/*.tar.gz
-release/quantumclaw-linux
+
 
 # === OS files ===
 .DS_Store
@@ -37,11 +40,18 @@ Thumbs.db
 # === Session ===
 .session_secret
 
-# === Coverage ===
-*.out
-coverage_full.out
-coverage.out
+
+
+# === Memory / Dev Notes ===
+memory/
+
+# === Temp Files ===
+*.tmp
+*.temp
+*.bak
+*.swp
 
 # === Misc ===
-支付宝收款码.jpg
 *.db-journal
+*.db-wal
+*.db-shm
