@@ -3,7 +3,7 @@ import { useT } from '@/lib/use-t'
 import { Link } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 
-export const Route = createFileRoute('/enterprise')({
+export const Route = createFileRoute('/enterprise-public')({
   component: EnterprisePage,
 })
 

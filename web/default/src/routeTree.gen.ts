@@ -15,9 +15,11 @@ import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PlaygroundRouteImport } from './routes/playground'
 import { Route as OauthCallbackRouteImport } from './routes/oauth-callback'
 import { Route as ModelsRouteImport } from './routes/models'
+import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as FusionRouteImport } from './routes/fusion'
 import { Route as FaqRouteImport } from './routes/faq'
-import { Route as EnterpriseRouteImport } from './routes/enterprise'
+import { Route as EnterprisePublicRouteImport } from './routes/enterprise-public'
+import { Route as DownloadRouteImport } from './routes/download'
 import { Route as DeveloperRouteImport } from './routes/developer'
 import { Route as AppsRouteImport } from './routes/apps'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
@@ -37,6 +39,7 @@ import { Route as AuthenticatedResellerKeysRouteImport } from './routes/_authent
 import { Route as AuthenticatedResellerAdminRouteImport } from './routes/_authenticated/reseller-admin'
 import { Route as AuthenticatedResellerRouteImport } from './routes/_authenticated/reseller'
 import { Route as AuthenticatedRedemptionRouteImport } from './routes/_authenticated/redemption'
+import { Route as AuthenticatedProviderAnalyticsRouteImport } from './routes/_authenticated/provider-analytics'
 import { Route as AuthenticatedPromoAdsRouteImport } from './routes/_authenticated/promo-ads'
 import { Route as AuthenticatedProfitRouteImport } from './routes/_authenticated/profit'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -45,6 +48,7 @@ import { Route as AuthenticatedPasswordRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
+import { Route as AuthenticatedMyStoreRouteImport } from './routes/_authenticated/my-store'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
 import { Route as AuthenticatedModelHostingRouteImport } from './routes/_authenticated/model-hosting'
 import { Route as AuthenticatedModelBrandsRouteImport } from './routes/_authenticated/model-brands'
@@ -52,6 +56,7 @@ import { Route as AuthenticatedMenuPermissionsRouteImport } from './routes/_auth
 import { Route as AuthenticatedLogsRouteImport } from './routes/_authenticated/logs'
 import { Route as AuthenticatedKeysRouteImport } from './routes/_authenticated/keys'
 import { Route as AuthenticatedFeedbackRouteImport } from './routes/_authenticated/feedback'
+import { Route as AuthenticatedEnterpriseRouteImport } from './routes/_authenticated/enterprise'
 import { Route as AuthenticatedDistributorsRouteImport } from './routes/_authenticated/distributors'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedConnectionsRouteImport } from './routes/_authenticated/connections'
@@ -98,6 +103,11 @@ const ModelsRoute = ModelsRouteImport.update({
   path: '/models',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MarketplaceRoute = MarketplaceRouteImport.update({
+  id: '/marketplace',
+  path: '/marketplace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FusionRoute = FusionRouteImport.update({
   id: '/fusion',
   path: '/fusion',
@@ -108,9 +118,14 @@ const FaqRoute = FaqRouteImport.update({
   path: '/faq',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EnterpriseRoute = EnterpriseRouteImport.update({
-  id: '/enterprise',
-  path: '/enterprise',
+const EnterprisePublicRoute = EnterprisePublicRouteImport.update({
+  id: '/enterprise-public',
+  path: '/enterprise-public',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DownloadRoute = DownloadRouteImport.update({
+  id: '/download',
+  path: '/download',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeveloperRoute = DeveloperRouteImport.update({
@@ -212,6 +227,12 @@ const AuthenticatedRedemptionRoute = AuthenticatedRedemptionRouteImport.update({
   path: '/redemption',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProviderAnalyticsRoute =
+  AuthenticatedProviderAnalyticsRouteImport.update({
+    id: '/provider-analytics',
+    path: '/provider-analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPromoAdsRoute = AuthenticatedPromoAdsRouteImport.update({
   id: '/promo-ads',
   path: '/promo-ads',
@@ -254,6 +275,11 @@ const AuthenticatedNewsRoute = AuthenticatedNewsRouteImport.update({
   path: '/news',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyStoreRoute = AuthenticatedMyStoreRouteImport.update({
+  id: '/my-store',
+  path: '/my-store',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMonitoringRoute = AuthenticatedMonitoringRouteImport.update({
   id: '/monitoring',
   path: '/monitoring',
@@ -290,6 +316,11 @@ const AuthenticatedKeysRoute = AuthenticatedKeysRouteImport.update({
 const AuthenticatedFeedbackRoute = AuthenticatedFeedbackRouteImport.update({
   id: '/feedback',
   path: '/feedback',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedEnterpriseRoute = AuthenticatedEnterpriseRouteImport.update({
+  id: '/enterprise',
+  path: '/enterprise',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDistributorsRoute =
@@ -375,9 +406,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/apps': typeof AppsRoute
   '/developer': typeof DeveloperRoute
-  '/enterprise': typeof EnterpriseRoute
+  '/download': typeof DownloadRoute
+  '/enterprise-public': typeof EnterprisePublicRoute
   '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
+  '/marketplace': typeof MarketplaceRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
@@ -399,6 +432,7 @@ export interface FileRoutesByFullPath {
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
+  '/enterprise': typeof AuthenticatedEnterpriseRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
@@ -406,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/model-brands': typeof AuthenticatedModelBrandsRoute
   '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
+  '/my-store': typeof AuthenticatedMyStoreRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -414,6 +449,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
   '/promo-ads': typeof AuthenticatedPromoAdsRoute
+  '/provider-analytics': typeof AuthenticatedProviderAnalyticsRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/reseller': typeof AuthenticatedResellerRoute
   '/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -434,9 +470,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/apps': typeof AppsRoute
   '/developer': typeof DeveloperRoute
-  '/enterprise': typeof EnterpriseRoute
+  '/download': typeof DownloadRoute
+  '/enterprise-public': typeof EnterprisePublicRoute
   '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
+  '/marketplace': typeof MarketplaceRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
@@ -458,6 +496,7 @@ export interface FileRoutesByTo {
   '/connections': typeof AuthenticatedConnectionsRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/distributors': typeof AuthenticatedDistributorsRoute
+  '/enterprise': typeof AuthenticatedEnterpriseRoute
   '/feedback': typeof AuthenticatedFeedbackRoute
   '/keys': typeof AuthenticatedKeysRoute
   '/logs': typeof AuthenticatedLogsRoute
@@ -465,6 +504,7 @@ export interface FileRoutesByTo {
   '/model-brands': typeof AuthenticatedModelBrandsRoute
   '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
+  '/my-store': typeof AuthenticatedMyStoreRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -473,6 +513,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/profit': typeof AuthenticatedProfitRoute
   '/promo-ads': typeof AuthenticatedPromoAdsRoute
+  '/provider-analytics': typeof AuthenticatedProviderAnalyticsRoute
   '/redemption': typeof AuthenticatedRedemptionRoute
   '/reseller': typeof AuthenticatedResellerRoute
   '/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -495,9 +536,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/apps': typeof AppsRoute
   '/developer': typeof DeveloperRoute
-  '/enterprise': typeof EnterpriseRoute
+  '/download': typeof DownloadRoute
+  '/enterprise-public': typeof EnterprisePublicRoute
   '/faq': typeof FaqRoute
   '/fusion': typeof FusionRoute
+  '/marketplace': typeof MarketplaceRoute
   '/models': typeof ModelsRoute
   '/oauth-callback': typeof OauthCallbackRoute
   '/playground': typeof PlaygroundRoute
@@ -519,6 +562,7 @@ export interface FileRoutesById {
   '/_authenticated/connections': typeof AuthenticatedConnectionsRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/distributors': typeof AuthenticatedDistributorsRoute
+  '/_authenticated/enterprise': typeof AuthenticatedEnterpriseRoute
   '/_authenticated/feedback': typeof AuthenticatedFeedbackRoute
   '/_authenticated/keys': typeof AuthenticatedKeysRoute
   '/_authenticated/logs': typeof AuthenticatedLogsRoute
@@ -526,6 +570,7 @@ export interface FileRoutesById {
   '/_authenticated/model-brands': typeof AuthenticatedModelBrandsRoute
   '/_authenticated/model-hosting': typeof AuthenticatedModelHostingRoute
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
+  '/_authenticated/my-store': typeof AuthenticatedMyStoreRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -534,6 +579,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/profit': typeof AuthenticatedProfitRoute
   '/_authenticated/promo-ads': typeof AuthenticatedPromoAdsRoute
+  '/_authenticated/provider-analytics': typeof AuthenticatedProviderAnalyticsRoute
   '/_authenticated/redemption': typeof AuthenticatedRedemptionRoute
   '/_authenticated/reseller': typeof AuthenticatedResellerRoute
   '/_authenticated/reseller-admin': typeof AuthenticatedResellerAdminRoute
@@ -556,9 +602,11 @@ export interface FileRouteTypes {
     | '/'
     | '/apps'
     | '/developer'
-    | '/enterprise'
+    | '/download'
+    | '/enterprise-public'
     | '/faq'
     | '/fusion'
+    | '/marketplace'
     | '/models'
     | '/oauth-callback'
     | '/playground'
@@ -580,6 +628,7 @@ export interface FileRouteTypes {
     | '/connections'
     | '/dashboard'
     | '/distributors'
+    | '/enterprise'
     | '/feedback'
     | '/keys'
     | '/logs'
@@ -587,6 +636,7 @@ export interface FileRouteTypes {
     | '/model-brands'
     | '/model-hosting'
     | '/monitoring'
+    | '/my-store'
     | '/news'
     | '/not-found'
     | '/notifications'
@@ -595,6 +645,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/profit'
     | '/promo-ads'
+    | '/provider-analytics'
     | '/redemption'
     | '/reseller'
     | '/reseller-admin'
@@ -615,9 +666,11 @@ export interface FileRouteTypes {
     | '/'
     | '/apps'
     | '/developer'
-    | '/enterprise'
+    | '/download'
+    | '/enterprise-public'
     | '/faq'
     | '/fusion'
+    | '/marketplace'
     | '/models'
     | '/oauth-callback'
     | '/playground'
@@ -639,6 +692,7 @@ export interface FileRouteTypes {
     | '/connections'
     | '/dashboard'
     | '/distributors'
+    | '/enterprise'
     | '/feedback'
     | '/keys'
     | '/logs'
@@ -646,6 +700,7 @@ export interface FileRouteTypes {
     | '/model-brands'
     | '/model-hosting'
     | '/monitoring'
+    | '/my-store'
     | '/news'
     | '/not-found'
     | '/notifications'
@@ -654,6 +709,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/profit'
     | '/promo-ads'
+    | '/provider-analytics'
     | '/redemption'
     | '/reseller'
     | '/reseller-admin'
@@ -675,9 +731,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/apps'
     | '/developer'
-    | '/enterprise'
+    | '/download'
+    | '/enterprise-public'
     | '/faq'
     | '/fusion'
+    | '/marketplace'
     | '/models'
     | '/oauth-callback'
     | '/playground'
@@ -699,6 +757,7 @@ export interface FileRouteTypes {
     | '/_authenticated/connections'
     | '/_authenticated/dashboard'
     | '/_authenticated/distributors'
+    | '/_authenticated/enterprise'
     | '/_authenticated/feedback'
     | '/_authenticated/keys'
     | '/_authenticated/logs'
@@ -706,6 +765,7 @@ export interface FileRouteTypes {
     | '/_authenticated/model-brands'
     | '/_authenticated/model-hosting'
     | '/_authenticated/monitoring'
+    | '/_authenticated/my-store'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
     | '/_authenticated/notifications'
@@ -714,6 +774,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/profit'
     | '/_authenticated/promo-ads'
+    | '/_authenticated/provider-analytics'
     | '/_authenticated/redemption'
     | '/_authenticated/reseller'
     | '/_authenticated/reseller-admin'
@@ -736,9 +797,11 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AppsRoute: typeof AppsRoute
   DeveloperRoute: typeof DeveloperRoute
-  EnterpriseRoute: typeof EnterpriseRoute
+  DownloadRoute: typeof DownloadRoute
+  EnterprisePublicRoute: typeof EnterprisePublicRoute
   FaqRoute: typeof FaqRoute
   FusionRoute: typeof FusionRoute
+  MarketplaceRoute: typeof MarketplaceRoute
   ModelsRoute: typeof ModelsRoute
   OauthCallbackRoute: typeof OauthCallbackRoute
   PlaygroundRoute: typeof PlaygroundRoute
@@ -795,6 +858,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ModelsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/marketplace': {
+      id: '/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof MarketplaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/fusion': {
       id: '/fusion'
       path: '/fusion'
@@ -809,11 +879,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FaqRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/enterprise': {
-      id: '/enterprise'
-      path: '/enterprise'
-      fullPath: '/enterprise'
-      preLoaderRoute: typeof EnterpriseRouteImport
+    '/enterprise-public': {
+      id: '/enterprise-public'
+      path: '/enterprise-public'
+      fullPath: '/enterprise-public'
+      preLoaderRoute: typeof EnterprisePublicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/download': {
+      id: '/download'
+      path: '/download'
+      fullPath: '/download'
+      preLoaderRoute: typeof DownloadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/developer': {
@@ -949,6 +1026,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRedemptionRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/provider-analytics': {
+      id: '/_authenticated/provider-analytics'
+      path: '/provider-analytics'
+      fullPath: '/provider-analytics'
+      preLoaderRoute: typeof AuthenticatedProviderAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/promo-ads': {
       id: '/_authenticated/promo-ads'
       path: '/promo-ads'
@@ -1005,6 +1089,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNewsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-store': {
+      id: '/_authenticated/my-store'
+      path: '/my-store'
+      fullPath: '/my-store'
+      preLoaderRoute: typeof AuthenticatedMyStoreRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/monitoring': {
       id: '/_authenticated/monitoring'
       path: '/monitoring'
@@ -1052,6 +1143,13 @@ declare module '@tanstack/react-router' {
       path: '/feedback'
       fullPath: '/feedback'
       preLoaderRoute: typeof AuthenticatedFeedbackRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/enterprise': {
+      id: '/_authenticated/enterprise'
+      path: '/enterprise'
+      fullPath: '/enterprise'
+      preLoaderRoute: typeof AuthenticatedEnterpriseRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/distributors': {
@@ -1174,6 +1272,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedConnectionsRoute: typeof AuthenticatedConnectionsRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedDistributorsRoute: typeof AuthenticatedDistributorsRoute
+  AuthenticatedEnterpriseRoute: typeof AuthenticatedEnterpriseRoute
   AuthenticatedFeedbackRoute: typeof AuthenticatedFeedbackRoute
   AuthenticatedKeysRoute: typeof AuthenticatedKeysRoute
   AuthenticatedLogsRoute: typeof AuthenticatedLogsRoute
@@ -1181,6 +1280,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedModelBrandsRoute: typeof AuthenticatedModelBrandsRoute
   AuthenticatedModelHostingRoute: typeof AuthenticatedModelHostingRoute
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
+  AuthenticatedMyStoreRoute: typeof AuthenticatedMyStoreRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1189,6 +1289,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedProfitRoute: typeof AuthenticatedProfitRoute
   AuthenticatedPromoAdsRoute: typeof AuthenticatedPromoAdsRoute
+  AuthenticatedProviderAnalyticsRoute: typeof AuthenticatedProviderAnalyticsRoute
   AuthenticatedRedemptionRoute: typeof AuthenticatedRedemptionRoute
   AuthenticatedResellerRoute: typeof AuthenticatedResellerRoute
   AuthenticatedResellerAdminRoute: typeof AuthenticatedResellerAdminRoute
@@ -1218,6 +1319,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedConnectionsRoute: AuthenticatedConnectionsRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedDistributorsRoute: AuthenticatedDistributorsRoute,
+  AuthenticatedEnterpriseRoute: AuthenticatedEnterpriseRoute,
   AuthenticatedFeedbackRoute: AuthenticatedFeedbackRoute,
   AuthenticatedKeysRoute: AuthenticatedKeysRoute,
   AuthenticatedLogsRoute: AuthenticatedLogsRoute,
@@ -1225,6 +1327,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedModelBrandsRoute: AuthenticatedModelBrandsRoute,
   AuthenticatedModelHostingRoute: AuthenticatedModelHostingRoute,
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
+  AuthenticatedMyStoreRoute: AuthenticatedMyStoreRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -1233,6 +1336,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedProfitRoute: AuthenticatedProfitRoute,
   AuthenticatedPromoAdsRoute: AuthenticatedPromoAdsRoute,
+  AuthenticatedProviderAnalyticsRoute: AuthenticatedProviderAnalyticsRoute,
   AuthenticatedRedemptionRoute: AuthenticatedRedemptionRoute,
   AuthenticatedResellerRoute: AuthenticatedResellerRoute,
   AuthenticatedResellerAdminRoute: AuthenticatedResellerAdminRoute,
@@ -1258,9 +1362,11 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AppsRoute: AppsRoute,
   DeveloperRoute: DeveloperRoute,
-  EnterpriseRoute: EnterpriseRoute,
+  DownloadRoute: DownloadRoute,
+  EnterprisePublicRoute: EnterprisePublicRoute,
   FaqRoute: FaqRoute,
   FusionRoute: FusionRoute,
+  MarketplaceRoute: MarketplaceRoute,
   ModelsRoute: ModelsRoute,
   OauthCallbackRoute: OauthCallbackRoute,
   PlaygroundRoute: PlaygroundRoute,
