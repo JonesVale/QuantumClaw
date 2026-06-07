@@ -19,6 +19,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	"github.com/quantumclaw/quantumclaw/common/blacklist"
 	"gorm.io/gorm"
 )
 
@@ -1019,7 +1020,6 @@ func ManageUser(c *gin.Context) {
 	}
 	switch req.Action {
 	case "disable":
-		user.Status = model.UserStatusDisabled
 		if user.Role == model.RoleRootUser {
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
@@ -1027,8 +1027,23 @@ func ManageUser(c *gin.Context) {
 			})
 			return
 		}
+		user.Status = model.UserStatusDisabled
+		// Cascade: 禁用所有活跃 Token + 加入黑名单
+		if err := model.DB.Model(&model.Token{}).
+			Where("user_id = ? AND status = ? AND status != ?", user.Id, model.TokenStatusEnabled, model.TokenStatusDisabled).
+			Update("status", model.TokenStatusDisabled).Error; err != nil {
+			logger.SysErrorf("failed to disable tokens for user %d: %v", user.Id, err)
+		}
+		blacklist.BanUser(user.Id)
 	case "enable":
 		user.Status = model.UserStatusEnabled
+		// Re-enable tokens + remove from blacklist
+		if err := model.DB.Model(&model.Token{}).
+			Where("user_id = ? AND status = ?", user.Id, model.TokenStatusDisabled).
+			Update("status", model.TokenStatusEnabled).Error; err != nil {
+			logger.SysErrorf("failed to re-enable tokens for user %d: %v", user.Id, err)
+		}
+		blacklist.UnbanUser(user.Id)
 	case "delete":
 		if user.Role == model.RoleRootUser {
 			c.JSON(http.StatusOK, gin.H{
