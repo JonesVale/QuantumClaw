@@ -82,11 +82,14 @@ func CreateRootAccountIfNeed() error {
 		// Self-healing: verify existing root password hash matches .env, update if stale
 		var firstAdmin User
 		if DB.Where("role >= ?", RoleAdminUser).Order("id asc").First(&firstAdmin).Error == nil {
-			if !common.ValidatePasswordAndHash(rootPassword, firstAdmin.Password) {
-				newHash, hashErr := common.Password2Hash(rootPassword)
-				if hashErr == nil {
-					DB.Model(&firstAdmin).Update("password", newHash)
-					logger.SysLogf("root password self-healed: updated hash to match .env (username: %s)", firstAdmin.Username)
+			// 仅当 INITIAL_ROOT_PASSWORD 是显式自定义值时同步密码（防止重启覆盖 UI 修改）
+			if rootPassword != "123456" && rootPassword != "admin123456" {
+				if !common.ValidatePasswordAndHash(rootPassword, firstAdmin.Password) {
+					newHash, hashErr := common.Password2Hash(rootPassword)
+					if hashErr == nil {
+						DB.Model(&firstAdmin).Update("password", newHash)
+						logger.SysLogf("root password synced to custom INITIAL_ROOT_PASSWORD for %s", firstAdmin.Username)
+					}
 				}
 			}
 			// Self-healing: generate aff_code if missing

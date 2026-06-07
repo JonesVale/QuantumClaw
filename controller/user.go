@@ -739,7 +739,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	if updatedUser.Password == "" {
-		updatedUser.Password = "$I_LOVE_U" // make Validator happy :)
+		updatedUser.Password = "$I_LOVE_U" // hack: GORM validator needs non-empty password
 	}
 	if err := common.Validate.Struct(&updatedUser); err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -772,7 +772,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	if updatedUser.Password == "$I_LOVE_U" {
-		updatedUser.Password = "" // rollback to what it should be
+		updatedUser.Password = "" // rollback from  hack
 	}
 	updatePassword := updatedUser.Password != ""
 	if err := updatedUser.Update(updatePassword); err != nil {
@@ -803,7 +803,7 @@ func UpdateSelf(c *gin.Context) {
 		return
 	}
 	if user.Password == "" {
-		user.Password = "$I_LOVE_U" // make Validator happy :)
+		user.Password = "$I_LOVE_U" // hack: GORM validator needs non-empty password
 	}
 	if err := common.Validate.Struct(&user); err != nil {
 		c.JSON(http.StatusOK, gin.H{
@@ -822,7 +822,7 @@ func UpdateSelf(c *gin.Context) {
 		AvatarURL:   user.AvatarURL,
 	}
 	if user.Password == "$I_LOVE_U" {
-		user.Password = "" // rollback to what it should be
+		user.Password = "" // rollback from  hack
 		cleanUser.Password = ""
 	}
 	updatePassword := user.Password != ""

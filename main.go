@@ -338,8 +338,8 @@ func main() {
 		logger.SysWarn("[SECURITY] INITIAL_ROOT_PASSWORD is the default. Change it after first login.")
 	}
 
-	// Env-based admin password reset (emergency)
-	if os.Getenv("RESET_ADMIN_PASSWORD") != "" {
+	// Env-based admin password reset (emergency, only when RESET_ADMIN_PASSWORD_CONFIRM is also set)
+	if os.Getenv("RESET_ADMIN_PASSWORD") != "" && os.Getenv("RESET_ADMIN_PASSWORD_CONFIRM") == "yes" {
 		newPwd := os.Getenv("RESET_ADMIN_PASSWORD")
 		hashed, err := common.Password2Hash(newPwd)
 		if err == nil {
