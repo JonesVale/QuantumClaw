@@ -35,13 +35,12 @@ export const Route = createFileRoute('/_authenticated/team')({
 function TeamPage() {
   const { t } = useT()
   const queryClient = useQueryClient()
-  const [tab, setTab] = useState<'referral' | 'org' | 'enterprise'>('referral')
+  const [tab, setTab] = useState<'referral' | 'org'>('referral')
   const [copied, setCopied] = useState(false)
   const [newOrgName, setNewOrgName] = useState('')
   const [inviteUsername, setInviteUsername] = useState('')
   const [inviteOrgId, setInviteOrgId] = useState<number | null>(null)
   const [showCreateOrg, setShowCreateOrg] = useState(false)
-  const [upgrading, setUpgrading] = useState<number | null>(null)
 
   // ── Fetch team members (inviter-based) ──
   const { data: teamData, isLoading: teamLoading } = useQuery({
@@ -183,18 +182,6 @@ function TeamPage() {
         >
           <Building2 className="w-4 h-4 inline mr-1.5" />
           {t('Organizations')}
-        </button>
-        <button
-          onClick={() => setTab('enterprise')}
-          className={cn(
-            'px-5 py-2.5 rounded-lg text-sm font-medium transition-all',
-            tab === 'enterprise'
-              ? 'bg-white shadow-sm text-qc-warm-600'
-              : 'text-qc-warm-400 hover:text-qc-warm-500'
-          )}
-        >
-          <Building2 className="w-4 h-4 inline mr-1.5" />
-          {t('Enterprise')}
         </button>
       </div>
 
@@ -591,68 +578,6 @@ function OrgCard({
           )}
         </CardContent>
       )}
-
-      {/* ══════ ENTERPRISE TAB ══════ */}
-      {tab === 'enterprise' && (
-        <div className="space-y-6">
-          {orgs.map((org: any) => (
-            <Card key={org.id} className="bg-gradient-to-br from-white to-qc-amber-50/30 border-qc-amber-200/50">
-              <CardContent className="pt-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg flex items-center gap-2">
-                      <Building2 className="w-5 h-5 text-qc-amber-400" />
-                      {org.name}
-                      <span className="text-xs px-2 py-0.5 rounded-full bg-qc-amber-100 text-qc-amber-700 font-medium">
-                        {org.tier || 'personal'}
-                      </span>
-                    </h3>
-                    <p className="text-sm text-qc-warm-400">{org.member_count} {t('members')}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    {(org.tier === 'personal' || !org.tier) && (
-                      <>
-                        <Button size="sm" variant="outline" className="gap-1" disabled={upgrading === org.id}
-                          onClick={async () => {
-                            setUpgrading(org.id)
-                            try {
-                              const r = await apiClient.post(`/api/org/${org.id}/upgrade`, { tier: 'enterprise' })
-                              if (r.data?.success) { toast.success(t('Upgraded to Enterprise')); queryClient.invalidateQueries({ queryKey: ['my-orgs'] }) }
-                              else toast.error(r.data?.message || 'Failed')
-                            } catch { toast.error('Failed') }
-                            setUpgrading(null)
-                          }}>
-                          {t('Upgrade to Enterprise')}
-                        </Button>
-                        <Button size="sm" variant="outline" className="gap-1" disabled={upgrading === org.id}
-                          onClick={async () => {
-                            setUpgrading(org.id)
-                            try {
-                              const r = await apiClient.post(`/api/org/${org.id}/upgrade`, { tier: 'provider' })
-                              if (r.data?.success) { toast.success(t('Upgraded to Provider')); queryClient.invalidateQueries({ queryKey: ['my-orgs'] }) }
-                              else toast.error(r.data?.message || 'Failed')
-                            } catch { toast.error('Failed') }
-                            setUpgrading(null)
-                          }}>
-                          {t('Upgrade to Provider')}
-                        </Button>
-                      </>
-                    )}
-                    {(org.tier === 'enterprise' || org.tier === 'enterprise+provider') && (
-                      <Button size="sm" onClick={() => window.location.href = `/enterprise/${org.id}/dashboard`}>
-                        {t('Enterprise Console')}
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {orgs.length === 0 && (
-            <Card><CardContent className="py-12 text-center text-muted-foreground">{t('Create an organization first')}</CardContent></Card>
-          )}
-        </div>
-      )}
-    </div>
+    </Card>
   )
 }
