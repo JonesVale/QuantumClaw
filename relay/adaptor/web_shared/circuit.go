@@ -1,6 +1,7 @@
 package web_shared
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -118,10 +119,11 @@ func (cb *CircuitBreaker) IsCircuitOpen(schemaID int) bool {
 
 // FindFallbackSchema finds the next available schema version for a provider when
 // the current one has failed.
-func FindFallbackSchema(provider string, failedVersion int) (*model.Sub2APISchema, error) {
+// Returns the schema and its associated channel (if ChannelId is set).
+func FindFallbackSchema(provider string, failedVersion int) (*model.Sub2APISchema, *model.Channel, error) {
 	schemas, err := model.ListActiveSchemasByProvider(provider)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	var best *model.Sub2APISchema
@@ -136,7 +138,19 @@ func FindFallbackSchema(provider string, failedVersion int) (*model.Sub2APISchem
 			best = &s
 		}
 	}
-	return best, nil
+	if best == nil {
+		return nil, nil, fmt.Errorf("no fallback schema available for provider %s", provider)
+	}
+
+	// Get the associated channel
+	channel, chErr := model.GetSchemaChannel(best)
+	if chErr != nil {
+		// Log warning but don't fail - we can still proceed with the schema
+		// The billing might be incorrect, but the request can still go through
+		fmt.Printf("[WARN] failed to get channel for schema %d: %v\n", best.Id, chErr)
+	}
+
+	return best, channel, nil
 }
 
 // helper: int to string

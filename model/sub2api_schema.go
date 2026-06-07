@@ -13,6 +13,7 @@ type Sub2APISchema struct {
 	Id        int    `json:"id" gorm:"primaryKey"`
 	Provider  string `json:"provider" gorm:"type:varchar(64);not null;index:idx_provider_version"` // "chatgpt","claude","gemini",...
 	Version   int    `json:"version" gorm:"type:int;not null;default:1;index:idx_provider_version"`
+	ChannelId  int    `json:"channel_id" gorm:"type:int;default:0;index"` // 关联的渠道 ID，fallback 后用于正确记账
 	Label     string `json:"label" gorm:"type:varchar(255)"` // human-readable, e.g. "ChatGPT v4 (2026-03)"
 
 	// ── Connection ──
@@ -340,9 +341,19 @@ func CountActiveSchemas() ([]struct {
 }
 
 // AttemptSchemaFallback tries the next priority schema when the current one fails.
+// Now also returns the associated Channel (if ChannelId is set).
 func AttemptSchemaFallback(provider string, currentVersion int) (*Sub2APISchema, error) {
 	var s Sub2APISchema
 	err := DB.Where("provider = ? AND status = 1 AND version != ?", provider, currentVersion).
 		Order("priority desc, version desc").First(&s).Error
 	return &s, err
+}
+
+// GetSchemaChannel returns the Channel associated with this schema (if ChannelId is set).
+// Returns nil, nil if ChannelId is 0 (no associated channel).
+func GetSchemaChannel(schema *Sub2APISchema) (*Channel, error) {
+	if schema == nil || schema.ChannelId <= 0 {
+		return nil, nil
+	}
+	return GetChannelById(schema.ChannelId, true)
 }

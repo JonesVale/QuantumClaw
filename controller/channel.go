@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/helper"
@@ -254,6 +256,19 @@ func AddChannel(c *gin.Context) {
 		return
 	}
 
+	// ── 收款账户配置完整性校验 ──
+	// 确保 UserId 对应的用户存在，防止配置无效账户
+	if channel.UserId > 0 {
+		_, userErr := model.GetUserById(channel.UserId, false)
+		if userErr != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": fmt.Sprintf("收款账户用户 %d 不存在: %v", channel.UserId, userErr),
+			})
+			return
+		}
+	}
+
 	userId := c.GetInt("id")
 	role := c.GetInt("role")
 
@@ -424,6 +439,19 @@ func UpdateChannel(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
 		return
+	}
+
+	// ── 收款账户配置完整性校验 ──
+	// 确保 UserId 对应的用户存在，防止配置无效账户
+	if channel.UserId > 0 {
+		_, userErr := model.GetUserById(channel.UserId, false)
+		if userErr != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": fmt.Sprintf("收款账户用户 %d 不存在: %v", channel.UserId, userErr),
+			})
+			return
+		}
 	}
 	// 普通用户只能改自己的渠道
 	userId := c.GetInt("id")

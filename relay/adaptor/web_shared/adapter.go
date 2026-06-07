@@ -79,8 +79,17 @@ func (a *Adapter) ExecuteRequest(c *gin.Context, meta *meta.Meta, provider strin
 		return nil, errorWithCode(fmt.Errorf("no active schema for %s: %w", provider, err), 502)
 	}
 	if DefaultCircuitBreaker.IsCircuitOpen(schema.Id) {
-		if fb, fbErr := FindFallbackSchema(provider, schema.Version); fbErr == nil && fb != nil {
+		fb, channel, fbErr := FindFallbackSchema(provider, schema.Version)
+		if fbErr == nil && fb != nil {
 			schema = fb
+			// 更新 ChannelId（如果 fallback schema 有关联的渠道）
+			if channel != nil && channel.Id > 0 {
+				c.Set(ctxkey.ChannelId, channel.Id)
+				meta.ChannelId = channel.Id
+				logger.Warnf(c.Request.Context(),
+					"[FALLBACK] circuit open, switched to schema %d, channel %d",
+					fb.Id, channel.Id)
+			}
 		} else {
 			return nil, errorWithCode(ErrCircuitOpen, 502)
 		}
@@ -151,13 +160,13 @@ func (a *Adapter) tryFallbackRequest(c *gin.Context, meta *meta.Meta, provider s
 	failedSchema *model.Sub2APISchema, textRequest *relaymodel.GeneralOpenAIRequest,
 	statusCode int, body string) (*http.Response, *relaymodel.ErrorWithStatusCode) {
 
-	fb, err := FindFallbackSchema(provider, failedSchema.Version)
+	fb, channel, err := FindFallbackSchema(provider, failedSchema.Version)
 	if err != nil || fb == nil {
 		return nil, errorWithCode(
 			fmt.Errorf("all schemas failed for %s: status=%d body=%s", provider, statusCode, body), 502)
 	}
 
-	// ── 核心：回退成功时更新 Gin Context ──
+	// ── 核心：回退成功时更新 Gin Context 和 meta ──
 	// 记录原始渠道 ID（仅首次回退时记录）
 	if _, exists := c.Get("original_channel_id"); !exists {
 		c.Set("original_channel_id", c.GetInt(ctxkey.ChannelId))
@@ -181,9 +190,24 @@ func (a *Adapter) tryFallbackRequest(c *gin.Context, meta *meta.Meta, provider s
 	// 记录最终实际使用的 schema
 	c.Set("actual_schema_id", fb.Id)
 
+	// ── 核心修复：更新 ChannelId ──
+	// 如果 fallback schema 有关联的渠道，更新 context 和 meta
+	// 确保下游 PostConsumeDeduct 使用正确的渠道记账
+	if channel != nil && channel.Id > 0 {
+		c.Set(ctxkey.ChannelId, channel.Id)
+		meta.ChannelId = channel.Id
+		logger.Warnf(c.Request.Context(),
+			"[FALLBACK] ChannelId updated: %d → %d (schema %d→%d)",
+			c.GetInt("original_channel_id"), channel.Id, failedSchema.Id, fb.Id)
+	} else {
+		logger.Warnf(c.Request.Context(),
+			"[FALLBACK] no channel associated with fallback schema %d, keeping original ChannelId=%d",
+			fb.Id, meta.ChannelId)
+	}
+
 	logger.Warnf(c.Request.Context(),
 		"[FALLBACK] provider=%s schema:%d→%d channel_id=%d status=%d",
-		provider, failedSchema.Id, fb.Id, c.GetInt(ctxkey.ChannelId), statusCode)
+		provider, failedSchema.Id, fb.Id, meta.ChannelId, statusCode)
 
 	return a.ExecuteRequest(c, meta, provider, textRequest)
 }
