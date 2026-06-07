@@ -26,6 +26,10 @@ services:
       # SQLite database file path (inside container)
       SQLITE_PATH: "/app/data/quantumclaw.db"
       SQLITE_BUSY_TIMEOUT: "${SQLITE_BUSY_TIMEOUT:-3000}"
+      # AES-256-GCM master key (must be stable, otherwise passwords become undecryptable)
+      CRYPTO_SECRET: "${CRYPTO_SECRET:-761cd2dd365e936cae84f13296a039c5a44a3fba50c7d9e8acf18b21f358e2c9}"
+      # Set the root password (default: admin123456)
+      INITIAL_ROOT_PASSWORD: "${INITIAL_ROOT_PASSWORD:-admin123456}"
       # App settings
       PORT: "${PORT:-3666}"
       GIN_MODE: "${GIN_MODE:-release}"
