@@ -87,14 +87,14 @@ if statusInt == model.UserStatusDisabled {
 
 ## 执行计划
 
-### Sprint 1：修复 P0（当前周期）
+### Sprint 1：修复 P0（已完成）
 
-| 任务 | 文件 | 工作量 |
+| 任务 | 文件 | Commit |
 |:-----|:-----|:------:|
-| 1. 用户提交身份信息 API | `controller/user.go` + `model/user.go` | 1h |
-| 2. 管理员审核身份 API | `controller/admin.go` + `router/api.go` | 1h |
-| 3. OAuth CSRF state 支持多标签 | `controller/auth/github.go` + 所有 OAuth 入口 | 1h |
-| 4. 禁用用户登录拦截 | `middleware/auth.go` （一行 return） | 5min |
+| ✅ 用户提交身份信息 API | `controller/identity.go` + `router/api.go` | `a62b277` |
+| ✅ 管理员审核身份 API | `controller/identity.go` + `router/api.go` | `a62b277` |
+| ✅ OAuth CSRF state 多标签 | `controller/auth/oauth_state.go` + 5 个 OAuth 文件 | `c232a1d` |
+| ✅ 禁用用户登录拦截 | `middleware/auth.go` | `c232a1d` |
 
 ### Sprint 2：修复 P1（下个周期）
 
