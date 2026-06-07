@@ -148,23 +148,21 @@ Channel 创建
 | monitor/ | 3 个文件 (含 penalty) | 0 | 0% |
 | service/ | ~15 个 | 3 个 | ~20% |
 | model/ | ~67 个 | 8 个 | ~12% |
-| **总计** | **~190 核心文件** | **~30** | **<10%** |
+| **总计** | **~190 核心文件** | **~32** | **~12% (+4 new files)** |
 
-### 3.2 24 个中间件，0 个独立测试
+### 3.2 中间件测试
 
-所有关键中间件均无单元测试：
-
+✅ **已在 commit c0e67ca 新增 4 个基础测试**：
 ```
-auth.go, cache.go, cascade_auth.go, cors.go, distributor.go,
-geo.go, gzip.go, https_redirect.go, intelligent_router.go,
-logger.go, login_rate_limit.go, model_rate_limit.go,
-param_validator.go, payment_auth.go, prompt_optimizer.go,
-rate-limit.go, recover.go, request-id.go, search.go,
-security_headers.go, ssrf_protection.go, sub2api.go,
-turnstile-check.go, webhook_security.go
+middleware_core_test.go: CORS / GzipDecode / RequestId / SecurityHeaders
 ```
 
-单一 `middleware_test.go`（307 行）只测了 basic auth 流程。
+**剩余 20 个仍需覆盖**：
+cache.go, cascade_auth.go, distributor.go, geo.go, https_redirect.go,
+intelligent_router.go, logger.go, login_rate_limit.go, model_rate_limit.go,
+param_validator.go, payment_auth.go, prompt_optimizer.go, rate-limit.go,
+recover.go, search.go, ssrf_protection.go, sub2api.go, turnstile-check.go,
+utils.go, webhook_security.go
 
 ### 3.3 52 个 AI 适配器，51 个无专用测试
 
