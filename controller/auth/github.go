@@ -14,8 +14,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/common/random"
-	"github.com/quantumclaw/quantumclaw/controller"
+		"github.com/quantumclaw/quantumclaw/controller"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -86,10 +85,10 @@ func GitHubOAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	session := sessions.Default(c)
 	state := c.Query("state")
-	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
+	if !VerifyOAuthState(state) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
-			"message": "state is empty or not same",
+			"message": "state鏃犳晥鎴栧凡杩囨湡锛岃閲嶆柊鐧诲綍",
 		})
 		return
 	}
@@ -215,17 +214,7 @@ func GitHubBind(c *gin.Context) {
 }
 
 func GenerateOAuthCode(c *gin.Context) {
-	session := sessions.Default(c)
-	state := random.GetRandomString(12)
-	session.Set("oauth_state", state)
-	err := session.Save()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+	state := GenerateOAuthState()
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"message": "",

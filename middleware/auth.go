@@ -111,8 +111,15 @@ func authHelper(c *gin.Context, minRole int) {
 		c.Abort()
 		return
 	}
+	// 绂佺敤鐢ㄦ埛闃绘鎵€鏈塏PI璇锋眰
 	if statusInt == model.UserStatusDisabled {
-		logger.SysWarnf("disabled user %d accessed route: %s", idInt, c.Request.URL.Path)
+		logger.SysWarnf("disabled user %d blocked on route: %s", idInt, c.Request.URL.Path)
+		c.JSON(http.StatusForbidden, gin.H{
+			"success": false,
+			"message": "璐﹀彿宸插仠鐢紝璇疯仈绯荤鐞嗗憳",
+		})
+		c.Abort()
+		return
 	}
 	if roleInt < minRole {
 		c.JSON(http.StatusOK, gin.H{

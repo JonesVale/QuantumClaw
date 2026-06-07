@@ -14,8 +14,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/common/random"
-	"github.com/quantumclaw/quantumclaw/controller"
+		"github.com/quantumclaw/quantumclaw/controller"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -114,7 +113,7 @@ func LinuxDoOAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	session := sessions.Default(c)
 	state := c.Query("state")
-	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
+	if !VerifyOAuthState(state) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
 			"message": "state is empty or does not match",
@@ -267,17 +266,7 @@ func LinuxDoBind(c *gin.Context) {
 
 // GenerateLinuxDOAuthURL generates the LinuxDO authorization URL for the frontend
 func GenerateLinuxDOAuthURL(c *gin.Context) {
-	session := sessions.Default(c)
-	state := random.GetRandomString(12)
-	session.Set("oauth_state", state)
-	err := session.Save()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+	state := GenerateOAuthState()
 
 	// Build LinuxDO authorization URL
 	authURL := fmt.Sprintf(

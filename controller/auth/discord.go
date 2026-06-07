@@ -14,8 +14,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
-	"github.com/quantumclaw/quantumclaw/common/random"
-	"github.com/quantumclaw/quantumclaw/controller"
+		"github.com/quantumclaw/quantumclaw/controller"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -115,10 +114,10 @@ func DiscordOAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	session := sessions.Default(c)
 	state := c.Query("state")
-	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
+	if !VerifyOAuthState(state) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
-			"message": "state 为空或不匹配",
+			"message": "state鏃犳晥鎴栧凡杩囨湡锛岃閲嶆柊鐧诲綍",
 		})
 		return
 	}
@@ -265,17 +264,7 @@ func DiscordBind(c *gin.Context) {
 
 // GenerateDiscordOAuthURL 生成 Discord 授权 URL（供前端调用）
 func GenerateDiscordOAuthURL(c *gin.Context) {
-	session := sessions.Default(c)
-	state := random.GetRandomString(12)
-	session.Set("oauth_state", state)
-	err := session.Save()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": err.Error(),
-		})
-		return
-	}
+	state := GenerateOAuthState()
 
 	// 构建 Discord 授权 URL
 	authURL := fmt.Sprintf(

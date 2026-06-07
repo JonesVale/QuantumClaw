@@ -84,7 +84,7 @@ func LarkOAuth(c *gin.Context) {
 	ctx := c.Request.Context()
 	session := sessions.Default(c)
 	state := c.Query("state")
-	if state == "" || session.Get("oauth_state") == nil || state != session.Get("oauth_state").(string) {
+	if !VerifyOAuthState(state) {
 		c.JSON(http.StatusForbidden, gin.H{
 			"success": false,
 			"message": "state is empty or not same",
