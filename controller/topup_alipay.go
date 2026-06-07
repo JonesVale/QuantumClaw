@@ -28,6 +28,7 @@ import (
 type AlipayPayRequest struct {
 	Amount     int64  `json:"amount" binding:"required,min=1"`
 	ReturnURL  string `json:"return_url,omitempty"`
+	PayMode    string `json:"pay_mode,omitempty"` // "web"(默认PC网站)|"wap"(移动H5)|"app"(App支付)
 }
 
 // RequestAlipayTopUp 请求支付宝支付
@@ -89,28 +90,81 @@ func RequestAlipayTopUp(c *gin.Context) {
 		returnURL = req.ReturnURL
 	}
 
-	isMobile := isMobileDevice(c.GetHeader("User-Agent"))
 	subject := common.GetPaymentSetting().AlipaySubject
 	if subject == "" {
 		subject = "QuantumClaw 充值"
 	}
-	bizContent := buildAlipayBizContent(tradeNo, payMoney, subject, isMobile)
-	payFormURL, err := buildAlipayPayForm(setting.AlipayAppId, setting.AlipayPrivateKey,
-		setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent, isMobile)
-	if err != nil {
-		logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝支付表单失败 trade_no=%s error=%q", tradeNo, err.Error()))
-		c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
-		return
+
+	payMode := req.PayMode
+	if payMode == "" {
+		if isMobileDevice(c.GetHeader("User-Agent")) {
+			payMode = "wap"
+		} else {
+			payMode = "web"
+		}
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"success": true,
-		"data": gin.H{
+	var respData gin.H
+
+	switch payMode {
+	case "app":
+		// App 支付: alipay.trade.app.pay → 返回签名字符串，移动端调起支付宝 SDK
+		bizContent := buildAlipayBizContent(tradeNo, payMoney, subject, true)
+		orderStr, err := buildAlipayAppPayOrder(setting.AlipayAppId, setting.AlipayPrivateKey,
+			setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent)
+		if err != nil {
+			logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝App订单失败 trade_no=%s error=%q", tradeNo, err.Error()))
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付订单失败"})
+			return
+		}
+		respData = gin.H{
+			"trade_no":   tradeNo,
+			"amount":     req.Amount,
+			"money":      payMoney,
+			"order_str":  orderStr,
+			"pay_mode":   "app",
+		}
+
+	case "wap":
+		// 移动端 H5 支付
+		bizContent := buildAlipayBizContent(tradeNo, payMoney, subject, true)
+		payFormURL, err := buildAlipayPayForm(setting.AlipayAppId, setting.AlipayPrivateKey,
+			setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent, true)
+		if err != nil {
+			logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝H5支付表单失败 trade_no=%s error=%q", tradeNo, err.Error()))
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
+			return
+		}
+		respData = gin.H{
 			"trade_no":    tradeNo,
 			"amount":      req.Amount,
 			"money":       payMoney,
 			"payment_url": payFormURL,
-		},
+			"pay_mode":    "wap",
+		}
+
+	default:
+		// PC 网页支付 (默认)
+		bizContent := buildAlipayBizContent(tradeNo, payMoney, subject, false)
+		payFormURL, err := buildAlipayPayForm(setting.AlipayAppId, setting.AlipayPrivateKey,
+			setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent, false)
+		if err != nil {
+			logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝PC支付表单失败 trade_no=%s error=%q", tradeNo, err.Error()))
+			c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
+			return
+		}
+		respData = gin.H{
+			"trade_no":    tradeNo,
+			"amount":      req.Amount,
+			"money":       payMoney,
+			"payment_url": payFormURL,
+			"pay_mode":    "web",
+		}
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"data":    respData,
 	})
 }
 
@@ -124,6 +178,34 @@ func isMobileDevice(userAgent string) bool {
 		}
 	}
 	return false
+}
+
+// buildAlipayAppPayOrder 构建支付宝 App 支付订单字符串
+// App 端拿到 orderStr 后直接调起支付宝 SDK（无需拼接网关 URL）
+func buildAlipayAppPayOrder(appId, privateKey, gatewayUrl, notifyURL, returnURL, bizContent string) (string, error) {
+	params := url.Values{}
+	params.Set("app_id", appId)
+	params.Set("method", "alipay.trade.app.pay")
+	params.Set("format", "JSON")
+	params.Set("charset", "utf-8")
+	params.Set("sign_type", "RSA2")
+	params.Set("timestamp", time.Now().Format("2006-01-02 15:04:05"))
+	params.Set("version", "1.0")
+	params.Set("notify_url", notifyURL)
+	if returnURL != "" {
+		params.Set("return_url", returnURL)
+	}
+	params.Set("biz_content", bizContent)
+
+	signStr := buildAlipaySignString(params)
+	sign, err := rsa2Sign(signStr, privateKey)
+	if err != nil {
+		return "", fmt.Errorf("RSA2 签名失败: %w", err)
+	}
+	params.Set("sign", sign)
+
+	// 对于 App 支付，返回的是参数字符串（不是完整 URL），由 App 端 SDK 调起支付
+	return params.Encode(), nil
 }
 
 // buildAlipayBizContent 构建支付宝 biz_content
