@@ -60,3 +60,5 @@ memory/
 *.db-shm
 
 .models-config.json
+quantumclaw*
+quantumclaw-*
