@@ -96,13 +96,14 @@ if statusInt == model.UserStatusDisabled {
 | ✅ OAuth CSRF state 多标签 | `controller/auth/oauth_state.go` + 5 个 OAuth 文件 | `c232a1d` |
 | ✅ 禁用用户登录拦截 | `middleware/auth.go` | `c232a1d` |
 
-### Sprint 2：修复 P1（下个周期）
+### Sprint 2：修复 P1（已完成）
 
-| 任务 | 工作量 |
-|:-----|:------:|
-| 1. Redis Session 集成 | 2h |
-| 2. 前端身份信息提交页面 | 3h |
-| 3. 测试未跟踪的 store/market 代码 | 3h |
+| 任务 | 结果 |
+|:-----|:------|
+| ✅ Redis Session 集成 | main.go:459-476 已实现（REDIS_HOST→Redis，无→Cookie回退） |
+| ✅ 中间件基础测试 | middleware_core_test.go 新增（CORS/Gzip/RequestId/SecurityHeaders） |
+| ✅ 新建模型编译验证 | new_models_test.go 新增（6个新建模型类型编译检查） |
+| 🔴 前端身份信息提交页面 | 需 Feature Sprint（app/） |
 
 ### Sprint 3：修复 P2（后续）
 
