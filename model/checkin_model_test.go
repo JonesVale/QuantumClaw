@@ -97,28 +97,31 @@ func TestHasCheckedInToday_OtherUser(t *testing.T) {
 // ── UserCheckin ────────────────────────────────────────
 
 func TestUserCheckin_Disabled(t *testing.T) {
+	defer operation_setting.SetCheckinSetting(*operation_setting.GetCheckinSetting())
+	operation_setting.SetCheckinSetting(operation_setting.CheckinSetting{Enabled: false})
+
 	db := setupTestDBFull(t)
 	defer withDB(t, db)()
 
 	userId := createTestUser(t, db, 10000, 0, nil)
 
-	// Checkin setting defaults to disabled
+	// Checkin is explicitly disabled
 	_, err := UserCheckin(userId)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "签到功能未启用")
 }
 
 func TestUserCheckin_Success(t *testing.T) {
-	disableRedis(t)
-	db := setupTestDBFull(t)
-	defer withDB(t, db)()
-
-	// Enable checkin for this test
+	defer operation_setting.SetCheckinSetting(*operation_setting.GetCheckinSetting())
 	operation_setting.SetCheckinSetting(operation_setting.CheckinSetting{
 		Enabled:  true,
 		MinQuota: 500,
 		MaxQuota: 500,
 	})
+
+	disableRedis(t)
+	db := setupTestDBFull(t)
+	defer withDB(t, db)()
 
 	userId := createTestUser(t, db, 10000, 0, nil)
 
@@ -137,15 +140,16 @@ func TestUserCheckin_Success(t *testing.T) {
 }
 
 func TestUserCheckin_Duplicate(t *testing.T) {
-	disableRedis(t)
-	db := setupTestDBFull(t)
-	defer withDB(t, db)()
-
+	defer operation_setting.SetCheckinSetting(*operation_setting.GetCheckinSetting())
 	operation_setting.SetCheckinSetting(operation_setting.CheckinSetting{
 		Enabled:  true,
 		MinQuota: 500,
 		MaxQuota: 500,
 	})
+
+	disableRedis(t)
+	db := setupTestDBFull(t)
+	defer withDB(t, db)()
 
 	userId := createTestUser(t, db, 10000, 0, nil)
 
@@ -160,15 +164,16 @@ func TestUserCheckin_Duplicate(t *testing.T) {
 }
 
 func TestUserCheckin_RandomQuota(t *testing.T) {
-	disableRedis(t)
-	db := setupTestDBFull(t)
-	defer withDB(t, db)()
-
+	defer operation_setting.SetCheckinSetting(*operation_setting.GetCheckinSetting())
 	operation_setting.SetCheckinSetting(operation_setting.CheckinSetting{
 		Enabled:  true,
 		MinQuota: 100,
 		MaxQuota: 10000,
 	})
+
+	disableRedis(t)
+	db := setupTestDBFull(t)
+	defer withDB(t, db)()
 
 	userId := createTestUser(t, db, 50000, 0, nil)
 

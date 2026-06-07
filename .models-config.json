@@ -1,0 +1,12 @@
+{
+  "default_model": "ollama/qwen3.5:9b",
+  "fallbacks": [
+    {
+      "name": "deepseek/deepseek-v4-pro", 
+      "status": "disabled_due_to_rate_limit"
+    }
+  ],
+  "active_provider": "ollama",
+  "rate_limited_providers": ["deepseek"],
+  "message": "已恢復對話功能，使用 ollama/qwen3.5:9b"
+}

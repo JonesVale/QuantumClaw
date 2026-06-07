@@ -7,7 +7,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
-	"database/sql"
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
@@ -16,41 +15,32 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"path/filepath"
-	"sync"
 	"testing"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common"
+	"github.com/glebarez/sqlite"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	gormSqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"modernc.org/sqlite"
 )
 
 // ── Test Helpers ──────────────────────────────────────────────
 
-var registerWebhookTestOnce sync.Once
 var webhookUserCounter int64
 
 func setupWebhookTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	registerWebhookTestOnce.Do(func() {
-		sql.Register("sqlite_modernc", &sqlite.Driver{})
-	})
 
 	// 每个测试实例使用独立文件名以避免 :memory: 模式下并发死锁
 	tempDir := t.TempDir()
 	dbPath := filepath.Join(tempDir, "test.db")
 
 	db, err := gorm.Open(
-		gormSqlite.New(gormSqlite.Config{
-			DriverName: "sqlite_modernc",
-			DSN:        dbPath,
-		}),
+		sqlite.Open(dbPath),
 		&gorm.Config{},
 	)
 	require.NoError(t, err)

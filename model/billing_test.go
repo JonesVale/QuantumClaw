@@ -10,11 +10,18 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
+
+func TestMain(m *testing.M) {
+	// Disable Redis for all model tests (no Redis server in CI/local test env)
+	common.RedisEnabled = false
+	os.Exit(m.Run())
+}
 
 // ── Setup Helpers ─────────────────────────────────────────────
 
@@ -686,7 +693,9 @@ func TestRewardInviterOnConsume_Basic(t *testing.T) {
 	var inviter User
 	err = db.First(&inviter, inviterId).Error
 	assert.NoError(t, err)
-	assert.Equal(t, int64(5000+100), inviter.Quota, "inviter should get 10%% of consume amount")
+	assert.Equal(t, int64(100), inviter.CommissionBalance, "inviter should get 10%% commission on consume amount")
+	// Quota should remain unchanged (reward goes to commission_balance)
+	assert.Equal(t, int64(5000), inviter.Quota, "inviter quota should be unchanged")
 
 	// Check commission record
 	var record CommissionRecord
@@ -745,7 +754,8 @@ func TestRewardInviterOnConsume_CommissionDisabled(t *testing.T) {
 	var inviter User
 	require.NoError(t, db.First(&inviter, inviterId).Error)
 	// Default commission IS enabled, so reward IS given:
-	assert.Greater(t, inviter.Quota, int64(5000), "commission defaults to enabled, reward given")
+	assert.Greater(t, inviter.CommissionBalance, int64(0), "commission defaults to enabled, reward given")
+	assert.Equal(t, int64(5000), inviter.Quota, "inviter quota should remain unchanged")
 }
 
 // ── 7. PlatformFee ──────────────────────────────────────────
