@@ -19,6 +19,23 @@ const (
 	ChannelStatusAutoDisabled     = 3
 )
 
+// ============================================================
+// Channel — AI 渠道模型（API Provider 连接配置）
+//
+// 字段按功能域分组说明（31 个字段）：
+//
+//	[Core]        Id, Type, Key, Status, Name, Weight, CreatedTime, DeletedAt       (8 基础字段)
+//	[Connection]  BaseURL, Models, Config, SystemPrompt, Category, Other             (6 连接字段)
+//	[Pricing]     CostPerUnit, SellPriceRate, CostPrice, ProfitSplit, ChannelMarkup  (5 定价字段)
+//	[Balance]     Balance, BalanceUpdatedTime, UsedQuota, BalanceAlertThreshold,
+//	              BalanceDisableThreshold                                           (5 余额字段)
+//	[Routing]     Group, Priority, ModelMapping                                      (3 路由字段)
+//	[Ownership]   UserId, StoreID, IsPlatformPool, Region                            (4 归属字段)
+//	[Test]        TestTime, ResponseTime, LastTestPassed, LastErrorMessage           (4 测试字段)
+//
+// TODO: 后续版本考虑将 Pricing/Balance/Routing/Ownership/Test 抽取为 embedded 子结构体，
+//       使用 GORM 的 embedded tag 保持数据库列名兼容。参见下方的 ChannelPricing 等类型定义。
+// ============================================================
 type Channel struct {
 	Id                 int     `json:"id"`
 	Type               int     `json:"type" gorm:"default:0"`
@@ -73,25 +90,87 @@ type Channel struct {
 }
 
 type ChannelConfig struct {
-	Region            string `json:"region,omitempty"`
-	SK                string `json:"sk,omitempty"`
-	AK                string `json:"ak,omitempty"`
-	UserID            string `json:"user_id,omitempty"`
-	APIVersion        string `json:"api_version,omitempty"`
-	LibraryID         string `json:"library_id,omitempty"`
-	Plugin            string `json:"plugin,omitempty"`
-	VertexAIProjectID string `json:"vertex_ai_project_id,omitempty"`
-	VertexAIADC       string `json:"vertex_ai_adc,omitempty"`
-	// CacheBillingRatio controls the billing ratio for cached prompt tokens (0-1 range).
-	// When set to 0.5, cached tokens are billed at 50% of normal rate.
-	// 0 (default) means cache billing is disabled and cached tokens are billed at full rate.
+	Region            string  `json:"region,omitempty"`
+	SK                string  `json:"sk,omitempty"`
+	AK                string  `json:"ak,omitempty"`
+	UserID            string  `json:"user_id,omitempty"`
+	APIVersion        string  `json:"api_version,omitempty"`
+	LibraryID         string  `json:"library_id,omitempty"`
+	Plugin            string  `json:"plugin,omitempty"`
+	VertexAIProjectID string  `json:"vertex_ai_project_id,omitempty"`
+	VertexAIADC       string  `json:"vertex_ai_adc,omitempty"`
 	CacheBillingRatio float64 `json:"cache_billing_ratio,omitempty"`
-	// PromptCacheEnabled explicitly enables/disables prompt cache support.
-	// If nil, cache detection is automatic based on provider capabilities.
-	PromptCacheEnabled *bool `json:"prompt_cache_enabled,omitempty"`
-	// ThinkingToContent converts reasoning_content (thinking tokens) into
-	// [reasoning]...[/reasoning] tags appended to the final response content.
-	ThinkingToContent bool `json:"thinking_to_content,omitempty"`
+	PromptCacheEnabled *bool   `json:"prompt_cache_enabled,omitempty"`
+	ThinkingToContent bool    `json:"thinking_to_content,omitempty"`
+}
+
+// ============================================================
+// Channel 子结构体定义（语义分组）
+// 这些类型用于未来重构时替代 Channel 中的扁平字段。
+// 当前 Channel 结构体保持扁平以确保 GORM/JSON 向后兼容。
+// ============================================================
+
+// ChannelPricing 定价相关字段
+type ChannelPricing struct {
+	CostPerUnit   float64 `json:"cost_per_unit"` // 每单位成本（USD）
+	SellPriceRate float64 `json:"sell_price_rate"` // 加价倍率
+	CostPrice     float64 `json:"cost_price"` // Key 提供商实际成本
+	ProfitSplit   float64 `json:"profit_split"` // 渠道商分成比例 (0~1)
+	ChannelMarkup float64 `json:"channel_markup"` // 渠道加价率 (1.0=原价, 1.2=+20%)
+}
+
+// ChannelBalance 余额与用量字段
+type ChannelBalance struct {
+	Balance                float64 `json:"balance"` // 账户余额（USD）
+	BalanceUpdatedTime     int64   `json:"balance_updated_time"`
+	UsedQuota              int64   `json:"used_quota"`
+	BalanceAlertThreshold  float64 `json:"balance_alert_threshold"`
+	BalanceDisableThreshold float64 `json:"balance_disable_threshold"`
+}
+
+// ChannelRouting 路由和分组字段
+type ChannelRouting struct {
+	Group        string  `json:"group"`
+	Priority     *int64  `json:"priority"`
+	ModelMapping *string `json:"model_mapping"`
+}
+
+// ChannelOwnership 归属信息
+type ChannelOwnership struct {
+	UserId         int    `json:"user_id"` // 0=平台自有, >0=供应商
+	StoreID        int    `json:"store_id"`
+	IsPlatformPool bool   `json:"is_platform_pool"`
+	Region         string `json:"region"` // china / overseas / ""
+}
+
+// ChannelTest 测试状态字段
+type ChannelTest struct {
+	TestTime         int64  `json:"test_time"`
+	ResponseTime     int   `json:"response_time"` // ms
+	LastTestPassed   bool   `json:"last_test_passed"`
+	LastErrorMessage string `json:"last_error_message"`
+}
+
+// ToPricing 从 Channel 实例提取定价子集（用于计费逻辑中传递定价信息）
+func (ch *Channel) ToPricing() ChannelPricing {
+	return ChannelPricing{
+		CostPerUnit:   ch.CostPerUnit,
+		SellPriceRate: ch.SellPriceRate,
+		CostPrice:     ch.CostPrice,
+		ProfitSplit:   ch.ProfitSplit,
+		ChannelMarkup: ch.ChannelMarkup,
+	}
+}
+
+// ToBalance 从 Channel 实例提取余额子集
+func (ch *Channel) ToBalance() ChannelBalance {
+	return ChannelBalance{
+		Balance:                ch.Balance,
+		BalanceUpdatedTime:     ch.BalanceUpdatedTime,
+		UsedQuota:              ch.UsedQuota,
+		BalanceAlertThreshold:  ch.BalanceAlertThreshold,
+		BalanceDisableThreshold: ch.BalanceDisableThreshold,
+	}
 }
 
 func GetAllChannels(startIdx int, num int, scope string) ([]*Channel, error) {

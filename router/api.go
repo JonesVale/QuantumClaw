@@ -1045,6 +1045,16 @@ func SetApiRouter(router *gin.Engine) {
 		// Hourly settlement report routes
 		apiRouter.GET("/settlement/hourly", middleware.AdminAuth(), controller.GetHourlySettlements)
 
+		// Platform income routes (admin only)
+		apiRouter.GET("/platform/income/summary", middleware.AdminAuth(), controller.GetPlatformIncomeSummary)
+		apiRouter.GET("/platform/income/history", middleware.AdminAuth(), controller.GetPlatformIncomeHistory)
+
+		// Reconciliation routes (admin only)
+		apiRouter.GET("/admin/reconciliations", middleware.AdminAuth(), controller.GetReconciliations)
+		apiRouter.GET("/admin/reconciliations/discrepancies", middleware.AdminAuth(), controller.GetReconciliationDiscrepancies)
+		apiRouter.POST("/admin/reconciliations/:id/resolve", middleware.AdminAuth(), controller.ResolveReconciliation)
+		apiRouter.GET("/reconciliation/my", middleware.UserAuth(), controller.GetMyReconciliations)
+
 		// Transaction routes
 
 		apiRouter.GET("/transactions", middleware.UserAuth(), controller.GetTransactions)

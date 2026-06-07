@@ -13,6 +13,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/model"
 	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
 	"github.com/quantumclaw/quantumclaw/relay/common_handler"
 	"github.com/quantumclaw/quantumclaw/service"
@@ -61,15 +62,42 @@ func getPromptTokens(textRequest *relaymodel.GeneralOpenAIRequest, relayMode int
 // preConsumeBalance — 预扣前检查，使用优先级链
 // 返回：(preConsumedQuota, billingSource, error)
 func preConsumeBalance(ctx context.Context, textRequest *relaymodel.GeneralOpenAIRequest, promptTokens int, ratio float64, meta *meta.Meta) (int64, string, *relaymodel.ErrorWithStatusCode) {
+
+	// ── 详细审计日志：预扣前 ──
+	logger.Infof(ctx, "[BILLING_AUDIT] preConsumeBalance 入口 | user=%d token=%d promptTokens=%d ratio=%.4f model=%s",
+		meta.UserId, meta.TokenId, promptTokens, ratio, textRequest.Model)
+	// ── 详细审计日志 END ──
+
 	// 构建 RelayInfo 供 common_handler 使用
 	relayInfo := &relaycommon.RelayInfo{
 		UserID:   meta.UserId,
 		TokenID:  meta.TokenId,
 	}
 	preConsumedQuota, billingSource, err := common_handler.PreConsumeBilling(ctx, relayInfo, promptTokens, ratio)
+
+	// ── 详细审计日志：预扣结果 ──
 	if err != nil {
+		logger.Warnf(ctx, "[BILLING_AUDIT] preConsumeBalance 失败 | user=%d billingSource=%s preQuota=%d err=%v",
+			meta.UserId, billingSource, preConsumedQuota, err)
 		return preConsumedQuota, billingSource, openai.ErrorWrapper(err, "insufficient_balance", http.StatusForbidden)
 	}
+	logger.Infof(ctx, "[BILLING_AUDIT] preConsumeBalance 成功 | user=%d billingSource=%s preQuota=%d",
+		meta.UserId, billingSource, preConsumedQuota)
+
+	// ── 成本倒挂预检（在模型调用之前）──
+	// 如果预计上游成本高于用户付费，直接拒绝，防止平台亏损
+	if preConsumedQuota > 0 {
+		channel, chErr := model.GetChannelById(meta.ChannelId, true)
+		if chErr == nil {
+			estimatedPriceCents := service.QuotaToUserPrice(preConsumedQuota)
+			if invErr := service.CheckCostInversion(ctx, estimatedPriceCents, preConsumedQuota, channel, textRequest.Model); invErr != nil {
+				logger.Errorf(ctx, "[COST_INVERSION_BLOCKED] 预检拒绝: %v", invErr)
+				return preConsumedQuota, billingSource, openai.ErrorWrapper(invErr, "cost_inversion", http.StatusForbidden)
+			}
+		}
+	}
+	// ── 详细审计日志 END ──
+
 	return preConsumedQuota, billingSource, nil
 }
 

@@ -20,6 +20,11 @@ import (
 func PreConsumeBilling(ctx context.Context, meta *common.RelayInfo, promptTokens int, ratio float64) (preConsumedQuota int64, billingSource string, err error) {
 	preConsumedQuota = getPreConsumedQuota(promptTokens, 0, ratio)
 
+	// ── 审计日志：入口 ──
+	logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling 入口 | user=%d preQuota=%d promptTokens=%d ratio=%.4f",
+		meta.UserID, preConsumedQuota, promptTokens, ratio))
+	// ── 审计日志 END ──
+
 	// ── Tier 1: 订阅 ──
 	subRemain := getActiveSubscriptionRemaining(meta.UserID)
 	if subRemain > 0 {
@@ -28,6 +33,10 @@ func PreConsumeBilling(ctx context.Context, meta *common.RelayInfo, promptTokens
 				fmt.Sprintf("pc-%d-%d", meta.TokenID, promptTokens),
 				meta.UserID, preConsumedQuota)
 			if err == nil {
+				// ── 审计日志：订阅扣款成功 ──
+				logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling → subscription | user=%d subRemain=%d preQuota=%d",
+					meta.UserID, subRemain, preConsumedQuota))
+				// ── 审计日志 END ──
 				return preConsumedQuota, "subscription", nil
 			}
 			logger.SysWarn(fmt.Sprintf("subscription pre-consume failed: %v", err))
@@ -37,6 +46,8 @@ func PreConsumeBilling(ctx context.Context, meta *common.RelayInfo, promptTokens
 				meta.UserID, subRemain)
 			if err == nil {
 				preConsumedQuota -= subRemain
+				logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling → subscription(partial) | user=%d subUsed=%d remainPreQuota=%d",
+					meta.UserID, subRemain, preConsumedQuota))
 			}
 		}
 	}
@@ -44,24 +55,42 @@ func PreConsumeBilling(ctx context.Context, meta *common.RelayInfo, promptTokens
 	// ── Tier 2: 现金余额 ──
 	balance, err := model.GetUserCashBalance(meta.UserID)
 	if err == nil && balance >= preConsumedQuota {
+		// ── 审计日志：现金检查通过 ──
+		logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling → cash | user=%d balance=%d preQuota=%d",
+			meta.UserID, balance, preConsumedQuota))
+		// ── 审计日志 END ──
 		return preConsumedQuota, "cash", nil
+	} else {
+		logger.Warn(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling Tier2跳过 | user=%d balance=%d preQuota=%d err=%v",
+			meta.UserID, balance, preConsumedQuota, err))
 	}
 
 	// ── Tier 3: 佣金余额 ──
 	user, err := model.GetUserById(meta.UserID, false)
 	if err == nil && user.CommissionBalance >= preConsumedQuota {
+		// ── 审计日志：佣金检查通过 ──
+		logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling → commission | user=%d commission=%d preQuota=%d",
+			meta.UserID, user.CommissionBalance, preConsumedQuota))
+		// ── 审计日志 END ──
 		return preConsumedQuota, "commission", nil
+	} else {
+		logger.Warn(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling Tier3跳过 | user=%d commission=%d preQuota=%d err=%v",
+			meta.UserID, user.CommissionBalance, preConsumedQuota, err))
 	}
 
 	// ── Tier 4: 配额回退 ──
 	userQuota, err := model.CacheGetUserQuota(ctx, meta.UserID)
 	if err != nil {
+		logger.Warn(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling Tier4失败(getQuota) | user=%d err=%v", meta.UserID, err))
 		return 0, "", fmt.Errorf("get user quota: %w", err)
 	}
 	if userQuota < preConsumedQuota {
+		logger.Warn(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling Tier4失败(insufficient) | user=%d quota=%d preQuota=%d",
+			meta.UserID, userQuota, preConsumedQuota))
 		return 0, "", fmt.Errorf("insufficient balance")
 	}
 	if err := model.CacheDecreaseUserQuota(meta.UserID, preConsumedQuota); err != nil {
+		logger.Warn(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling Tier4失败(decrease) | user=%d err=%v", meta.UserID, err))
 		return preConsumedQuota, "", fmt.Errorf("decrease user quota: %w", err)
 	}
 	if userQuota > 100*preConsumedQuota {
@@ -72,6 +101,9 @@ func PreConsumeBilling(ctx context.Context, meta *common.RelayInfo, promptTokens
 			return preConsumedQuota, "quota", fmt.Errorf("pre-consume token quota: %w", err)
 		}
 	}
+	// ── 审计日志：配额扣款成功 ──
+	logger.Info(ctx, fmt.Sprintf("[BILLING_AUDIT] PreConsumeBilling → quota | user=%d quota=%d", meta.UserID, userQuota))
+	// ── 审计日志 END ──
 	return preConsumedQuota, "quota", nil
 }
 

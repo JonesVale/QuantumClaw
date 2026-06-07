@@ -1,12 +1,14 @@
-﻿import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useAuthStore } from '@/stores/auth-store'
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { ClipboardList, RefreshCw, Clock, CheckCircle2, AlertCircle, Shield } from 'lucide-react'
+import { ClipboardList, RefreshCw, Clock, CheckCircle2, AlertCircle, Shield, Eye } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/empty-state'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import apiClient from '@/lib/api'
 import { type ApiResponse } from '@/lib/api-extended'
 
@@ -34,6 +36,9 @@ function TaskLogsPage() {
   const { t } = useT()
   const { auth } = useAuthStore();
   const isAdmin = auth.user?.role >= 10;
+  const [selectedTask, setSelectedTask] = useState<TaskLog | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
+
   if (!isAdmin) {
     return (
       <div className="flex items-center justify-center min-h-[60vh] p-4">
@@ -46,7 +51,7 @@ function TaskLogsPage() {
     );
   }
 
-  const { data, isLoading, refetch, isFetching } = useQuery({
+  const { data, isLoading, refetch } = useQuery({
     queryKey: ['task-logs'],
     queryFn: getTaskLogs,
     staleTime: 30 * 1000,
@@ -56,27 +61,19 @@ function TaskLogsPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'success':
-        return 'bg-green-500'
-      case 'failed':
-        return 'bg-red-500'
-      case 'running':
-        return 'bg-blue-500'
-      default:
-        return 'bg-gray-500'
+      case 'success': return 'bg-green-500'
+      case 'failed': return 'bg-red-500'
+      case 'running': return 'bg-blue-500'
+      default: return 'bg-gray-500'
     }
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'success':
-        return t('Success')
-      case 'failed':
-        return t('Failed')
-      case 'running':
-        return t('Running')
-      default:
-        return status
+      case 'success': return t('Success')
+      case 'failed': return t('Failed')
+      case 'running': return t('Running')
+      default: return status
     }
   }
 
@@ -91,7 +88,13 @@ function TaskLogsPage() {
   }
 
   const formatTime = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleString()
+    if (!timestamp) return '-'
+    return new Date(timestamp * 1000).toLocaleString('zh-CN')
+  }
+
+  function openDetail(task: TaskLog) {
+    setSelectedTask(task)
+    setDetailOpen(true)
   }
 
   return (
@@ -99,6 +102,13 @@ function TaskLogsPage() {
       <div className="flex flex-col items-center">
         <h1 className="text-3xl font-bold mb-2">{t('Task Logs')}</h1>
         <p className="text-muted-foreground mb-8" style={{maxWidth: 'min(65ch, 100%)'}}>{t('System task execution logs and status')}</p>
+      </div>
+
+      <div className="flex justify-end">
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          <RefreshCw className="h-4 w-4 mr-1" />
+          {t('Refresh')}
+        </Button>
       </div>
 
       {isLoading ? (
@@ -127,11 +137,15 @@ function TaskLogsPage() {
       ) : (
         <div className="space-y-3">
           {logs.map((log) => (
-            <Card key={log.id} className="hover:shadow-md transition-shadow">
+            <Card
+              key={log.id}
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => openDetail(log)}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    log.status === 'success' ? 'bg-green-50' : 
+                    log.status === 'success' ? 'bg-green-50' :
                     log.status === 'failed' ? 'bg-red-50' : 'bg-blue-50'
                   }`}>
                     {log.status === 'success' ? (
@@ -142,7 +156,7 @@ function TaskLogsPage() {
                       <Clock className="h-5 w-5 text-blue-600 animate-spin" />
                     )}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-medium">{getTypeText(log.type)}</span>
                       <Badge
@@ -152,7 +166,7 @@ function TaskLogsPage() {
                         {getStatusText(log.status)}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">{log.message}</p>
+                    <p className="text-sm text-muted-foreground mt-1 truncate">{log.message}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <span>{t('Created')}: {formatTime(log.created_at)}</span>
                       {log.updated_at !== log.created_at && (
@@ -160,12 +174,65 @@ function TaskLogsPage() {
                       )}
                     </div>
                   </div>
+                  <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openDetail(log) }}>
+                    <Eye className="h-4 w-4" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
       )}
+
+      {/* Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('任务明细')} #{selectedTask?.id}</DialogTitle>
+          </DialogHeader>
+          {selectedTask && (
+            <div className="space-y-4 py-2 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-muted-foreground">{t('任务类型')}：</span>
+                  {getTypeText(selectedTask.type)}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t('状态')}：</span>
+                  <Badge
+                    variant="secondary"
+                    className={`${getStatusColor(selectedTask.status)} text-white text-xs ml-1`}
+                  >
+                    {getStatusText(selectedTask.status)}
+                  </Badge>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-muted-foreground">{t('创建时间')}：</span>
+                  {formatTime(selectedTask.created_at)}
+                </div>
+                {selectedTask.updated_at !== selectedTask.created_at && (
+                  <div className="col-span-2">
+                    <span className="text-muted-foreground">{t('更新时间')}：</span>
+                    {formatTime(selectedTask.updated_at)}
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t pt-3">
+                <div className="font-medium text-muted-foreground text-xs uppercase tracking-wide mb-2">{t('任务消息')}</div>
+                <div className="p-3 bg-muted/30 rounded-lg text-sm whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">
+                  {selectedTask.message || '-'}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>
+              {t('关闭')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

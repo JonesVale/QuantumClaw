@@ -44,7 +44,8 @@ services:
       # Redis
       REDIS_HOST: "${REDIS_HOST:-redis}"
       REDIS_PORT: "${REDIS_PORT:-6379}"
-      REDIS_PASSWORD: "${REDIS_PASSWORD:-redis-daae3a223e4e40f3907d}"
+      # Redis — ⚠️ 生产环境必须设置强密码，不可使用默认值！
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
       # App settings
       PORT: "${PORT:-3666}"
       GIN_MODE: "${GIN_MODE:-release}"
@@ -56,7 +57,8 @@ services:
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
       SILICONFLOW_API_KEY: "${SILICONFLOW_API_KEY:-}"
       MISTRAL_API_KEY: "${MISTRAL_API_KEY:-}"
-      SESSION_SECRET: "${SESSION_SECRET:-6b198275ddf2427f8db24532723ec924d9497245c3374dbeb2fd3f799358f991}"
+      # Session Secret — ⚠️ 生产环境必须设置随机字符串，不可使用默认值！
+      SESSION_SECRET: "${SESSION_SECRET}"
       THEME: "${THEME:-default}"
       # Initial root token
       INITIAL_ROOT_TOKEN: "${INITIAL_ROOT_TOKEN:-}"
@@ -126,7 +128,8 @@ services:
       X_XSS_PROTECTION: "${X_XSS_PROTECTION:-1; mode=block}"
       REFERRER_POLICY: "${REFERRER_POLICY:-strict-origin-when-cross-origin}"
       PERMISSIONS_POLICY: "${PERMISSIONS_POLICY:-geolocation=(), camera=(), microphone=()}"
-      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-*}"
+      # CORS — ⚠️ 默认空（拒绝所有跨域），生产环境需显式指定允许的 Origin
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
     volumes:
       # Mount for data persistence (SQLite) or logs
       - quantumclaw_data:/app/data
@@ -153,6 +156,7 @@ services:
     container_name: quantumclaw-mysql
     restart: unless-stopped
     environment:
+      # MySQL Root Password — ⚠️ 生产环境必须修改默认密码！
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-quantumclaw}"
       MYSQL_DATABASE: "${MYSQL_DATABASE:-quantumclaw}"
       MYSQL_USER: "${MYSQL_USER:-quantumclaw}"
@@ -170,7 +174,7 @@ services:
       --max-connections=1000
       --innodb-buffer-pool-size=256M
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-quantumclaw}"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -189,7 +193,7 @@ services:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-redis-daae3a223e4e40f3907d}
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass "${REDIS_PASSWORD}"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s

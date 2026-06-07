@@ -17,14 +17,15 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/apitype"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	common_handler "github.com/quantumclaw/quantumclaw/relay/common_handler"
 	relaycommon "github.com/quantumclaw/quantumclaw/relay/common"
-	"github.com/quantumclaw/quantumclaw/relay/meta"
+	metapkg "github.com/quantumclaw/quantumclaw/relay/meta"
 	"github.com/quantumclaw/quantumclaw/relay/model"
 )
 
 func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 	ctx := c.Request.Context()
-	meta := meta.GetByContext(c)
+	meta := metapkg.GetByContext(c)
 	// get & validate textRequest
 	textRequest, err := getAndValidateTextRequest(c, meta.Mode)
 	if err != nil {
@@ -57,6 +58,24 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 		return bizErr
 	}
 
+	// defer 保护：防止 panic 導致額度無法退還
+	var quotaRefunded bool
+	defer func() {
+		if r := recover(); r != nil {
+			if !quotaRefunded {
+				logger.Warnf(ctx, "panic after pre-consume, refunding %d quota for user=%d token=%d",
+					preConsumedQuota, meta.UserId, meta.TokenId)
+				// 调用 PostConsumeBilling 退還全部預扣額度
+				relayInfo := &relaycommon.RelayInfo{
+					UserID:  meta.UserId,
+					TokenID: meta.TokenId,
+				}
+				common_handler.PostConsumeBilling(ctx, billingSource, relayInfo, meta.TokenId, 0, preConsumedQuota)
+			}
+			panic(r) // 重新 panic，让 RelayPanicRecover 记录堆栈
+		}
+	}()
+
 	adaptor := relay.GetAdaptor(meta.APIType)
 	if adaptor == nil {
 		return openai.ErrorWrapper(fmt.Errorf("invalid api type: %d", meta.APIType), "invalid_api_type", http.StatusBadRequest)
@@ -81,16 +100,37 @@ func RelayTextHelper(c *gin.Context) *model.ErrorWithStatusCode {
 
 	// do response
 	usage, respErr := adaptor.DoResponse(c, resp, meta)
+
+	// ── 关键修复：即使 DoResponse 返回 error，只要 usage 不为 nil 就要扣款 ──
+	// 原因：上游可能已经消耗了 token（比如部分成功、超时但已计费等情况），
+	// 如果不扣款，平台会亏损。
+	// 扣款前刷新 meta（可能发生了回退，ChannelId 已变化）
+	meta = metapkg.GetByContext(c)
+
 	if respErr != nil {
-		logger.Errorf(ctx, "respErr is not nil: %+v", respErr)
+		logger.Errorf(ctx, "respErr is not nil: %+v, usage=%+v", respErr, usage)
+		// 即使有 error，只要 usage 不为 nil 且消耗了 token，就执行扣款
+		if usage != nil && (usage.PromptTokens > 0 || usage.CompletionTokens > 0) {
+			logger.Warnf(ctx, "[BILLING_AUDIT] DoResponse error but usage present, forcing deduct: user=%d usage=%+v", meta.UserId, usage)
+			quotaRefunded = true
+			postConsumeDeduct(ctx, usage, meta, textRequest, ratio, preConsumedQuota, modelRatio, groupRatio, systemPromptReset, billingSource)
+		}
 		return respErr
 	}
+
+	// ── 关键：刷新 meta 以获取回退后的最新上下文 ──
+	// adaptor.DoRequest/DoResponse 过程中可能触发了 schema 回退（tryFallbackRequest），
+	// 回退代码会更新 Gin Context（is_fallback、fallback_chain 等）。
+	// 此处必须重新从 context 读取，否则计费使用的是过期的 ChannelId。
+	meta = metapkg.GetByContext(c)
+
 	// post-consume — 现金扣款 + 分账（同步执行，失败返回错误）
+	quotaRefunded = true
 	postConsumeDeduct(ctx, usage, meta, textRequest, ratio, preConsumedQuota, modelRatio, groupRatio, systemPromptReset, billingSource)
 	return nil
 }
 
-func getRequestBody(c *gin.Context, meta *meta.Meta, textRequest *model.GeneralOpenAIRequest, adaptor adaptor.Adaptor) (io.Reader, error) {
+func getRequestBody(c *gin.Context, meta *metapkg.Meta, textRequest *model.GeneralOpenAIRequest, adaptor adaptor.Adaptor) (io.Reader, error) {
 	if !config.EnforceIncludeUsage &&
 		meta.APIType == apitype.OpenAI &&
 		meta.OriginModelName == meta.ActualModelName &&

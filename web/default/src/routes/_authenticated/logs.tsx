@@ -8,6 +8,7 @@ import {
   RefreshCw,
   Filter,
   ScrollText,
+  Eye,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -19,6 +20,7 @@ import {
 } from '@/components/ui/table'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
 import { getLogs, type LogEntry } from '@/lib/api-extended'
 import dayjs from '@/lib/dayjs'
 
@@ -31,6 +33,8 @@ function LogsPage() {
   const [search, setSearch] = useState('')
   const [type, setType] = useState('0')
   const [page, setPage] = useState(1)
+  const [selectedLog, setSelectedLog] = useState<LogEntry | null>(null)
+  const [detailOpen, setDetailOpen] = useState(false)
 
   const { data, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['logs', search, type, page],
@@ -44,6 +48,28 @@ function LogsPage() {
   })
 
   const logs: LogEntry[] = data?.data || []
+
+  function openDetail(log: LogEntry) {
+    setSelectedLog(log)
+    setDetailOpen(true)
+  }
+
+  function getTypeLabel(typeValue: string | number | undefined): string {
+    const map: Record<number, string> = {
+      1: 'Chat Completion',
+      2: 'Completion',
+      3: 'Embedding',
+      4: 'Image',
+      5: 'Audio',
+    }
+    const num = typeof typeValue === 'string' ? Number(typeValue) : typeValue
+    return num && map[num] ? map[num] : String(typeValue || '-')
+  }
+
+  function formatQuota(q: number | undefined): string {
+    if (q === undefined || q === null) return '-'
+    return (q / 1000000).toFixed(6)
+  }
 
   return (
     <div className="qc-wrapper py-8 space-y-6">
@@ -76,6 +102,10 @@ function LogsPage() {
             <SelectItem value="5">{t('Audio')}</SelectItem>
           </SelectContent>
         </Select>
+        <Button variant="outline" size="sm" onClick={() => { refetch() }}>
+          <RefreshCw className="h-4 w-4 mr-1" />
+          {t('Refresh')}
+        </Button>
       </div>
 
       {!isLoading && logs.length === 0 ? (
@@ -94,39 +124,51 @@ function LogsPage() {
                   <TableHead>{t('User')}</TableHead>
                   <TableHead>{t('Model')}</TableHead>
                   <TableHead>{t('Type')}</TableHead>
-                  <TableHead>{t('Tokens')}</TableHead>
+                  <TableHead>{t('Prompt')}</TableHead>
+                  <TableHead>{t('Completion')}</TableHead>
                   <TableHead>{t('Quota')}</TableHead>
                   <TableHead>{t('Time')}</TableHead>
+                  <TableHead className="text-center">{t('明细')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {isLoading ? (
                   Array.from({ length: 10 }).map((_, i) => (
                     <TableRow key={i}>
-                      {Array.from({ length: 7 }).map((_, j) => (
+                      {Array.from({ length: 9 }).map((_, j) => (
                         <TableCell key={j}><Skeleton className="h-4 w-20" /></TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   logs.map((log, idx) => (
-                    <TableRow key={log.id}>
+                    <TableRow key={log.id} className="hover:bg-muted/30 transition-colors">
                       <TableCell className="text-muted-foreground">{idx + 1}</TableCell>
-                      <TableCell className="font-medium">{log.username}</TableCell>
+                      <TableCell className="font-medium">{log.username || log.user_id}</TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-mono text-xs">
-                          {log.model_name}
+                          {log.model_name || log.model || '-'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{log.type}</TableCell>
-                      <TableCell className="text-sm">
-                        {(log.prompt_tokens || 0) + (log.completion_tokens || 0)}
+                      <TableCell>{getTypeLabel(log.type_ || log.type)}</TableCell>
+                      <TableCell className="text-sm text-right">
+                        {(log.prompt_tokens || 0).toLocaleString()}
                       </TableCell>
-                      <TableCell className="text-sm">{log.quota?.toLocaleString() || 0}</TableCell>
+                      <TableCell className="text-sm text-right">
+                        {(log.completion_tokens || 0).toLocaleString()}
+                      </TableCell>
+                      <TableCell className="text-sm font-mono">
+                        {formatQuota(log.quota)}
+                      </TableCell>
                       <TableCell className="text-muted-foreground text-xs">
                         {log.created_at
                           ? dayjs(log.created_at * 1000).format('MM-DD HH:mm:ss')
-                          : '\u2014'}
+                          : '-'}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Button variant="ghost" size="sm" onClick={() => openDetail(log)}>
+                          <Eye className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))
@@ -162,6 +204,77 @@ function LogsPage() {
           </div>
         </div>
       )}
+
+      {/* Detail Dialog */}
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{t('日志明细')} #{selectedLog?.id}</DialogTitle>
+          </DialogHeader>
+          {selectedLog && (
+            <div className="space-y-4 py-2 text-sm">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-muted-foreground">{t('用户')}：</span>
+                  {selectedLog.username || selectedLog.user_id}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">ID：</span>
+                  {selectedLog.user_id}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t('渠道')}：</span>
+                  {selectedLog.channel_name || selectedLog.channel_id}
+                  {selectedLog.channel_id ? ` (ID: ${selectedLog.channel_id})` : ''}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t('模型')}：</span>
+                  {selectedLog.model_name || selectedLog.model || '-'}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t('类型')}：</span>
+                  {getTypeLabel(selectedLog.type_ || selectedLog.type)}
+                </div>
+                <div>
+                  <span className="text-muted-foreground">{t('时间')}：</span>
+                  {selectedLog.created_at
+                    ? dayjs(selectedLog.created_at * 1000).format('YYYY-MM-DD HH:mm:ss')
+                    : '-'}
+                </div>
+              </div>
+
+              <div className="border-t pt-3 space-y-2">
+                <div className="font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('Token 明细')}</div>
+                <div className="grid grid-cols-2 gap-3 font-mono text-sm">
+                  <div>{t('Prompt Tokens')}：{(selectedLog.prompt_tokens || 0).toLocaleString()}</div>
+                  <div>{t('Completion Tokens')}：{(selectedLog.completion_tokens || 0).toLocaleString()}</div>
+                  {(selectedLog.request_tokens || selectedLog.response_tokens) && (
+                    <>
+                      <div>{t('Request Tokens')}：{(selectedLog.request_tokens || 0).toLocaleString()}</div>
+                      <div>{t('Response Tokens')}：{(selectedLog.response_tokens || 0).toLocaleString()}</div>
+                    </>
+                  )}
+                  <div className="col-span-2 font-bold">
+                    {t('总计')}：{((selectedLog.prompt_tokens || 0) + (selectedLog.completion_tokens || 0)).toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t pt-3 space-y-2">
+                <div className="font-medium text-muted-foreground text-xs uppercase tracking-wide">{t('计费明细')}</div>
+                <div className="font-mono text-sm">
+                  {t('Quota')}：{formatQuota(selectedLog.quota)}
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailOpen(false)}>
+              {t('关闭')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

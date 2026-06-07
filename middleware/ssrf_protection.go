@@ -2,11 +2,13 @@ package middleware
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/setting/system_setting"
 )
 
@@ -14,15 +16,16 @@ import (
 // 对所有外发请求进行 URL 校验（用于 relay/渠道调用）
 func SSRFProtection() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 只在 EnableSSRFProtection 为 true 时生效
 		setting := system_setting.GetFetchSetting()
 		if !setting.EnableSSRFProtection {
+			logger.SysWarn("⚠️ SSRF protection is DISABLED. Enable it via system settings for production security.")
 			c.Next()
 			return
 		}
 
-		// 对请求体中的 URL 字段进行 SSRF 检查
-		// 先放行，等 body 读完再检查
+		// SSRF 保护已在 HTTP Transport 层 (SSRFProxyTransport) 实现，
+		// 此中间件作为二次防线，记录请求信息便于审计
+		logger.Info(c.Request.Context(), fmt.Sprintf("SSRF middleware: %s %s", c.Request.Method, c.Request.URL.Path))
 		c.Next()
 	}
 }

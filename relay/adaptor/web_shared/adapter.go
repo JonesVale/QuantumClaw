@@ -12,6 +12,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/client"
+	"github.com/quantumclaw/quantumclaw/common/ctxkey"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
@@ -134,6 +136,17 @@ func (a *Adapter) ExecuteRequest(c *gin.Context, meta *meta.Meta, provider strin
 	return httpResp, nil
 }
 
+// ==================== 回退链追踪 ====================
+// 核心修复：当 relay 层发生回退时，必须更新 Gin Context，
+// 否则下游 PostConsumeDeduct 使用的是过期的 ChannelId，
+// 导致计费对象错误（渠道商 A 被扣款但实际服务由渠道商 B 提供）。
+//
+// 追踪字段：
+//   - original_channel_id : 分发器最初选择的渠道（始终不变）
+//   - fallback_chain       : JSON 数组记录每次回退的 [from_schema, to_schema]
+//   - is_fallback          : 标记是否发生过回退
+//   - actual_schema_id     : 最终实际使用的 schema ID
+
 func (a *Adapter) tryFallbackRequest(c *gin.Context, meta *meta.Meta, provider string,
 	failedSchema *model.Sub2APISchema, textRequest *relaymodel.GeneralOpenAIRequest,
 	statusCode int, body string) (*http.Response, *relaymodel.ErrorWithStatusCode) {
@@ -143,6 +156,35 @@ func (a *Adapter) tryFallbackRequest(c *gin.Context, meta *meta.Meta, provider s
 		return nil, errorWithCode(
 			fmt.Errorf("all schemas failed for %s: status=%d body=%s", provider, statusCode, body), 502)
 	}
+
+	// ── 核心：回退成功时更新 Gin Context ──
+	// 记录原始渠道 ID（仅首次回退时记录）
+	if _, exists := c.Get("original_channel_id"); !exists {
+		c.Set("original_channel_id", c.GetInt(ctxkey.ChannelId))
+	}
+	// 标记回退状态
+	c.Set(ctxkey.IsFallback, true)
+
+	// 记录回退链（用于审计）
+	var fallbackChain []map[string]int
+	if existing, exists := c.Get("fallback_chain"); exists {
+		fallbackChain = existing.([]map[string]int)
+	} else {
+		fallbackChain = make([]map[string]int, 0)
+	}
+	fallbackChain = append(fallbackChain, map[string]int{
+		"from_schema": failedSchema.Id,
+		"to_schema":   fb.Id,
+	})
+	c.Set("fallback_chain", fallbackChain)
+
+	// 记录最终实际使用的 schema
+	c.Set("actual_schema_id", fb.Id)
+
+	logger.Warnf(c.Request.Context(),
+		"[FALLBACK] provider=%s schema:%d→%d channel_id=%d status=%d",
+		provider, failedSchema.Id, fb.Id, c.GetInt(ctxkey.ChannelId), statusCode)
+
 	return a.ExecuteRequest(c, meta, provider, textRequest)
 }
 

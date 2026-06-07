@@ -86,7 +86,7 @@ import {
   Megaphone,
   Lock,
   Link2,
-
+  Scale,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -204,6 +204,7 @@ const PRODUCT_ITEMS: NavItem[] = [
 const NAV_ITEMS: NavItem[] = [
   { path: '/keys', icon: Key, labelKey: 'API Keys', loginRequired: true },
   { path: '/users', icon: Users, labelKey: 'Users', adminOnly: true },
+  { path: '/my-reconciliation', icon: Scale, labelKey: '我的对账' },
   { path: '/logs', icon: ScrollText, labelKey: 'Usage Logs', loginRequired: true },
   { path: '/redemption', icon: Ticket, labelKey: 'Redemption Codes', adminOnly: true },
   { path: '/distributors', icon: Truck, labelKey: 'Distributors', adminOnly: true },
@@ -214,6 +215,7 @@ const NAV_ITEMS: NavItem[] = [
   { path: '/reseller-admin', icon: Store, labelKey: 'Reseller Management', adminOnly: true },
   { path: '/settlement', icon: Percent, labelKey: 'Settlement Config', adminOnly: true },
   { path: '/transactions', icon: Receipt, labelKey: 'Transactions', adminOnly: true },
+  { path: '/admin-reconciliation', icon: Scale, labelKey: '对账管理', adminOnly: true },
   { path: '/platform-settings', icon: Settings, labelKey: 'Platform Settings', adminOnly: true },
   { path: '/reseller', icon: Store, labelKey: 'Reseller Portal', loginRequired: true },
   { path: '/my-store', icon: Store, labelKey: 'My Store', loginRequired: true },

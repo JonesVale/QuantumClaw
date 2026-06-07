@@ -16,7 +16,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
-	"github.com/quantumclaw/quantumclaw/relay/meta"
+	metapkg "github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
 )
 
@@ -63,7 +63,7 @@ func getImageSizeRatio(model string, size string) float64 {
 	return 1
 }
 
-func validateImageRequest(imageRequest *relaymodel.ImageRequest, _ *meta.Meta) *relaymodel.ErrorWithStatusCode {
+func validateImageRequest(imageRequest *relaymodel.ImageRequest, _ *metapkg.Meta) *relaymodel.ErrorWithStatusCode {
 	// check prompt length
 	if imageRequest.Prompt == "" {
 		return openai.ErrorWrapper(errors.New("prompt is required"), "prompt_missing", http.StatusBadRequest)
@@ -102,7 +102,7 @@ func getImageCostRatio(imageRequest *relaymodel.ImageRequest) (float64, error) {
 
 func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatusCode {
 	ctx := c.Request.Context()
-	meta := meta.GetByContext(c)
+	meta := metapkg.GetByContext(c)
 	imageRequest, err := getImageRequest(c, meta.Mode)
 	if err != nil {
 		logger.Errorf(ctx, "getImageRequest failed: %s", err.Error())
@@ -198,6 +198,8 @@ func RelayImageHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	}
 
 	// 成功后现金扣款 + 分账
+	// 刷新 meta 以获取回退后的最新上下文（防止 adaptor 层回退后 ChannelId 过期）
+	meta = metapkg.GetByContext(c)
 	postConsumeDeduct(c.Request.Context(), usage, meta,
 		&relaymodel.GeneralOpenAIRequest{Model: imageModel},
 		ratio, 0, modelRatio, groupRatio, false, "")

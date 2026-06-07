@@ -7,11 +7,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/monitor"
-		"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
 type ModelRequest struct {
@@ -39,6 +40,9 @@ func Distribute() func(c *gin.Context) {
 
 		var requestModel string
 		var channel *model.Channel
+
+		// ── 余额预检阈值（从配置读取，分）──
+		minBalance := config.MinChannelOwnerBalanceCents
 
 		// ── Step 0: 请求指定 channel_id（调试/定向路由）──
 		channelId, ok := c.Get(ctxkey.SpecificChannelId)
@@ -73,7 +77,7 @@ func Distribute() func(c *gin.Context) {
 
 		// ── Step 1: 首选供应商 ──
 		if user != nil && user.PreferredProviderId > 0 {
-			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, user.PreferredProviderId, "")
+			ch, err := selectChannelWithBalance(userGroup, requestModel, user.PreferredProviderId, "", minBalance)
 			if err == nil && !monitor.IsModelPenalized(ch.Id, requestModel) {
 				logger.Debugf(ctx, "user %d, model %s: using PREFERRED provider channel #%d (owner=%d)",
 					userId, requestModel, ch.Id, ch.UserId)
@@ -84,10 +88,10 @@ func Distribute() func(c *gin.Context) {
 				userId, user.PreferredProviderId, requestModel)
 		}
 
-		// ── Step 2: 推广人渠道（最便宜优先）──
-		if promoterId >= 0 {
-			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, promoterId, "")
-			if err == nil && !monitor.IsModelPenalized(ch.Id, requestModel) {
+	// ── Step 2: 推广人渠道（最便宜优先）──
+	if promoterId >= 0 {
+		ch, err := selectChannelWithBalance(userGroup, requestModel, promoterId, "", minBalance)
+		if err == nil && !monitor.IsModelPenalized(ch.Id, requestModel) {
 				logger.Debugf(ctx, "user %d, model %s: using PROMOTER channel #%d (owner=%d)",
 					userId, requestModel, ch.Id, promoterId)
 				setupAndContinue(c, ch, requestModel, promoterId, false)
@@ -97,7 +101,7 @@ func Distribute() func(c *gin.Context) {
 
 		// ── Step 3: 全资源池兜底（原则 3：国内 → 仅限国内）──
 		// 先尝试国内渠道
-		poolChannel, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionChina)
+		poolChannel, err := selectChannelWithBalance(userGroup, requestModel, 0, channeltype.RegionChina, minBalance)
 		if err == nil && !monitor.IsModelPenalized(poolChannel.Id, requestModel) {
 			logger.Debugf(ctx, "user %d, model %s: FALLBACK china channel #%d (owner=%d)",
 				userId, requestModel, poolChannel.Id, poolChannel.UserId)
@@ -106,7 +110,7 @@ func Distribute() func(c *gin.Context) {
 		}
 
 		// 国内没有 → 尝试国外渠道（原则 3：只有国内渠道不可用时才切国外）
-		poolChannel, err = model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionOverseas)
+		poolChannel, err = selectChannelWithBalance(userGroup, requestModel, 0, channeltype.RegionOverseas, minBalance)
 		if err == nil && !monitor.IsModelPenalized(poolChannel.Id, requestModel) {
 			logger.Debugf(ctx, "user %d, model %s: FALLBACK overseas channel #%d (owner=%d, from=china_pool)",
 				userId, requestModel, poolChannel.Id, poolChannel.UserId)
@@ -166,4 +170,13 @@ func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, mode
 	if cfg.APIVersion != "" {
 		c.Set(ctxkey.Config, cfg)
 	}
+}
+
+// selectChannelWithBalance 根据配置选择渠道选择策略
+// 当 MinChannelOwnerBalanceCents > 0 时使用带余额预检的版本，否则使用原版（向后兼容）
+func selectChannelWithBalance(group string, modelName string, ownerId int, region string, minBalance int64) (*model.Channel, error) {
+	if minBalance > 0 {
+		return model.GetCheapestSatisfiedChannelWithBalance(group, modelName, ownerId, region, minBalance)
+	}
+	return model.GetCheapestSatisfiedChannel(group, modelName, ownerId, region)
 }

@@ -54,12 +54,33 @@ func GetAllUserTokens(userId int, startIdx int, num int, order string) ([]*Token
 	}
 
 	err = query.Limit(num).Offset(startIdx).Find(&tokens).Error
-	return tokens, err
+	if err != nil {
+		return tokens, err
+	}
+	// 解密 key 字段，否则前端显示的是加密密文
+	for _, t := range tokens {
+		if config.CryptoSecret != "" && len(t.Key) > 0 {
+			if decrypted, e := encrypt.Decrypt(t.Key, encrypt.DeriveKey(config.CryptoSecret)); e == nil {
+				t.Key = string(decrypted)
+			}
+		}
+	}
+	return tokens, nil
 }
 
 func SearchUserTokens(userId int, keyword string) (tokens []*Token, err error) {
 	err = DB.Where("user_id = ?", userId).Where("name LIKE ?", keyword+"%").Find(&tokens).Error
-	return tokens, err
+	if err != nil {
+		return tokens, err
+	}
+	for _, t := range tokens {
+		if config.CryptoSecret != "" && len(t.Key) > 0 {
+			if decrypted, e := encrypt.Decrypt(t.Key, encrypt.DeriveKey(config.CryptoSecret)); e == nil {
+				t.Key = string(decrypted)
+			}
+		}
+	}
+	return tokens, nil
 }
 
 func ValidateUserToken(key string) (token *Token, err error) {

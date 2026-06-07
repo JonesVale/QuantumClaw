@@ -47,13 +47,16 @@ func Init() {
 	if relayTimeout == 0 {
 		relayTimeout = 60
 	}
+	// 将 SSRF 防护 Transport 包装在现有 Transport 之上
+	ssrfWrapped := wrapWithSSRFProtection(transport)
+
 	HTTPClient = &http.Client{
 		Timeout:   time.Duration(relayTimeout) * time.Second,
-		Transport: transport,
+		Transport: ssrfWrapped,
 	}
 
 	ImpatientHTTPClient = &http.Client{
 		Timeout:   5 * time.Second,
-		Transport: transport,
+		Transport: ssrfWrapped,
 	}
 }

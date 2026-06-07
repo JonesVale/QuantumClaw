@@ -18,14 +18,14 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/adaptor/openai"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
-	"github.com/quantumclaw/quantumclaw/relay/meta"
+	metapkg "github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
 	"github.com/quantumclaw/quantumclaw/relay/relaymode"
 )
 
 func RelayAudioHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatusCode {
 	ctx := c.Request.Context()
-	meta := meta.GetByContext(c)
+	meta := metapkg.GetByContext(c)
 	audioModel := "whisper-1"
 
 	channelType := c.GetInt(ctxkey.Channel)
@@ -174,6 +174,8 @@ func RelayAudioHelper(c *gin.Context, relayMode int) *relaymodel.ErrorWithStatus
 	}
 
 	// 现金扣款（同步执行，成功后响应）
+	// 刷新 meta 以获取回退后的最新上下文（防止 adaptor 层回退后 ChannelId 过期）
+	meta = metapkg.GetByContext(c)
 	postConsumeDeduct(c.Request.Context(), &relaymodel.Usage{
 		PromptTokens:     int(quota),
 		CompletionTokens: 0,

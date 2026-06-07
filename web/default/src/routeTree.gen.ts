@@ -50,6 +50,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedNotFoundRouteImport } from './routes/_authenticated/not-found'
 import { Route as AuthenticatedNewsRouteImport } from './routes/_authenticated/news'
 import { Route as AuthenticatedMyStoreRouteImport } from './routes/_authenticated/my-store'
+import { Route as AuthenticatedMyReconciliationRouteImport } from './routes/_authenticated/my-reconciliation'
 import { Route as AuthenticatedMonitoringRouteImport } from './routes/_authenticated/monitoring'
 import { Route as AuthenticatedModelHostingRouteImport } from './routes/_authenticated/model-hosting'
 import { Route as AuthenticatedModelBrandsRouteImport } from './routes/_authenticated/model-brands'
@@ -68,6 +69,7 @@ import { Route as AuthenticatedChannelAffinityRouteImport } from './routes/_auth
 import { Route as AuthenticatedBillingRouteImport } from './routes/_authenticated/billing'
 import { Route as AuthenticatedApiDocsRouteImport } from './routes/_authenticated/api-docs'
 import { Route as AuthenticatedAdminToolsRouteImport } from './routes/_authenticated/admin-tools'
+import { Route as AuthenticatedAdminReconciliationRouteImport } from './routes/_authenticated/admin-reconciliation'
 import { Route as AuthenticatedAboutRouteImport } from './routes/_authenticated/about'
 import { Route as authSignInRouteImport } from './routes/(auth)/sign-in'
 import { Route as authSetupRouteImport } from './routes/(auth)/setup'
@@ -286,6 +288,12 @@ const AuthenticatedMyStoreRoute = AuthenticatedMyStoreRouteImport.update({
   path: '/my-store',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMyReconciliationRoute =
+  AuthenticatedMyReconciliationRouteImport.update({
+    id: '/my-reconciliation',
+    path: '/my-reconciliation',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMonitoringRoute = AuthenticatedMonitoringRouteImport.update({
   id: '/monitoring',
   path: '/monitoring',
@@ -382,6 +390,12 @@ const AuthenticatedAdminToolsRoute = AuthenticatedAdminToolsRouteImport.update({
   path: '/admin-tools',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAdminReconciliationRoute =
+  AuthenticatedAdminReconciliationRouteImport.update({
+    id: '/admin-reconciliation',
+    path: '/admin-reconciliation',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAboutRoute = AuthenticatedAboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -428,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
+  '/admin-reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
@@ -446,6 +461,7 @@ export interface FileRoutesByFullPath {
   '/model-brands': typeof AuthenticatedModelBrandsRoute
   '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
+  '/my-reconciliation': typeof AuthenticatedMyReconciliationRoute
   '/my-store': typeof AuthenticatedMyStoreRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -493,6 +509,7 @@ export interface FileRoutesByTo {
   '/setup': typeof authSetupRoute
   '/sign-in': typeof authSignInRoute
   '/about': typeof AuthenticatedAboutRoute
+  '/admin-reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/api-docs': typeof AuthenticatedApiDocsRoute
   '/billing': typeof AuthenticatedBillingRoute
@@ -511,6 +528,7 @@ export interface FileRoutesByTo {
   '/model-brands': typeof AuthenticatedModelBrandsRoute
   '/model-hosting': typeof AuthenticatedModelHostingRoute
   '/monitoring': typeof AuthenticatedMonitoringRoute
+  '/my-reconciliation': typeof AuthenticatedMyReconciliationRoute
   '/my-store': typeof AuthenticatedMyStoreRoute
   '/news': typeof AuthenticatedNewsRoute
   '/not-found': typeof AuthenticatedNotFoundRoute
@@ -560,6 +578,7 @@ export interface FileRoutesById {
   '/(auth)/setup': typeof authSetupRoute
   '/(auth)/sign-in': typeof authSignInRoute
   '/_authenticated/about': typeof AuthenticatedAboutRoute
+  '/_authenticated/admin-reconciliation': typeof AuthenticatedAdminReconciliationRoute
   '/_authenticated/admin-tools': typeof AuthenticatedAdminToolsRoute
   '/_authenticated/api-docs': typeof AuthenticatedApiDocsRoute
   '/_authenticated/billing': typeof AuthenticatedBillingRoute
@@ -578,6 +597,7 @@ export interface FileRoutesById {
   '/_authenticated/model-brands': typeof AuthenticatedModelBrandsRoute
   '/_authenticated/model-hosting': typeof AuthenticatedModelHostingRoute
   '/_authenticated/monitoring': typeof AuthenticatedMonitoringRoute
+  '/_authenticated/my-reconciliation': typeof AuthenticatedMyReconciliationRoute
   '/_authenticated/my-store': typeof AuthenticatedMyStoreRoute
   '/_authenticated/news': typeof AuthenticatedNewsRoute
   '/_authenticated/not-found': typeof AuthenticatedNotFoundRoute
@@ -627,6 +647,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/sign-in'
     | '/about'
+    | '/admin-reconciliation'
     | '/admin-tools'
     | '/api-docs'
     | '/billing'
@@ -645,6 +666,7 @@ export interface FileRouteTypes {
     | '/model-brands'
     | '/model-hosting'
     | '/monitoring'
+    | '/my-reconciliation'
     | '/my-store'
     | '/news'
     | '/not-found'
@@ -692,6 +714,7 @@ export interface FileRouteTypes {
     | '/setup'
     | '/sign-in'
     | '/about'
+    | '/admin-reconciliation'
     | '/admin-tools'
     | '/api-docs'
     | '/billing'
@@ -710,6 +733,7 @@ export interface FileRouteTypes {
     | '/model-brands'
     | '/model-hosting'
     | '/monitoring'
+    | '/my-reconciliation'
     | '/my-store'
     | '/news'
     | '/not-found'
@@ -758,6 +782,7 @@ export interface FileRouteTypes {
     | '/(auth)/setup'
     | '/(auth)/sign-in'
     | '/_authenticated/about'
+    | '/_authenticated/admin-reconciliation'
     | '/_authenticated/admin-tools'
     | '/_authenticated/api-docs'
     | '/_authenticated/billing'
@@ -776,6 +801,7 @@ export interface FileRouteTypes {
     | '/_authenticated/model-brands'
     | '/_authenticated/model-hosting'
     | '/_authenticated/monitoring'
+    | '/_authenticated/my-reconciliation'
     | '/_authenticated/my-store'
     | '/_authenticated/news'
     | '/_authenticated/not-found'
@@ -1116,6 +1142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMyStoreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/my-reconciliation': {
+      id: '/_authenticated/my-reconciliation'
+      path: '/my-reconciliation'
+      fullPath: '/my-reconciliation'
+      preLoaderRoute: typeof AuthenticatedMyReconciliationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/monitoring': {
       id: '/_authenticated/monitoring'
       path: '/monitoring'
@@ -1242,6 +1275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminToolsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin-reconciliation': {
+      id: '/_authenticated/admin-reconciliation'
+      path: '/admin-reconciliation'
+      fullPath: '/admin-reconciliation'
+      preLoaderRoute: typeof AuthenticatedAdminReconciliationRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/about': {
       id: '/_authenticated/about'
       path: '/about'
@@ -1282,6 +1322,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAboutRoute: typeof AuthenticatedAboutRoute
+  AuthenticatedAdminReconciliationRoute: typeof AuthenticatedAdminReconciliationRoute
   AuthenticatedAdminToolsRoute: typeof AuthenticatedAdminToolsRoute
   AuthenticatedApiDocsRoute: typeof AuthenticatedApiDocsRoute
   AuthenticatedBillingRoute: typeof AuthenticatedBillingRoute
@@ -1300,6 +1341,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedModelBrandsRoute: typeof AuthenticatedModelBrandsRoute
   AuthenticatedModelHostingRoute: typeof AuthenticatedModelHostingRoute
   AuthenticatedMonitoringRoute: typeof AuthenticatedMonitoringRoute
+  AuthenticatedMyReconciliationRoute: typeof AuthenticatedMyReconciliationRoute
   AuthenticatedMyStoreRoute: typeof AuthenticatedMyStoreRoute
   AuthenticatedNewsRoute: typeof AuthenticatedNewsRoute
   AuthenticatedNotFoundRoute: typeof AuthenticatedNotFoundRoute
@@ -1329,6 +1371,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAboutRoute: AuthenticatedAboutRoute,
+  AuthenticatedAdminReconciliationRoute: AuthenticatedAdminReconciliationRoute,
   AuthenticatedAdminToolsRoute: AuthenticatedAdminToolsRoute,
   AuthenticatedApiDocsRoute: AuthenticatedApiDocsRoute,
   AuthenticatedBillingRoute: AuthenticatedBillingRoute,
@@ -1347,6 +1390,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedModelBrandsRoute: AuthenticatedModelBrandsRoute,
   AuthenticatedModelHostingRoute: AuthenticatedModelHostingRoute,
   AuthenticatedMonitoringRoute: AuthenticatedMonitoringRoute,
+  AuthenticatedMyReconciliationRoute: AuthenticatedMyReconciliationRoute,
   AuthenticatedMyStoreRoute: AuthenticatedMyStoreRoute,
   AuthenticatedNewsRoute: AuthenticatedNewsRoute,
   AuthenticatedNotFoundRoute: AuthenticatedNotFoundRoute,

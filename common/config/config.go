@@ -146,6 +146,20 @@ var ApproximateTokenEnabled = false
 var DebtDisableThreshold int64 = 50000 // 欠费超过 ¥500 自动禁用账号
 var RetryTimes = 2
 
+// MinChannelOwnerBalanceCents 渠道选择时的最低余额阈值（分）
+// 当渠道商（channel owner）的现金余额低于此值时，
+// 分发器会优先跳过该渠道，选择余额充足的其他渠道。
+// 设为 0 表示不进行余额预检（默认行为，向后兼容）。
+// 建议生产环境设为 50000（即 ¥500），防止选中余额即将耗尽的渠道。
+var MinChannelOwnerBalanceCents = func() int64 {
+	if v := os.Getenv("MIN_CHANNEL_OWNER_BALANCE_CENTS"); v != "" {
+		if parsed, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return parsed
+		}
+	}
+	return 0 // 默认不启用余额预检（向后兼容）
+}()
+
 var RootUserEmail = ""
 
 var IsMasterNode = os.Getenv("NODE_TYPE") != "slave"

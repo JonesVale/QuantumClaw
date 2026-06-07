@@ -27,7 +27,7 @@ WORKDIR /app
 
 # Use Go proxy for faster downloads
 ENV GOPROXY=https://goproxy.cn,https://mirrors.aliyun.com/goproxy/,direct
-ENV GOSUMDB=off
+ENV GOSUMDB=sum.golang.org
 
 # 1. Download modules (cached when go.mod/sum unchanged)
 COPY go.mod go.sum ./

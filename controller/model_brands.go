@@ -447,10 +447,16 @@ func ConfigureModelBrand(c *gin.Context) {
 		}
 		models := getChannelModelsFromBrand(matchedCfg.ProviderName, matchedCfg.ChannelType)
 
+		encKey := req.APIKey
+		if config.CryptoSecret != "" {
+			if ek, e := encrypt.EncryptChannelKey(req.APIKey, config.CryptoSecret); e == nil {
+				encKey = ek
+			}
+		}
 		newChannel := &model.Channel{
 			Type:        matchedCfg.ChannelType,
 			Name:        matchedCfg.ChannelName,
-			Key:         req.APIKey,
+			Key:         encKey,
 			BaseURL:     model.StrPtr(baseURL),
 			Models:      models,
 			Group:       "default",
@@ -476,8 +482,14 @@ func ConfigureModelBrand(c *gin.Context) {
 		}(channel.Id, channel.Type, *channel.BaseURL, channel.Key, channel.Name)
 	} else {
 		// 鏇存柊宸叉湁娓犻亾锛堝彧鏇存柊 Key锛?
+		encryptedKey := req.APIKey
+		if config.CryptoSecret != "" {
+			if ek, e := encrypt.EncryptChannelKey(req.APIKey, config.CryptoSecret); e == nil {
+				encryptedKey = ek
+			}
+		}
 		updates := map[string]interface{}{
-			"Key": req.APIKey,
+			"Key": encryptedKey,
 		}
 		// 濡傛灉 BaseURL 涓虹┖鍒欏～鍏呴粯璁?URL
 		if channel.BaseURL == nil || *channel.BaseURL == "" {

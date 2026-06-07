@@ -24,10 +24,14 @@ var DB *gorm.DB
 var LOG_DB *gorm.DB
 
 func CreateRootAccountIfNeed() error {
-	// Determine root password from config (fallback: hardcoded 123456)
+	// Determine root password from config
+	// ⚠️ 不再使用硬编码默认密码 "123456"。
+	// 如果未设置 INITIAL_ROOT_PASSWORD，将生成随机强密码并在日志中输出。
 	rootPassword := config.InitialRootPassword
 	if rootPassword == "" {
-		rootPassword = "123456"
+		rootPassword = random.GetRandomString(24)
+		logger.SysLog("⚠️ WARNING: 未设置 INITIAL_ROOT_PASSWORD，已自动生成随机密码，请立即修改！")
+		logger.SysLogf("Generated root password: %s", rootPassword)
 	}
 
 	// Ensure at least one admin/root user exists (role >= 10)
@@ -252,6 +256,7 @@ func migrateDB() error {
 	attempt("ProviderEarning", func() error { return DB.AutoMigrate(&ProviderEarning{}) })
 	attempt("WithdrawalRequest", func() error { return DB.AutoMigrate(&WithdrawalRequest{}) })
 	attempt("PlatformFeeRecord", func() error { return DB.AutoMigrate(&PlatformFeeRecord{}) })
+	attempt("PlatformIncome", func() error { return DB.AutoMigrate(&PlatformIncome{}) })
 	// 手动迁移:添加 category 列(SQLite 的 AutoMigrate 有时不添加新列)
 	if common.UsingSQLite {
 		if !DB.Migrator().HasColumn(&Channel{}, "category") {
@@ -282,6 +287,7 @@ func migrateDB() error {
 	attempt("Reseller", func() error { return DB.AutoMigrate(&Reseller{}) })
 	attempt("AffiliateRelation", func() error { return DB.AutoMigrate(&AffiliateRelation{}) })
 	attempt("PlatformConfig", func() error { return DB.AutoMigrate(&PlatformConfig{}) })
+	attempt("ReconciliationLog", func() error { return DB.AutoMigrate(&ReconciliationLog{}) })
 	attempt("HourlySettlement", func() error { return DB.AutoMigrate(&HourlySettlement{}) })
 
 	// ── 交易手续费默认值 ──

@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"gorm.io/gorm"
 
@@ -106,15 +107,44 @@ func createTransactionFromLog(log *Log) {
 	// 获取结算配置
 	cfg, _ := GetSettlementConfig(log.ModelName)
 
-	// 获取 channel 信息以计算单价
+	// 获取 channel 信息
 	var ch Channel
 	if err := DB.First(&ch, "id = ?", log.ChannelId).Error; err != nil {
-		// channel 不存在或已删除，用默认价格
 		ch.CostPerUnit = 0.001
 		ch.SellPriceRate = 1.0
+		ch.CostPrice = 0
 	}
 
-	unitPrice := ch.CostPerUnit * ch.SellPriceRate * 1000 // /1K tokens
+	// ============================================================
+	// BUG FIX: 使用实际用户付费金额（来自 Log.Quota），而非渠道成本参数
+	//
+	// 原代码：unitPrice = ch.CostPerUnit * ch.SellPriceRate * 1000
+	//         TotalAmount = unitPrice * tokenK
+	// 问题：CostPerUnit 是平台向上游支付的成本率，不是用户价格！
+	//       这导致 token_transaction.total_amount 与用户实际扣款完全无关，
+	//       每小时对账（RunHourlySettlement）计算的 利润/亏损 全部失真。
+	//
+	// 修复后：
+	//   - actualUserCents: 从 Log.Quota（微额度）换算为用户实付分 = quota / 10000
+	//   - 这是 PostConsumeDeduct 中 quotaToUserPrice() 的同一公式
+	//   - 确保 audit trail 的 total_amount == 用户真实付款
+	// ============================================================
+	actualUserCents := float64(0)
+	if log.Quota > 0 {
+		// quota (微额度) → 分，与 service/cash_billing.go::quotaToUserPrice 同公式
+		priceUsd := float64(log.Quota) / 1000000.0
+		actualUserCents = math.Ceil(priceUsd * 100.0)
+		if actualUserCents < 1 {
+			actualUserCents = 1
+		}
+	}
+	// 向后兼容：如果 quota 为 0（旧日志），回退到旧逻辑并记录告警
+	unitPriceFallback := ch.CostPerUnit * ch.SellPriceRate * 1000
+	totalAmount := actualUserCents
+	if actualUserCents <= 0 && log.Quota == 0 {
+		totalAmount = unitPriceFallback * tokenK
+		logger.SysWarnf("token_transaction log_id=%d: quota=0, fallback to cost-based pricing", log.Id)
+	}
 
 	tx := &TokenTransaction{
 		LogId:            log.Id,
@@ -126,11 +156,11 @@ func createTransactionFromLog(log *Log) {
 		ChannelOwnerId:   log.ChannelOwnerId,
 		PromoterId:       log.PromoterId,
 		IsFallback:       0,
-		UnitPrice:        unitPrice,
-		TotalAmount:      unitPrice * tokenK,
+		UnitPrice:        unitPriceFallback,     // 保留供参考
+		TotalAmount:      totalAmount,           // ✅ 用户实付金额
 		UnifiedCost:      cfg.UnifiedCost * tokenK,
-		CommissionAmount: (unitPrice * tokenK) * cfg.CommissionRate,
-		PlatformFee:      (unitPrice * tokenK) * cfg.PlatformFeeRate,
+		CommissionAmount: totalAmount * cfg.CommissionRate, // ✅ 基于实际金额
+		PlatformFee:      totalAmount * cfg.PlatformFeeRate, // ✅ 基于实际金额
 	}
 	if log.IsFallback {
 		tx.IsFallback = 1

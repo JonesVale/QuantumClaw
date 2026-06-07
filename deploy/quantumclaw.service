@@ -1,0 +1,53 @@
+[Unit]
+Description=QuantumClaw AI API Relay Service
+After=network.target mysql.service redis.service
+Wants=mysql.service redis.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/quantumclaw
+
+# ── 核心环境变量 ──
+# 计费与成本倒挂防护
+Environment="MIN_CHANNEL_OWNER_BALANCE_CENTS=5000"
+Environment="COST_INVERSION_THRESHOLD_CENTS=500"
+Environment="AUDIT_BILLING_ENABLED=true"
+
+# 服务监听
+Environment="QUANTUMCLAW_PORT=3000"
+Environment="GIN_MODE=release"
+
+# 数据库（按实际修改）
+Environment="SQL_DSN=quantumclaw:PASSWORD@tcp(127.0.0.1:3306)/quantumclaw?charset=utf8mb4&parseTime=True&loc=Local"
+
+# Redis（按实际修改）
+Environment="REDIS_CONN_STRING=127.0.0.1:6379"
+# Environment="REDIS_PASSWORD=your_redis_password"
+
+# 会话密钥（必须修改！）
+Environment="SESSION_SECRET=CHANGE_THIS_TO_A_RANDOM_64CHAR_STRING"
+
+# 初始管理员密码（仅首次自动创建 root 用户时生效）
+# Environment="INITIAL_ROOT_PASSWORD=CHANGE_THIS"
+
+# 日志
+Environment="LOG enabled=true"
+Environment="LOG_LEVEL=info"
+Environment="LOG_SQL_NOT_WHERE=false"
+
+# 其他可选配置
+# Environment="TIKTOK_ACCOUNT_ID=your_tiktok_account_id"
+# Environment="TIKTOK_LARK_CLIENT_ID=your_lark_client_id"
+# Environment="TIKTOK_LARK_CLIENT_SECRET=your_lark_client_secret"
+
+# 进程配置
+ExecStart=/opt/quantumclaw/quantumclaw
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

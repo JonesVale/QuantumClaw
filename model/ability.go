@@ -5,263 +5,250 @@ import (
 	"sort"
 	"strings"
 
-	"gorm.io/gorm"
-
 	"github.com/quantumclaw/quantumclaw/common"
-	"github.com/quantumclaw/quantumclaw/common/utils"
+	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 )
 
-type Ability struct {
-	Group     string `json:"group" gorm:"type:varchar(32);primaryKey;autoIncrement:false"`
-	Model     string `json:"model" gorm:"primaryKey;autoIncrement:false"`
-	ChannelId int    `json:"channel_id" gorm:"primaryKey;autoIncrement:false;index"`
-	UserId    int    `json:"user_id" gorm:"default:0;index"`
-	Enabled   bool   `json:"enabled"`
-	Priority  *int64 `json:"priority" gorm:"bigint;default:0;index"`
+// modelMatchCondition generates SQL condition for matching a model name
+// against the comma-separated channels.models field.
+func modelMatchCondition(model string) string {
+	if common.UsingPostgreSQL {
+		return "',' || channels.models || ',' LIKE '%,' || ? || ',%'"
+	}
+	return "instr(',' || channels.models || ',', ',' || ? || ',') > 0"
 }
 
-func GetRandomSatisfiedChannel(group string, model string, ignoreFirstPriority bool) (*Channel, error) {
-	ability := Ability{}
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
+// GetCheapestSatisfiedChannel finds the cheapest enabled channel that supports
+// the given model, using direct channels.models matching (not abilities table).
+func GetCheapestSatisfiedChannel(group string, model string, ownerId int, region string) (*Channel, error) {
+	modelCond := modelMatchCondition(model)
+	query := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND "+modelCond,
+			group, ChannelStatusEnabled, model)
+
+	if ownerId > 0 {
+		query = query.Where("user_id = ?", ownerId)
+	}
+	if region != "" {
+		query = query.Where("region = ?", region)
 	}
 
-	var err error = nil
-	var channelQuery *gorm.DB
-	if ignoreFirstPriority {
-		channelQuery = DB.Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
-	} else {
-		maxPrioritySubQuery := DB.Model(&Ability{}).Select("MAX(priority)").Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
-		channelQuery = DB.Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and priority = (?)", group, model, maxPrioritySubQuery)
-	}
-	if common.UsingSQLite || common.UsingPostgreSQL {
-		err = channelQuery.Order("RANDOM()").First(&ability).Error
-	} else {
-		err = channelQuery.Order("RAND()").First(&ability).Error
-	}
+	var channel Channel
+	err := query.Order("sell_price_rate ASC, channel_markup ASC").
+		First(&channel).Error
 	if err != nil {
 		return nil, err
 	}
-	channel := Channel{}
-	channel.Id = ability.ChannelId
-	err = DB.First(&channel, "id = ?", ability.ChannelId).Error
-	return &channel, err
-}
 
-func (channel *Channel) AddAbilities() error {
-	models_ := strings.Split(channel.Models, ",")
-	models_ = utils.DeDuplication(models_)
-	groups_ := strings.Split(channel.Group, ",")
-	abilities := make([]Ability, 0, len(models_))
-	for _, model := range models_ {
-		for _, group := range groups_ {
-			ability := Ability{
-				Group:     group,
-				Model:     model,
-				ChannelId: channel.Id,
-				UserId:    channel.UserId,
-				Enabled:   channel.Status == ChannelStatusEnabled,
-				Priority:  channel.Priority,
-			}
-			abilities = append(abilities, ability)
+	// Decrypt channel key before returning
+	if channel.Key != "" && config.CryptoSecret != "" {
+		decrypted, e := encrypt.DecryptChannelKey(channel.Key, config.CryptoSecret)
+		if e == nil {
+			channel.Key = decrypted
 		}
 	}
-	return DB.Create(&abilities).Error
+	return &channel, nil
 }
 
-func (channel *Channel) DeleteAbilities() error {
-	return DB.Where("channel_id = ?", channel.Id).Delete(&Ability{}).Error
-}
+// GetCheapestSatisfiedChannelWithBalance 带余额预检的渠道选择
+//
+// 在 GetCheapestSatisfiedChannel 基础上增加渠道商余额预检：
+// 按 sell_price_rate 升序遍历所有匹配渠道，返回第一个
+// 渠道商（owner）现金余额 >= minBalanceCents 的渠道。
+//
+// 参数：
+//   - group, model, ownerId, region: 同 GetCheapestSatisfiedChannel
+//   - minBalanceCents: 渠道商最低所需余额（分），<=0 表示不做余额过滤
+//
+// 返回：
+//   - 第一个价格最低且余额充足的渠道
+//   - 如果所有匹配渠道的 owner 余额均不足，回退到最便宜的渠道并记录警告日志
+func GetCheapestSatisfiedChannelWithBalance(group string, modelName string, ownerId int, region string, minBalanceCents int64) (*Channel, error) {
+	modelCond := modelMatchCondition(modelName)
+	query := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND "+modelCond,
+			group, ChannelStatusEnabled, modelName)
 
-// UpdateAbilities updates abilities of this channel.
-// Make sure the channel is completed before calling this function.
-func (channel *Channel) UpdateAbilities() error {
-	// A quick and dirty way to update abilities
-	// First delete all abilities of this channel
-	err := channel.DeleteAbilities()
-	if err != nil {
-		return err
+	if ownerId > 0 {
+		query = query.Where("user_id = ?", ownerId)
 	}
-	// Then add new abilities
-	err = channel.AddAbilities()
-	if err != nil {
-		return err
+	if region != "" {
+		query = query.Where("region = ?", region)
 	}
-	return nil
+
+	// 查询所有匹配渠道（按价格排序）
+	var channels []Channel
+	err := query.Order("sell_price_rate ASC, channel_markup ASC").
+		Find(&channels).Error
+	if err != nil || len(channels) == 0 {
+		return nil, err // 保持与原函数一致的行为：无匹配时返回 GORM err
+	}
+
+	// 余额预检：跳过 owner 余额不足的渠道
+	if minBalanceCents > 0 {
+		for i, ch := range channels {
+			// 平台自有渠道（UserId==0）不受余额限制
+			if ch.UserId <= 0 {
+				return decryptAndReturn(&channels[i])
+			}
+			// 检查渠道商余额
+			balance, balErr := GetUserCashBalance(ch.UserId)
+			if balErr != nil {
+				logger.Warnf(context.Background(),
+					"balance check failed for channel owner %d (ch#%d): %v, skipping",
+					ch.UserId, ch.Id, balErr)
+				continue
+			}
+			if balance >= minBalanceCents {
+				logger.Debugf(context.Background(),
+					"channel #%d (owner=%d) passed balance check: %d >= %d",
+					ch.Id, ch.UserId, balance, minBalanceCents)
+				return decryptAndReturn(&channels[i])
+			}
+			logger.Debugf(context.Background(),
+				"channel #%d (owner=%d) SKIPPED: balance %d < required %d",
+				ch.Id, ch.UserId, balance, minBalanceCents)
+		}
+		// 所有渠道的 owner 余额都不足 → 回退到最便宜的，记录警告
+		logger.Warnf(context.Background(),
+			"[BALANCE_FALLBACK] group=%s model=%s 所有匹配渠道owner余额均<%d分，回退到最便宜渠道#%d(owner=%d)",
+			group, modelName, minBalanceCents, channels[0].Id, channels[0].UserId)
+	}
+
+	return decryptAndReturn(&channels[0])
 }
 
-func UpdateAbilityStatus(channelId int, status bool) error {
-	return DB.Model(&Ability{}).Where("channel_id = ?", channelId).Select("enabled").Update("enabled", status).Error
+// decryptAndReturn 解密渠道密钥后返回
+func decryptAndReturn(ch *Channel) (*Channel, error) {
+	if ch.Key != "" && config.CryptoSecret != "" {
+		decrypted, e := encrypt.DecryptChannelKey(ch.Key, config.CryptoSecret)
+		if e == nil {
+			ch.Key = decrypted
+		}
+	}
+	return ch, nil
 }
 
+// GetGroupModels returns all model names from enabled channels in the group.
 func GetGroupModels(ctx context.Context, group string) ([]string, error) {
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
-	}
-	var models []string
-	err := DB.Model(&Ability{}).Distinct("model").Where(groupCol+" = ? and enabled = "+trueVal, group).Pluck("model", &models).Error
+	var modelsStr []string
+	err := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND models != ''", group, ChannelStatusEnabled).
+		Pluck("models", &modelsStr).Error
 	if err != nil {
 		return nil, err
 	}
-	sort.Strings(models)
-	return models, err
-}
-
-// GetGroupModelsWithHealthCheck 只返回有健康渠道支持的模型
-// 过滤条件：渠道已启用 + 测试通过 + 未软删除
-func GetGroupModelsWithHealthCheck(ctx context.Context, group string) ([]string, error) {
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
+	seen := make(map[string]bool)
+	for _, ms := range modelsStr {
+		for _, m := range strings.Split(ms, ",") {
+			m = strings.TrimSpace(m)
+			if m != "" && !seen[m] {
+				seen[m] = true
+			}
+		}
 	}
-	var models []string
-	err := DB.Table("abilities").
-		Select("DISTINCT abilities.model").
-		Joins("JOIN channels ON channels.id = abilities.channel_id").
-		Where("abilities."+groupCol+" = ? AND abilities.enabled = "+trueVal+
-			" AND channels.status = ? AND channels.deleted_at IS NULL"+
-			" AND channels.last_test_passed = ?",
-			group, ChannelStatusEnabled, true).
-		Pluck("abilities.model", &models).Error
-	if err != nil {
-		return nil, err
+	models := make([]string, 0, len(seen))
+	for m := range seen {
+		models = append(models, m)
 	}
 	sort.Strings(models)
 	return models, nil
 }
 
-// GetCheapestSatisfiedChannel 按价格排序取最便宜的可用渠道
-// 支持 region 过滤（空字符串=不限区域）
-// 支持 ownerId 过滤（0=不限, >0=指定供应商）
-func GetCheapestSatisfiedChannel(group string, model string, ownerId int, region string) (*Channel, error) {
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
-	}
-
-	query := DB.Table("abilities").
-		Select("channels.*").
-		Joins("JOIN channels ON channels.id = abilities.channel_id").
-		Where("abilities."+groupCol+" = ? AND abilities.model = ? AND abilities.enabled = "+trueVal+
-			" AND channels.status = ? AND channels.deleted_at IS NULL"+
-			" AND channels.last_test_passed = ?",
-			group, model, ChannelStatusEnabled, true)
-
-	if ownerId > 0 {
-		query = query.Where("channels.user_id = ?", ownerId)
-	}
-	if region != "" {
-		query = query.Where("channels.region = ?", region)
-	}
-
-	// 按售价倍率升序取最便宜
-	var channel Channel
-	err := query.Order("channels.sell_price_rate ASC, channels.channel_markup ASC").
-		First(&channel).Error
+// GetGroupModelsWithHealthCheck returns models from channels with test_passed=true.
+func GetGroupModelsWithHealthCheck(ctx context.Context, group string) ([]string, error) {
+	var modelsStr []string
+	err := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND models != ''",
+			group, ChannelStatusEnabled).
+		Pluck("models", &modelsStr).Error
 	if err != nil {
 		return nil, err
+	}
+	seen := make(map[string]bool)
+	for _, ms := range modelsStr {
+		for _, m := range strings.Split(ms, ",") {
+			m = strings.TrimSpace(m)
+			if m != "" && !seen[m] {
+				seen[m] = true
+			}
+		}
+	}
+	models := make([]string, 0, len(seen))
+	for m := range seen {
+		models = append(models, m)
+	}
+	sort.Strings(models)
+	return models, nil
+}
+
+// Placeholder functions for abilities table (no longer used for routing)
+func (channel *Channel) AddAbilities() error           { return nil }
+func (channel *Channel) DeleteAbilities() error        { return nil }
+func (channel *Channel) UpdateAbilities() error        { return nil }
+func UpdateAbilityStatus(channelId int, status bool) error { return nil }
+
+// Ability struct retained for backward compatibility
+type Ability struct {
+	Group     string `json:"group" gorm:"type:varchar(32)"`
+	Model     string `json:"model" gorm:"type:text"`
+	ChannelId int    `json:"channel_id" gorm:"type:int"`
+	UserId    int    `json:"user_id" gorm:"type:int;default:0"`
+	Enabled   bool   `json:"enabled" gorm:"type:bool"`
+	Priority  *int64 `json:"priority" gorm:"type:int;default:0"`
+}
+
+// GetRandomSatisfiedChannelByOwner finds enabled channel for model owned by specific user
+func GetRandomSatisfiedChannelByOwner(group string, model string, ownerId int) (*Channel, error) {
+	return GetCheapestSatisfiedChannel(group, model, ownerId, "")
+}
+
+// GetRandomSatisfiedChannelAnyOwner finds enabled channel not owned by a specific user
+func GetRandomSatisfiedChannelAnyOwner(group string, model string, excludeOwnerId int) (*Channel, error) {
+	modelCond := modelMatchCondition(model)
+	query := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND user_id != ? AND "+modelCond,
+			group, ChannelStatusEnabled, excludeOwnerId, model)
+	var channel Channel
+	err := query.Order("sell_price_rate ASC").First(&channel).Error
+	if err != nil {
+		return nil, err
+	}
+	if channel.Key != "" && config.CryptoSecret != "" {
+		decrypted, e := encrypt.DecryptChannelKey(channel.Key, config.CryptoSecret)
+		if e == nil {
+			channel.Key = decrypted
+		}
 	}
 	return &channel, nil
 }
 
-// GetChannelsByModel 获取某模型所有可用渠道（按价格排序）
-// 用于前端价格展示和比较
-func GetChannelsByModel(group string, model string, ownerId int) ([]*Channel, error) {
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
+// GetRandomSatisfiedChannel finds the cheapest channel for a model (ignoring owner)
+func GetRandomSatisfiedChannel(group string, model string, ignoreFirstPriority bool) (*Channel, error) {
+	modelCond := modelMatchCondition(model)
+	query := DB.Model(&Channel{}).
+		Where("`group` = ? AND status = ? AND deleted_at IS NULL AND "+modelCond,
+			group, ChannelStatusEnabled, model)
+	if !ignoreFirstPriority {
+		query = query.Where("priority > 0")
 	}
-	var channels []*Channel
-	err := DB.Table("abilities").
-		Select("channels.*").
-		Joins("JOIN channels ON channels.id = abilities.channel_id").
-		Where("abilities."+groupCol+" = ? AND abilities.model = ? AND abilities.enabled = "+trueVal+
-			" AND channels.status = ? AND channels.deleted_at IS NULL",
-			group, model, ChannelStatusEnabled).
-		Order("channels.sell_price_rate ASC, channels.channel_markup ASC").
-		Find(&channels).Error
-	return channels, err
+	var channel Channel
+	err := query.Order("sell_price_rate ASC").First(&channel).Error
+	if err != nil {
+		return nil, err
+	}
+	if channel.Key != "" && config.CryptoSecret != "" {
+		decrypted, e := encrypt.DecryptChannelKey(channel.Key, config.CryptoSecret)
+		if e == nil {
+			channel.Key = decrypted
+		}
+	}
+	return &channel, nil
 }
 
-// GetRandomSatisfiedChannelByOwner 按 group + model + ownerId 查 channel
-// ownerId=0 → 平台渠道, ownerId>0 → 指定渠道商
-func GetRandomSatisfiedChannelByOwner(group string, model string, ownerId int) (*Channel, error) {
-	ability := Ability{}
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
-	}
-
-	// 取最高 priority 的 channel（限 owner）
-	maxPrioritySubQuery := DB.Model(&Ability{}).
-		Select("MAX(priority)").
-		Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and user_id = ?", group, model, ownerId)
-	channelQuery := DB.
-		Where(groupCol+" = ? and model = ? and enabled = "+trueVal+" and user_id = ? and priority = (?)",
-			group, model, ownerId, maxPrioritySubQuery)
-
-	if common.UsingSQLite || common.UsingPostgreSQL {
-		channelQuery.Order("RANDOM()").First(&ability)
-	} else {
-		channelQuery.Order("RAND()").First(&ability)
-	}
-	if ability.ChannelId == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-	channel := Channel{}
-	channel.Id = ability.ChannelId
-	err := DB.First(&channel, "id = ?", ability.ChannelId).Error
-	return &channel, err
-}
-
-// GetRandomSatisfiedChannelAnyOwner 全资源池兜底——不限 UserId
-func GetRandomSatisfiedChannelAnyOwner(group string, model string, excludeOwnerId int) (*Channel, error) {
-	ability := Ability{}
-	groupCol := "`group`"
-	trueVal := "1"
-	if common.UsingPostgreSQL {
-		groupCol = `"group"`
-		trueVal = "true"
-	}
-
-	query := DB.
-		Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
-
-	// 排除已经试过的 owner（避免死循环）
-	if excludeOwnerId >= 0 {
-		query = query.Where("user_id != ?", excludeOwnerId)
-	}
-
-	// 取最高 priority
-	maxPrioritySubQuery := DB.Model(&Ability{}).
-		Select("MAX(priority)").
-		Where(groupCol+" = ? and model = ? and enabled = "+trueVal, group, model)
-	query = query.Where("priority = (?)", maxPrioritySubQuery)
-
-	if common.UsingSQLite || common.UsingPostgreSQL {
-		query.Order("RANDOM()").First(&ability)
-	} else {
-		query.Order("RAND()").First(&ability)
-	}
-	if ability.ChannelId == 0 {
-		return nil, gorm.ErrRecordNotFound
-	}
-	channel := Channel{}
-	channel.Id = ability.ChannelId
-	err := DB.First(&channel, "id = ?", ability.ChannelId).Error
-	return &channel, err
+// GetGroupModelsWithPriority returns models from channels with priority > 0 (deprecated)
+func GetGroupModelsWithPriority(group string) ([]string, error) {
+	return GetGroupModels(nil, group)
 }
