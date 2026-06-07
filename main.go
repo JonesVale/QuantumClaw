@@ -280,6 +280,9 @@ func main() {
 	if err := model.EncryptExistingChannelKeys(); err != nil {
 		logger.SysError("encrypt existing channel keys: " + err.Error())
 	}
+
+	// Encrypt sensitive options (payment keys, OAuth secrets) in the database
+	model.MigrateSensitiveOptions()
 	// 鍚姩鏈堢粨瀹氭椂鍣細娆℃湀 1 鏃ュ噷鏅?2:00 鎵ц
 	safeGoWithRestart("monthly-settlement-cron", func() {
 		// 鍒濆寤惰繜 30 绉掞紝纭繚鏈嶅姟瀹屽叏灏辩华

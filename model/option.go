@@ -8,6 +8,7 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/encrypt"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
 )
@@ -125,10 +126,21 @@ func loadOptionsFromDatabase() {
 		return
 	}
 	for _, option := range options {
-		if option.Key == "ModelRatio" {
-			option.Value = billingratio.AddNewMissingRatio(option.Value)
+		// Decrypt sensitive values when loading from database
+		val := option.Value
+		if isSensitiveOptionKey(option.Key) && encrypt.IsEnvKeyEncrypted(val) {
+			decrypted, err := encrypt.DecryptEnvKey(val, config.CryptoSecret)
+			if err == nil {
+				val = decrypted
+			} else {
+				logger.SysErrorf("failed to decrypt option %s: %v, using stored value", option.Key, err)
+			}
 		}
-		err := updateOptionMap(option.Key, option.Value)
+
+		if option.Key == "ModelRatio" {
+			val = billingratio.AddNewMissingRatio(val)
+		}
+		err := updateOptionMap(option.Key, val)
 		if err != nil {
 			logger.SysError("failed to update option map: " + err.Error())
 		}
@@ -150,8 +162,30 @@ func SyncOptions(ctx context.Context, frequency int) {
 	}
 }
 
+// isSensitiveOptionKey returns true for keys containing tokens/secrets that need DB-level encryption
+func isSensitiveOptionKey(key string) bool {
+	if strings.HasSuffix(key, "Token") || strings.HasSuffix(key, "Secret") || strings.HasSuffix(key, "PrivateKey") {
+		return true
+	}
+	if strings.Contains(key, "Secret") || strings.Contains(key, "ApiKey") || strings.Contains(key, "ApiSecret") {
+		return true
+	}
+	return false
+}
+
 func UpdateOption(key string, value string) error {
-	// Save to database first
+	// Encrypt sensitive values before saving to database
+	dbValue := value
+	if isSensitiveOptionKey(key) && value != "" && !encrypt.IsEnvKeyEncrypted(value) {
+		encrypted, err := encrypt.EncryptEnvKey(value, config.CryptoSecret)
+		if err == nil {
+			dbValue = encrypted
+		} else {
+			logger.SysErrorf("failed to encrypt option %s: %v, storing plaintext", key, err)
+		}
+	}
+
+	// Save to database first (with encrypted value for sensitive keys)
 	option := Option{
 		Key: key,
 	}
@@ -160,7 +194,7 @@ func UpdateOption(key string, value string) error {
 		logger.SysError("failed to create option: " + err.Error())
 		return err
 	}
-	option.Value = value
+	option.Value = dbValue
 	// Save is a combination function.
 	// If save value does not contain primary key, it will execute Create,
 	// otherwise it will execute Update (with all fields).
@@ -168,7 +202,7 @@ func UpdateOption(key string, value string) error {
 		logger.SysError("failed to save option: " + err.Error())
 		return err
 	}
-	// Update OptionMap
+	// Update OptionMap with the original plaintext value
 	return updateOptionMap(key, value)
 }
 
@@ -314,4 +348,42 @@ func updateOptionMap(key string, value string) (err error) {
 		config.Theme = value
 	}
 	return err
+}
+
+// MigrateSensitiveOptions encrypts all plaintext sensitive option values in the database
+func MigrateSensitiveOptions() {
+	if config.CryptoSecret == "" {
+		logger.SysError("MigrateSensitiveOptions: CRYPTO_SECRET is empty, cannot encrypt")
+		return
+	}
+	var options []*Option
+	if err := DB.Find(&options).Error; err != nil {
+		logger.SysErrorf("MigrateSensitiveOptions: failed to load options: %v", err)
+		return
+	}
+	count := 0
+	for _, option := range options {
+		if option.Value == "" {
+			continue
+		}
+		if !isSensitiveOptionKey(option.Key) {
+			continue
+		}
+		if encrypt.IsEnvKeyEncrypted(option.Value) {
+			continue // already encrypted
+		}
+		encrypted, err := encrypt.EncryptEnvKey(option.Value, config.CryptoSecret)
+		if err != nil {
+			logger.SysErrorf("MigrateSensitiveOptions: failed to encrypt %s: %v", option.Key, err)
+			continue
+		}
+		if err := DB.Model(option).Update("value", encrypted).Error; err != nil {
+			logger.SysErrorf("MigrateSensitiveOptions: failed to save encrypted %s: %v", option.Key, err)
+			continue
+		}
+		count++
+	}
+	if count > 0 {
+		logger.SysLogf("MigrateSensitiveOptions: encrypted %d sensitive option value(s) to QC! format", count)
+	}
 }
