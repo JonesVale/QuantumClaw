@@ -1,4 +1,4 @@
-package middleware
+﻿package middleware
 
 import (
 	"fmt"
@@ -10,7 +10,8 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
-	"github.com/quantumclaw/quantumclaw/relay/channeltype"
+	"github.com/quantumclaw/quantumclaw/monitor"
+		"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
 
 type ModelRequest struct {
@@ -73,7 +74,7 @@ func Distribute() func(c *gin.Context) {
 		// ── Step 1: 首选供应商 ──
 		if user != nil && user.PreferredProviderId > 0 {
 			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, user.PreferredProviderId, "")
-			if err == nil {
+			if err == nil && !monitor.IsModelPenalized(ch.Id, requestModel) {
 				logger.Debugf(ctx, "user %d, model %s: using PREFERRED provider channel #%d (owner=%d)",
 					userId, requestModel, ch.Id, ch.UserId)
 				setupAndContinue(c, ch, requestModel, promoterId, false)
@@ -86,7 +87,7 @@ func Distribute() func(c *gin.Context) {
 		// ── Step 2: 推广人渠道（最便宜优先）──
 		if promoterId >= 0 {
 			ch, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, promoterId, "")
-			if err == nil {
+			if err == nil && !monitor.IsModelPenalized(ch.Id, requestModel) {
 				logger.Debugf(ctx, "user %d, model %s: using PROMOTER channel #%d (owner=%d)",
 					userId, requestModel, ch.Id, promoterId)
 				setupAndContinue(c, ch, requestModel, promoterId, false)
@@ -97,7 +98,7 @@ func Distribute() func(c *gin.Context) {
 		// ── Step 3: 全资源池兜底（原则 3：国内 → 仅限国内）──
 		// 先尝试国内渠道
 		poolChannel, err := model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionChina)
-		if err == nil {
+		if err == nil && !monitor.IsModelPenalized(poolChannel.Id, requestModel) {
 			logger.Debugf(ctx, "user %d, model %s: FALLBACK china channel #%d (owner=%d)",
 				userId, requestModel, poolChannel.Id, poolChannel.UserId)
 			setupAndContinue(c, poolChannel, requestModel, promoterId, true)
@@ -106,7 +107,7 @@ func Distribute() func(c *gin.Context) {
 
 		// 国内没有 → 尝试国外渠道（原则 3：只有国内渠道不可用时才切国外）
 		poolChannel, err = model.GetCheapestSatisfiedChannel(userGroup, requestModel, 0, channeltype.RegionOverseas)
-		if err == nil {
+		if err == nil && !monitor.IsModelPenalized(poolChannel.Id, requestModel) {
 			logger.Debugf(ctx, "user %d, model %s: FALLBACK overseas channel #%d (owner=%d, from=china_pool)",
 				userId, requestModel, poolChannel.Id, poolChannel.UserId)
 			setupAndContinue(c, poolChannel, requestModel, promoterId, true)

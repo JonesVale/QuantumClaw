@@ -41,6 +41,7 @@ func SendMessage(title string, description string, content string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 	var res response
 	err = json.NewDecoder(resp.Body).Decode(&res)
 	if err != nil {

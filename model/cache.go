@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"context"
@@ -180,7 +180,7 @@ func InitChannelCache() {
 		decryptCount := 0
 		for i := range channels {
 			if channels[i].Key != "" {
-				decrypted, err := encrypt.Decrypt(channels[i].Key, encrypt.DeriveKey(config.CryptoSecret))
+				decrypted, err := encrypt.DecryptChannelKey(channels[i].Key, config.CryptoSecret)
 				if err == nil {
 					channels[i].Key = string(decrypted)
 					decryptCount++
@@ -278,11 +278,18 @@ func InitChannelCache() {
 	logger.SysLog("channels synced from database")
 }
 
-func SyncChannelCache(frequency int) {
+func SyncChannelCache(ctx context.Context, frequency int) {
+	ticker := time.NewTicker(time.Duration(frequency) * time.Second)
+	defer ticker.Stop()
 	for {
-		time.Sleep(time.Duration(frequency) * time.Second)
-		logger.SysLog("syncing channels from database")
-		InitChannelCache()
+		select {
+		case <-ticker.C:
+			logger.SysLog("syncing channels from database")
+			InitChannelCache()
+		case <-ctx.Done():
+			logger.SysLog("sync channel cache stopped (shutdown)")
+			return
+		}
 	}
 }
 

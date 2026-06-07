@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 import (
 	"sort"
@@ -987,10 +987,10 @@ func AutoConfigureAllFromEnv() []string {
 			if config.CryptoSecret != "" {
 				var fresh model.Channel
 				if err := model.DB.First(&fresh, channel.Id).Error; err == nil && fresh.Key != "" {
-					_, decErr := encrypt.Decrypt(fresh.Key, encrypt.DeriveKey(config.CryptoSecret))
+					_, decErr := encrypt.DecryptChannelKey(fresh.Key, config.CryptoSecret)
 					if decErr != nil {
 						// Plaintext key: encrypt it
-						encrypted, encErr := encrypt.Encrypt([]byte(fresh.Key), encrypt.DeriveKey(config.CryptoSecret))
+						encrypted, encErr := encrypt.EncryptChannelKey(fresh.Key, config.CryptoSecret)
 						if encErr == nil {
 							model.DB.Model(&fresh).Update("key", encrypted)
 						}
@@ -1025,10 +1025,10 @@ func AutoConfigureAllFromEnv() []string {
 				var fresh model.Channel
 				if err := model.DB.First(&fresh, channel.Id).Error; err == nil && fresh.Key != "" {
 					logger.SysLog("AutoConfigure[" + entry.ProviderName + "] encrypt check: fresh.Key[:20]=" + fresh.Key[:20] + ", len=" + fmt.Sprint(len(fresh.Key)))
-					_, decErr := encrypt.Decrypt(fresh.Key, encrypt.DeriveKey(config.CryptoSecret))
+					_, decErr := encrypt.DecryptChannelKey(fresh.Key, config.CryptoSecret)
 					if decErr != nil {
 						logger.SysLog("AutoConfigure[" + entry.ProviderName + "] encrypt: key is plaintext, encrypting...")
-						encrypted, encErr := encrypt.Encrypt([]byte(fresh.Key), encrypt.DeriveKey(config.CryptoSecret))
+						encrypted, encErr := encrypt.EncryptChannelKey(fresh.Key, config.CryptoSecret)
 						if encErr == nil {
 							logger.SysLog("AutoConfigure[" + entry.ProviderName + "] encrypt: encrypted key[:20]=" + encrypted[:20] + ", last4=" + encrypted[len(encrypted)-4:])
 							model.DB.Model(&fresh).Update("key", encrypted)

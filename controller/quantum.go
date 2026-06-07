@@ -17,6 +17,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/quantum/rigetti"
 	"github.com/quantumclaw/quantumclaw/relay/quantum/azure"
 	"github.com/quantumclaw/quantumclaw/relay/quantum/braket"
+	"github.com/quantumclaw/quantumclaw/service"
 )
 
 // QuantumBackend — 量子后端信息
@@ -186,13 +187,33 @@ func SubmitQuantumTask(c *gin.Context) {
 		req.Shots = 1024
 	}
 
-	// 从 context 获取 channel 信息（由 Distribute 中间件设置）
-	channelType := c.GetInt("channel")
-	apiKey := strings.TrimPrefix(c.Request.Header.Get("Authorization"), "Bearer ")
-	baseURL := c.GetString("base_url")
+	// 根据 provider 查找已配置的量子渠道
+	channelTypeID := resolveQuantumProviderID(req.Provider)
+	if channelTypeID == 0 {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "不支持的量子供应商: " + req.Provider})
+		return
+	}
+
+	channels, err := model.GetAllChannels(0, 0, "all")
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "获取渠道列表失败"})
+		return
+	}
+
+	var matchedChannel *model.Channel
+	for _, ch := range channels {
+		if ch.Type == channelTypeID && ch.Key != "" && !strings.HasPrefix(ch.Key, "PUT_YOUR") {
+			matchedChannel = ch
+			break
+		}
+	}
+	if matchedChannel == nil {
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "未找到已配置的 " + req.Provider + " 量子供应商"})
+		return
+	}
 
 	// 创建适配器
-	adaptorImpl, err := getQuantumAdaptor(channelType, apiKey, baseURL)
+	adaptorImpl, err := getQuantumAdaptor(matchedChannel.Type, matchedChannel.Key, matchedChannel.GetBaseURL())
 	if err != nil {
 		logger.Errorf(c.Request.Context(), "quantum: create adaptor: %v", err)
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": err.Error()})
@@ -207,6 +228,20 @@ func SubmitQuantumTask(c *gin.Context) {
 	}
 	qReq.Circuit.QASM = req.Qasm
 	qReq.Circuit.Qubits = countQubitsFromQASM(req.Qasm)
+
+	// ── 预扣费（基于 qubits × shots 的估算）──
+	userId := c.GetInt("id")
+	qubits := qReq.Circuit.Qubits
+	estimatedQuota := int64(qubits) * int64(req.Shots) / 100
+	if estimatedQuota < 1 {
+		estimatedQuota = 1
+	}
+	// 检查余额（仅检查，实际扣款在任务完成后执行）
+	if err := service.PostConsumeQuantumDeduct(userId, matchedChannel.Id, estimatedQuota); err != nil {
+		logger.Errorf(c.Request.Context(), "quantum: billing check failed: %v", err)
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "余额不足"})
+		return
+	}
 
 	// 提交任务
 	result, err := adaptorImpl.RunTask(c.Request.Context(), qReq)
@@ -285,6 +320,26 @@ func countQubitsFromQASM(qasm string) int {
 		return 1
 	}
 	return n
+}
+
+// resolveQuantumProviderID 将供应商名称映射到 channel type ID
+func resolveQuantumProviderID(name string) int {
+	switch name {
+	case "IonQ":
+		return channeltype.IonQ
+	case "IBMQ", "IBM Q":
+		return channeltype.IBMQ
+	case "Rigetti":
+		return channeltype.Rigetti
+	case "AWSBraket", "AWS Braket":
+		return channeltype.AWSBraket
+	case "AzureQuantum", "Azure Quantum":
+		return channeltype.AzureQuantum
+	case "GoogleQuantum", "Google Quantum":
+		return channeltype.GoogleQuantum
+	default:
+		return 0
+	}
 }
 
 func splitModels(models string) []string {

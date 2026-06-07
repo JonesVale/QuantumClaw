@@ -312,7 +312,6 @@ func migrateDB() error {
 	attempt("Sub2APISchema", func() error { return DB.AutoMigrate(&Sub2APISchema{}) })
 
 	// ── Seed built-in Sub2API schemas ──
-	attempt("SeedSub2APISchemas", func() error {
 
 	attempt("Feedback", func() error { return DB.AutoMigrate(&Feedback{}) })
 	attempt("FAQ", func() error { return DB.AutoMigrate(&FAQ{}) })
@@ -329,8 +328,11 @@ func migrateDB() error {
 	InitMessageTables()
 	// ── 多语言翻译表 ──
 	InitTranslationTables()
+	// init market tables
+	InitMarketTables(DB)
 	// ── Sub2API 内置模版种子 ──
-		DB.Model(&Sub2APISchema{}).Where("is_builtin = ?", true).Count(&count)
+	attempt("SeedSub2APISchemas", func() error {
+		var count int64
 		if count > 0 {
 			return nil // already seeded
 		}
@@ -393,6 +395,8 @@ func migrateDB() error {
 
 	// ── 渠道提供商表（统一管理品牌/URL/模型列表）──
 	attempt("ChannelProvider", func() error { return DB.AutoMigrate(&ChannelProvider{}) })
+
+	SeedMarketDefaults()
 
 	return lastErr
 }

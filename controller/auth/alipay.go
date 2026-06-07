@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
-	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 
 	"github.com/quantumclaw/quantumclaw/common/config"
@@ -53,8 +53,8 @@ func AlipayAuth(c *gin.Context) {
 		return
 	}
 
-	// 构建支付宝 OAuth URL
-	redirectURI := fmt.Sprintf("%s/api/oauth/alipay", config.ServerAddress)
+	// 构建支付宝 OAuth URL — 回调地址指向专门的回调处理端点
+	redirectURI := fmt.Sprintf("%s/api/oauth/alipay/callback", config.ServerAddress)
 	authURL := fmt.Sprintf(
 		"https://openauth.alipay.com/oauth2/publicAppAuthorize.htm?app_id=%s&scope=auth_user&redirect_uri=%s&state=%s",
 		config.AlipayAppId,
@@ -77,10 +77,11 @@ func processAlipayCallback(code string) (*AlipayUserInfo, error) {
 		"client_secret": {config.AlipayPrivateKey},
 		"code":          {code},
 		"grant_type":    {"authorization_code"},
-		"redirect_uri":  {fmt.Sprintf("%s/api/oauth/alipay", config.ServerAddress)},
+		"redirect_uri":  {fmt.Sprintf("%s/api/oauth/alipay/callback", config.ServerAddress)},
 	}
 
-	tokenResp, err := http.PostForm("https://openid.alipay.com/oauth/token", tokenValues)
+	httpClient := &http.Client{Timeout: 15 * time.Second}
+	tokenResp, err := httpClient.PostForm("https://openid.alipay.com/oauth/token", tokenValues)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func processAlipayCallback(code string) (*AlipayUserInfo, error) {
 		"client_id":    {config.AlipayAppId},
 	}
 
-	userResp, err := http.PostForm("https://openid.alipay.com/oauth/userinfo", userValues)
+	userResp, err := httpClient.PostForm("https://openid.alipay.com/oauth/userinfo", userValues)
 	if err != nil {
 		return nil, err
 	}
@@ -120,9 +121,8 @@ func processAlipayCallback(code string) (*AlipayUserInfo, error) {
 }
 
 // AlipayAuthCallback 支付宝授权回调处理
-// 请求会直接打到 /api/oauth/alipay 同一个路由（GET）
-// 区别在于有无 code 参数
 func AlipayAuthCallback(c *gin.Context) {
+	ctx := c.Request.Context()
 	code := c.Query("auth_code") // 支付宝回调参数是 auth_code
 	if code == "" {
 		code = c.Query("code")
@@ -146,55 +146,52 @@ func AlipayAuthCallback(c *gin.Context) {
 		return
 	}
 
-	// 查找或创建用户
+	// 查找或创建用户（复用 WeChatId 字段存储支付宝第三方 ID）
 	alipayId := "alipay_" + userInfo.UserID
-	user, err := model.GetUserByWechatID(alipayId) // 复用 wechat_id 字段存储第三方ID
-	if err != nil {
-		// 创建新用户
-		username := "alipay_" + userInfo.UserID
-		if len(username) > 20 {
-			username = username[:20]
+	user := model.User{
+		WeChatId: alipayId,
+	}
+
+	if model.IsWeChatIdAlreadyTaken(user.WeChatId) {
+		// 已存在用户，直接登录
+		if err := user.FillUserByWeChatId(); err != nil {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": err.Error(),
+			})
+			return
 		}
+	} else {
+		// 新用户注册
+		if !config.RegisterEnabled {
+			c.JSON(http.StatusOK, gin.H{
+				"success": false,
+				"message": "管理员关闭了新用户注册",
+			})
+			return
+		}
+		user.Username = "alipay_" + strconv.Itoa(model.GetMaxUserId()+1)
 		displayName := userInfo.NickName
 		if displayName == "" {
-			displayName = username
+			displayName = user.Username
 		}
+		user.DisplayName = displayName
+		user.Role = model.RoleCommonUser
+		user.Status = model.UserStatusEnabled
 
-		user = &model.User{
-			Username:    username,
-			DisplayName: displayName,
-			WeChatId:    alipayId,
-			Role:        1,
-			Status:      1,
-		}
-
-		if err := model.CreateUser(user); err != nil {
+		if err := user.Insert(ctx, 0); err != nil {
 			logger.SysError("Alipay OAuth create user error: " + err.Error())
 			c.JSON(http.StatusOK, gin.H{
 				"success": false,
-				"message": "创建用户失败",
+				"message": err.Error(),
 			})
 			return
 		}
 	}
 
-	// 设置 session
-	session := sessions.Default(c)
-	session.Set("id", user.Id)
-	session.Set("username", user.Username)
-	session.Set("role", user.Role)
-	session.Set("status", user.Status)
-
-	if err := session.Save(); err != nil {
-		logger.SysError("Alipay OAuth session save error: " + err.Error())
-		c.JSON(http.StatusOK, gin.H{
-			"success": false,
-			"message": "session 保存失败",
-		})
-		return
+	if user.Status != model.UserStatusEnabled {
+		logger.SysWarnf("user %d (%s) login with Alipay OAuth, status=%d", user.Id, user.Username, user.Status)
 	}
 
-	// 登录成功后重定向
-	controller.SetLoginCookie(c, user.Id)
-	c.Redirect(http.StatusFound, fmt.Sprintf("%s/login?oauth=alipay", config.ServerAddress))
+	controller.SetupLogin(&user, c)
 }

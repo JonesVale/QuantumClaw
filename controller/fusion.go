@@ -10,6 +10,8 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/relay/channeltype"
 )
@@ -151,7 +153,7 @@ func HandleFusion(c *gin.Context) {
 
 			// 调用内部 API
 			resp, err := http.Post(
-				fmt.Sprintf("http://localhost:%d/v1/chat/completions", 3666),
+				fmt.Sprintf("http://localhost:%d/v1/chat/completions", *common.Port),
 				"application/json",
 				strings.NewReader(string(bodyJSON)),
 			)

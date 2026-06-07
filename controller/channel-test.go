@@ -352,13 +352,19 @@ func TestChannels(c *gin.Context) {
 	return
 }
 
-func AutomaticallyTestChannels(frequency int) {
-	ctx := context.Background()
+func AutomaticallyTestChannels(ctx context.Context, frequency int) {
+	ticker := time.NewTicker(time.Duration(frequency) * time.Minute)
+	defer ticker.Stop()
 	for {
-		time.Sleep(time.Duration(frequency) * time.Minute)
-		logger.SysLog("testing all channels")
-		_ = testChannels(ctx, false, "all")
-		logger.SysLog("channel test finished")
+		select {
+		case <-ticker.C:
+			logger.SysLog("testing all channels")
+			_ = testChannels(ctx, false, "all")
+			logger.SysLog("channel test finished")
+		case <-ctx.Done():
+			logger.SysLog("auto channel test stopped (shutdown)")
+			return
+		}
 	}
 }
 

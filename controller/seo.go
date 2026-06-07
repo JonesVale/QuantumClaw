@@ -76,8 +76,8 @@ func GetSitemap(c *gin.Context) {
 	models, err := model.GetAllModelMetadatas()
 	if err == nil {
 		for _, m := range models {
-			if m.Name != "" {
-				slug := strings.ToLower(strings.ReplaceAll(m.Name, " ", "-"))
+			if m.ModelName != "" {
+				slug := strings.ToLower(strings.ReplaceAll(m.ModelName, " ", "-"))
 				sb.WriteString(fmt.Sprintf(`<url><loc>%s/models/%s</loc><lastmod>%s</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>`,
 					baseURL, slug, now))
 			}

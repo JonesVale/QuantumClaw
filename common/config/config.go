@@ -36,7 +36,12 @@ var DisplayTokenStatEnabled = true
 
 // Any options with "Secret", "Token" in its key won't be return by GetOptions
 
-var SessionSecret = uuid.New().String()
+var SessionSecret = func() string {
+	if s := os.Getenv("SESSION_SECRET"); s != "" {
+		return s
+	}
+	return uuid.New().String()
+}()
 
 var OptionMap map[string]string
 var OptionMapRWMutex sync.RWMutex
@@ -99,6 +104,8 @@ var OidcTokenEndpoint = ""
 var OidcUserinfoEndpoint = ""
 
 var AlipayOAuthEnabled = false
+var AlipayAppId = ""
+var AlipayPrivateKey = ""
 
 var WeChatServerAddress = ""
 var WeChatServerToken = ""

@@ -6,7 +6,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io"
 	"strings"
 
@@ -68,6 +67,10 @@ func DeriveKey(secret string) []byte {
 const EnvKeyPrefix = "QC!"
 const EnvKeySuffix = "Qsc"
 
+// Channel encryption prefix/suffix for tamper detection
+const ChannelKeyPrefix = "QC!"
+const ChannelKeySuffix = "Qpw"
+
 // EncryptEnvKey 加密环境变量中的 API Key
 // 在 Key 末尾追加 Qsc 后 AES-GCM 加密，返回 QC!+base64
 func EncryptEnvKey(plaintext string, secret string) (string, error) {
@@ -106,6 +109,46 @@ func IsEnvKeyEncrypted(value string) bool {
 	return strings.HasPrefix(value, EnvKeyPrefix)
 }
 
+// EncryptChannelKey 加密 Channel API Key
+// 在 Key 末尾追加 Qpw 后缀后 AES-GCM 加密，返回 QC!+base64
+func EncryptChannelKey(plaintext string, cryptoSecret string) (string, error) {
+	if plaintext == "" {
+		return "", errors.New("cannot encrypt empty key")
+	}
+	withSuffix := []byte(plaintext + ChannelKeySuffix)
+	encrypted, err := Encrypt(withSuffix, DeriveKey(cryptoSecret))
+	if err != nil {
+		return "", err
+	}
+	return ChannelKeyPrefix + encrypted, nil
+}
+
+// DecryptChannelKey 解密 Channel API Key
+// 支持新旧两种格式：QC!+base64（新）和裸 base64（旧，向后兼容）
+func DecryptChannelKey(encrypted string, cryptoSecret string) (string, error) {
+	inner := encrypted
+	// 新格式有 QC! 前缀
+	if strings.HasPrefix(encrypted, ChannelKeyPrefix) {
+		inner = encrypted[len(ChannelKeyPrefix):]
+	}
+	decrypted, err := Decrypt(inner, DeriveKey(cryptoSecret))
+	if err != nil {
+		return "", err
+	}
+	plaintext := string(decrypted)
+	// 检查 Qpw 后缀（新格式）
+	if strings.HasSuffix(plaintext, ChannelKeySuffix) {
+		return plaintext[:len(plaintext)-len(ChannelKeySuffix)], nil
+	}
+	// 旧格式：没有 Qpw 后缀，直接返回（向后兼容）
+	return plaintext, nil
+}
+
+// IsChannelKeyEncrypted 判断 Key 是否已使用新格式加密
+func IsChannelKeyEncrypted(value string) bool {
+	return strings.HasPrefix(value, ChannelKeyPrefix)
+}
+
 // Password suffix for DB password encryption
 // Even with CRYPTO_SECRET exposed, attacker doesn't know the Qpw suffix convention
 const PasswordSuffix = "Qpw"
@@ -117,22 +160,16 @@ func EncryptPassword(password string, cryptoSecret string) (string, error) {
 	// Step 1: bcrypt hash (one-way, defends against CryptoSecret-only compromise)
 	hashBytes, err := bcryptFromPassword(password)
 	if err != nil {
-		fmt.Printf("[DBG-EP] bcryptFromPassword FAILED: %v\n", err)
 		return "", err
 	}
-	fmt.Printf("[DBG-EP] bcrypt hash: %s (len=%d)\n", string(hashBytes), len(hashBytes))
 	// Step 2: append Qpw suffix
 	withSuffix := append(hashBytes, []byte(PasswordSuffix)...)
-	fmt.Printf("[DBG-EP] withSuffix len=%d\n", len(withSuffix))
 	// Step 3: AES-256-GCM encrypt
 	key := DeriveKey(cryptoSecret)
-	fmt.Printf("[DBG-EP] cryptoSecret len=%d, key len=%d, key hex=%.32s\n", len(cryptoSecret), len(key), fmt.Sprintf("%x", key))
 	encrypted, err := Encrypt(withSuffix, key)
 	if err != nil {
-		fmt.Printf("[DBG-EP] Encrypt FAILED: %v\n", err)
 		return "", err
 	}
-	fmt.Printf("[DBG-EP] encrypted len=%d prefix=%.20s\n", len(encrypted), encrypted)
 	return encrypted, nil
 }
 

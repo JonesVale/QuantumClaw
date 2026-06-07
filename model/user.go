@@ -598,7 +598,11 @@ func MinusUserCashBalance(id int, amount int64) error {
 	if amount < 0 {
 		return errors.New("amount 不能为负数")
 	}
-	return DB.Model(&User{}).Where("id = ?", id).Update("cash_balance", gorm.Expr("cash_balance - ?", amount)).Error
+	if amount == 0 {
+		return nil
+	}
+	return DB.Model(&User{}).Where("id = ?", id).
+		Update("cash_balance", gorm.Expr("cash_balance - ?", amount)).Error
 }
 
 func GetUserCommissionBalance(id int) (int64, error) {

@@ -1,4 +1,4 @@
-package model
+﻿package model
 
 import (
 	"encoding/json"
@@ -43,27 +43,33 @@ type Channel struct {
 	Config             string  `json:"config"`
 	SystemPrompt       *string `json:"system_prompt" gorm:"type:text"`
 	Category           string  `json:"category" gorm:"default:''"`  // paid / free / custom
-	UserId             int     `json:"user_id" gorm:"type:int;default:0;index"` // 渠道归属：0=平台，>0=供应商
-	CostPrice          float64 `json:"cost_price" gorm:"type:decimal(10,6);default:0"` // Key 贡献者实际成本
+	UserId             int     `json:"user_id" gorm:"type:int;default:0;index"` // 娓犻亾褰掑睘锛?=骞冲彴锛?0=渚涘簲鍟?
+	CostPrice          float64 `json:"cost_price" gorm:"type:decimal(10,6);default:0"` // Key 璐＄尞鑰呭疄闄呮垚鏈?
 
-	// 余额预警与自动禁用阈值（单位为 USD）
+	// 浣欓棰勮涓庤嚜鍔ㄧ鐢ㄩ槇鍊硷紙鍗曚綅涓?USD锛?
 	BalanceAlertThreshold   float64 `json:"balance_alert_threshold" gorm:"type:decimal(10,2);default:0"`
 	BalanceDisableThreshold float64 `json:"balance_disable_threshold" gorm:"type:decimal(10,2);default:0"`
-	ChannelMarkup          float64 `json:"channel_markup" gorm:"type:decimal(5,2);default:1.0"`      // 渠道加价倍率（1.0=原价, 1.2=+20%）
+	ChannelMarkup          float64 `json:"channel_markup" gorm:"type:decimal(5,2);default:1.0"`      // 娓犻亾鍔犱环鍊嶇巼锛?.0=鍘熶环, 1.2=+20%锛?
 
-	// 区域标识：china / overseas / ""（自动判定）
+	// 鍖哄煙鏍囪瘑锛歝hina / overseas / ""锛堣嚜鍔ㄥ垽瀹氾級
 	Region string `json:"region" gorm:"type:varchar(20);default:''"`
 
-	// 软删除（供应商删除时标记，不物理删除）
+	// 杞垹闄わ紙渚涘簲鍟嗗垹闄ゆ椂鏍囪锛屼笉鐗╃悊鍒犻櫎锛?
 	DeletedAt gorm.DeletedAt `json:"deleted_at,omitempty"`
 
-	// 测试状态
-	LastTestPassed   bool   `json:"last_test_passed" gorm:"default:false"`      // 最近一次测试是否通过
-	LastErrorMessage string `json:"last_error_message" gorm:"type:text;default:''"` // 最近一次错误信息
+	// 娴嬭瘯鐘舵€?
+	LastTestPassed   bool   `json:"last_test_passed" gorm:"default:false"`      // 鏈€杩戜竴娆℃祴璇曟槸鍚﹂€氳繃
+	LastErrorMessage string `json:"last_error_message" gorm:"type:text;default:''"` // 鏈€杩戜竴娆￠敊璇俊鎭?
 
-	// 分账比例：0.0~1.0，渠道商所得比例，剩余为平台抽成
-	// 默认 0.85 = 渠道商得 85%，平台得 15%
+	// 鍒嗚处姣斾緥锛?.0~1.0锛屾笭閬撳晢鎵€寰楁瘮渚嬶紝鍓╀綑涓哄钩鍙版娊鎴?
+	// 榛樿 0.85 = 娓犻亾鍟嗗緱 85%锛屽钩鍙板緱 15%
 	ProfitSplit float64 `json:"profit_split" gorm:"type:decimal(4,3);default:0.85"`
+
+	// 鎵€灞炲簵閾猴紙甯傚満鐗堢敤锛夛細绌?= 浼犵粺娓犻亾锛岄潪绌?= 鍏宠仈搴楅摵
+	StoreID int `json:"store_id" gorm:"type:int;default:0;index"`
+
+	// 骞冲彴鍏滃簳姹犳爣璁帮細true = 骞冲彴鑷惀淇濆簳璧勬簮锛屼笉璁″叆甯傚満鎺掑悕
+	IsPlatformPool bool `json:"is_platform_pool" gorm:"default:false"`
 }
 
 type ChannelConfig struct {
@@ -99,7 +105,7 @@ func GetAllChannels(startIdx int, num int, scope string) ([]*Channel, error) {
 			for i := range channels {
 				if channels[i].Key != "" {
 					// Check if key is encrypted (starts with non-plaintext pattern)
-					decrypted, e := encrypt.Decrypt(channels[i].Key, encrypt.DeriveKey(config.CryptoSecret))
+					decrypted, e := encrypt.DecryptChannelKey(channels[i].Key, config.CryptoSecret)
 					if e == nil {
 						channels[i].Key = string(decrypted)
 					} else {
@@ -126,9 +132,9 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 	var err error = nil
 	if selectAll {
 		err = DB.First(&channel, "id = ?", id).Error
-		// 解密 API Key（selectAll 表示需要完整信息，如 relay 场景）
+		// 瑙ｅ瘑 API Key锛坰electAll 琛ㄧず闇€瑕佸畬鏁翠俊鎭紝濡?relay 鍦烘櫙锛?
 		if err == nil && channel.Key != "" && config.CryptoSecret != "" {
-			decrypted, e := encrypt.Decrypt(channel.Key, encrypt.DeriveKey(config.CryptoSecret))
+			decrypted, e := encrypt.DecryptChannelKey(channel.Key, config.CryptoSecret)
 			if e == nil {
 				channel.Key = string(decrypted)
 			} else {
@@ -142,28 +148,23 @@ func GetChannelById(id int, selectAll bool) (*Channel, error) {
 }
 
 func BatchInsertChannels(channels []Channel) error {
-	var err error
-	// 批量加密 API Key
+	// 鎵归噺鍔犲瘑 API Key
 	for i := range channels {
 		if channels[i].Key != "" && config.CryptoSecret != "" {
-			encrypted, e := encrypt.Encrypt([]byte(channels[i].Key), encrypt.DeriveKey(config.CryptoSecret))
-			if e == nil {
-				channels[i].Key = encrypted
-			} else {
+			encrypted, e := encrypt.EncryptChannelKey(channels[i].Key, config.CryptoSecret)
+			if e != nil {
 				logger.SysError("batch encrypt channel key: " + e.Error())
+				return fmt.Errorf("failed to encrypt channel key: %w", e)
 			}
+			channels[i].Key = encrypted
 		}
-		// 新建渠道标记为已通过测试（确保立即加入路由调度）
-		// monitor 会定期测试并在失败时自动禁用
 		channels[i].LastTestPassed = true
 	}
-	err = DB.Create(&channels).Error
-	if err != nil {
+	if err := DB.Create(&channels).Error; err != nil {
 		return err
 	}
 	for _, channel_ := range channels {
-		err = channel_.AddAbilities()
-		if err != nil {
+		if err := channel_.AddAbilities(); err != nil {
 			return err
 		}
 	}
@@ -209,11 +210,11 @@ func EncryptExistingChannelKeys() error {
 	if err := DB.Where("key != ''").Find(&channels).Error; err != nil {
 		return err
 	}
-	key := encrypt.DeriveKey(config.CryptoSecret)
+
 	count := 0
 	for _, ch := range channels {
 		// Check: is this key already encrypted? Try decrypt first
-		_, decErr := encrypt.Decrypt(ch.Key, key)
+		_, decErr := encrypt.DecryptChannelKey(ch.Key, config.CryptoSecret)
 		if decErr == nil {
 			continue // Already encrypted
 		}
@@ -223,7 +224,7 @@ func EncryptExistingChannelKeys() error {
 			continue
 		}
 		// Encrypt the plaintext key
-		encrypted, err := encrypt.Encrypt([]byte(ch.Key), key)
+		encrypted, err := encrypt.EncryptChannelKey(ch.Key, config.CryptoSecret)
 		if err != nil {
 			logger.SysError("encrypt key for channel " + fmt.Sprint(ch.Id) + ": " + err.Error())
 			continue
@@ -239,48 +240,43 @@ func EncryptExistingChannelKeys() error {
 	return nil
 }
 func (channel *Channel) Insert() error {
-	var err error
-	// 加密 API Key
+	// 鍔犲瘑 API Key
 	if channel.Key != "" && config.CryptoSecret != "" {
-		key, e := encrypt.Encrypt([]byte(channel.Key), encrypt.DeriveKey(config.CryptoSecret))
-		if e == nil {
-			channel.Key = key
-		} else {
+		encrypted, e := encrypt.EncryptChannelKey(channel.Key, config.CryptoSecret)
+		if e != nil {
 			logger.SysError("encrypt channel key: " + e.Error())
+			return fmt.Errorf("failed to encrypt channel key: %w", e)
 		}
+		channel.Key = encrypted
 	}
-	channel.LastTestPassed = true // 新建渠道标记为可用
-	err = DB.Create(channel).Error
-	if err != nil {
+	channel.LastTestPassed = true
+	if err := DB.Create(channel).Error; err != nil {
 		return err
 	}
-	err = channel.AddAbilities()
-	return err
+	return channel.AddAbilities()
 }
 
 func (channel *Channel) Update() error {
-	var err error
-	// 如果 Key 变了，加密后存储
+	// 濡傛灉 Key 鍙樹簡锛屽姞瀵嗗悗瀛樺偍
 	if channel.Key != "" && config.CryptoSecret != "" {
-		// 检查是否是已加密的（已加密的 key 以 base64 字符构成，不包含换行符）
-		existing, _ := GetChannelById(channel.Id, true)
-		if existing != nil && channel.Key != existing.Key {
-			// Key 有变，加密新 key
-			encrypted, e := encrypt.Encrypt([]byte(channel.Key), encrypt.DeriveKey(config.CryptoSecret))
-			if e == nil {
-				channel.Key = encrypted
-			} else {
+		existing, err := GetChannelById(channel.Id, true)
+		if err != nil {
+			return fmt.Errorf("failed to get existing channel: %w", err)
+		}
+		if channel.Key != existing.Key {
+			encrypted, e := encrypt.EncryptChannelKey(channel.Key, config.CryptoSecret)
+			if e != nil {
 				logger.SysError("encrypt channel key on update: " + e.Error())
+				return fmt.Errorf("failed to encrypt channel key: %w", e)
 			}
+			channel.Key = encrypted
 		}
 	}
-	err = DB.Model(channel).Updates(channel).Error
-	if err != nil {
+	if err := DB.Model(channel).Updates(channel).Error; err != nil {
 		return err
 	}
 	DB.Model(channel).First(channel, "id = ?", channel.Id)
-	err = channel.UpdateAbilities()
-	return err
+	return channel.UpdateAbilities()
 }
 
 func (channel *Channel) UpdateResponseTime(responseTime int64) {

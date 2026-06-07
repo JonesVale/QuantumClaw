@@ -73,6 +73,7 @@ func SetApiRouter(router *gin.Engine) {
 	{
 
 		apiRouter.GET("/status", controller.GetStatus)
+		apiRouter.GET("/health", controller.GetHealth)
 
 		apiRouter.GET("/site-content", controller.GetSiteContent)
 
@@ -125,6 +126,8 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/about", controller.GetAbout)
 
 		apiRouter.GET("/home_page_content", controller.GetHomePageContent)
+
+		apiRouter.GET("/agreements/platform-pool/latest", controller.GetLatestPoolAgreement)
 
 
 
@@ -307,6 +310,10 @@ func SetApiRouter(router *gin.Engine) {
 				selfRoute.GET("/transaction_logs", controller.GetTransactionLogs)
 
 				selfRoute.GET("/security/activity", controller.GetSecurityActivity)
+
+				// platform pool consent
+				selfRoute.GET("/consent/platform-pool", controller.GetMyPoolConsent)
+				selfRoute.POST("/consent/platform-pool", controller.SetMyPoolConsent)
 
 
 
@@ -1046,6 +1053,9 @@ func SetApiRouter(router *gin.Engine) {
 		apiRouter.GET("/platform/config", middleware.AdminAuth(), controller.GetPlatformConfigs)
 
 		apiRouter.PUT("/platform/config", middleware.AdminAuth(), controller.UpdatePlatformConfig)
+
+		apiRouter.GET("/admin/agreements/platform-pool", middleware.AdminAuth(), controller.AdminGetPoolAgreements)
+		apiRouter.PUT("/admin/agreements/platform-pool", middleware.AdminAuth(), controller.AdminPublishPoolAgreement)
 
 
 

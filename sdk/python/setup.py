@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="quantumclaw",
-    version="0.1.0",
+    version="2.2.0",
     packages=find_packages(),
     install_requires=["requests>=2.25.0"],
     description="QuantumClaw AI API Gateway - Python SDK",

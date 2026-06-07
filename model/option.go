@@ -1,13 +1,15 @@
 package model
 
 import (
+	"context"
+	"strconv"
+	"strings"
+	"time"
+
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	billingratio "github.com/quantumclaw/quantumclaw/relay/billing/ratio"
-	"strconv"
-	"strings"
-	"time"
 )
 
 type Option struct {
@@ -117,7 +119,11 @@ func InitOptionMap() {
 }
 
 func loadOptionsFromDatabase() {
-	options, _ := AllOption()
+	options, err := AllOption()
+	if err != nil {
+		logger.SysError("failed to load options from database: " + err.Error())
+		return
+	}
 	for _, option := range options {
 		if option.Key == "ModelRatio" {
 			option.Value = billingratio.AddNewMissingRatio(option.Value)
@@ -129,11 +135,18 @@ func loadOptionsFromDatabase() {
 	}
 }
 
-func SyncOptions(frequency int) {
+func SyncOptions(ctx context.Context, frequency int) {
+	ticker := time.NewTicker(time.Duration(frequency) * time.Second)
+	defer ticker.Stop()
 	for {
-		time.Sleep(time.Duration(frequency) * time.Second)
-		logger.SysLog("syncing options from database")
-		loadOptionsFromDatabase()
+		select {
+		case <-ticker.C:
+			logger.SysLog("syncing options from database")
+			loadOptionsFromDatabase()
+		case <-ctx.Done():
+			logger.SysLog("sync options stopped (shutdown)")
+			return
+		}
 	}
 }
 
@@ -143,12 +156,18 @@ func UpdateOption(key string, value string) error {
 		Key: key,
 	}
 	// https://gorm.io/docs/update.html#Save-All-Fields
-	DB.FirstOrCreate(&option, Option{Key: key})
+	if err := DB.FirstOrCreate(&option, Option{Key: key}).Error; err != nil {
+		logger.SysError("failed to create option: " + err.Error())
+		return err
+	}
 	option.Value = value
 	// Save is a combination function.
 	// If save value does not contain primary key, it will execute Create,
 	// otherwise it will execute Update (with all fields).
-	DB.Save(&option)
+	if err := DB.Save(&option).Error; err != nil {
+		logger.SysError("failed to save option: " + err.Error())
+		return err
+	}
 	// Update OptionMap
 	return updateOptionMap(key, value)
 }

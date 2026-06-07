@@ -28,7 +28,7 @@ func RequestWorldFirstTopUp(c *gin.Context) {
 		return
 	}
 
-	minTopUp := 1
+	minTopUp := common.GetWorldFirstMinTopUp()
 	if req.Amount < int64(minTopUp) {
 		c.JSON(http.StatusOK, gin.H{"success": false, "message": fmt.Sprintf("充值数量不能小于 %d", minTopUp)})
 		return
@@ -59,13 +59,16 @@ func RequestWorldFirstTopUp(c *gin.Context) {
 		return
 	}
 
+	// 构建订单确认页面 URL（前端可跳转到该页面完成支付）
+	orderURL := fmt.Sprintf("/payment/worldfirst/order?trade_no=%s", tradeNo)
+
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
 		"data": gin.H{
 			"trade_no":    tradeNo,
 			"amount":      req.Amount,
 			"money":       payMoney,
-			"payment_url": "", // TODO: 对接万里汇 API 后生成支付链接
+			"payment_url": orderURL,
 		},
 	})
 }
@@ -133,4 +136,14 @@ func WorldFirstWebhook(c *gin.Context) {
 
 	logger.Info(c.Request.Context(), fmt.Sprintf("万里汇充值成功 trade_no=%s user_id=%d amount=%d", tradeNo, topUp.UserId, topUp.Amount))
 	c.String(http.StatusOK, "success")
+}
+
+// WorldFirstOrder 万里汇订单页面（展示订单详情，引导用户完成线下支付）
+func WorldFirstOrder(c *gin.Context) {
+	tradeNo := c.Query("trade_no")
+	if tradeNo == "" {
+		c.Redirect(http.StatusFound, "/wallet")
+		return
+	}
+	c.Redirect(http.StatusFound, fmt.Sprintf("/wallet?trade_no=%s", tradeNo))
 }

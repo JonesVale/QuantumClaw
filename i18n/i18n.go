@@ -17,6 +17,13 @@ const (
 	LangJa      = "ja"
 	LangRu      = "ru"
 	LangVi      = "vi"
+	LangDe      = "de"
+	LangEs      = "es"
+	LangIt      = "it"
+	LangKo      = "ko"
+	LangNl      = "nl"
+	LangPt      = "pt"
+	LangAr      = "ar"
 	DefaultLang = LangEn
 )
 
@@ -166,13 +173,30 @@ func normalizeLang(lang string) string {
 		return LangRu
 	case strings.HasPrefix(lang, "vi"):
 		return LangVi
+	case strings.HasPrefix(lang, "de"):
+		return LangDe
+	case strings.HasPrefix(lang, "es"):
+		return LangEs
+	case strings.HasPrefix(lang, "it"):
+		return LangIt
+	case strings.HasPrefix(lang, "ko"):
+		return LangKo
+	case strings.HasPrefix(lang, "nl"):
+		return LangNl
+	case strings.HasPrefix(lang, "pt"):
+		return LangPt
+	case strings.HasPrefix(lang, "ar"):
+		return LangAr
 	default:
 		return DefaultLang
 	}
 }
 
 func SupportedLanguages() []string {
-	return []string{LangZhCN, LangZhTW, LangEn, LangFr, LangJa, LangRu, LangVi}
+	return []string{
+		LangZhCN, LangZhTW, LangEn, LangFr, LangJa, LangRu, LangVi,
+		LangDe, LangEs, LangIt, LangKo, LangNl, LangPt, LangAr,
+	}
 }
 
 func IsSupported(lang string) bool {

@@ -10,6 +10,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/model"
 	"github.com/quantumclaw/quantumclaw/service"
+	"gorm.io/gorm"
 )
 
 // ==================== Midjourney 任务接口 ====================
@@ -468,26 +469,19 @@ func CreateSunoTask(c *gin.Context) {
 // ==================== 批量为任务补充配额 ====================
 
 // DeductTaskQuota 扣除任务配额（在任务完成时调用）
+// 使用原子 UPDATE 防止并发丢失更新
 func DeductTaskQuota(userID int, taskID string, quota int) error {
-	// 扣除用户配额
-	user, err := model.GetUserById(userID, true)
-	if err != nil {
-		return err
+	// 原子扣款：只有配额足够时才扣
+	result := model.DB.Model(&model.User{}).Where("id = ? AND quota >= ?", userID, quota).
+		Updates(map[string]interface{}{
+			"quota":      gorm.Expr("quota - ?", quota),
+			"used_quota": gorm.Expr("used_quota + ?", quota),
+		})
+	if result.Error != nil {
+		return result.Error
 	}
-
-	if user.Quota < int64(quota) {
+	if result.RowsAffected == 0 {
 		return fmt.Errorf("配额不足")
-	}
-
-	user.Quota -= int64(quota)
-	user.UsedQuota += int64(quota)
-
-	err = model.DB.Model(&model.User{}).Where("id = ?", userID).Updates(map[string]interface{}{
-		"quota":     user.Quota,
-		"used_quota": user.UsedQuota,
-	}).Error
-	if err != nil {
-		return err
 	}
 
 	// 更新任务记录的配额消耗

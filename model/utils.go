@@ -1,10 +1,12 @@
 package model
 
 import (
-	"github.com/quantumclaw/quantumclaw/common/config"
-	"github.com/quantumclaw/quantumclaw/common/logger"
+	"context"
 	"sync"
 	"time"
+
+	"github.com/quantumclaw/quantumclaw/common/config"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 )
 
 const (
@@ -26,11 +28,21 @@ func init() {
 	}
 }
 
-func InitBatchUpdater() {
+func InitBatchUpdater(ctx context.Context) {
 	go func() {
+		ticker := time.NewTicker(time.Duration(config.BatchUpdateInterval) * time.Second)
+		defer ticker.Stop()
 		for {
-			time.Sleep(time.Duration(config.BatchUpdateInterval) * time.Second)
-			batchUpdate()
+			select {
+			case <-ticker.C:
+				batchUpdate()
+			case <-ctx.Done():
+				// 在关闭前做最后一次批量写入，避免丢失配额记录
+				logger.SysLog("batch updater shutting down, flushing remaining records...")
+				batchUpdate()
+				logger.SysLog("batch updater stopped")
+				return
+			}
 		}
 	}()
 }

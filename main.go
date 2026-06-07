@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"context"
@@ -139,12 +139,27 @@ func startPyroscope() {
 	}
 }
 
+// safeGoWithRestart 鍚姩涓€涓?panic-safe 鐨?goroutine锛屽彂鐢?panic 鏃惰嚜鍔ㄩ噸鍚?
+func safeGoWithRestart(name string, fn func()) {
+	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.SysError(fmt.Sprintf("[PANIC] %s: %v 鈥?restarting in 10s", name, r))
+				time.Sleep(10 * time.Second)
+				safeGoWithRestart(name, fn)
+			}
+		}()
+		logger.SysLogf("[%s] started", name)
+		fn()
+	}()
+}
+
 func main() {
 	common.Init()
 	logger.SetupLogger()
 	logger.SysLogf("QuantumClaw %s started", common.Version)
 
-	// 验证频道类型定义一致性
+	// 楠岃瘉棰戦亾绫诲瀷瀹氫箟涓€鑷存€?
 	if err := channeltype.ValidateChannelBaseURLs(); err != nil {
 		logger.SysError(err.Error())
 		os.Exit(1)
@@ -170,6 +185,15 @@ func main() {
 
 	// Initialize SQL Database
 	model.InitDB()
+
+	// 鈹€鈹€ 鏁版嵁搴撹繛鎺ユ睜閰嶇疆 鈹€鈹€
+	if sqlDB, err := model.DB.DB(); err == nil {
+		sqlDB.SetMaxOpenConns(25)
+		sqlDB.SetMaxIdleConns(10)
+		sqlDB.SetConnMaxLifetime(5 * time.Minute)
+		logger.SysLog("db pool: max_open=25 max_idle=10 max_lifetime=5m")
+	}
+
 	model.InitLogDB()
 
 	// Initialize commission tables
@@ -256,31 +280,60 @@ func main() {
 	if err := model.EncryptExistingChannelKeys(); err != nil {
 		logger.SysError("encrypt existing channel keys: " + err.Error())
 	}
-	// 启动入驻费自动结算定时器（每小时检查，次月1号凌晨2点执行）
-	go func() {
+	// 鍚姩鏈堢粨瀹氭椂鍣細娆℃湀 1 鏃ュ噷鏅?2:00 鎵ц
+	safeGoWithRestart("monthly-settlement-cron", func() {
+		// 鍒濆寤惰繜 30 绉掞紝纭繚鏈嶅姟瀹屽叏灏辩华
 		time.Sleep(30 * time.Second)
 		for {
 			now := time.Now()
-			if now.Day() == 1 && now.Hour() == 2 {
-				logger.SysLog("[CRON] auto settling monthly platform fees...")
-				model.AutoSettleMonthlyFees()
-				logger.SysLog("[CRON] monthly platform fee settlement completed")
-
-				logger.SysLog("[CRON] fetching official reference pricing...")
-				service.FetchOfficialPricing()
-				logger.SysLog("[CRON] official reference pricing update completed")
-
-				logger.SysLog("[CRON] fetching brand rankings...")
-				service.FetchBrandRankings()
-				logger.SysLog("[CRON] brand rankings update completed")
-
-				logger.SysLog("[CRON] syncing popular AI apps...")
-				service.SyncPopularApps(context.Background())
-				logger.SysLog("[CRON] popular AI apps sync completed")
+			// 璁＄畻涓嬩竴娆℃墽琛屾椂闂达細褰撴湀/涓嬫湀 1 鏃ュ噷鏅?2:00
+			next := time.Date(now.Year(), now.Month(), 1, 2, 0, 0, 0, now.Location())
+			if !now.Before(next) {
+				// 褰撳墠鏃堕棿宸茶繃鏈湀 1 鏃?2:00锛屾帹鍒颁笅涓湀
+				next = time.Date(now.Year(), now.Month()+1, 1, 2, 0, 0, 0, now.Location())
 			}
-			time.Sleep(1 * time.Hour)
+			if next.Before(now) {
+				// 鏈堜唤婧㈠嚭鐨勫厹搴曞鐞嗭紙璺ㄥ勾锛?
+				next = time.Date(now.Year()+1, 1, 1, 2, 0, 0, 0, now.Location())
+			}
+
+			sleepDuration := next.Sub(now)
+			logger.SysLogf("[CRON] next monthly batch at %s (in %v)", next.Format("2006-01-02 15:04"), sleepDuration.Round(time.Second))
+			timer := time.NewTimer(sleepDuration)
+			<-timer.C
+			timer.Stop()
+
+			logger.SysLog("[CRON] auto settling monthly platform fees...")
+			model.AutoSettleMonthlyFees()
+			logger.SysLog("[CRON] monthly platform fee settlement completed")
+
+			logger.SysLog("[CRON] fetching official reference pricing...")
+			service.FetchOfficialPricing()
+			logger.SysLog("[CRON] official reference pricing update completed")
+
+			logger.SysLog("[CRON] fetching brand rankings...")
+			service.FetchBrandRankings()
+			logger.SysLog("[CRON] brand rankings update completed")
+
+			logger.SysLog("[CRON] syncing popular AI apps...")
+			service.SyncPopularApps(context.Background())
+			logger.SysLog("[CRON] popular AI apps sync completed")
+			// cleanup expired idempotency keys
+			// 娓呯悊杩囨湡骞傜瓑閿?
+			if err := model.CleanupExpiredIdempotencyKeys(); err != nil {
+				logger.SysLog("[CRON] idempotency key cleanup: " + err.Error())
+			}
 		}
-	}()
+	})
+
+
+	// 鈹€鈹€ Startup security audit 鈹€鈹€
+	if os.Getenv("SESSION_SECRET") == "" || os.Getenv("SESSION_SECRET") == "test-session-secret-for-local-dev-only" {
+		logger.SysWarn("[SECURITY] SESSION_SECRET is default/empty. Set a strong random value in production.")
+	}
+	if pwd := os.Getenv("INITIAL_ROOT_PASSWORD"); pwd == "admin123456" || pwd == "" {
+		logger.SysWarn("[SECURITY] INITIAL_ROOT_PASSWORD is the default. Change it after first login.")
+	}
 
 	// Env-based admin password reset (emergency)
 	if os.Getenv("RESET_ADMIN_PASSWORD") != "" {
@@ -313,7 +366,7 @@ func main() {
 		logger.FatalLog("failed to initialize Redis: " + err.Error())
 	}
 
-	// ── If slave node, start cascade client ──
+	// 鈹€鈹€ If slave node, start cascade client 鈹€鈹€
 	if !config.IsMasterNode {
 		if config.CascadeMasterURL == "" {
 			logger.FatalLog("slave node requires CASCADE_MASTER_URL")
@@ -347,20 +400,20 @@ func main() {
 		model.InitChannelCache()
 	}
 	if config.MemoryCacheEnabled {
-		go model.SyncOptions(config.SyncFrequency)
-		go model.SyncChannelCache(config.SyncFrequency)
+		go model.SyncOptions(context.Background(), config.SyncFrequency)
+		go model.SyncChannelCache(context.Background(), config.SyncFrequency)
 	}
 	if os.Getenv("CHANNEL_TEST_FREQUENCY") != "" {
 		frequency, err := strconv.Atoi(os.Getenv("CHANNEL_TEST_FREQUENCY"))
 		if err != nil {
 			logger.FatalLog("failed to parse CHANNEL_TEST_FREQUENCY: " + err.Error())
 		}
-		go controller.AutomaticallyTestChannels(frequency)
+		go controller.AutomaticallyTestChannels(context.Background(), frequency)
 	}
 	if os.Getenv("BATCH_UPDATE_ENABLED") == "true" {
 		config.BatchUpdateEnabled = true
 		logger.SysLog("batch update enabled with interval " + strconv.Itoa(config.BatchUpdateInterval) + "s")
-		model.InitBatchUpdater()
+		model.InitBatchUpdater(context.Background())
 	}
 	if config.EnableMetric {
 		logger.SysLog("metric enabled, will disable channel if too much request failed")
@@ -378,9 +431,9 @@ func main() {
 	go service.StartHourlySettlement()
 	go service.StartRssService(context.Background())
 	go service.StartDailyModelSync()
-	// Provider 模型列表自动同步（每24h从各供应商拉取最新模型）
+	// Provider 妯″瀷鍒楄〃鑷姩鍚屾锛堟瘡24h浠庡悇渚涘簲鍟嗘媺鍙栨渶鏂版ā鍨嬶級
 	go service.NewProviderSyncService(24 * time.Hour).Start()
-	// 企业用量统计定时聚合（每小时）
+	// 浼佷笟鐢ㄩ噺缁熻瀹氭椂鑱氬悎锛堟瘡灏忔椂锛?
 	go service.StartEnterpriseUsageStatsTask()
 	service.LoadCustomOAuthProviders()
 
@@ -400,7 +453,7 @@ AFTER_SLAVE_SETUP:
 	//server.Use(gzip.Gzip(gzip.DefaultCompression))
 	server.Use(middleware.RequestId())
 	middleware.SetUpLogger(server)
-	// Initialize session store — Redis 共享（多机部署）或 Cookie 回退
+	// Initialize session store 鈥?Redis 鍏变韩锛堝鏈洪儴缃诧級鎴?Cookie 鍥為€€
 	var store sessions.Store
 	if common.RedisEnabled {
 		redisAddr := os.Getenv("REDIS_HOST")
@@ -426,7 +479,7 @@ AFTER_SLAVE_SETUP:
 	}
 	logger.SysLogf("server started on http://localhost:%s", port)
 
-	// 优雅关闭：监听 SIGINT/SIGTERM
+	// 浼橀泤鍏抽棴锛氱洃鍚?SIGINT/SIGTERM
 	srv := &http.Server{Addr: ":" + port, Handler: server}
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

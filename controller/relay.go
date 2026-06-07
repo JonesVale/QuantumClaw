@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 import (
 	"bytes"
@@ -88,6 +88,13 @@ func Relay(c *gin.Context) {
 		logger.Errorf(ctx, "relay error happen, status code is %d, won't retry in this case", bizErr.StatusCode)
 		retryTimes = 0
 	}
+	// 检查用户是否同意使用平台资源池
+	if retryTimes > 0 {
+		usePool := dbmodel.IsConsentValid(userId)
+		if !usePool {
+			retryTimes = 0
+		}
+	}
 	for i := retryTimes; i > 0; i-- {
 		// 重试时按价格排序取最便宜（排除已失败的渠道）
 		channel, err := dbmodel.GetCheapestSatisfiedChannel(group, originalModel, 0, "")
@@ -104,6 +111,8 @@ func Relay(c *gin.Context) {
 		c.Request.Body = io.NopCloser(bytes.NewBuffer(requestBody))
 		retryErr := relayHelper(c, relayMode)
 		if retryErr == nil {
+			// 重试成功 → 把之前失败的渠道加入冷期
+			monitor.PenalizeModel(lastFailedChannelId, originalModel)
 			return
 		}
 		channelId := c.GetInt(ctxkey.ChannelId)

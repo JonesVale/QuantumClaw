@@ -2,20 +2,25 @@ package controller
 
 import (
 	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/json"
 	"encoding/pem"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/logger"
+	"github.com/quantumclaw/quantumclaw/common/config"
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
@@ -70,8 +75,28 @@ func RequestAlipayTopUp(c *gin.Context) {
 		return
 	}
 
-	// 构建支付宝支付表单（生成支付链接，让用户跳转）
-	payURL := fmt.Sprintf("/payment/alipay/redirect?trade_no=%s", tradeNo)
+	// 生成支付宝支付表单参数
+	setting := common.GetPaymentSetting()
+	if setting.AlipayAppId == "" || setting.AlipayPrivateKey == "" {
+		logger.Error(c.Request.Context(), "支付宝支付未配置 AppId 或 PrivateKey")
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "支付宝支付未配置完成"})
+		return
+	}
+
+	notifyURL := config.ServerAddress + "/api/webhook/alipay"
+	returnURL := config.ServerAddress + "/payment/alipay/return"
+	if req.ReturnURL != "" {
+		returnURL = req.ReturnURL
+	}
+
+	bizContent := buildAlipayBizContent(tradeNo, payMoney, "量子之爪充值")
+	payFormURL, err := buildAlipayPayForm(setting.AlipayAppId, setting.AlipayPrivateKey,
+		setting.AlipayGatewayUrl, notifyURL, returnURL, bizContent)
+	if err != nil {
+		logger.Error(c.Request.Context(), fmt.Sprintf("生成支付宝支付表单失败 trade_no=%s error=%q", tradeNo, err.Error()))
+		c.JSON(http.StatusOK, gin.H{"success": false, "message": "生成支付链接失败"})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"success": true,
@@ -79,10 +104,103 @@ func RequestAlipayTopUp(c *gin.Context) {
 			"trade_no":    tradeNo,
 			"amount":      req.Amount,
 			"money":       payMoney,
-			"payment_url": payURL,
-			"qrcode":      "", // TODO: 对接支付宝 SDK 后生成支付二维码
+			"payment_url": payFormURL,
 		},
 	})
+}
+
+// buildAlipayBizContent 构建支付宝 biz_content
+func buildAlipayBizContent(tradeNo string, totalAmount float64, subject string) string {
+	biz := map[string]interface{}{
+		"out_trade_no":  tradeNo,
+		"product_code":  "FAST_INSTANT_TRADE_PAY",
+		"total_amount":  fmt.Sprintf("%.2f", totalAmount),
+		"subject":       subject,
+	}
+	b, _ := json.Marshal(biz)
+	return string(b)
+}
+
+// buildAlipayPayForm 构建支付宝电脑网站支付表单（返回完整 URL，前端可直接跳转）
+func buildAlipayPayForm(appId, privateKey, gatewayUrl, notifyURL, returnURL, bizContent string) (string, error) {
+	params := url.Values{}
+	params.Set("app_id", appId)
+	params.Set("method", "alipay.trade.page.pay")
+	params.Set("format", "JSON")
+	params.Set("charset", "utf-8")
+	params.Set("sign_type", "RSA2")
+	params.Set("timestamp", time.Now().Format("2006-01-02 15:04:05"))
+	params.Set("version", "1.0")
+	params.Set("notify_url", notifyURL)
+	params.Set("return_url", returnURL)
+	params.Set("biz_content", bizContent)
+
+	// 签名：对除 sign 本身外的所有参数排序后拼接 + RSA2 签名
+	signStr := buildAlipaySignString(params)
+	sign, err := rsa2Sign(signStr, privateKey)
+	if err != nil {
+		return "", fmt.Errorf("RSA2 签名失败: %w", err)
+	}
+	params.Set("sign", sign)
+
+	// 构建完整的 POST 提交 URL（前端用 form 提交）
+	return gatewayUrl + "?" + params.Encode(), nil
+}
+
+// buildAlipaySignString 构造待签名字符串：key=value&key=value...（按键名升序）
+func buildAlipaySignString(params url.Values) string {
+	keys := make([]string, 0, len(params))
+	for k := range params {
+		if k == "sign" {
+			continue
+		}
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	var parts []string
+	for _, k := range keys {
+		v := params.Get(k)
+		if v != "" {
+			parts = append(parts, k+"="+v)
+		}
+	}
+	return strings.Join(parts, "&")
+}
+
+// rsa2Sign 使用 RSA2 (SHA256) 签名
+func rsa2Sign(signStr, privateKeyPEM string) (string, error) {
+	block, _ := pem.Decode([]byte(privateKeyPEM))
+	if block == nil {
+		// 尝试不带 PEM 头的纯 base64 私钥
+		pemStr := "-----BEGIN RSA PRIVATE KEY-----\n" + chunkString(privateKeyPEM, 64) + "\n-----END RSA PRIVATE KEY-----"
+		block, _ = pem.Decode([]byte(pemStr))
+		if block == nil {
+			return "", fmt.Errorf("无法解码 RSA 私钥")
+		}
+	}
+
+	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		// 尝试 PKCS8 格式
+		key, parseErr := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if parseErr != nil {
+			return "", fmt.Errorf("解析 RSA 私钥失败: %w", err)
+		}
+		var ok bool
+		privKey, ok = key.(*rsa.PrivateKey)
+		if !ok {
+			return "", fmt.Errorf("私钥类型不是 RSA")
+		}
+	}
+
+	hash := sha256.Sum256([]byte(signStr))
+	signBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hash[:])
+	if err != nil {
+		return "", err
+	}
+
+	return base64.StdEncoding.EncodeToString(signBytes), nil
 }
 
 // AlipayNotify 支付宝异步通知回调

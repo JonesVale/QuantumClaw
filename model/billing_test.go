@@ -1,7 +1,6 @@
-package model
+﻿package model
 
 import (
-	"database/sql"
 	"fmt"
 	"math"
 	"os"
@@ -10,38 +9,25 @@ import (
 	"testing"
 	"time"
 
+	"github.com/glebarez/sqlite"
 	"github.com/quantumclaw/quantumclaw/common/helper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	gormSqlite "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
-	"modernc.org/sqlite" // pure-Go SQLite, no cgo needed
 )
 
 // ── Setup Helpers ─────────────────────────────────────────────
 
-var registerModerncOnce sync.Once
+var testDbMu sync.Mutex
 
-// setupTestDB creates a fresh in-memory SQLite database using the pure-Go
-// modernc.org/sqlite driver (no cgo required), auto-migrates all tables
+// setupTestDB creates a fresh temporary SQLite database using the pure-Go
+// glebarez/sqlite driver (no cgo required), auto-migrates all tables
 // needed by billing tests, and returns the *gorm.DB handle.
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
-	registerModerncOnce.Do(func() {
-		sql.Register("sqlite_modernc", &sqlite.Driver{})
-	})
-
 	tempFile := filepath.Join(os.TempDir(), fmt.Sprintf("qc_billing_%d_%d.db", time.Now().UnixNano(), testUserCounter))
 	testUserCounter++
-	db, err := gorm.Open(
-		gormSqlite.New(gormSqlite.Config{
-			DriverName: "sqlite_modernc",
-			DSN:        tempFile,
-		}),
-		&gorm.Config{
-			SkipDefaultTransaction: false,
-		},
-	)
+	db, err := gorm.Open(sqlite.Open(tempFile), &gorm.Config{SkipDefaultTransaction: false})
 	require.NoError(t, err)
 
 	// Close and remove at cleanup
@@ -808,8 +794,8 @@ func TestCalculateMonthlyPlatformFee_Skipped(t *testing.T) {
 
 	// Directly create skipped + pending records to test GetPendingPlatformFees
 	// and the skip logic at the DB level.
-	CreatePlatformFeeRecord(userId, "2026-05", 0, 0, 0, PlatformFeeStatusSkipped)
-	CreatePlatformFeeRecord(userId, "2026-06", 20000, 5.0, 1000, PlatformFeeStatusPending)
+	CreatePlatformFeeRecord(0, userId, "2026-05", 0, 0, 0, PlatformFeeStatusSkipped)
+	CreatePlatformFeeRecord(0, userId, "2026-06", 20000, 5.0, 1000, PlatformFeeStatusPending)
 
 	// Pending fees should only return the pending one
 	pending, err := GetPendingPlatformFees(userId)
@@ -867,12 +853,12 @@ func TestGetPendingPlatformFees(t *testing.T) {
 
 	// Create some pending fees
 	for i := 1; i <= 3; i++ {
-		err := CreatePlatformFeeRecord(userId, fmt.Sprintf("2026-%02d", i), 10000, 5.0, 500, PlatformFeeStatusPending)
+		err := CreatePlatformFeeRecord(0, userId, fmt.Sprintf("2026-%02d", i), 10000, 5.0, 500, PlatformFeeStatusPending)
 		require.NoError(t, err)
 	}
 
 	// Create one deducted fee (should not show up)
-	err := CreatePlatformFeeRecord(userId, "2026-04", 10000, 5.0, 500, PlatformFeeStatusDeducted)
+	err := CreatePlatformFeeRecord(0, userId, "2026-04", 10000, 5.0, 500, PlatformFeeStatusDeducted)
 	require.NoError(t, err)
 
 	fees, err := GetPendingPlatformFees(userId)
@@ -895,7 +881,7 @@ func TestCreateWithdrawal_DeductsPendingFee(t *testing.T) {
 	})
 
 	// Create a pending platform fee of ¥5 (500分)
-	err := CreatePlatformFeeRecord(userId, "2026-05", 10000, 5.0, 500, PlatformFeeStatusPending)
+	err := CreatePlatformFeeRecord(0, userId, "2026-05", 10000, 5.0, 500, PlatformFeeStatusPending)
 	require.NoError(t, err)
 
 	// Create withdrawal request for ¥100 (10000分)
@@ -945,7 +931,7 @@ func TestGetUserWithdrawableBalance(t *testing.T) {
 	require.NoError(t, db.Create(&earning2).Error)
 
 	// Pending fee: ¥3 (300分)
-	err := CreatePlatformFeeRecord(userId, "2026-05", 6000, 5.0, 300, PlatformFeeStatusPending)
+	err := CreatePlatformFeeRecord(0, userId, "2026-05", 6000, 5.0, 300, PlatformFeeStatusPending)
 	require.NoError(t, err)
 
 	balance, err := GetUserWithdrawableBalance(userId)

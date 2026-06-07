@@ -247,6 +247,7 @@ func StartUpstreamUpdateCron() {
 
 	ticker := time.NewTicker(time.Duration(interval) * time.Minute)
 	go func() {
+		defer ticker.Stop()
 		for range ticker.C {
 			upstreamUpdateMu.Lock()
 			stillEnabled := channelUpstreamUpdateSetting.Enabled
