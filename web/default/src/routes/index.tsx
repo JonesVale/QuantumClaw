@@ -226,21 +226,29 @@ function HomePage() {
               </div>
             ))}
           </div>
-          <div className="border-t border-border/30 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <div className="flex flex-col sm:flex-row items-center gap-2">
-              <a href={companyUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground/40 hover:text-foreground/70 transition-colors">{t('Company Website')}</a>
-              <span className="hidden sm:inline text-muted-foreground/20">|</span>
-              <span>&copy; {new Date().getFullYear()} {t("Quantum Spirit Claw")}. {t('All rights reserved.')}</span>
-            </div>
-            <div className="flex items-center gap-6">
-              {icpBeian && (
-                <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-foreground cursor-pointer transition-colors text-muted-foreground/60">
-                  {icpBeian}
-                </a>
-              )}
-              <span className="hover:text-foreground cursor-pointer transition-colors">{t('Privacy')}</span>
-              <span className="hover:text-foreground cursor-pointer transition-colors">{t('Terms')}</span>
-            </div>
+          <div className="border-t border-border/30 mt-12 pt-8 flex flex-col items-center gap-4 text-sm text-muted-foreground">
+            <a
+              href={companyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-foreground hover:text-amber-600 transition-colors no-underline"
+            >
+              {t('Company Website') || '公司官网'}
+            </a>
+            <span className="text-muted-foreground/40">|</span>
+            <p className="text-muted-foreground/70">
+              © {new Date().getFullYear()} {t("Quantum Spirit Claw") || '量子灵爪'}. {t('All rights reserved.') || '保留所有权利。'}
+            </p>
+            {icpBeian && (
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground/50 hover:text-foreground/70 transition-colors text-xs"
+              >
+                {icpBeian}
+              </a>
+            )}
           </div>
         </div>
       </footer>

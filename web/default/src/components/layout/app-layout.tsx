@@ -12,7 +12,7 @@
 
 
 
-import { Suspense, useCallback, useMemo, useState } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { Link, Outlet, useLocation, useRouter } from '@tanstack/react-router'
 
@@ -674,6 +674,20 @@ function AppLayout() {
   const { t } = useT()
   const location = useLocation()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [companyUrl, setCompanyUrl] = useState('https://www.ctji.cn')
+  const [icpBeian, setIcpBeian] = useState('')
+
+  useEffect(() => {
+    fetch('/api/site-info')
+      .then(r => r.json())
+      .then((res: {success?: boolean; data?: Record<string, string>}) => {
+        if (res?.success && res?.data) {
+          if (res.data.company_website_url) setCompanyUrl(res.data.company_website_url)
+          if (res.data.icp_beian) setIcpBeian(res.data.icp_beian)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   const isNewsPage = location.pathname.startsWith('/news')
 
@@ -734,10 +748,30 @@ function AppLayout() {
         </main>
 
         {/* Footer */}
-        <footer className="border-t px-4 py-2 text-center text-xs text-muted-foreground">
-          <div className="flex items-center justify-center gap-4">
-            <p>{t('QuantumClaw')} &copy; {new Date().getFullYear()}</p>
-            <span className="text-base font-bold text-[oklch(0.72_0.18_52)]">QQ群: 587600277</span>
+        <footer className="border-t px-4 py-6 text-center text-xs text-muted-foreground">
+          <div className="flex flex-col items-center gap-1.5">
+            <a
+              href={companyUrl || 'https://www.ctji.cn'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm font-medium text-foreground hover:text-amber-600 transition-colors no-underline"
+            >
+              {t('Company Website') || '公司官网'}
+            </a>
+            <span className="text-muted-foreground/40">|</span>
+            <p className="text-muted-foreground/70">
+              © {new Date().getFullYear()} {t('QuantumClaw') || '量子灵爪'}. {t('All rights reserved.') || '保留所有权利。'}
+            </p>
+            {icpBeian && (
+              <a
+                href="https://beian.miit.gov.cn/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-muted-foreground/50 hover:text-foreground/70 transition-colors text-xs"
+              >
+                {icpBeian}
+              </a>
+            )}
           </div>
         </footer>
 
