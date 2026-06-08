@@ -1,8 +1,8 @@
-import { createFileRoute } from '@tanstack/react-router'
+﻿import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useRef, useCallback } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { getModels, type ModelInfo } from '@/lib/api-extended'
+import { getEnhancedModels, type EnhancedModel } from '@/lib/api-extended'
 import { getCommonHeaders } from '@/lib/api'
 
 export const Route = createFileRoute('/playground')({
@@ -19,13 +19,15 @@ function PlaygroundPage() {
   const [loading, setLoading] = useState(false)
   const [showSidebar, setShowSidebar] = useState(true)
   const ref = useRef<HTMLDivElement>(null)
+  const sessionTokens = useRef(0)
+  const sessionCost = useRef(0)
 
   const { data } = useQuery({
-    queryKey: ['models-chat'],
-    queryFn: async () => { const r = await getModels(); return r },
+    queryKey: ['enhanced-models-chat'],
+    queryFn: async () => { const r = await getEnhancedModels(); return r },
   })
-  const models: ModelInfo[] = data?.data || []
-  const chatModels = models.filter(m => m.use_case === 'chat' || !m.use_case)
+  const models: EnhancedModel[] = data?.data || []
+  const chatModels = models.filter(m => m.status === 1)
 
   const send = useCallback(async () => {
     if (!input.trim() || !model) return
@@ -40,12 +42,24 @@ function PlaygroundPage() {
         body: JSON.stringify({ model, messages: [{ role: 'user', content: input }] }),
       })
       const data = await r.json()
-      setMsgs(p => [...p, { role: 'assistant', content: data.choices?.[0]?.message?.content || 'No response' }])
+      const content = data.choices?.[0]?.message?.content || 'No response'
+      setMsgs(p => [...p, { role: 'assistant', content }])
+      // Track session tokens & cost
+      if (data.usage) {
+        const tokens = (data.usage.prompt_tokens || 0) + (data.usage.completion_tokens || 0)
+        sessionTokens.current += tokens
+        const selectedModel = chatModels.find((m: any) => m.name === model)
+        if (selectedModel?.input_price && selectedModel?.output_price) {
+          const cost = (data.usage.prompt_tokens || 0) * selectedModel.input_price
+            + (data.usage.completion_tokens || 0) * selectedModel.output_price
+          sessionCost.current += cost
+        }
+      }
     } catch {
       setMsgs(p => [...p, { role: 'assistant', content: 'Error: Request failed' }])
     }
     setLoading(false)
-  }, [input, model])
+  }, [input, model, chatModels])
 
   return (
     <div className="min-h-screen bg-background flex"
@@ -60,26 +74,42 @@ function PlaygroundPage() {
           {/* Controls */}
           <div className="qc-fade-up flex items-center gap-3 mb-4 flex-wrap">
             <select value={model} onChange={e => setModel(e.target.value)}
-              className="h-10 rounded-xl border border-border/30 bg-white/70 px-3 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all min-w-[180px]">
+              className="h-10 rounded-xl border border-border/30 bg-white/70 px-3 text-sm outline-none focus:border-[oklch(0.72_0.18_52)]/40 transition-all min-w-[240px]">
               <option value="">{t('Select model')}</option>
-              {chatModels.map((m: any) => (
-                <option key={m.name} value={m.name}>
-                  {m.name}{m.is_premium ? ' ⚠️' : ''}
-                </option>
-              ))}
+              <optgroup label={t('Input Price') + ' = $0.00/1K (' + t('Free') + ')'}>
+                {chatModels.filter((m: any) => m.sell_price_rate <= 1.0).map((m: any) => (
+                  <option key={m.name} value={m.name}>
+                    {m.name} — ${((m.input_price || 0) * 1000).toFixed(2)}/1K {m.provider ? '(' + m.provider + ')' : ''}
+                  </option>
+                ))}
+              </optgroup>
+              <optgroup label={t('Input Price') + ' > $0.00/1K'}>
+                {chatModels.filter((m: any) => m.sell_price_rate > 1.0).map((m: any) => (
+                  <option key={m.name} value={m.name}>
+                    {m.name} — ${((m.input_price || 0) * 1000).toFixed(2)}/1K{m.is_premium ? ' \u26A0' : ''} {m.provider ? '(' + m.provider + ')' : ''}
+                  </option>
+                ))}
+              </optgroup>
             </select>
             {(() => {
               const selected = chatModels.find((m: any) => m.name === model)
-              if (selected?.is_premium) {
+              if (selected) {
+                const inp1k = ((selected.input_price || 0) * 1000).toFixed(4)
+                const out1k = ((selected.output_price || 0) * 1000).toFixed(4)
+                const isPrem = selected.is_premium || selected.sell_price_rate > 1.2
                 return (
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 border border-amber-200">
-                    ⚠️ {t('Premium channel')} — {selected.channel_name} ({(selected.sell_price_rate * 100).toFixed(0)}% {t('of base price')})
-                  </div>
+                  <div className={'inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border whitespace-nowrap ' + (isPrem ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200')}>
+                    <span className="opacity-60 font-mono">{selected.provider || selected.channel_name}</span>
+                    <span className="opacity-30">|</span>
+                    <span>{t('Input Price')}: ${inp1k}/1K</span>
+                    <span className="opacity-30">|</span>
+                    <span>{t('Output Price')}: ${out1k}/1K</span>
+                    {isPrem && <span className="opacity-60">({(selected.sell_price_rate * 100).toFixed(0)}% {t('of base price')})</span>}</div>
                 )
               }
               return null
             })()}
-            <button onClick={() => { setMsgs([]); setInput('') }}
+            <button onClick={() => { setMsgs([]); setInput(''); sessionTokens.current = 0; sessionCost.current = 0 }}
               className="h-10 px-3 rounded-xl border border-border/30 bg-white/70 hover:bg-muted/40 text-xs text-muted-foreground transition-all flex items-center gap-1.5">
               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/><path d="M5 6v12a2 2 0 002 2h10a2 2 0 002-2V6"/></svg>
               {t('Clear')}
@@ -90,6 +120,18 @@ function PlaygroundPage() {
               {t('Settings')}
             </button>
           </div>
+          {(sessionTokens.current > 0) && (
+          <div className="qc-fade-up flex items-center gap-3 mb-3 flex-wrap">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/50 border border-border/10 text-xs text-muted-foreground">
+              <svg className="w-3.5 h-3.5 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+              <span>{t('Tokens used')}: {sessionTokens.current.toLocaleString()}</span>
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/50 border border-border/10 text-xs text-muted-foreground">
+              <svg className="w-3.5 h-3.5 opacity-50" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              <span>{t('Estimated cost')}: ${sessionCost.current.toFixed(6)}</span>
+            </div>
+          </div>
+          )}
 
           {/* Messages */}
           <div ref={ref} className="flex-1 overflow-y-auto space-y-4 mb-4 min-h-[300px] rounded-2xl bg-white/40 border border-border/10 p-4">

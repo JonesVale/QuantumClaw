@@ -264,6 +264,8 @@ func SetApiRouter(router *gin.Engine) {
 
 				selfRoute.GET("/token", controller.GenerateAccessToken)
 
+			selfRoute.GET("/jwt", controller.GenerateJWT)
+
 				selfRoute.GET("/aff", controller.GetAffCode)
 
 				selfRoute.POST("/topup", controller.TopUp)
@@ -410,6 +412,9 @@ func SetApiRouter(router *gin.Engine) {
 				adminRoute.DELETE("/:id", controller.DeleteUser)
 
 				adminRoute.POST("/add_balance", controller.AdminAddBalance)
+
+				adminRoute.GET("/audit_logs", controller.AdminGetAuditLogs)
+				adminRoute.POST("/audit_logs/rollback", controller.AdminRollbackBalanceLog)
 
 				adminRoute.GET("/balance/:id", controller.GetUserBalanceByAdmin)
 

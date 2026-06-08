@@ -1,4 +1,4 @@
-# QuantumClaw 全量任务规划
+﻿# QuantumClaw 全量任务规划
 
 ## 项目总览
 
@@ -138,23 +138,21 @@
 
 ### Batch 4B：消费/结算
 
-#### 4B-1：供应商分账系统优化（3h）
-- **位置**：`service/cash_billing.go:PostConsumeDeduct`
-- **现状**：分账到渠道所有者，但分账比例硬编码
-- **目标**：
-  - 渠道级 `profit_split` 分账比例（现状 `channel.UserId > 0` 时全部分给渠道所有者）
-  - 平台抽成比例可配置
-  - 分账日志/报表
-- **文件**：`model/channel.go`, `service/cash_billing.go`, `controller/channel.go`
+#### 4B-1：供应商分账系统优化 ✅（已实现，含前端 UI）
+- **位置**：`service/cash_billing.go:PostConsumeDeduct` + 前端 `channels.tsx`
+- **现状**：`channel.ProfitSplit` 字段已存在（model/channel.go），`PostConsumeDeduct` 已使用分账逻辑
+- **已完成**：
+  - 渠道级 `profit_split` 分账比例（后端 ✅ + 前端表单输入框 ✅ + 表格展示 ✅）
+  - 前端在 Channel 编辑/创建表单中可设置 Profit Split（0-1），表格显示为百分比
+- **文件**：`model/channel.go`, `service/cash_billing.go`, `api-extended.ts`, `channels.tsx`, `zh-CN.json`, `en.json`
 
-#### 4B-2：异常结算处理（2h）
-- **位置**：`model/billing.go`
-- **现状**：`Debt` 字段（追偿挂账）已存在但无完整处理流程
-- **目标**：
-  - 余额不足但请求已转发完成 → 记 `Debt`（负数余额）
-  - 下次充值自动扣还
-  - 长期不还 → 禁用账号
-- **文件**：`model/user.go`, `relay/billing/billing.go`
+#### 4B-2：异常结算处理 ✅（已实现）
+- **位置**：`service/cash_billing.go:recordDebt` + `model/settlement_hourly.go`
+- **已完成**：
+  - 余额不足但请求已转发完成 → 记 `Debt` + `DebtSince` ✅
+  - 下次充值自动扣还 ✅（`model/settlement_hourly.go:CalculateAndRecoverDebt`）
+  - 长期不还 → 自动禁用账号 ✅（`CheckSuspendedDebtUsers` 已接入 `RunHourlySettlement`）
+- **文件**：`model/user.go`, `service/cash_billing.go`, `model/settlement_hourly.go`, `model/main.go`
 
 ---
 
@@ -164,19 +162,19 @@
 
 | # | 任务 | 工时 | 优先级 | 说明 |
 |:-:|------|:----:|:------:|------|
-| 5A-1 | JWT Token 鉴权 | 8h | 中 | 支持双模式（session + JWT），多机部署必须 |
-| 5A-2 | Redis Session 共享 | 3h | 中 | 当前 `REDIS_HOST` 已配但可能未启用 |
-| 5A-3 | 计费流水审计日志 | 4h | 低 | 余额变更全量日志，支持回滚 |
-| 5A-4 | SQLite → MySQL 迁移文档 | 2h | 低 | 已有双 DB 支持但迁移流程不清晰 |
+| 5A-1 | JWT Token 鉴权 | 8h | 中 | 支持双模式（session + JWT），多机部署必须 | ✅
+| 5A-2 | Redis Session 共享 | 3h | 中 | ✅ 已实现（main.go:461-475），增加错误处理 + 告警日志 |
+| 5A-3 | 计费流水审计日志 | 4h | 低 | 余额变更全量日志，支持回滚 | ✅
+| 5A-4 | SQLite → MySQL 迁移文档 | 2h | 低 | 已有双 DB 支持但迁移流程不清晰 | ✅
 
 ### Batch 5B：运维/部署
 
 | # | 任务 | 工时 | 优先级 |
 |:-:|------|:----:|:------:|
-| 5B-1 | Docker Compose 一键部署 | 2h | 低 |
-| 5B-2 | nginx 配置示例 | 1h | 低 |
-| 5B-3 | 备份/恢复脚本（含密钥） | 2h | 中 |
-| 5B-4 | 健康检查端点 + Prometheus 集成 | 3h | 低 |
+| 5B-1 | Docker Compose 一键部署 | 2h | 低 | ✅
+| 5B-2 | nginx 配置示例 | 1h | 低 | ✅
+| 5B-3 | 备份/恢复脚本（含密钥） | 2h | 中 | ✅
+| 5B-4 | 健康检查端点 + Prometheus 集成 | 3h | 低 | ✅
 
 ---
 
@@ -190,11 +188,11 @@
        │  ✅ 3A-1: Dist加密        ✅ 2B-1: 扣费优先级
        │                         ✅ 2A-2: 密码强度可配置
        ├────────────────────────────────────────────────────┤
- 中等  │  ✅ 4A-1: 佣金独立池     ✅ 3A-2: 价格int64化     ❌ 5A-2: Redis
-       │  ✅ 2C-1: 供应商审批     ❌ 4B-1: 分账优化
-       │  ✅ 4A-2: 多级返佣       ❌ 4B-2: 异常结算
+ 中等  │  ✅ 4A-1: 佣金独立池     ✅ 3A-2: 价格int64化     ✅ 5A-2: Redis
+       │  ✅ 2C-1: 供应商审批     ✅ 4B-1: 分账优化
+       │  ✅ 4A-2: 多级返佣       ✅ 4B-2: 异常结算
        ├────────────────────────────────────────────────────┤
- 困难  │  ❌ 5A-1: JWT            ❌ 4B-2: 异常结算        ❌ 5B-x: 运维
+ 困难  │  ❌ 5A-1: JWT            ✅ Batch D: 前端高价       ❌ 5B-x: 运维
        │                         ❌ 5A-3: 审计日志
        └────────────────────────────────────────────────────┘
 ```
@@ -204,12 +202,25 @@
 ## 建议执行顺序
 
 ```
-剩余任务
-  ├── 4B-1: 分账比例配置化 (渠道级 profit_split)
-  ├── 4B-2: 异常结算处理 (Debt 追偿)
-  ├── 5A-2: Redis Session 共享 (多机部署)
-  ├── Batch D: 前端高价提示 (Playground 价格对比)
-  └── 5A-1: JWT + 5A-3: 审计日志 + 5B-x
+✅ 已完成
+  ├── 4B-1: 分账比例配置化 (渠道级 profit_split + 前端 UI)
+  ├── 4B-2: 异常结算处理 (Debt 追偿 + 自动封号)
+  ├── 5A-2: Redis Session 共享 (多机部署 + 错误告警)
+  └── Batch D: 前端高价提示 (Playground 价格对比 + 会话费用追踪)
+
+已完成（本轮）
+  ├── 5A-1: JWT Token 鉴权 ✅
+  ├── 5A-3: 计费流水审计日志 ✅
+  └── 5A-4: SQLite → MySQL 迁移文档 ✅
+
+✅ PLAN.md 所有任务已完成！
+
+可选后续工作：
+  ├── 提交当前 23 个文件
+  ├── 测试 Docker Compose 生产部署
+  ├── 更新 README.md 和 API 文档
+  ├── 性能压测（Redis Session + JWT）
+  └── 发版 v2.3.0
 
 长期
   └── 前端高价提示 (Playground/模型选择器) + 前端首选供应商设置
@@ -233,3 +244,6 @@
 4A-2 多级返佣       ───  依赖 4A-1
 4B-1 分账优化       ───  依赖 4A-1
 ```
+
+
+

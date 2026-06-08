@@ -54,6 +54,7 @@ export interface Channel {
   weight: number
   cost_per_unit: number
   sell_price_rate: number
+  profit_split: number
   used_quota: number
   created_time: number
   category: string
@@ -678,6 +679,7 @@ export interface ChannelFormData {
   thinking_to_content?: boolean
   cost_per_unit?: number
   sell_price_rate?: number
+  profit_split?: number
   category?: string
 }
 
@@ -2261,5 +2263,63 @@ export async function getOrgApprovals(orgId: number, status?: string): Promise<A
 }
 export async function processApproval(orgId: number, id: number, action: 'approve' | 'reject', remark?: string): Promise<ApiResponse> {
   const res = await apiClient.post(`/api/org/${orgId}/approvals/${id}/process`, { action, remark })
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// JWT Token API
+// ---------------------------------------------------------------------------
+
+/**
+ * Request a stateless JWT token for the authenticated user.
+ * The token is signed with JWT_SECRET and valid for 24h by default.
+ * Useful for distributed / multi-instance deployments where session state
+ * should not be pinned to a single server.
+ */
+export async function generateJWT(): Promise<ApiResponse<string>> {
+  const res = await apiClient.get('/api/user/self/jwt')
+  return res.data
+}
+
+// ---------------------------------------------------------------------------
+// Admin Balance Audit Log API (5A-3)
+// ---------------------------------------------------------------------------
+
+export interface BalanceLogItem {
+  id: number
+  user_id: number
+  type: string  // recharge / consume / refund / admin / topup / debt_recovery / debt_deduct
+  amount: number  // cents, positive = increase, negative = decrease
+  balance: number  // balance after change
+  channel_id: number
+  remark: string
+  related_log_id: number  // 0 = original, >0 = rollback of that log
+  created_at: number
+}
+
+export interface BalanceLogListResult {
+  logs: BalanceLogItem[]
+  total: number
+  page: number
+  page_size: number
+}
+
+/** Admin: list all balance logs (paginated) */
+export async function getAuditLogs(params: {
+  user_id?: number
+  page?: number
+  page_size?: number
+}): Promise<ApiResponse<BalanceLogListResult>> {
+  const qs = new URLSearchParams()
+  if (params.user_id) qs.set('user_id', String(params.user_id))
+  if (params.page) qs.set('page', String(params.page))
+  if (params.page_size) qs.set('page_size', String(params.page_size))
+  const res = await apiClient.get(`/api/admin/audit_logs?${qs.toString()}`)
+  return res.data
+}
+
+/** Admin: rollback a balance transaction by log ID */
+export async function rollbackAuditLog(logId: number, remark?: string): Promise<ApiResponse<BalanceLogItem>> {
+  const res = await apiClient.post('/api/admin/audit_logs/rollback', { log_id: logId, remark })
   return res.data
 }

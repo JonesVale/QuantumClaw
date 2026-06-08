@@ -1,7 +1,8 @@
-package model
+﻿package model
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/quantumclaw/quantumclaw/common/helper"
@@ -228,6 +229,14 @@ func RunHourlySettlement() {
 	logger.Info(nil, fmt.Sprintf("[HourlySettlement] 对账完成 %s | 请求=%d 收入=%.2f 成本=%.2f 利润=%.2f(%.1f%%) 亏损=%.2f 追回=%.2f",
 		hour, hs.TotalRequests, hs.UserRevenue, hs.UpstreamCost+hs.CommissionPaid,
 		hs.GrossProfit, hs.ProfitMargin, hs.LossAmount, hs.DebtCollected))
+
+	// 4. 检查长期欠费用户并自动封号
+	suspended, suspendErr := CheckSuspendedDebtUsers()
+	if suspendErr != nil {
+		logger.Error(nil, fmt.Sprintf("[HourlySettlement] debt suspend check failed: %v", suspendErr))
+	} else if suspended > 0 {
+		logger.Info(nil, fmt.Sprintf("[HourlySettlement] 长期欠费封号: %d 个用户被禁用", suspended))
+	}
 }
 
 // GetHourlySettlements 获取对账记录（分页）
@@ -247,4 +256,66 @@ func parseHourStart(hour string) int64 {
 		panic(fmt.Sprintf("parseHourStart: 无法解析小时格式 %q: %v", hour, err))
 	}
 	return t.Unix()
+}
+
+// CheckSuspendedDebtUsers 检查长期欠费用户并自动禁用账号
+// 欠费超过阈值(默认10000分=$100)且首次欠费时间超过30天的用户，自动禁用
+// 返回被禁用的用户数和错误信息
+func CheckSuspendedDebtUsers() (suspended int, err error) {
+	threshold := int64(10000) // 默认 $100 阈值
+	days := int64(30)       // 默认 30 天
+
+	// 从 platform_config 读取配置
+	var cfg PlatformConfig
+	if DB.Where("`key` = ?", "debt_suspend_threshold_cents").First(&cfg).Error == nil {
+		if v, e := strconv.ParseInt(cfg.Value, 10, 64); e == nil && v > 0 {
+			threshold = v
+		}
+	}
+	if DB.Where("`key` = ?", "debt_suspend_days").First(&cfg).Error == nil {
+		if v, e := strconv.ParseInt(cfg.Value, 10, 64); e == nil && v > 0 {
+			days = v
+		}
+	}
+
+	cutoff := time.Now().Unix() - days*86400
+
+	type debtUser struct {
+		Id        int
+		Debt      int64
+		DebtSince int64
+	}
+	var users []debtUser
+
+	// 查找欠费超过阈值且首次欠费超过N天的用户
+	err = DB.Table("user").
+		Where("debt >= ? AND debt_since > 0 AND debt_since <= ?", threshold, cutoff).
+		Select("id, debt, debt_since").
+		Find(&users).Error
+	if err != nil {
+		return 0, fmt.Errorf("query debt users: %w", err)
+	}
+
+	if len(users) == 0 {
+		return 0, nil
+	}
+
+	suspended = len(users)
+	err = DB.Transaction(func(tx *gorm.DB) error {
+		for _, u := range users {
+			if err := tx.Model(&User{}).Where("id = ?", u.Id).
+				Update("status", UserStatusDisabled).Error; err != nil {
+				logger.Warn(nil, fmt.Sprintf("debt suspend: failed to disable user %d: %v", u.Id, err))
+				continue
+			}
+			RecordLog(nil, int(u.Id), LogTypeSystem,
+					fmt.Sprintf("长期欠费自动封号：欠费%d分，首次欠费时间%d(%s)",
+						u.Debt, u.DebtSince, time.Unix(u.DebtSince, 0).Format("2006-01-02")))
+			logger.Info(nil, fmt.Sprintf("[DebtSuspend] user %d suspended, debt=%d cents, since=%s",
+					u.Id, u.Debt, time.Unix(u.DebtSince, 0).Format("2006-01-02")))
+		}
+		return nil
+	})
+
+	return suspended, err
 }

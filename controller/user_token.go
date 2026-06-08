@@ -1,4 +1,4 @@
-package controller
+﻿package controller
 
 // ============================================================
 // user_token.go — Access Token / 推广码管理
@@ -12,8 +12,10 @@ import (
 
 	"github.com/quantumclaw/quantumclaw/common"
 	"github.com/quantumclaw/quantumclaw/common/ctxkey"
+	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/random"
 	"github.com/quantumclaw/quantumclaw/model"
+	"github.com/quantumclaw/quantumclaw/service"
 )
 
 func GenerateAccessToken(c *gin.Context) {
@@ -51,6 +53,31 @@ func GenerateAccessToken(c *gin.Context) {
 		"data":    rawToken,
 	})
 	return
+}
+
+// GenerateJWT issues a stateless JWT token for the authenticated user.
+// Useful for distributed / multi-instance deployments where session state
+// should not be pinned to a single server.
+func GenerateJWT(c *gin.Context) {
+	id := c.GetInt(ctxkey.Id)
+	username := c.GetString(ctxkey.Username)
+	role := c.GetInt(ctxkey.Role)
+
+	token, err := service.IssueJWT(id, username, role)
+	if err != nil {
+		logger.SysErrorf("failed to issue JWT for user %d: %v", id, err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"success": false,
+			"message": "无法生成 JWT 令牌，请稍后重试",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"success": true,
+		"message": "",
+		"data":    token,
+	})
 }
 
 func GetAffCode(c *gin.Context) {

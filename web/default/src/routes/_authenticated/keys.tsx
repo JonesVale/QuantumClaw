@@ -39,6 +39,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   type Token, type TokenFormData,
   getTokens, createToken, updateToken, deleteToken, manageToken,
+  generateJWT,
 } from '@/lib/api-extended'
 import { toast } from 'sonner'
 import dayjs from '@/lib/dayjs'
@@ -293,6 +294,10 @@ function KeysPage() {
   // Delete confirmation dialog state
   const [deleteTarget, setDeleteTarget] = useState<Token | null>(null)
 
+  // JWT generation state
+  const [jwtKey, setJwtKey] = useState<string | null>(null)
+  const [jwtLoading, setJwtLoading] = useState(false)
+
   const { data, isLoading } = useQuery({
     queryKey: ['tokens', search],
     queryFn: () => getTokens(search ? { keyword: search } : undefined),
@@ -512,6 +517,32 @@ function KeysPage() {
         >
           <Plus className="h-4 w-4" />
           {t('Create Token')}
+        </Button>
+        <Button
+          variant="outline"
+          className="gap-2"
+          disabled={jwtLoading}
+          onClick={async () => {
+            setJwtLoading(true)
+            try {
+              const res = await generateJWT()
+              if (res.success && res.data) {
+                setJwtKey(res.data as unknown as string)
+              } else {
+                toast.error(res.message || t('Failed to generate JWT'))
+              }
+            } catch (e: any) {
+              toast.error(e?.message || t('Failed to generate JWT'))
+            } finally {
+              setJwtLoading(false)
+            }
+          }}
+        >
+          {jwtLoading ? (
+            <>{t('Generating...')}</>
+          ) : (
+            <>{t('Generate JWT')}</>
+          )}
         </Button>
       </div>
 
@@ -746,6 +777,58 @@ function KeysPage() {
         }}
         pending={deleteMutation.isPending}
       />
+
+      {/* JWT Result Dialog */}
+      <Dialog open={!!jwtKey} onOpenChange={(v) => { if (!v) setJwtKey(null) }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+              <CheckCircle className="h-5 w-5" />
+              {t('JWT Generated')}
+            </DialogTitle>
+            <DialogDescription>
+              {t('Please save your JWT token, it will not be shown again')}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">{t('Your JWT Token')}</Label>
+              <div className="flex items-center gap-2">
+                <code className="flex-1 px-3 py-2.5 rounded-lg bg-muted border text-sm font-mono break-all select-all">
+                  {jwtKey}
+                </code>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(jwtKey || '')
+                    toast.success(t('Copied to clipboard'))
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold">{t('Usage')}</Label>
+              <pre className="px-3 py-2.5 rounded-lg bg-muted border text-xs font-mono overflow-x-auto whitespace-pre-wrap">
+{`# Use JWT for API calls (24h expiry)
+curl ${window.location.origin}/v1/chat/completions \\
+  -H "Authorization: Bearer ${jwtKey?.slice(0, 20)}..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model":"gpt-4","messages":[{"role":"user","content":"hello"}]}'`}
+              </pre>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setJwtKey(null)}>
+              {t('Done')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

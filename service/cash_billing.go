@@ -14,6 +14,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/relay/meta"
 	relaymodel "github.com/quantumclaw/quantumclaw/relay/model"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // ==================== 现金计费 — 消费后扣款 ====================
@@ -278,6 +279,9 @@ func PostConsumeDeduct(ctx context.Context, meta *meta.Meta, usage *relaymodel.U
 	model.UpdateUserUsedQuotaAndRequestCount(meta.UserId, quota)
 	model.UpdateChannelUsedQuota(meta.ChannelId, quota)
 
+	// 7.5 记录 TokenTransaction 流水（供每小时对账 + Debt 追偿）
+	recordTokenTransaction(ctx, meta, usage, textRequest, channel, priceCents, consumeLogId)
+
 	// 8. 异步触发实时对账（不阻塞主请求）
 	go TriggerReconciliation(ctx, meta.UserId, meta.ChannelId, consumeLogId, priceCents,
 		func() int64 {
@@ -369,7 +373,22 @@ func quotaToPrice(quota int64, costPerUnit, sellPriceRate float64) int64 {
 // recordDebt 记录追偿挂账（仅记账，不封号）
 // 用户余额不足时记录欠费用于追踪，不影响登录和使用
 // 欠费用户在下次请求时会直接在 API 层面被拒绝，但依然可以登录和充值
+// 首次欠费时记录 debt_since 时间戳，供长期欠费封号使用
 func recordDebt(ctx context.Context, userId int, amount int64) {
+	// 读取当前债务（悲观锁，避免并发竞态）
+	var user model.User
+	if err := model.DB.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("id = ?", userId).First(&user).Error; err != nil {
+		logger.Warnf(ctx, "recordDebt: user %d not found, skip", userId)
+		return
+	}
+
+	// 首次欠费：记录 debt_since
+	if user.Debt <= 0 {
+		model.DB.Model(&model.User{}).Where("id = ?", userId).
+			Update("debt_since", helper.GetTimestamp())
+	}
+
 	model.DB.Model(&model.User{}).Where("id = ?", userId).
 		UpdateColumn("debt", gorm.Expr("COALESCE(debt,0) + ?", amount))
 	var totalDebt int64
@@ -377,6 +396,58 @@ func recordDebt(ctx context.Context, userId int, amount int64) {
 	model.RecordLog(ctx, userId, model.LogTypeSystem,
 		fmt.Sprintf("消费追偿挂账 %d 分，累计欠费 %d 分", amount, totalDebt))
 	logger.Warnf(ctx, "user %d: debt %d added, total debt %d", userId, amount, totalDebt)
+}
+
+// recordTokenTransaction 记录 API 调用交易流水到 token_transaction 表
+// 供 HourlySettlement 聚合对账 + CalculateAndRecoverDebt 追偿使用
+func recordTokenTransaction(ctx context.Context, meta *meta.Meta, usage *relaymodel.Usage,
+	textRequest *relaymodel.GeneralOpenAIRequest, channel *model.Channel, priceCents int64, consumeLogId int) {
+
+	totalTokens := usage.PromptTokens + usage.CompletionTokens
+	if totalTokens == 0 {
+		return
+	}
+
+	tokenK := float64(totalTokens) / 1000.0
+	totalAmountUSD := float64(priceCents) / 100.0
+
+	cfg, _ := model.GetSettlementConfig(textRequest.Model)
+	unifiedCost := cfg.UnifiedCost * tokenK
+	commissionAmount := totalAmountUSD * cfg.CommissionRate
+	platformFee := totalAmountUSD * cfg.PlatformFeeRate
+
+	isFallback := 0
+	if meta.IsFallback {
+		isFallback = 1
+	}
+
+	channelOwnerId := meta.ChannelOwnerId
+	if channelOwnerId == 0 && channel.UserId > 0 {
+		channelOwnerId = channel.UserId
+	}
+
+	tx := &model.TokenTransaction{
+		LogId:            consumeLogId,
+		UserId:           meta.UserId,
+		ModelName:        textRequest.Model,
+		PromptTokens:     usage.PromptTokens,
+		CompletionTokens: usage.CompletionTokens,
+		ChannelId:        meta.ChannelId,
+		ChannelOwnerId:   channelOwnerId,
+		PromoterId:       meta.PromoterId,
+		IsFallback:       isFallback,
+		UnitPrice:        totalAmountUSD / tokenK,
+		TotalAmount:      totalAmountUSD,
+		UnifiedCost:      unifiedCost,
+		CommissionAmount: commissionAmount,
+		PlatformFee:      platformFee,
+		KeyProviderCost:  unifiedCost, // 初始 = 统一成本，Key 贡献者可后续修正
+	}
+
+	if err := model.CreateTransaction(tx); err != nil {
+		logger.Error(ctx, fmt.Sprintf("record token transaction: %v (user=%d model=%s)",
+			err, meta.UserId, textRequest.Model))
+	}
 }
 
 // ==================== 成本倒挂检测 ====================

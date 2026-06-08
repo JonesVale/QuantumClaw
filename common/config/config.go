@@ -1,4 +1,4 @@
-package config
+﻿package config
 
 import (
 	"fmt"
@@ -41,6 +41,13 @@ var SessionSecret = func() string {
 		return s
 	}
 	return uuid.New().String()
+}()
+
+var JWTSecret = func() string {
+	if s := os.Getenv("JWT_SECRET"); s != "" {
+		return s
+	}
+	return uuid.New().String() + uuid.New().String()
 }()
 
 var OptionMap map[string]string

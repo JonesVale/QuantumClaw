@@ -299,7 +299,9 @@ func migrateDB() error {
 			"transaction_fee_foreign_min":   "5.00",
 			"new_user_trial_balance_cents": "0",
 			"platform_fee_min_revenue_cents": "100",
-			"platform_fee_rate_percent":     "5.0",
+			"platform_fee_rate_percent":      "5.0",
+			"debt_suspend_threshold_cents":  "10000",
+			"debt_suspend_days":             "30",
 			"icp_beian":                     "粤ICP备2021033000号-2",
 		}
 		now := helper.GetTimestamp()

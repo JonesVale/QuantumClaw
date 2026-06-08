@@ -1,7 +1,11 @@
-package middleware
+﻿package middleware
 
 import (
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/quantumclaw/quantumclaw/common/blacklist"
@@ -9,9 +13,7 @@ import (
 	"github.com/quantumclaw/quantumclaw/common/logger"
 	"github.com/quantumclaw/quantumclaw/common/network"
 	"github.com/quantumclaw/quantumclaw/model"
-	"net/http"
-	"strings"
-	"time"
+	"github.com/quantumclaw/quantumclaw/service"
 )
 
 // sessionMaxAge is the maximum session lifetime in seconds (24 hours)
@@ -42,31 +44,48 @@ func authHelper(c *gin.Context, minRole int) {
 	}
 
 	if username == nil {
-		// Check access token
-		accessToken := c.Request.Header.Get("Authorization")
-		if accessToken == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{
-				"success": false,
-				"message": "无权进行此操作，未登录且未提供 access token",
-			})
-			c.Abort()
-			return
+		// 1) Try JWT token (for distributed / stateless auth)
+		jwtHeader := c.Request.Header.Get("Authorization")
+		jwtToken := strings.TrimPrefix(jwtHeader, "Bearer ")
+		if jwtToken != "" && jwtToken != jwtHeader {
+			jwtUser, jwtErr := service.VerifyJWT(jwtToken)
+			if jwtErr == nil && jwtUser != nil {
+				// Token is valid
+				username = jwtUser.Username
+				role = jwtUser.Role
+				id = jwtUser.Id
+				status = jwtUser.Status
+				orgId = jwtUser.OrganizationID
+			}
 		}
-		user := model.ValidateAccessToken(accessToken)
-		if user != nil && user.Username != "" {
-			// Token is valid
-			username = user.Username
-			role = user.Role
-			id = user.Id
-			status = user.Status
-			orgId = user.OrganizationID
-		} else {
-			c.JSON(http.StatusOK, gin.H{
-				"success": false,
-				"message": "无权进行此操作，access token 无效",
-			})
-			c.Abort()
-			return
+
+		// 2) Fall back to access token
+		if username == nil {
+			accessToken := c.Request.Header.Get("Authorization")
+			if accessToken == "" {
+				c.JSON(http.StatusUnauthorized, gin.H{
+					"success": false,
+					"message": "无权进行此操作，未登录且未提供 access token",
+				})
+				c.Abort()
+				return
+			}
+			user := model.ValidateAccessToken(accessToken)
+			if user != nil && user.Username != "" {
+				// Token is valid
+				username = user.Username
+				role = user.Role
+				id = user.Id
+				status = user.Status
+				orgId = user.OrganizationID
+			} else {
+				c.JSON(http.StatusOK, gin.H{
+					"success": false,
+					"message": "无权进行此操作，access token 无效",
+				})
+				c.Abort()
+				return
+			}
 		}
 	}
 

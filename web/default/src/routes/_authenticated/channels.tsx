@@ -52,7 +52,7 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
 
   // Selected models as array (for multi-select)
   const [selectedModels, setSelectedModels] = useState<string[]>([])
-  const [form, setForm] = useState<ChannelFormData>({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, thinking_to_content: false })
+  const [form, setForm] = useState<ChannelFormData>({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, profit_split: 0.85, thinking_to_content: false })
   function parseConfig(config?: string): { cache_billing_ratio?: number; thinking_to_content?: boolean } {
     if (!config) return {}
     try { const parsed = JSON.parse(config); return { cache_billing_ratio: typeof parsed.cache_billing_ratio === 'number' ? parsed.cache_billing_ratio : undefined, thinking_to_content: typeof parsed.thinking_to_content === 'boolean' ? parsed.thinking_to_content : undefined } }
@@ -80,11 +80,11 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
   useEffect(() => {
     if (channel && channel !== prevChannel.current) {
       const cfg = parseConfig(channel.config)
-      setForm({ type: channel.type || 1, key: '', name: channel.name || '', base_url: channel.base_url || '', models: channel.models || '', group: channel.group || 'default', model_mapping: '', priority: 0, weight: channel.weight || 1, cache_billing_ratio: cfg.cache_billing_ratio ?? 0, cost_per_unit: channel.cost_per_unit || 0, sell_price_rate: channel.sell_price_rate || 1, thinking_to_content: cfg.thinking_to_content ?? false })
+      setForm({ type: channel.type || 1, key: '', name: channel.name || '', base_url: channel.base_url || '', models: channel.models || '', group: channel.group || 'default', model_mapping: '', priority: 0, weight: channel.weight || 1, cache_billing_ratio: cfg.cache_billing_ratio ?? 0, cost_per_unit: channel.cost_per_unit || 0, sell_price_rate: channel.sell_price_rate || 1, profit_split: channel.profit_split || 0.85, thinking_to_content: cfg.thinking_to_content ?? false })
       const td = findTypeById(channel.type)
       setSelectedModels(td?.models?.filter((m: string) => channel.models?.includes(m)) || [])
     }
-    if (!channel) { setForm({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, thinking_to_content: false }); setSelectedModels([]) }
+    if (!channel) { setForm({ type: 1, key: '', name: '', base_url: '', models: '', group: 'default', model_mapping: '', priority: 0, weight: 1, cache_billing_ratio: 0, cost_per_unit: 0, sell_price_rate: 1, profit_split: 0.85, thinking_to_content: false }); setSelectedModels([]) }
     prevChannel.current = channel
   }, [channel])
   const createMutation = useMutation({ mutationFn: createChannel, onSuccess: () => { toast.success(t('Channel created')); queryClient.invalidateQueries({ queryKey: ['channels'] }); onOpenChange(false) }, onError: () => toast.error(t('Failed to create channel')) })
@@ -148,6 +148,7 @@ function ChannelFormDialog({ open, onOpenChange, channel, creatingNew }: {
           </div>
           <div className="grid gap-2"><Label htmlFor="cost_per_unit">{t('Cost Per Unit')}</Label><Input id="cost_per_unit" type="number" min="0" step="0.0001" value={form.cost_per_unit ?? 0} onChange={(e) => setForm({ ...form, cost_per_unit: parseFloat(e.target.value) || 0 })} placeholder="0" /></div>
           <div className="grid gap-2"><Label htmlFor="sell_price_rate">{t('Sell Price Rate')}</Label><Input id="sell_price_rate" type="number" min="0" step="0.1" value={form.sell_price_rate ?? 1} onChange={(e) => setForm({ ...form, sell_price_rate: parseFloat(e.target.value) || 1 })} placeholder="1.0" /></div>
+          <div className="grid gap-2"><Label htmlFor="profit_split">{t('Profit Split')}</Label><Input id="profit_split" type="number" min="0" max="1" step="0.01" value={form.profit_split ?? 0.85} onChange={(e) => setForm({ ...form, profit_split: parseFloat(e.target.value) || 0.85 })} placeholder="0.85" /><p className="text-xs text-muted-foreground">{t('Revenue percentage to channel owner (0-1)')}</p></div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>{t('Cancel')}</Button>
             <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
@@ -239,6 +240,7 @@ function ChannelsPage() {
                     <TableHead>{t('Type')}</TableHead>
                     <TableHead>{t('Group')}</TableHead>
                     <TableHead>{t('Cost')}</TableHead>
+                    <TableHead>{t('Profit Split')}</TableHead>
                     <TableHead>{t('Status')}</TableHead>
                     <TableHead>{t('Weight')}</TableHead>
                     <TableHead>{t('Created')}</TableHead>
@@ -247,7 +249,7 @@ function ChannelsPage() {
                 </TableHeader>
                 <TableBody>
                   {isLoading ? Array.from({ length: 5 }).map((_, i) => (
-                    <TableRow key={i}>{Array.from({ length: 9 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-16" /></TableCell>)}</TableRow>
+                    <TableRow key={i}>{Array.from({ length: 10 }).map((_, j) => <TableCell key={j}><Skeleton className="h-4 w-16" /></TableCell>)}</TableRow>
                   )) : filtered.map((channel) => (
                     <TableRow key={channel.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell className="font-medium">{channel.id}</TableCell>
@@ -260,6 +262,7 @@ function ChannelsPage() {
                       <TableCell>{getTypeBadge(channel.type)}</TableCell>
                       <TableCell><Badge variant="secondary">{channel.group}</Badge></TableCell>
                       <TableCell className="font-mono text-xs">{channel.cost_per_unit?.toFixed(4) || '0'}</TableCell>
+                      <TableCell className="font-mono text-xs">{((channel.profit_split || 0.85) * 100).toFixed(0) + '%'}</TableCell>
                       <TableCell>{channel.status === 1 ? <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"><CheckCircle className="w-3 h-3 mr-1" />{t('Enabled')}</Badge> : <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"><XCircle className="w-3 h-3 mr-1" />{t('Disabled')}</Badge>}</TableCell>
                       <TableCell><Badge variant="outline">{channel.weight}</Badge></TableCell>
                       <TableCell className="text-muted-foreground">{dayjs(channel.created_time * 1000).format('YYYY-MM-DD')}</TableCell>

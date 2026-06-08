@@ -465,9 +465,14 @@ AFTER_SLAVE_SETUP:
 			redisPort = "6379"
 		}
 		redisPassword := os.Getenv("REDIS_PASSWORD")
-		store, _ = redis.NewStore(10, "tcp", redisAddr+":"+redisPort, redisPassword,
+		var storeErr error
+		store, storeErr = redis.NewStore(10, "tcp", redisAddr+":"+redisPort, redisPassword,
 			[]byte(config.SessionSecret))
-		logger.SysLog("session store: Redis (multi-server mode)")
+		if storeErr != nil {
+			logger.SysWarn("failed to create Redis session store, falling back to cookie: " + storeErr.Error())
+		} else {
+			logger.SysLog("session store: Redis (multi-server mode)")
+		}
 	}
 	if store == nil {
 		store = cookie.NewStore([]byte(config.SessionSecret))
