@@ -1,0 +1,31 @@
+=== KEY COUNTS (should all be 2133) ===
+[ar] 2133 keys ✅
+[de] 2133 keys ✅
+[en] 2133 keys ✅
+[es] 2133 keys ✅
+[fr] 2133 keys ✅
+[it] 2133 keys ✅
+[ja] 2133 keys ✅
+[ko] 2133 keys ✅
+[nl] 2133 keys ✅
+[pt] 2133 keys ✅
+[ru] 2133 keys ✅
+[vi] 2133 keys ✅
+[zh-CN] 2133 keys ✅
+[zh-TW] 2133 keys ✅
+
+=== REMAINING UNTRANSLATED (non-API, non-code) ===
+  [ar] 35 remaining
+  [de] 66 remaining
+  [es] 52 remaining
+  [fr] 59 remaining
+  [it] 44 remaining
+  [ja] 35 remaining
+  [ko] 32 remaining
+  [nl] 55 remaining
+  [pt] 47 remaining
+  [ru] 34 remaining
+  [vi] 40 remaining
+  [zh-TW] 16 remaining
+
+All languages verified - no data loss.

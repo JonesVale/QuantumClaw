@@ -1,0 +1,23 @@
+=== zh-CN values (verified correct vs raw bytes) ===
+  All Pages: 全部页面
+  Apifox Playground: Apifox 在线调试
+  App Store: App Store
+  Baidu, Ali, DeepSeek, Zhipu, Tencent...: 百度、阿里、DeepSeek、智谱、腾讯...
+  Cents: 分
+  Download on the: 下载自
+  Get it on: 获取自
+  Google Play: Google Play
+
+=== UNTRANSLATED values (same as en.json) per language ===
+  [zh-TW] 179 untranslated keys
+  [ja] 113 untranslated keys
+  [ko] 183 untranslated keys
+  [fr] 201 untranslated keys
+  [de] 210 untranslated keys
+  [es] 192 untranslated keys
+  [it] 98 untranslated keys
+  [ru] 175 untranslated keys
+  [vi] 184 untranslated keys
+  [nl] 109 untranslated keys
+  [pt] 190 untranslated keys
+  [ar] 174 untranslated keys

@@ -1,0 +1,20 @@
+116 untranslated in ja
+3 are UI labels
+113 are other
+
+=== SAMPLE: UI labels (first 10) ===
+  /api/home_page_content: en=/api/home_page_content | zh=/api/home_page_content
+  identity_verification_desc: en=Complete identity verification before withdra | zh=提现前需要完成实名认证
+  settlement_cycle_hint: en=monthly / weekly / daily | zh=结算周期：每月自动结算上月收入，遇节假日顺延
+
+=== SAMPLE: Other (first 10) ===
+  -: en=- | zh=-
+  /: en=/ | zh=/
+  /api/about: en=/api/about | zh=/api/about
+  /api/admin/task: en=/api/admin/task | zh=/api/admin/task
+  /api/admin/task/poll: en=/api/admin/task/poll | zh=/api/admin/task/poll
+  /api/log/self/stat: en=/api/log/self/stat | zh=/api/log/self/stat
+  /api/log/stat: en=/api/log/stat | zh=/api/log/stat
+  /api/user/2fa/init: en=/api/user/2fa/init | zh=/api/user/2fa/init
+  /api/user/self/aff: en=/api/user/self/aff | zh=/api/user/self/aff
+  /api/user/self/topup/info: en=/api/user/self/topup/info | zh=/api/user/self/topup/info
