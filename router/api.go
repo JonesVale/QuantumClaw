@@ -91,6 +91,11 @@ func SetApiRouter(router *gin.Engine) {
 
 		apiRouter.GET("/sitemap.xml", controller.GetSitemap)
 
+		apiRouter.GET("/robots.txt", controller.GetRobotsTxt)
+
+		apiRouter.GET("/news/feed.xml", controller.GetNewsFeed)
+		apiRouter.GET("/feed.xml", controller.GetNewsFeed)
+
 		apiRouter.GET("/site-info", controller.GetSiteInfo)
 
 		apiRouter.GET("/translations/:langCode", controller.GetTranslations)
@@ -1224,10 +1229,21 @@ apiRouter.POST("/admin/model-brands/configure-all", middleware.CriticalRateLimit
 
 	apiRouter.POST("/admin/rss/articles", middleware.AdminAuth(), controller.AdminCreateRssArticle)
 
-	apiRouter.GET("/admin/translations", middleware.AdminAuth(), controller.AdminGetTranslations)
-	apiRouter.POST("/admin/translations", middleware.AdminAuth(), controller.AdminUpsertTranslation)
-	apiRouter.POST("/admin/translations/batch", middleware.AdminAuth(), controller.AdminBatchImportTranslations)
-	apiRouter.DELETE("/admin/translations/:id", middleware.AdminAuth(), controller.AdminDeleteTranslation)
+		apiRouter.GET("/admin/translations", middleware.AdminAuth(), controller.AdminGetTranslations)
+		apiRouter.POST("/admin/translations", middleware.AdminAuth(), controller.AdminUpsertTranslation)
+		apiRouter.POST("/admin/translations/batch", middleware.AdminAuth(), controller.AdminBatchImportTranslations)
+		apiRouter.DELETE("/admin/translations/:id", middleware.AdminAuth(), controller.AdminDeleteTranslation)
+
+		// ── RSS 源管理（管理员）──
+		rssAdminRoute := apiRouter.Group("/admin/rss")
+		rssAdminRoute.Use(middleware.AdminAuth())
+		{
+			rssAdminRoute.GET("/sources", controller.AdminGetRssSources)
+			rssAdminRoute.POST("/sources", controller.AdminCreateRssSource)
+			rssAdminRoute.PUT("/sources/:id", controller.AdminUpdateRssSource)
+			rssAdminRoute.DELETE("/sources/:id", controller.AdminDeleteRssSource)
+			rssAdminRoute.POST("/fetch", controller.AdminTriggerRssFetch) // 手动触发拉取
+		}
 
 		apiRouter.GET("/cascade/nodes", middleware.AdminAuth(), controller.CascadeListNodes)
 

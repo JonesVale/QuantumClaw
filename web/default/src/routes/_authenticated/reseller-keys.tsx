@@ -252,7 +252,7 @@ function ResellerKeysPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label>API Key</Label>
+              <Label>{t("API Key")}</Label>
               <Input type="password" value={form.key} onChange={(e) => setForm(f => ({ ...f, key: e.target.value }))} placeholder="sk-... or quantum API token" />
             </div>
             <div className="space-y-2">

@@ -172,7 +172,7 @@ function SettlementPage() {
                 />
                 <span className="text-sm text-muted-foreground">%</span>
               </div>
-              <p className="text-xs text-muted-foreground">Baidu, Ali, DeepSeek, Zhipu, Tencent...</p>
+              <p className="text-xs text-muted-foreground">{t("Baidu, Ali, DeepSeek, Zhipu, Tencent...")}</p>
             </div>
             <div className="space-y-2">
               <Label className="flex items-center gap-2">

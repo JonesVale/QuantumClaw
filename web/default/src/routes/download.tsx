@@ -63,8 +63,8 @@ function DownloadPage() {
                 >
                   {icons.ios}
                   <div className="text-left">
-                    <div className="text-[10px] text-white/60 font-normal">Download on the</div>
-                    <div className="text-base font-semibold -mt-0.5">App Store</div>
+                    <div className="text-[10px] text-white/60 font-normal">{t("Download on the")}</div>
+                    <div className="text-base font-semibold -mt-0.5">{t("App Store")}</div>
                   </div>
                 </a>
                 <a
@@ -74,8 +74,8 @@ function DownloadPage() {
                 >
                   {icons.android}
                   <div className="text-left">
-                    <div className="text-[10px] text-muted-foreground font-normal">Get it on</div>
-                    <div className="text-base font-semibold -mt-0.5">Google Play</div>
+                    <div className="text-[10px] text-muted-foreground font-normal">{t("Get it on")}</div>
+                    <div className="text-base font-semibold -mt-0.5">{t("Google Play")}</div>
                   </div>
                 </a>
               </div>

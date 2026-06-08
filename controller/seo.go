@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -11,10 +12,19 @@ import (
 	"github.com/quantumclaw/quantumclaw/model"
 )
 
+// getSiteURL returns the public site base URL for SEO/link generation.
+// Reads from SITE_URL env var, falls back to qscl.link.
+// This ensures correct URLs when deploying to overseas servers with different domains.
+func getSiteURL() string {
+	if url := os.Getenv("SITE_URL"); url != "" {
+		return strings.TrimRight(url, "/")
+	}
+	return "https://qscl.link"
+}
+
 // GetSiteInfo 公开站点信息（用于首页 footer）
 // GET /api/site-info
 func GetSiteInfo(c *gin.Context) {
-	// 从 OptionMap 读取公开站点配置
 	config.OptionMapRWMutex.RLock()
 	companyURL := config.OptionMap["company_website_url"]
 	icpBeian := config.OptionMap["icp_beian"]
@@ -38,7 +48,7 @@ func GetSiteInfo(c *gin.Context) {
 func GetSitemap(c *gin.Context) {
 	c.Header("Content-Type", "application/xml")
 
-	baseURL := "https://qscl.link"
+	baseURL := getSiteURL()
 	now := time.Now().Format("2006-01-02")
 
 	var sb strings.Builder
@@ -139,7 +149,7 @@ func AdminCreateRssArticle(c *gin.Context) {
 
 	// 生成唯一链接（基于标题的 slug）
 	slug := strings.ToLower(strings.ReplaceAll(req.Title, " ", "-"))
-	link := fmt.Sprintf("https://qscl.link/news?article=%s", slug)
+	link := fmt.Sprintf("%s/news?article=%s", getSiteURL(), slug)
 
 	article := &model.RssArticle{
 		Source:      req.Source,
@@ -157,4 +167,61 @@ func AdminCreateRssArticle(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"success": true, "message": "", "data": article})
+}
+
+// GetRobotsTxt returns robots.txt for search engine crawlers.
+// GET /robots.txt
+func GetRobotsTxt(c *gin.Context) {
+	c.Header("Content-Type", "text/plain")
+	content := fmt.Sprintf(`User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_authenticated/
+Sitemap: %s/sitemap.xml
+`, getSiteURL())
+	c.String(http.StatusOK, content)
+}
+
+// GetNewsFeed returns an RSS/Atom feed of the latest news articles (for feed readers).
+// GET /news/feed.xml or /feed.xml
+func GetNewsFeed(c *gin.Context) {
+	articles, _, err := model.GetRssArticles("all", 50, 0)
+	if err != nil || len(articles) == 0 {
+		c.String(http.StatusNotFound, fmt.Sprintf(`<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>QuantumClaw News</title><link>%s</link><description>No articles available yet.</description></channel></rss>`, getSiteURL()))
+		return
+	}
+
+	var sb strings.Builder
+	sb.WriteString(`<?xml version="1.0" encoding="UTF-8"?>`)
+	sb.WriteString(`<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">`)
+	sb.WriteString(`<channel>`)
+	sb.WriteString(`<title>QuantumClaw AI News | 量子灵爪 AI 资讯</title>`)
+	sb.WriteString(`<link>`)
+	sb.WriteString(getSiteURL())
+	sb.WriteString(`/news</link>`)
+	sb.WriteString(`<description>Latest AI and Quantum Computing industry news from QuantumClaw.</description>`)
+	sb.WriteString(`<language>zh-cn</language>`)
+	sb.WriteString(fmt.Sprintf(`<atom:link href="%s/news/feed.xml" rel="self" type="application/rss+xml" />`, getSiteURL()))
+
+	for _, a := range articles {
+		pubDate := a.PublishedAt.Format(time.RFC1123Z)
+		desc := a.Description
+		if len(desc) > 300 {
+			desc = desc[:300] + "..."
+		}
+		// Escape XML special characters in description
+		desc = strings.ReplaceAll(desc, "&", "&amp;")
+		desc = strings.ReplaceAll(desc, "<", "&lt;")
+		desc = strings.ReplaceAll(desc, ">", "&gt;")
+		title := strings.ReplaceAll(a.Title, "&", "&amp;")
+		title = strings.ReplaceAll(title, "<", "&lt;")
+		title = strings.ReplaceAll(title, ">", "&gt;")
+		sb.WriteString(fmt.Sprintf(`<item><title>%s</title><link>%s</link><guid isPermaLink="false">%s</guid><pubDate>%s</pubDate><description>%s</description></item>`,
+			title, a.Link, a.Link, pubDate, desc))
+	}
+
+	sb.WriteString(`</channel></rss>`)
+	c.Header("Content-Type", "application/rss+xml; charset=utf-8")
+	c.String(http.StatusOK, sb.String())
 }

@@ -2,11 +2,35 @@ import { createFileRoute } from '@tanstack/react-router'
 import { useT } from '@/lib/use-t'
 import { useState, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ExternalLink, Newspaper, Loader2, AlertCircle, Cpu, Atom } from 'lucide-react'
+import { ExternalLink, Newspaper, Loader2, AlertCircle, Cpu, Atom, Rss } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { newsSources } from '@/lib/news-sources'
+
+// ── SEO: 动态设置页面标题和 meta 标签 ──
+function setNewsSEO(title?: string, description?: string) {
+  if (typeof document === 'undefined') return
+  document.title = title || 'AI 行业资讯 | QuantumClaw 量子灵爪'
+  updateMeta('description', description || 'QuantumClaw AI 行业资讯 — 聚合全球人工智能、量子计算、大模型领域最新动态与技术趋势。')
+  updateMeta('og:title', title || 'AI 行业资讯 | QuantumClaw')
+  updateMeta('og:description', description || '聚合全球人工智能、量子计算、大模型领域最新动态与技术趋势。')
+  updateMeta('og:type', 'website')
+  updateMeta('og:url', window.location.href)
+}
+
+function updateMeta(name: string, content: string) {
+  if (typeof document === 'undefined') return
+  const isOG = name.startsWith('og:')
+  const attr = isOG ? 'property' : 'name'
+  let el = document.querySelector(`meta[${attr}="${name}"]`) as HTMLMetaElement | null
+  if (!el) {
+    el = document.createElement('meta')
+    el.setAttribute(attr, name)
+    document.head.appendChild(el)
+  }
+  el.setAttribute('content', content)
+}
 
 export const Route = createFileRoute('/_authenticated/news')({
   component: NewsPage,
@@ -159,6 +183,12 @@ function NewsPage() {
   const { t } = useT()
   // Use react-i18next directly to get reactive i18n.language
   const { i18n } = useTranslation()
+
+  // ── SEO: 设置页面 meta ──
+  useEffect(() => {
+    setNewsSEO()
+    return () => {} // cleanup (optional)
+  }, [])
 
   // Derive language filter from current UI language — fully automatic
   // zh-CN/zh-TW → zh articles, en → en articles, other languages → all

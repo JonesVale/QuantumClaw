@@ -120,10 +120,10 @@ function WalletPage() {
   const historyItems: any[] = topupHistory?.data || []
 
   const methodConfig: Record<string, { label: string; icon: any }> = {
-    stripe: { label: 'Stripe', icon: CreditCard },
-    epay: { label: 'Epay', icon: Banknote },
-    creem: { label: 'Creem', icon: Wallet },
-    waffo: { label: 'Waffo', icon: ArrowUpRight },
+    stripe: { label: t('Stripe'), icon: CreditCard },
+    epay: { label: t('Epay'), icon: Banknote },
+    creem: { label: t('Creem'), icon: Wallet },
+    waffo: { label: t('Waffo'), icon: ArrowUpRight },
     binance: { label: t('Binance Pay'), icon: DollarSign },
     alipay: { label: t('Alipay'), icon: DollarSign },
     worldfirst: { label: t('WorldFirst'), icon: DollarSign },

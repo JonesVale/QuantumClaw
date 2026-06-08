@@ -255,7 +255,7 @@ function ApiDocsPage() {
       <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
         <p className="text-sm text-blue-700 dark:text-blue-300">
           {t('apifox_debug_hint')}{' '}
-          <a href="https://apifox.newapi.ai/" target="_blank" rel="noopener noreferrer" className="underline font-medium">Apifox Playground</a>
+          <a href="https://apifox.newapi.ai/" target="_blank" rel="noopener noreferrer" className="underline font-medium">{t("Apifox Playground")}</a>
         </p>
       </div>
 

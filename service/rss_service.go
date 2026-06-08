@@ -74,12 +74,14 @@ type RssSource struct {
 
 // RssSources returns the list of RSS/Atom feeds to fetch.
 // Matches the hardcoded sources from news-sources.ts.
+// NOTE: These are fallback defaults; the service reads from rss_sources DB table first.
+// If no enabled sources exist in DB, these defaults are used and auto-seeded into the database.
 func RssSources() []RssSource {
 	return []RssSource{
 		// ── 中文 ──
 		{
 			Name:     "机器之心",
-			FeedURL:  "https://www.jiqizhixin.com/feed",
+			FeedURL:  "https://www.jiqizhixin.com/rss",
 			Language: "zh",
 			Enabled:  false, // RSS feed deprecated (returns HTML, not RSS)
 		},
@@ -87,7 +89,7 @@ func RssSources() []RssSource {
 			Name:     "量子位",
 			FeedURL:  "https://www.qbitai.com/feed",
 			Language: "zh",
-			Enabled:  true,
+			Enabled:  false, // HTTP 403 — 已被封禁，需换新地址
 		},
 		{
 			Name:     "36氪 AI",
@@ -99,7 +101,25 @@ func RssSources() []RssSource {
 			Name:     "雷锋网",
 			FeedURL:  "https://www.leiphone.com/feed",
 			Language: "zh",
-			Enabled:  true, // Fixed from /feed/category/ai to /feed
+			Enabled:  true,
+		},
+		{
+			Name:     "AI科技评论",
+			FeedURL:  "https://www.aireviewweekly.com/rss.xml",
+			Language: "zh",
+			Enabled:  true,
+		},
+		{
+			Name:     "InfoQ AI",
+			FeedURL:  "https://www.infoq.cn/feed?tag=人工智能",
+			Language: "zh",
+			Enabled:  true,
+		},
+		{
+			Name:     "新智元",
+			FeedURL:  "https://www.jiqizhixin.com/rss", // 新智元与机器之心同源，备用
+			Language: "zh",
+			Enabled:  false, // 待验证
 		},
 		// ── English ──
 		{
@@ -118,7 +138,7 @@ func RssSources() []RssSource {
 			Name:     "Google AI",
 			FeedURL:  "https://feeds.feedburner.com/blogspot/gJZg",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内超时，需代理
 		},
 		{
 			Name:     "MIT Tech Review",
@@ -130,32 +150,32 @@ func RssSources() []RssSource {
 			Name:     "ArXiv",
 			FeedURL:  "https://export.arxiv.org/rss/cs.AI",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内可能超时
 		},
 		{
 			Name:     "Hugging Face",
 			FeedURL:  "https://huggingface.co/blog/feed.xml",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内超时
 		},
 		{
 			Name:     "Reddit AI",
 			FeedURL:  "https://www.reddit.com/r/artificial/.rss",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内超时
 		},
 		// ── Quantum Computing ──
 		{
 			Name:     "arXiv Quantum Physics",
 			FeedURL:  "https://export.arxiv.org/rss/quant-ph",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内超时
 		},
 		{
 			Name:     "Google Quantum AI",
 			FeedURL:  "https://blog.research.google/feeds/posts/default/-/quantum",
 			Language: "en",
-			Enabled:  true,
+			Enabled:  false, // 国内超时
 		},
 		{
 			Name:     "Quanta Magazine",
@@ -337,6 +357,29 @@ func stripHTMLTags(s string) string {
 
 // ---------- Core service ----------
 
+// FetchSingleSource is a public wrapper for fetchAndStoreSource, used by admin API to manually trigger a fetch.
+func FetchSingleSource(name, feedURL, language string) error {
+	return fetchAndStoreSource(RssSource{Name: name, FeedURL: feedURL, Language: language})
+}
+
+// FetchAllEnabledSources fetches all enabled sources from the database (used for manual trigger).
+func FetchAllEnabledSources() (int, int) {
+	sources, err := model.GetEnabledRssSources()
+	if err != nil || len(sources) == 0 {
+		return 0, 0
+	}
+	success := 0
+	for _, s := range sources {
+		if err := fetchAndStoreSource(RssSource{Name: s.Name, FeedURL: s.FeedURL, Language: s.Language}); err != nil {
+			model.UpdateRssSourceFetchStatus(s.Id, time.Now(), err.Error())
+		} else {
+			model.UpdateRssSourceFetchStatus(s.Id, time.Now(), "")
+			success++
+		}
+	}
+	return len(sources), success
+}
+
 // fetchAndStoreSource fetches a single RSS source and stores articles
 func fetchAndStoreSource(source RssSource) error {
 	body, err := fetchFeed(source.FeedURL)
@@ -373,12 +416,40 @@ func fetchAndStoreSource(source RssSource) error {
 }
 
 // StartRssService runs the RSS fetch loop in the background.
-// It fetches all sources on startup and then every 10 minutes.
+// It reads enabled sources from the rss_sources database table (preferred),
+// falling back to hardcoded defaults if the DB is empty (auto-seeds defaults into DB).
 func StartRssService(ctx context.Context) {
 	logger.SysLog("RSS fetch service started")
 
+	// Ensure default sources exist in database
+	seeded, err := model.SeedDefaultRssSources()
+	if err != nil {
+		logger.SysError(fmt.Sprintf("RSS seed error: %v", err))
+	} else if seeded > 0 {
+		logger.SysLog(fmt.Sprintf("RSS: Seeded %d default sources into database", seeded))
+	}
+
+	// Load enabled sources from database
+	dbSources, dbErr := model.GetEnabledRssSources()
+	var sources []RssSource
+	if dbErr == nil && len(dbSources) > 0 {
+		// Database has sources — use them
+		for _, s := range dbSources {
+			sources = append(sources, RssSource{
+				Name:     s.Name,
+				FeedURL:  s.FeedURL,
+				Language: s.Language,
+				Enabled:  s.Enabled,
+			})
+		}
+		logger.SysLog(fmt.Sprintf("RSS: Loaded %d enabled sources from database", len(sources)))
+	} else {
+		// Fallback to hardcoded defaults (DB empty or error)
+		sources = RssSources()
+		logger.SysLog(fmt.Sprintf("RSS: Using %d fallback hardcoded sources (DB error or empty)", len(sources)))
+	}
+
 	// Do an initial fetch on startup
-	sources := RssSources()
 	for _, source := range sources {
 		if !source.Enabled {
 			logger.SysLog(fmt.Sprintf("RSS source [%s] is disabled, skipping", source.Name))
@@ -407,6 +478,20 @@ func StartRssService(ctx context.Context) {
 			logger.SysLog("RSS fetch service stopped (context cancelled)")
 			return
 		case <-ticker.C:
+			// Re-load from database each cycle to pick up enable/disable changes
+			dbSources, dbErr = model.GetEnabledRssSources()
+			if dbErr == nil && len(dbSources) > 0 {
+				sources = make([]RssSource, 0, len(dbSources))
+				for _, s := range dbSources {
+					sources = append(sources, RssSource{
+						Name:     s.Name,
+						FeedURL:  s.FeedURL,
+						Language: s.Language,
+						Enabled:  s.Enabled,
+					})
+				}
+			}
+
 			for _, source := range sources {
 				select {
 				case <-ctx.Done():

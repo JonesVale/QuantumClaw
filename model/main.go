@@ -279,6 +279,7 @@ func migrateDB() error {
 	attempt("WebAuthnCredential", func() error { return DB.AutoMigrate(&WebAuthnCredential{}) })
 	attempt("MenuItem", func() error { return DB.AutoMigrate(&MenuItem{}) })
 	attempt("RssArticle", func() error { return DB.AutoMigrate(&RssArticle{}) })
+	attempt("RssSource", func() error { return DB.AutoMigrate(&DbRssSource{}) })
 	attempt("TransactionLog", func() error { return DB.AutoMigrate(&TransactionLog{}) })
 	attempt("ModelMetadata", func() error { return DB.AutoMigrate(&ModelMetadata{}) })
 	attempt("Notification", func() error { return DB.AutoMigrate(&Notification{}) })
