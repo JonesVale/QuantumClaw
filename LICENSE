@@ -1,0 +1,407 @@
+GNU AFFERO GENERAL PUBLIC LICENSE
+Version 3, 19 November 2007
+
+Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+Everyone is permitted to copy and distribute verbatim copies
+of this license document, but changing it is not allowed.
+
+                            Preamble
+
+  The GNU Affero General Public License is a free, copyleft license for
+software and other kinds of works, specifically designed to ensure
+cooperation with the community in the case of network server software.
+
+  The licenses for most software and other practical works are designed
+to take away your freedom to share and change the works.  By contrast,
+our General Public Licenses are intended to guarantee your freedom to
+share and change all versions of a program--to make it free software for
+all its users.
+
+  This license, the GNU Affero General Public License, applies to certain
+specifically designated software projects--typically open-source software
+projects--that are hosted and run on servers. It is designed to ensure
+that anyone who interacts with the software over a network has the freedom
+to access the source code.
+
+  The licenses for most software are designed to take away your freedom to
+share and change the works.  By contrast, our General Public Licenses are
+intended to guarantee your freedom to share and change all versions of a
+program--to make it free software for all its users.
+
+  When we speak of free software, we are referring to freedom, not price.
+Our General Public Licenses are designed to make free all software--to
+make it free to use, to change, and to share it.  At the same time, we
+protect our rights by prohibiting others from making unauthorized copies
+or claiming that they are the authors of our work.
+
+  However, there is an important distinction between general software and
+network server software.  The latter is often used in business
+environments where users interact with the software over a network. The
+GNU Affero General Public License addresses this by requiring that anyone
+who modifies the software and runs it as a network service must make the
+source code available to the users of that service.
+
+  The following license terms apply to the open-source portion of this
+software. For commercial use, a separate commercial license must be
+obtained from 深圳市中科劲纬智能有限公司.
+
+                            TERMS AND CONDITIONS
+
+  0. Definitions.
+
+  "This License" refers to version 3 of the GNU Affero General Public
+License.
+
+  "Copyright" also means copyright-like laws that apply to other kinds of
+works, such as semiconductor mask rights.
+
+  "The Work" refers to any copyrightable work licensed under this
+License. Each licensee is addressed as "you".  "Licensees" and
+"recipients" may be individuals or organizations.
+
+  To "modify" a work means to copy from or adapt all or part of the work
+in a fashion requiring copyright permission, other than the making of an
+exact copy. The resulting work is called a "modified version" of the
+earlier work or a work "based on" the earlier work.
+
+  A "covered work" means either the unmodified Work or a Work based on
+the Work.
+
+  To "convey" a work means any kind of propagation that enables other
+parties to make or receive copies.  Mere interaction with a user through
+a computer network, with no transfer of a copy, is not conveying.
+
+  Interactive user interfaces display "Appropriate Legal Notices" to the
+extent that it includes a convenient and prominently visible feature that:
+  (1) displays an appropriate copyright notice, and
+  (2) tells the user that there is no warranty for the work (except to the
+  extent that warranties are provided), that licensees may convey the
+  work under this License, and how to view a copy of this License.  If
+  the interface presents a list of user commands or options, such as a
+  menu, a prominent item in the list meets this criterion.
+
+  1. Source Code.
+
+  The "source code" for a work means the preferred form of the work for
+making modifications to it.  "Object code" means any non-source form of a
+work.
+
+  A "Standard Interface" means an interface that either is an official
+standard defined by a recognized standards body, or, in the case of
+interfaces specified for a particular programming language, one that
+is widely used among developers working in that language.
+
+  The "System Libraries" of an executable work include anything, other
+than the work as a whole, that (a) is included in a normal bundle of
+components included in the work's design as a component primarily
+designed for use in specifying or customizing the work's interfaces,
+and (b) is not part of the work's own source code.
+
+  "Installation Information" for an executable work means anything,
+other than the work as a whole, that (a) is specifically included in
+the work for the purpose of being used together with that work, and
+(b) is sufficient in quantity and functionality to allow the work to
+be installed and re-executed using modified source code from the
+work.  "Installation Information" does not include anything that
+would be required to interface with any subsequent modified version
+of the work that does not require the Installation Information.
+
+  2. Basic Permissions.
+
+  All rights granted under this License are granted for the term of
+copyright on the Work, and are irrevocable provided the stated
+conditions are met.  This License explicitly affirms your unlimited
+permission to run the unmodified Work.  The output from running a
+covered work is covered by this License only if the output, given
+its content, constitutes a covered work.  This License acknowledges
+your rights of fair use or other equivalent, as provided by
+copyright law.
+
+  You may make, run and propagate covered works that you do not
+convey, without conditions so long as your license otherwise remains
+in force.  You may convey covered works to others for the sole purpose
+of having them make modifications exclusively for you, or provide you
+with facilities for running those works, provided that you comply with
+the terms of this License in conveying all material for which you do
+not control copyright.  Those thus making or running the covered works
+for you do so exclusively on your behalf, under your direction and
+control, on terms that prohibit them from making any copies of your
+copyrighted material outside their relationship with you.
+
+  Conveying under any other circumstances is permitted solely under
+the conditions stated below.  Sublicensing is not allowed; section 10
+makes it unnecessary.
+
+  3. Protecting Users' Legal Rights From Anti-Circumvention Law.
+
+  No covered work shall be deemed part of an effective technological
+measure under any applicable law fulfilling obligations under article
+11 of the WIPO copyright treaty adopted on 20 December 1996, or
+similar laws prohibiting or restricting circumvention of such
+measures.
+
+  When you convey a covered work, you waive any legal power to forbid
+circumvention of technological measures to the extent such circumvention
+is effected by exercising rights under this License with respect to
+the covered work, and you disclaim any intention to limit operation or
+modification of the work as a means of enforcing, against the work's
+users, your or third parties' legal rights to forbid circumvention of
+technological measures.
+
+  4. Conveying Verbatim Copies.
+
+  You may convey verbatim copies of the Work's source code as you
+receive it, in any medium, provided that you conspicuously and
+appropriately publish on each copy an appropriate copyright notice;
+keep intact all notices stating that this License and any
+non-permissive terms added in accord with section 7 apply to the code;
+keep intact all notices of the absence of any warranty; and give all
+recipients a copy of this License along with the Work.
+
+  You may charge any price or no price for each copy that you
+convey, and you may offer support or warranty protection for a fee.
+
+  5. Conveying Modified Source Versions.
+
+  You may convey a work based on the Work, or modifying the Work
+produced by running it, in source code under the terms of section 4,
+provided that you also meet all of these conditions:
+
+    a) The work must carry prominent notices stating that you modified
+    it, and giving a relevant date.
+
+    b) The work must carry prominent notices stating that it is
+    released under this License and the conditions of section 4
+    apply to it.
+
+    c) You must license the entire work, as a whole, under this
+    License to anyone who comes into possession of a copy.  This
+    License will therefore apply, along with any applicable section 7
+    additional terms, to the whole of the work, and all its parts,
+    regardless of how they are packaged.
+
+    d) You must give all recipients of the work a copy of this License
+    along with the work.
+
+  6. Conveying Non-Source Forms.
+
+  You may convey a covered work in object code form under the terms
+of sections 4 and 5, provided that you also convey the
+machine-readable Corresponding Source under the terms of this License,
+in one of these ways:
+
+    a) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by the
+    Corresponding Source fixed on a durable physical medium customarily
+    used for software interchange.
+
+    b) Convey the object code in, or embodied in, a physical product
+    (including a physical distribution medium), accompanied by a
+    written offer, valid for at least three years and valid for as
+    long as you offer spare parts or customer support for that product
+    model, to give anyone who possesses the object code either (1) a
+    copy of the Corresponding Source for all the software in the product
+    that is covered by this License, on a durable physical medium
+    customarily used for software interchange, for a price no more
+    than your reasonable cost of physically performing this conveying
+    of source, or (2) access to copy the Corresponding Source from a
+    network server at no charge.
+
+    c) Convey individual copies of the object code with a copy of the
+    written offer to provide the Corresponding Source.  This
+    alternative is allowed only occasionally and noncommercially, and
+    only if you received the object code with such an offer, in accord
+    with subsection 6b.
+
+    d) Convey the object code by offering access from a designated
+    place (paid or free), and offer equivalent access to the
+    Corresponding Source in the same way through the same place at no
+    further charge.  You need not require recipients to copy the
+    Corresponding Source along with the object code.  If the place to
+    copy the object code is a network server, the Corresponding Source
+    may be on a different server (operated by you or a third party)
+    that supports equivalent copying facilities, provided you maintain
+    clear directions next to the object code saying where to find the
+    Corresponding Source.  Regardless of what server hosts the
+    Corresponding Source, you remain obligated to ensure that it is
+    available for as long as needed to satisfy these requirements.
+
+    e) Convey the object code using peer-to-peer transmission,
+    provided you inform other peers where the object code and
+    Corresponding Source of the work are being offered to the general
+    public at no charge under subsection 6d.
+
+  7. Additional Terms.
+
+  "Additional permissions" are terms that supplement the terms of this
+License by making exceptions from one or more of its conditions.
+Additional permissions that are applicable to the entire Work shall be
+treated as part of this License, and may be added to the Work's source
+code or documentation, or provided under separate written agreement.
+
+  You may choose to offer protection for the privacy and security of
+users, or to limit your liability, by adding additional terms to this
+License, provided that such terms do not restrict the freedoms granted
+by this License.
+
+  The "authors" and "copyright owners" of this Work are:
+  深圳市中科劲纬智能有限公司
+  Website: https://www.ctji.cn
+
+  Commercial license is required for:
+  - Payment processing modules
+  - Financial settlement modules
+  - User authentication modules
+  - Security encryption modules
+  - Any closed-source components
+
+  Contact: business@ctji.cn
+
+  8. Termination.
+
+  You may not propagate or modify a covered work except as expressly
+provided under this License.  Any attempt otherwise to propagate or
+modify it is void, and will automatically terminate your rights under
+this License (including any patent licenses granted under the third
+paragraph of section 11).
+
+  However, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated (a)
+provisionally, unless and until the copyright holder explicitly and
+finally terminates your license, and (b) permanently, if the copyright
+holder fails to notify you of the violation by some reasonable means
+prior to 60 days after the cessation.
+
+  Moreover, if you cease all violation of this License, then your
+license from a particular copyright holder is reinstated permanently
+if the copyright holder notifies you of the violation by some
+reasonable means, this is the first time you have received notice of
+violation of this License (for any work) from that copyright holder,
+and you cure the violation prior to 30 days after your receipt of the
+notice.
+
+  9. Acceptance Not Required for Having Copies.
+
+  You are not required to accept this License in order to receive or
+run a copy of the Work.  Ancillary propagation of a covered work
+occurring solely as a consequence of using peer-to-peer transmission
+to receive a copy likewise does not require acceptance.  However,
+nothing other than this License grants you permission to propagate or
+modify any covered work.  These actions infringe copyright if you do
+not accept this License.  Therefore, by propagating or modifying the
+Work, you indicate your acceptance of this License to do so.
+
+  10. Automatic Licensing of Downstream Recipients.
+
+  Each time you convey a covered work, the recipient automatically
+receives a license from the original licensors, to run, modify and
+propagate that work, subject to this License.  You are not responsible
+for enforcing compliance by third parties with this License.
+
+  11. Patents.
+
+  A "contributor" is a copyright holder who authorizes use under this
+License of the Work or a work on which the Work is based.  The Work
+or work on which the Work is based is called the "contributor version"
+of the Work.
+
+  The "contributor's essential patent claims" are all patent claims
+owned or controlled by the contributor, whether acquired prior to or
+after making the Work or the contributor version of the Work, that would
+be infringed by some manner, permitted by this License, of making,
+using, or selling the contributor version of the Work.
+
+  If you convey a covered work, you hereby grant to all recipients a
+royalty-free patent license to make, use, sell, offer to sell, import
+and otherwise run the contributor version of the Work.
+
+  12. No Surrender of Others' Freedom.
+
+  If conditions are imposed on you (whether by court order, agreement or
+otherwise) that contradict the conditions of this License, they do not
+excuse you from the conditions of this License.  If you cannot convey a
+covered work so as to satisfy simultaneously your obligations under this
+License and any other pertinent obligations, then as a consequence you may
+not convey it at all.  For example, if you agree to terms that obligate you
+to collect a royalty for further conveying from those with whom you
+distribute the Work, you may not convey it under the terms of this License.
+
+  13. Remote Network Interaction; Use with Open Source Software.
+
+  If you modify a covered work and run it as a network service, you
+must make the source code available to all users of that service.
+
+  The "Corresponding Source" for a work of object code form means the
+complete machine-readable source code plus any scripts used to control
+the compilation and installation of the source code.
+
+  If you operate or use a network server to provide the Work or a work
+based on the Work to users over a network, and the source code is not
+available to those users at no charge while you operate or use the
+network server, you must make the source code available to those users
+at no charge by some other means.
+
+  14. Revised Versions of this License.
+
+  The Free Software Foundation may publish revised and/or new versions
+of the GNU Affero General Public License from time to time.
+
+  15. Disclaimer of Warranty.
+
+  THERE IS NO WARRANTY FOR THE WORK, TO THE EXTENT PERMITTED BY
+APPLICABLE LAW.  EXCEPT WHEN OTHERWISE STATED IN WRITING THE COPYRIGHT
+HOLDERS AND/OR OTHER PARTIES PROVIDE THE WORK "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+PURPOSE.  THE ENTIRE RISK AS TO THE QUALITY AND PERFORMANCE OF THE WORK
+IS WITH YOU.  SHOULD THE WORK PROVE DEFECTIVE, YOU ASSUME THE COST OF
+ALL NECESSARY SERVICING, REPAIR OR CORRECTION.
+
+  16. Limitation of Liability.
+
+  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING
+WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MODIFIES AND/OR
+CONVEYS THE WORK AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,
+INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES
+ARISING OUT OF THE USE OR INABILITY TO USE THE WORK (INCLUDING BUT NOT
+LIMITED TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES
+SUSTAINED BY YOU OR THIRD PARTIES OR A FAILURE OF THE WORK TO OPERATE
+WITH ANY OTHER PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+
+  17. Interpretation of Sections 15 and 16.
+
+  If the disclaimer of warranty and limitation of liability provided
+above cannot be given local legal effect according to their terms,
+reviewing courts shall apply local law that most closely approximates
+an absolute waiver of all civil liability in connection with the Work,
+unless the warranty and/or liability for the Work is attributable to
+the contributor who provided the sample code or installation.
+
+  END OF TERMS AND CONDITIONS
+
+------------------------------------------------------------------------
+
+Copyright (C) 2026 深圳市中科劲纬智能有限公司
+官网: https://www.ctji.cn
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+**IMPORTANT NOTICE:**
+This software is released under a dual licensing model:
+1. AGPL-3.0 for open-source portions (personal learning only)
+2. Commercial license required for business use
+
+For commercial licensing, contact: business@ctji.cn
+Copyright (C) 2026 深圳市中科劲纬智能有限公司. All Rights Reserved.

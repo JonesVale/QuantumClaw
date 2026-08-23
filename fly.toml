@@ -1,0 +1,26 @@
+# QuantumClaw Open Source Edition
+
+[build]
+  basepath = "."
+  exclude = [
+    "migrations/*.bak",
+    "migrations/*.sql.bak",
+    "**/payment/*.go",
+    "**/financial/*.go",
+    "**/security/*.go",
+    "**/.env",
+    "**/.env.*.local",
+    "**/private_keys/**",
+    "**/*.pem",
+    "**/*.key",
+    "**/*.crt",
+    "data/**",
+    "backup/**",
+    "uploads/**",
+    "logs/**",
+  ]
+
+[instance]
+  mode = "release"
+  name = "QuantumClaw Open Source Edition"
+  copyright = "Copyright (C) 2026 深圳市中科劲纬智能有限公司"

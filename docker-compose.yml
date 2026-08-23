@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3666:3666"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=quantumclaw
+      - DB_PASSWORD=quantumclaw_password
+      - DB_NAME=quantumclaw_open
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=your_jwt_secret_min_32_characters_here
+      - SERVER_ADDR=:3666
+      - SERVER_MODE=release
+    depends_on:
+      - mysql
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=quantumclaw_open
+      - MYSQL_USER=quantumclaw
+      - MYSQL_PASSWORD=quantumclaw_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
